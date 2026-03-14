@@ -117,23 +117,31 @@ export async function pushClosedCase(kase) {
 // ── Supabase Edge Function URL + auth headers ────────────────────────────────
 
 const FUNCTIONS_URL = 'https://nmvjthfezyjcwuzphiuu.supabase.co/functions/v1'
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo'
 
 async function edgeFetch(fnName, body) {
   const { data: { session } } = await supabase.auth.getSession()
-  const token = session?.access_token
+  // Use user JWT if available, otherwise fall back to anon key
+  // (anon key is a valid JWT that Supabase Gateway always accepts)
+  const token = session?.access_token || ANON_KEY
   const res = await fetch(`${FUNCTIONS_URL}/${fnName}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo',
+      'apikey': ANON_KEY,
     },
     body: JSON.stringify(body),
   })
   if (!res.ok) {
     const text = await res.text()
     let msg = `Edge Function ${fnName}: HTTP ${res.status}`
-    try { const j = JSON.parse(text); msg = j.error?.message || j.msg || msg } catch {}
+    try {
+      const j = JSON.parse(text)
+      msg = j.error?.message || j.msg || j.message || msg
+    } catch {
+      if (text) msg += ` — ${text.slice(0, 200)}`
+    }
     throw new Error(msg)
   }
   return res.json()
