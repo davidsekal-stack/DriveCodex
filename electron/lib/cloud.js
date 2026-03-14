@@ -182,19 +182,17 @@ async function pushCase(supabaseUrl, anonKey, installationId, kase) {
 
   try {
     const row = caseToRow(kase, installationId)
-    await supabaseRequest(
+    // push-case Edge Function handles translation to English + DB insert
+    const { body } = await supabaseRequest(
       'POST', supabaseUrl, anonKey,
-      '/rest/v1/gearbrain_cases',
+      '/functions/v1/push-case',
       row,
-      8000,
-      { 'Prefer': 'return=minimal' }
+      15000,  // longer timeout — translation adds ~2-3s
+      {}
     )
+    if (body?.error) return { ok: false, error: body.error }
     return { ok: true, error: null }
   } catch (e) {
-    // Duplikát (unique constraint) — data už v DB existují, to je OK
-    if (e.message.includes('duplicate') || e.message.includes('23505')) {
-      return { ok: true, error: null }
-    }
     return { ok: false, error: e.message }
   }
 }
