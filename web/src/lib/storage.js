@@ -91,7 +91,8 @@ export async function pushClosedCase(kase) {
 
   const mileage = parseInt(kase.vehicle?.mileage, 10)
 
-  const row = {
+  // Call push-case Edge Function — handles translation to English + DB insert
+  const result = await edgeFetch('push-case', {
     local_id:        kase.id,
     user_id:         user.id,
     installation_id: user.id,  // web uses user_id as installation_id
@@ -104,16 +105,9 @@ export async function pushClosedCase(kase) {
     description:     texts.join(' ') || null,
     resolution:      kase.resolution,
     closed_at:       kase.closedAt || new Date().toISOString(),
-  }
+  })
 
-  // Use INSERT + ignore duplicate (23505), matching Electron version behaviour.
-  // gearbrain_cases has a PARTIAL unique index (WHERE local_id IS NOT NULL)
-  // which is incompatible with upsert onConflict.
-  const { error } = await supabase
-    .from('gearbrain_cases')
-    .insert(row)
-
-  if (error && error.code !== '23505') return { ok: false, error: error.message }
+  if (result.error) return { ok: false, error: result.error }
   return { ok: true }
 }
 
