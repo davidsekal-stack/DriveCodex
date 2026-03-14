@@ -100,11 +100,14 @@ export async function pushClosedCase(kase) {
     closed_at:       kase.closedAt || new Date().toISOString(),
   }
 
+  // Use INSERT + ignore duplicate (23505), matching Electron version behaviour.
+  // gearbrain_cases has a PARTIAL unique index (WHERE local_id IS NOT NULL)
+  // which is incompatible with upsert onConflict.
   const { error } = await supabase
     .from('gearbrain_cases')
-    .upsert(row, { onConflict: 'installation_id,local_id' })
+    .insert(row)
 
-  if (error) return { ok: false, error: error.message }
+  if (error && error.code !== '23505') return { ok: false, error: error.message }
   return { ok: true }
 }
 
