@@ -32,57 +32,33 @@ export async function loadCases() {
   }))
 }
 
-// ── Create a new case ──────────────────────────────────────────────────────────
+// ── Save a case (upsert by user_id + local_id) ────────────────────────────────
+// Used for both create and update. Reliable: never loses data even if
+// createCase failed on first save (e.g. due to auth error).
 
-export async function createCase(caseData) {
+async function saveCase(caseData, status = 'open') {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Nepřihlášen')
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from(TABLE)
-    .insert({
-      user_id: user.id,
-      data: caseData,
-      status: 'open',
-    })
-    .select('id')
-    .single()
-
-  if (error) throw error
-  return data.id
-}
-
-// ── Update an existing case (insert if row doesn't exist yet) ──────────────────
-
-export async function updateCase(caseId, caseData, status = 'open') {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Nepřihlášen')
-
-  // Try to update existing row; returns updated rows array
-  const { data: updated, error } = await supabase
-    .from(TABLE)
-    .update({
-      data: caseData,
+    .upsert({
+      user_id:  user.id,
+      local_id: caseData.id,
+      data:     caseData,
       status,
       updated_at: new Date().toISOString(),
-    })
-    .eq('data->>id', caseId)
-    .select('id')
+    }, { onConflict: 'user_id,local_id' })
 
   if (error) throw error
+}
 
-  // If no row matched (case was never saved to DB — e.g. createCase failed),
-  // insert it now so it doesn't get lost
-  if (!updated || updated.length === 0) {
-    const { error: insertError } = await supabase
-      .from(TABLE)
-      .insert({
-        user_id: user.id,
-        data: caseData,
-        status,
-      })
-    if (insertError) throw insertError
-  }
+export async function createCase(caseData) {
+  return saveCase(caseData, 'open')
+}
+
+export async function updateCase(caseId, caseData, status = 'open') {
+  return saveCase(caseData, status)
 }
 
 // ── Delete a case ──────────────────────────────────────────────────────────────
@@ -91,7 +67,7 @@ export async function deleteCase(caseId) {
   const { error } = await supabase
     .from(TABLE)
     .delete()
-    .eq('data->>id', caseId)
+    .eq('local_id', caseId)
 
   if (error) throw error
 }
