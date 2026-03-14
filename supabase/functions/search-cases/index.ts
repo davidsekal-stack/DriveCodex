@@ -95,6 +95,53 @@ Deno.serve(async (req) => {
   try {
     const { vehicle, symptoms, obdCodes, text, installationId } = await req.json()
 
+    // ── Normalizace dotazu do angličtiny ───────────────────────────────────────
+    // DB záznamy jsou přeloženy do angličtiny při uložení (push-case).
+    // Příznaky a volný text z dotazu musí být ve stejném jazyce pro string matching.
+    // OBD kódy a vehicle (brand/model) jsou jazykově neutrální — nepřekládáme.
+    let searchSymptoms: string[] = symptoms ?? []
+    let searchText:     string   = text      ?? ''
+
+    const needsNormalization = searchSymptoms.length > 0 || searchText.trim().length > 0
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
+
+    if (needsNormalization && anthropicKey) {
+      try {
+        const translateRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type':      'application/json',
+            'x-api-key':         anthropicKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model:      'claude-haiku-4-5-20251001',
+            max_tokens: 300,
+            messages: [{
+              role:    'user',
+              content: `Translate these automotive diagnostic fields to English. If already in English, return as-is. Return ONLY valid JSON.
+
+Input: ${JSON.stringify({ symptoms: searchSymptoms, text: searchText })}
+Return format: {"symptoms":["..."],"text":"..."}`,
+            }],
+          }),
+        })
+
+        if (translateRes.ok) {
+          const data  = await translateRes.json()
+          const raw   = (data.content?.[0]?.text ?? '').trim()
+          const start = raw.indexOf('{')
+          if (start !== -1) {
+            const parsed = JSON.parse(raw.slice(start))
+            if (Array.isArray(parsed.symptoms)) searchSymptoms = parsed.symptoms
+            if (typeof parsed.text === 'string') searchText     = parsed.text
+          }
+        }
+      } catch {
+        // Překlad selhal — pokračujeme s originálními hodnotami
+      }
+    }
+
     // Service role klient — má přístup k tabulce i přes zakázaný anon SELECT
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -129,7 +176,8 @@ Deno.serve(async (req) => {
 
     if (error) throw error
 
-    const input = { vehicle, symptoms, obdCodes, text }
+    // Scoring používá přeložené příznaky a text (ostatní jsou jazykově neutrální)
+    const input = { vehicle, symptoms: searchSymptoms, obdCodes, text: searchText }
 
     // Scoring + filtrování + řazení
     const scored = (rows ?? []).map((row: any) => {
