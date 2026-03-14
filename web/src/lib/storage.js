@@ -52,10 +52,14 @@ export async function createCase(caseData) {
   return data.id
 }
 
-// ── Update an existing case ────────────────────────────────────────────────────
+// ── Update an existing case (insert if row doesn't exist yet) ──────────────────
 
 export async function updateCase(caseId, caseData, status = 'open') {
-  const { error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Nepřihlášen')
+
+  // Try to update existing row; returns updated rows array
+  const { data: updated, error } = await supabase
     .from(TABLE)
     .update({
       data: caseData,
@@ -63,8 +67,22 @@ export async function updateCase(caseId, caseData, status = 'open') {
       updated_at: new Date().toISOString(),
     })
     .eq('data->>id', caseId)
+    .select('id')
 
   if (error) throw error
+
+  // If no row matched (case was never saved to DB — e.g. createCase failed),
+  // insert it now so it doesn't get lost
+  if (!updated || updated.length === 0) {
+    const { error: insertError } = await supabase
+      .from(TABLE)
+      .insert({
+        user_id: user.id,
+        data: caseData,
+        status,
+      })
+    if (insertError) throw insertError
+  }
 }
 
 // ── Delete a case ──────────────────────────────────────────────────────────────
