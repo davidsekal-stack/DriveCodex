@@ -103,8 +103,9 @@ Deno.serve(async (req) => {
     )
 
     // Předfiltrování na DB úrovni:
-    // 1) Značka jako base filtr — prohledáváme pouze záznamy stejné značky
-    // 2) OBD kódy nebo model jako sekundární filtr
+    // 1) Značka — vždy, pokud je zadána
+    // 2) Model — vždy, pokud je zadán (primárnější než OBD kódy)
+    // 3) OBD kódy — doplňující filtr nad výsledky brand+model
     // (max 200 kandidátů, scoring proběhne zde)
     let query = supabase
       .from('gearbrain_cases')
@@ -116,10 +117,12 @@ Deno.serve(async (req) => {
       query = query.eq('vehicle_brand', vehicle.brand)
     }
 
+    if (vehicle?.model) {
+      query = query.eq('vehicle_model', vehicle.model)
+    }
+
     if (obdCodes?.length > 0) {
       query = query.overlaps('obd_codes', obdCodes)
-    } else if (vehicle?.model) {
-      query = query.eq('vehicle_model', vehicle.model)
     }
 
     const { data: rows, error } = await query
