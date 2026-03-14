@@ -13,6 +13,7 @@
  */
 
 import { supabase } from './supabase.js'
+import { validateResolution } from './validation.js'
 
 const TABLE = 'gearbrain_web_sessions'
 
@@ -77,6 +78,11 @@ export async function deleteCase(caseId) {
 export async function pushClosedCase(kase) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Nepřihlášen' }
+
+  // Validate before push (mirrors Electron validateCase)
+  const resVal = validateResolution(kase.resolution)
+  if (!resVal.ok) return { ok: false, error: resVal.reason }
+  if (!kase.vehicle?.model) return { ok: false, error: 'Chybí model vozidla.' }
 
   const inputs = (kase.messages ?? []).filter(m => m.type === 'input')
   const symptoms  = [...new Set(inputs.flatMap(m => m.symptoms ?? []))]
