@@ -242,12 +242,11 @@ function App() {
 
     if (currentCase) {
       const fullCase = { ...currentCase, status: "uzavřený", closedAt, resolution: resText };
+      // RAG push is best-effort — failure doesn't affect cloudStatus
+      // (case is already saved in gearbrain_web_sessions)
       storage.pushClosedCase(fullCase)
-        .then((result) => {
-          if (result.ok) setCloudStatus("ok");
-          else { console.warn('[cloud push]', result.error); setCloudStatus("error"); }
-        })
-        .catch((e) => { console.warn('[cloud push]', e.message); setCloudStatus("error"); });
+        .then((result) => { if (!result.ok) console.warn('[rag push]', result.error); })
+        .catch((e) => { console.warn('[rag push]', e.message); });
     }
 
     setCloseModal(false);
