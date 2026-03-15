@@ -3,9 +3,15 @@ import { signIn, signUp, signInWithGoogle } from "../lib/supabase.js";
 import { DARK } from "../theme.js";
 import { useI18n } from "../i18n/index.jsx";
 
+const LANGS = [
+  { code: "cs", label: "CS" },
+  { code: "en", label: "EN" },
+  { code: "de", label: "DE" },
+];
+
 export default function LoginPage({ onAuth }) {
   const t = DARK;
-  const { tr } = useI18n();
+  const { tr, lang, changeLang } = useI18n();
   const [mode, setMode]       = useState("login"); // "login" | "register" | "verify"
   const [email, setEmail]     = useState("");
   const [password, setPassword] = useState("");
@@ -64,6 +70,16 @@ export default function LoginPage({ onAuth }) {
             </div>
             <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.12em" }}>{tr('login.subtitle')}</div>
           </div>
+        </div>
+
+        {/* Language switcher */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 20 }}>
+          {LANGS.map((l) => (
+            <button key={l.code} onClick={() => changeLang(l.code)}
+              style={{ background: lang === l.code ? t.accent : "transparent", color: lang === l.code ? "#fff" : t.textFaint, border: `1px solid ${lang === l.code ? t.accent : t.border}`, padding: "4px 10px", fontSize: "0.68rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", borderRadius: 2, letterSpacing: "0.04em" }}>
+              {l.label}
+            </button>
+          ))}
         </div>
 
         {/* Verify email screen */}
