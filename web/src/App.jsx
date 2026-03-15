@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 import { DARK, LIGHT }                      from "./theme.js";
-import { VEHICLE_MODELS, EMPTY_VEHICLE, getModelPowers } from "./constants/index.js";
+import { ACTIVE_BRANDS, EMPTY_VEHICLE, getModelPowers, getBrandModels } from "./constants/index.js";
 import { uid, fmtDate, fmtMileage }         from "./lib/utils.js";
 import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "./lib/ai.js";
 import { validateResolution }                from "./lib/validation.js";
@@ -407,20 +407,35 @@ function App() {
                   <div style={{ fontSize: "0.78rem", color: t.textFaint }}>{tr('app.newCaseSubtitle')}</div>
                 </div>
 
+                {/* Row 1: Brand + Model */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.vehicleBrand')}</div>
+                    <select value={newVehicle.brand}
+                      onChange={(e) => setNewVehicle((v) => ({ ...v, brand: e.target.value, model: "", enginePower: "" }))}
+                      style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
+                      {ACTIVE_BRANDS.map((b) => (
+                        <option key={b.brand} value={b.brand}>{b.brand}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div>
                     <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.vehicleModel')}</div>
                     <select value={newVehicle.model}
-                      onChange={(e) => { const item = VEHICLE_MODELS.find((m) => m.label === e.target.value); if (item?.label) setNewVehicle((v) => ({ ...v, model: item.label, enginePower: "" })); }}
+                      onChange={(e) => { const models = getBrandModels(newVehicle.brand); const item = models.find((m) => m.label === e.target.value); if (item?.label) setNewVehicle((v) => ({ ...v, model: item.label, enginePower: "" })); }}
                       style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
                       <option value="">{tr('app.selectModel')}</option>
-                      {VEHICLE_MODELS.map((item, i) =>
+                      {getBrandModels(newVehicle.brand).map((item, i) =>
                         item.group
                           ? <option key={i} disabled>── {item.group} ──</option>
                           : <option key={i} value={item.label}>{item.label}</option>
                       )}
                     </select>
                   </div>
+                </div>
+
+                {/* Row 2: Engine Power + Mileage */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 18 }}>
                   <div>
                     <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.enginePower')}</div>
                     {(() => { const powers = getModelPowers(newVehicle.model); return (
@@ -433,12 +448,12 @@ function App() {
                       </select>
                     ); })()}
                   </div>
-                </div>
-                <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.mileageKm')}</div>
-                  <input type="number" placeholder="185000" value={newVehicle.mileage}
-                    onChange={(e) => setNewVehicle((v) => ({ ...v, mileage: e.target.value }))}
-                    style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }} />
+                  <div>
+                    <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.mileageKm')}</div>
+                    <input type="number" placeholder="185000" value={newVehicle.mileage}
+                      onChange={(e) => setNewVehicle((v) => ({ ...v, mileage: e.target.value }))}
+                      style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }} />
+                  </div>
                 </div>
 
                 {error && <div style={{ marginBottom: 14, padding: "10px 13px", background: "rgba(220,38,38,0.08)", border: "1px solid #dc2626", color: "#dc2626", fontSize: "0.82rem", borderRadius: 2 }}>⚠ {error}</div>}
