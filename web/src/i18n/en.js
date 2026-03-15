@@ -144,33 +144,63 @@ export const strings = {
 
   // AI
   'ai.topicIrrelevant':  'Description contains no technical data (OBD code, abbreviation like DPF/EGR/ABS, or measured value). Describe the technical problem or fault symptoms.',
-}
 
-export const symptoms = {
-  "Engine & Power": [
-    "Loss of power", "Black exhaust smoke", "White exhaust smoke",
-    "Excessive fuel consumption", "Rough idle", "Engine stalls",
-    "Difficult starting", "Engine fails to start", "Limp mode",
-    "Engine overheating", "Excessive oil consumption",
-  ],
-  "Transmission & Clutch": [
-    "Vibration when shifting", "Difficult shifting", "Clutch slipping",
-    "Shifting jerks", "Gearbox noise", "Acceleration dropouts",
-  ],
-  "Brakes & Chassis": [
-    "ABS warning light on", "Brake pulsation", "Pulling to one side when braking",
-    "Chassis noise", "Steering wheel vibration", "Uneven tyre wear",
-  ],
-  "Steering": [
-    "Heavy steering", "Steering play", "Clicking when turning steering wheel",
-    "Pulling to one side when driving", "Steering warning light on",
-  ],
-  "Electrical & Electronics": [
-    "Engine warning light (MIL) on", "Electrical dropouts", "Alternator problems",
-    "Battery drain", "Central locking problems", "Dashboard errors",
-  ],
-  "Exhaust & Emissions": [
-    "DPF warning light on", "AdBlue warning", "Exhaust smell",
-    "Smoke under acceleration", "DPF regeneration failure",
-  ],
+  // Symptom categories
+  'sym.cat.engine':       'Engine & Power',
+  'sym.cat.transmission': 'Transmission & Clutch',
+  'sym.cat.brakes':       'Brakes & Chassis',
+  'sym.cat.steering':     'Steering',
+  'sym.cat.electrical':   'Electrical & Electronics',
+  'sym.cat.exhaust':      'Exhaust & Emissions',
+
+  // Symptoms — Engine & Power
+  'sym.lossOfPower':      'Loss of power',
+  'sym.blackSmoke':       'Black exhaust smoke',
+  'sym.whiteSmoke':       'White exhaust smoke',
+  'sym.excessFuel':       'Excessive fuel consumption',
+  'sym.roughIdle':        'Rough idle',
+  'sym.stalling':         'Engine stalls',
+  'sym.hardStart':        'Difficult starting',
+  'sym.noStart':          'Engine fails to start',
+  'sym.limpMode':         'Limp mode',
+  'sym.overheating':      'Engine overheating',
+  'sym.oilConsumption':   'Excessive oil consumption',
+
+  // Symptoms — Transmission & Clutch
+  'sym.shiftVibration':   'Vibration when shifting',
+  'sym.hardShifting':     'Difficult shifting',
+  'sym.clutchSlip':       'Clutch slipping',
+  'sym.shiftJerks':       'Shifting jerks',
+  'sym.gearboxNoise':     'Gearbox noise',
+  'sym.accelDropout':     'Acceleration dropouts',
+
+  // Symptoms — Brakes & Chassis
+  'sym.absLight':         'ABS warning light on',
+  'sym.brakePulse':       'Brake pulsation',
+  'sym.brakePull':        'Pulling to one side when braking',
+  'sym.chassisNoise':     'Chassis noise',
+  'sym.steeringVibration':'Steering wheel vibration',
+  'sym.unevenTyreWear':   'Uneven tyre wear',
+
+  // Symptoms — Steering
+  'sym.heavySteering':    'Heavy steering',
+  'sym.steeringPlay':     'Steering play',
+  'sym.steeringClick':    'Clicking when turning steering wheel',
+  'sym.pullingSide':      'Pulling to one side when driving',
+  'sym.steeringLight':    'Steering warning light on',
+
+  // Symptoms — Electrical & Electronics
+  'sym.milLight':         'Engine warning light (MIL) on',
+  'sym.electricalDropout':'Electrical dropouts',
+  'sym.alternatorIssue':  'Alternator problems',
+  'sym.batteryDrain':     'Battery drain',
+  'sym.centralLockIssue': 'Central locking problems',
+  'sym.dashErrors':       'Dashboard errors',
+
+  // Symptoms — Exhaust & Emissions
+  'sym.dpfLight':         'DPF warning light on',
+  'sym.adblueWarning':    'AdBlue warning',
+  'sym.exhaustSmell':     'Exhaust smell',
+  'sym.accelSmoke':       'Smoke under acceleration',
+  'sym.dpfRegenFail':     'DPF regeneration failure',
 }

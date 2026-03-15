@@ -165,7 +165,7 @@ function App() {
     const userPrompt = [
       (vehicle.brand || vehicle.model) && `${tr('app.userVehicle')}: ${[vehicle.brand, vehicle.model, vehicle.enginePower].filter(Boolean).join(" ")}`,
       vehicle.mileage                  && `${tr('app.userMileage')}: ${vehicle.mileage} km`,
-      allSymptoms.length               && `${tr('app.userSymptoms')}: ${allSymptoms.join(", ")}`,
+      allSymptoms.length               && `${tr('app.userSymptoms')}: ${allSymptoms.map(s => tr(s)).join(", ")}`,
       allObdCodes.length               && `${tr('app.userObd')}: ${allObdCodes.join(", ")}`,
       ...allTexts.map((tx, i) => `${tr('app.userMechDesc')}${allTexts.length > 1 ? ` ${i + 1}` : ""}:\n${tx}`),
     ].filter(Boolean).join("\n");
@@ -511,7 +511,7 @@ function App() {
                               {hasChips && (
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: msg.text ? 8 : 0 }}>
                                   {(msg.symptoms ?? []).map((s) => (
-                                    <span key={s} style={{ padding: "2px 8px", background: t.sympBg, border: `1px solid ${t.sympBorder}`, color: t.sympText, fontSize: "0.76rem", borderRadius: 2 }}>{s}</span>
+                                    <span key={s} style={{ padding: "2px 8px", background: t.sympBg, border: `1px solid ${t.sympBorder}`, color: t.sympText, fontSize: "0.76rem", borderRadius: 2 }}>{tr(s)}</span>
                                   ))}
                                   {(msg.obdCodes ?? []).map((c) => (
                                     <span key={c} style={{ padding: "2px 8px", background: t.obdBg, border: `1px solid ${t.obdBorder}`, color: t.obdText, fontSize: "0.76rem", fontFamily: "monospace", borderRadius: 2 }}>{c}</span>

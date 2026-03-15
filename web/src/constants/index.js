@@ -135,35 +135,16 @@ export function getModelPowers(modelLabel) {
   return []
 }
 
-// ── Příznaky podle kategorie ──────────────────────────────────────────────────
-export const SYMPTOM_CATEGORIES = {
-  "Motor & Výkon": [
-    "Ztráta výkonu", "Černý kouř z výfuku", "Bílý kouř z výfuku",
-    "Nadměrná spotřeba paliva", "Hrubý volnoběh", "Motor zhasíná",
-    "Obtížné startování", "Motor se nepodaří nastartovat", "Nouzový režim",
-    "Přehřívání motoru", "Nadměrná spotřeba oleje",
-  ],
-  "Převodovka & Spojka": [
-    "Vibrace při řazení", "Obtížné řazení", "Spojka klouže",
-    "Rázy při řazení", "Hluk z převodovky", "Výpadky při akceleraci",
-  ],
-  "Brzdy & Podvozek": [
-    "ABS kontrolka svítí", "Pulzování brzd", "Táhnutí na stranu při brzdění",
-    "Hluk z podvozku", "Vibrace volantu", "Nerovnoměrné opotřebení pneumatik",
-  ],
-  "Řízení": [
-    "Těžké řízení", "Vůle ve volantu", "Klikání při otáčení volantu",
-    "Táhnutí na stranu při jízdě", "Kontrolka řízení svítí",
-  ],
-  "Elektrika & Elektronika": [
-    "Kontrolka motoru (MIL) svítí", "Výpadky elektriky", "Problémy s alternátorem",
-    "Vybíjení baterie", "Problémy s centrálním zamykáním", "Chyby na palubním počítači",
-  ],
-  "Výfuk & Emise": [
-    "DPF kontrolka svítí", "AdBlue varování", "Zápach z výfuku",
-    "Kouř při akceleraci", "Nefunkční regenerace DPF",
-  ],
-}
+// ── Příznaky podle kategorie (klíče do i18n) ─────────────────────────────────
+// V DB se ukládají klíče (sym.*), v GUI se překládají přes tr().
+export const SYMPTOM_CATEGORIES = [
+  { catKey: "sym.cat.engine", symptoms: ["sym.lossOfPower", "sym.blackSmoke", "sym.whiteSmoke", "sym.excessFuel", "sym.roughIdle", "sym.stalling", "sym.hardStart", "sym.noStart", "sym.limpMode", "sym.overheating", "sym.oilConsumption"] },
+  { catKey: "sym.cat.transmission", symptoms: ["sym.shiftVibration", "sym.hardShifting", "sym.clutchSlip", "sym.shiftJerks", "sym.gearboxNoise", "sym.accelDropout"] },
+  { catKey: "sym.cat.brakes", symptoms: ["sym.absLight", "sym.brakePulse", "sym.brakePull", "sym.chassisNoise", "sym.steeringVibration", "sym.unevenTyreWear"] },
+  { catKey: "sym.cat.steering", symptoms: ["sym.heavySteering", "sym.steeringPlay", "sym.steeringClick", "sym.pullingSide", "sym.steeringLight"] },
+  { catKey: "sym.cat.electrical", symptoms: ["sym.milLight", "sym.electricalDropout", "sym.alternatorIssue", "sym.batteryDrain", "sym.centralLockIssue", "sym.dashErrors"] },
+  { catKey: "sym.cat.exhaust", symptoms: ["sym.dpfLight", "sym.adblueWarning", "sym.exhaustSmell", "sym.accelSmoke", "sym.dpfRegenFail"] },
+]
 
 // ── Časté OBD kódy ────────────────────────────────────────────────────────────
 export const COMMON_OBD_CODES = [

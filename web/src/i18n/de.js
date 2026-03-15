@@ -144,33 +144,63 @@ export const strings = {
 
   // AI
   'ai.topicIrrelevant':  'Beschreibung enthält keine technischen Daten (OBD-Code, Abkürzung wie DPF/EGR/ABS oder Messwert). Beschreiben Sie das technische Problem oder die Fehlersymptome.',
-}
 
-export const symptoms = {
-  "Motor & Leistung": [
-    "Leistungsverlust", "Schwarzer Abgasrauch", "Weißer Abgasrauch",
-    "Übermäßiger Kraftstoffverbrauch", "Unrunder Leerlauf", "Motor geht aus",
-    "Schwieriges Starten", "Motor startet nicht", "Notlaufmodus",
-    "Motorüberhitzung", "Übermäßiger Ölverbrauch",
-  ],
-  "Getriebe & Kupplung": [
-    "Vibration beim Schalten", "Schwieriges Schalten", "Kupplung rutscht",
-    "Schaltstöße", "Getriebegeräusche", "Aussetzer bei Beschleunigung",
-  ],
-  "Bremsen & Fahrwerk": [
-    "ABS-Warnleuchte an", "Bremspulsieren", "Zieht beim Bremsen zur Seite",
-    "Fahrwerksgeräusche", "Lenkradvibration", "Ungleichmäßiger Reifenverschleiß",
-  ],
-  "Lenkung": [
-    "Schwergängige Lenkung", "Lenkungsspiel", "Klicken beim Lenken",
-    "Zieht beim Fahren zur Seite", "Lenkungswarnleuchte an",
-  ],
-  "Elektrik & Elektronik": [
-    "Motorkontrollleuchte (MIL) an", "Elektrikausfälle", "Lichtmaschinenprobleme",
-    "Batterieentladung", "Zentralverriegelungsprobleme", "Fehlermeldungen im Bordcomputer",
-  ],
-  "Abgas & Emissionen": [
-    "DPF-Warnleuchte an", "AdBlue-Warnung", "Abgasgeruch",
-    "Rauch bei Beschleunigung", "DPF-Regeneration fehlgeschlagen",
-  ],
+  // Symptom categories
+  'sym.cat.engine':       'Motor & Leistung',
+  'sym.cat.transmission': 'Getriebe & Kupplung',
+  'sym.cat.brakes':       'Bremsen & Fahrwerk',
+  'sym.cat.steering':     'Lenkung',
+  'sym.cat.electrical':   'Elektrik & Elektronik',
+  'sym.cat.exhaust':      'Abgas & Emissionen',
+
+  // Symptoms — Engine & Power
+  'sym.lossOfPower':      'Leistungsverlust',
+  'sym.blackSmoke':       'Schwarzer Abgasrauch',
+  'sym.whiteSmoke':       'Weißer Abgasrauch',
+  'sym.excessFuel':       'Übermäßiger Kraftstoffverbrauch',
+  'sym.roughIdle':        'Unrunder Leerlauf',
+  'sym.stalling':         'Motor geht aus',
+  'sym.hardStart':        'Schwieriges Starten',
+  'sym.noStart':          'Motor startet nicht',
+  'sym.limpMode':         'Notlaufmodus',
+  'sym.overheating':      'Motorüberhitzung',
+  'sym.oilConsumption':   'Übermäßiger Ölverbrauch',
+
+  // Symptoms — Transmission & Clutch
+  'sym.shiftVibration':   'Vibration beim Schalten',
+  'sym.hardShifting':     'Schwieriges Schalten',
+  'sym.clutchSlip':       'Kupplung rutscht',
+  'sym.shiftJerks':       'Schaltstöße',
+  'sym.gearboxNoise':     'Getriebegeräusche',
+  'sym.accelDropout':     'Aussetzer bei Beschleunigung',
+
+  // Symptoms — Brakes & Chassis
+  'sym.absLight':         'ABS-Warnleuchte an',
+  'sym.brakePulse':       'Bremspulsieren',
+  'sym.brakePull':        'Zieht beim Bremsen zur Seite',
+  'sym.chassisNoise':     'Fahrwerksgeräusche',
+  'sym.steeringVibration':'Lenkradvibration',
+  'sym.unevenTyreWear':   'Ungleichmäßiger Reifenverschleiß',
+
+  // Symptoms — Steering
+  'sym.heavySteering':    'Schwergängige Lenkung',
+  'sym.steeringPlay':     'Lenkungsspiel',
+  'sym.steeringClick':    'Klicken beim Lenken',
+  'sym.pullingSide':      'Zieht beim Fahren zur Seite',
+  'sym.steeringLight':    'Lenkungswarnleuchte an',
+
+  // Symptoms — Electrical & Electronics
+  'sym.milLight':         'Motorkontrollleuchte (MIL) an',
+  'sym.electricalDropout':'Elektrikausfälle',
+  'sym.alternatorIssue':  'Lichtmaschinenprobleme',
+  'sym.batteryDrain':     'Batterieentladung',
+  'sym.centralLockIssue': 'Zentralverriegelungsprobleme',
+  'sym.dashErrors':       'Fehlermeldungen im Bordcomputer',
+
+  // Symptoms — Exhaust & Emissions
+  'sym.dpfLight':         'DPF-Warnleuchte an',
+  'sym.adblueWarning':    'AdBlue-Warnung',
+  'sym.exhaustSmell':     'Abgasgeruch',
+  'sym.accelSmoke':       'Rauch bei Beschleunigung',
+  'sym.dpfRegenFail':     'DPF-Regeneration fehlgeschlagen',
 }

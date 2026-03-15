@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { COMMON_OBD_CODES } from "../constants/index.js";
+import { COMMON_OBD_CODES, SYMPTOM_CATEGORIES } from "../constants/index.js";
 import { useI18n } from "../i18n/index.jsx";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
 export default function InputForm({ onSubmit, loading, label, t }) {
-  const { tr, symptoms: SYMPTOM_CATEGORIES } = useI18n();
+  const { tr } = useI18n();
 
   const TABS = [
     { key: "symptoms", label: tr('input.symptomsTab') },
@@ -13,17 +13,15 @@ export default function InputForm({ onSubmit, loading, label, t }) {
     { key: "text",     label: tr('input.textTab')      },
   ];
 
-  const categories = Object.keys(SYMPTOM_CATEGORIES);
-
   const [tab,      setTab]      = useState("symptoms");
-  const [symptoms, setSymptoms] = useState([]);
+  const [symptoms, setSymptoms] = useState([]);   // stores i18n keys like "sym.lossOfPower"
   const [obdInput, setObdInput] = useState("");
   const [obdCodes, setObdCodes] = useState([]);
   const [text,     setText]     = useState("");
-  const [openCat,  setOpenCat]  = useState(categories[0] ?? "");
+  const [openCat,  setOpenCat]  = useState(SYMPTOM_CATEGORIES[0]?.catKey ?? "");
 
-  const toggleSymptom = (s) =>
-    setSymptoms((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
+  const toggleSymptom = (key) =>
+    setSymptoms((prev) => prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]);
 
   const toggleObd = (code) =>
     setObdCodes((prev) => prev.includes(code) ? prev.filter((x) => x !== code) : [...prev, code]);
@@ -70,24 +68,24 @@ export default function InputForm({ onSubmit, loading, label, t }) {
       {/* Panel: Příznaky */}
       {tab === "symptoms" && (
         <div style={{ maxHeight: 280, overflowY: "auto" }}>
-          {Object.entries(SYMPTOM_CATEGORIES).map(([cat, syms]) => {
-            const selectedCount = syms.filter((s) => symptoms.includes(s)).length;
-            const isOpen = openCat === cat;
+          {SYMPTOM_CATEGORIES.map(({ catKey, symptoms: symKeys }) => {
+            const selectedCount = symKeys.filter((s) => symptoms.includes(s)).length;
+            const isOpen = openCat === catKey;
             return (
-              <div key={cat} style={{ marginBottom: 4 }}>
-                <button onClick={() => setOpenCat(isOpen ? null : cat)}
+              <div key={catKey} style={{ marginBottom: 4 }}>
+                <button onClick={() => setOpenCat(isOpen ? null : catKey)}
                   style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: "7px 10px", backgroundColor: isOpen ? t.bgCatOpen : t.bgCat, color: isOpen ? t.accent : t.textLabel, fontSize: "0.65rem", letterSpacing: "0.08em", borderLeft: isOpen ? `3px solid ${t.accent}` : `3px solid ${t.border}` }}>
-                  {isOpen ? "▼" : "▶"} {cat.toUpperCase()}
+                  {isOpen ? "▼" : "▶"} {tr(catKey).toUpperCase()}
                   {selectedCount > 0 && <span style={{ marginLeft: 8, color: t.textFaint }}>({selectedCount})</span>}
                 </button>
                 {isOpen && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 5, padding: "8px 10px", background: t.bgMuted, borderLeft: `3px solid ${t.border}` }}>
-                    {syms.map((s) => {
-                      const sel = symptoms.includes(s);
+                    {symKeys.map((symKey) => {
+                      const sel = symptoms.includes(symKey);
                       return (
-                        <div key={s} onClick={() => toggleSymptom(s)}
+                        <div key={symKey} onClick={() => toggleSymptom(symKey)}
                           style={{ cursor: "pointer", userSelect: "none", padding: "4px 9px", fontSize: "0.68rem", background: sel ? t.chipSelBg : t.chipBg, color: sel ? t.chipSelText : t.chipText, border: `1px solid ${sel ? t.accent : t.chipBorder}`, fontWeight: sel ? 600 : 400, borderRadius: 2, transition: "all 0.12s" }}>
-                          {s}
+                          {tr(symKey)}
                         </div>
                       );
                     })}

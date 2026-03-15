@@ -1,13 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { strings as cs, symptoms as csSymptoms } from './cs.js'
-import { symptoms as enSymptoms } from './en.js'
-import { symptoms as deSymptoms } from './de.js'
+import { strings as cs } from './cs.js'
 
 // Re-export non-React helpers from translate.js
 export { getStrings, translate } from './translate.js'
 import { allStrings } from './translate.js'
-
-const allSymptoms = { cs: csSymptoms, en: enSymptoms, de: deSymptoms }
 
 function detectLang() {
   const stored = localStorage.getItem('gb-lang')
@@ -45,10 +41,8 @@ export function I18nProvider({ children }) {
     localStorage.setItem('gb-lang', l)
   }
 
-  const symptoms = allSymptoms[lang] || csSymptoms
-
   return (
-    <I18nContext.Provider value={{ tr, lang, changeLang, symptoms }}>
+    <I18nContext.Provider value={{ tr, lang, changeLang }}>
       {children}
     </I18nContext.Provider>
   )
