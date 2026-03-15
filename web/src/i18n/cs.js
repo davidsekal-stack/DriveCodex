@@ -144,33 +144,63 @@ export const strings = {
 
   // AI
   'ai.topicIrrelevant':  'Popis neobsahuje žádný technický údaj (OBD kód, zkratku jako DPF/EGR/ABS, nebo měřenou hodnotu). Popište technický problém nebo příznaky závady.',
-}
 
-export const symptoms = {
-  "Motor & Výkon": [
-    "Ztráta výkonu", "Černý kouř z výfuku", "Bílý kouř z výfuku",
-    "Nadměrná spotřeba paliva", "Hrubý volnoběh", "Motor zhasíná",
-    "Obtížné startování", "Motor se nepodaří nastartovat", "Nouzový režim",
-    "Přehřívání motoru", "Nadměrná spotřeba oleje",
-  ],
-  "Převodovka & Spojka": [
-    "Vibrace při řazení", "Obtížné řazení", "Spojka klouže",
-    "Rázy při řazení", "Hluk z převodovky", "Výpadky při akceleraci",
-  ],
-  "Brzdy & Podvozek": [
-    "ABS kontrolka svítí", "Pulzování brzd", "Táhnutí na stranu při brzdění",
-    "Hluk z podvozku", "Vibrace volantu", "Nerovnoměrné opotřebení pneumatik",
-  ],
-  "Řízení": [
-    "Těžké řízení", "Vůle ve volantu", "Klikání při otáčení volantu",
-    "Táhnutí na stranu při jízdě", "Kontrolka řízení svítí",
-  ],
-  "Elektrika & Elektronika": [
-    "Kontrolka motoru (MIL) svítí", "Výpadky elektriky", "Problémy s alternátorem",
-    "Vybíjení baterie", "Problémy s centrálním zamykáním", "Chyby na palubním počítači",
-  ],
-  "Výfuk & Emise": [
-    "DPF kontrolka svítí", "AdBlue varování", "Zápach z výfuku",
-    "Kouř při akceleraci", "Nefunkční regenerace DPF",
-  ],
+  // Symptom categories
+  'sym.cat.engine':       'Motor & Výkon',
+  'sym.cat.transmission': 'Převodovka & Spojka',
+  'sym.cat.brakes':       'Brzdy & Podvozek',
+  'sym.cat.steering':     'Řízení',
+  'sym.cat.electrical':   'Elektrika & Elektronika',
+  'sym.cat.exhaust':      'Výfuk & Emise',
+
+  // Symptoms — Engine & Power
+  'sym.lossOfPower':      'Ztráta výkonu',
+  'sym.blackSmoke':       'Černý kouř z výfuku',
+  'sym.whiteSmoke':       'Bílý kouř z výfuku',
+  'sym.excessFuel':       'Nadměrná spotřeba paliva',
+  'sym.roughIdle':        'Hrubý volnoběh',
+  'sym.stalling':         'Motor zhasíná',
+  'sym.hardStart':        'Obtížné startování',
+  'sym.noStart':          'Motor se nepodaří nastartovat',
+  'sym.limpMode':         'Nouzový režim',
+  'sym.overheating':      'Přehřívání motoru',
+  'sym.oilConsumption':   'Nadměrná spotřeba oleje',
+
+  // Symptoms — Transmission & Clutch
+  'sym.shiftVibration':   'Vibrace při řazení',
+  'sym.hardShifting':     'Obtížné řazení',
+  'sym.clutchSlip':       'Spojka klouže',
+  'sym.shiftJerks':       'Rázy při řazení',
+  'sym.gearboxNoise':     'Hluk z převodovky',
+  'sym.accelDropout':     'Výpadky při akceleraci',
+
+  // Symptoms — Brakes & Chassis
+  'sym.absLight':         'ABS kontrolka svítí',
+  'sym.brakePulse':       'Pulzování brzd',
+  'sym.brakePull':        'Táhnutí na stranu při brzdění',
+  'sym.chassisNoise':     'Hluk z podvozku',
+  'sym.steeringVibration':'Vibrace volantu',
+  'sym.unevenTyreWear':   'Nerovnoměrné opotřebení pneumatik',
+
+  // Symptoms — Steering
+  'sym.heavySteering':    'Těžké řízení',
+  'sym.steeringPlay':     'Vůle ve volantu',
+  'sym.steeringClick':    'Klikání při otáčení volantu',
+  'sym.pullingSide':      'Táhnutí na stranu při jízdě',
+  'sym.steeringLight':    'Kontrolka řízení svítí',
+
+  // Symptoms — Electrical & Electronics
+  'sym.milLight':         'Kontrolka motoru (MIL) svítí',
+  'sym.electricalDropout':'Výpadky elektriky',
+  'sym.alternatorIssue':  'Problémy s alternátorem',
+  'sym.batteryDrain':     'Vybíjení baterie',
+  'sym.centralLockIssue': 'Problémy s centrálním zamykáním',
+  'sym.dashErrors':       'Chyby na palubním počítači',
+
+  // Symptoms — Exhaust & Emissions
+  'sym.dpfLight':         'DPF kontrolka svítí',
+  'sym.adblueWarning':    'AdBlue varování',
+  'sym.exhaustSmell':     'Zápach z výfuku',
+  'sym.accelSmoke':       'Kouř při akceleraci',
+  'sym.dpfRegenFail':     'Nefunkční regenerace DPF',
 }

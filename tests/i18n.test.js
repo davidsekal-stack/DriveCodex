@@ -73,30 +73,35 @@ async function run() {
     assert.strictEqual(errors.length, 0, errors.join('; '))
   })
 
-  // ── Slovníky: příznaky ─────────────────────────────────────────────────────
-  console.log('\n── i18n: symptom categories ──────────────────────────────────────')
+  // ── Slovníky: příznaky (key-based) ────────────────────────────────────────
+  console.log('\n── i18n: symptom key coverage ────────────────────────────────────')
 
-  test('Všechny jazyky mají stejný počet kategorií příznaků', () => {
-    const csCats = Object.keys(cs.symptoms)
-    const enCats = Object.keys(en.symptoms)
-    const deCats = Object.keys(de.symptoms)
-    assert.strictEqual(csCats.length, enCats.length, `CS=${csCats.length}, EN=${enCats.length}`)
-    assert.strictEqual(csCats.length, deCats.length, `CS=${csCats.length}, DE=${deCats.length}`)
-  })
+  const { SYMPTOM_CATEGORIES } = await import('../web/src/constants/index.js')
 
-  test('Každá kategorie má stejný počet příznaků ve všech jazycích', () => {
-    const csCats = Object.keys(cs.symptoms)
-    const enCats = Object.keys(en.symptoms)
-    const deCats = Object.keys(de.symptoms)
+  test('Všechny catKey ze SYMPTOM_CATEGORIES existují v CS/EN/DE', () => {
     const errors = []
-    for (let i = 0; i < csCats.length; i++) {
-      const csCount = cs.symptoms[csCats[i]].length
-      const enCount = en.symptoms[enCats[i]].length
-      const deCount = de.symptoms[deCats[i]].length
-      if (csCount !== enCount) errors.push(`Kat[${i}] CS=${csCount} EN=${enCount}`)
-      if (csCount !== deCount) errors.push(`Kat[${i}] CS=${csCount} DE=${deCount}`)
+    for (const { catKey } of SYMPTOM_CATEGORIES) {
+      if (!(catKey in cs.strings)) errors.push(`CS chybí ${catKey}`)
+      if (!(catKey in en.strings)) errors.push(`EN chybí ${catKey}`)
+      if (!(catKey in de.strings)) errors.push(`DE chybí ${catKey}`)
     }
     assert.strictEqual(errors.length, 0, errors.join('; '))
+  })
+
+  test('Všechny symptom keys ze SYMPTOM_CATEGORIES existují v CS/EN/DE', () => {
+    const errors = []
+    for (const { symptoms } of SYMPTOM_CATEGORIES) {
+      for (const symKey of symptoms) {
+        if (!(symKey in cs.strings)) errors.push(`CS chybí ${symKey}`)
+        if (!(symKey in en.strings)) errors.push(`EN chybí ${symKey}`)
+        if (!(symKey in de.strings)) errors.push(`DE chybí ${symKey}`)
+      }
+    }
+    assert.strictEqual(errors.length, 0, errors.join('; '))
+  })
+
+  test('SYMPTOM_CATEGORIES má alespoň 5 kategorií', () => {
+    assert(SYMPTOM_CATEGORIES.length >= 5, `Pouze ${SYMPTOM_CATEGORIES.length} kategorií`)
   })
 
   // ── translate() ────────────────────────────────────────────────────────────
