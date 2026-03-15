@@ -7,7 +7,7 @@ import * as storage from "../lib/storage.js";
  * useCases hook — web verze (Supabase-backed)
  *
  * Všechny případy se ukládají do Supabase tabulky gearbrain_web_sessions.
- * Na rozdíl od Electron verze (electron-store) je zde async persistence.
+ * Async persistence přes Supabase.
  */
 export default function useCases() {
   const [cases, setCases]     = useState([]);

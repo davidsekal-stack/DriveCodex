@@ -2,7 +2,7 @@ import { translate } from '../i18n/translate.js'
 
 /**
  * Sdílená validační logika pro resolution text.
- * ESM verze pro web — stejná logika jako electron/lib/validation.js
+ * Validuje délku, opakování znaků a rozmanitost slov.
  *
  * @param {string} resolutionRaw - text popisující provedenou opravu
  * @param {string} [lang] - jazyk pro lokalizované chybové hlášky
