@@ -312,22 +312,13 @@ function App() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: "0.75rem", color: t.textFaint }}>{tr('app.casesCount', { count: cases.length })}</span>
-          <span style={{ color: t.border }}>·</span>
-          <span style={{ fontSize: "0.75rem", color: cloudStatus === "ok" ? t.doneStatusColor : t.textFaint }}>
-            {cloudStatus === "ok" ? tr('app.cloudOk') : cloudStatus === "error" ? tr('app.cloudOffline') : tr('app.cloudIdle')}
-          </span>
-          <span style={{ color: t.border, margin: "0 4px" }}>|</span>
-
           {/* Language switcher */}
-          <div style={{ display: "flex", gap: 2 }}>
+          <select value={lang} onChange={(e) => changeLang(e.target.value)}
+            style={{ background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 8px", fontSize: "0.75rem", fontFamily: "inherit", cursor: "pointer", borderRadius: 20, height: 30, outline: "none" }}>
             {LANGS.map((l) => (
-              <button key={l.code} onClick={() => changeLang(l.code)}
-                style={{ background: lang === l.code ? t.accent : "transparent", color: lang === l.code ? "#fff" : t.textFaint, border: `1px solid ${lang === l.code ? t.accent : t.border}`, padding: "3px 7px", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", borderRadius: 2, letterSpacing: "0.04em" }}>
-                {l.label}
-              </button>
+              <option key={l.code} value={l.code}>{l.label}</option>
             ))}
-          </div>
+          </select>
 
           <button onClick={() => setDarkMode((d) => !d)}
             style={{ display: "flex", alignItems: "center", gap: 5, background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 11px", fontSize: "0.75rem", fontFamily: "inherit", cursor: "pointer", borderRadius: 20, height: 30 }}>
