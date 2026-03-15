@@ -3,7 +3,7 @@
 export const strings = {
   // App — general
   'app.loading':          'Loading...',
-  'app.subtitle':         'AI DIAGNOSTICS · FORD TRANSIT EU',
+  'app.subtitle':         'AI VEHICLE DIAGNOSTICS',
   'app.casesCount':       '{count} cases',
   'app.cloudOk':          'cloud ✓',
   'app.cloudOffline':     'cloud offline',
@@ -29,6 +29,7 @@ export const strings = {
   // App — new case
   'app.newCaseTitle':     'NEW DIAGNOSTIC CASE',
   'app.newCaseSubtitle':  'Enter vehicle information and initial fault symptoms',
+  'app.vehicleBrand':     'VEHICLE BRAND',
   'app.vehicleModel':     'VEHICLE MODEL',
   'app.selectModel':      '— Select model —',
   'app.enginePower':      'ENGINE POWER',
