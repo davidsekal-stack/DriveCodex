@@ -1,0 +1,176 @@
+// ── GearBrain i18n — English (EN) ────────────────────────────────────────────
+
+export const strings = {
+  // App — general
+  'app.loading':          'Loading...',
+  'app.subtitle':         'AI DIAGNOSTICS · FORD TRANSIT EU',
+  'app.casesCount':       '{count} cases',
+  'app.cloudOk':          'cloud ✓',
+  'app.cloudOffline':     'cloud offline',
+  'app.cloudIdle':        'cloud —',
+  'app.lightMode':        '☀️ Light',
+  'app.darkMode':         '🌙 Dark',
+  'app.logout':           'Log out',
+
+  // App — sidebar
+  'app.newCase':          '+ NEW CASE',
+  'app.noCases':          'No cases.',
+  'app.noCasesHint':      'Click NEW CASE to start.',
+  'app.cloudCount':       'Cloud: {count} closed',
+  'app.cloudEmpty':       'Cloud: empty',
+  'app.ragActive':        'Cloud RAG active',
+  'app.ragUnavailable':   'Cloud unavailable',
+  'app.ragConnecting':    'Cloud: connecting...',
+
+  // App — welcome
+  'app.welcomeText':      'Select a case from the list',
+  'app.welcomeHint':      'or create a new diagnosis',
+
+  // App — new case
+  'app.newCaseTitle':     'NEW DIAGNOSTIC CASE',
+  'app.newCaseSubtitle':  'Enter vehicle information and initial fault symptoms',
+  'app.vehicleModel':     'VEHICLE MODEL',
+  'app.selectModel':      '— Select model —',
+  'app.enginePower':      'ENGINE POWER',
+  'app.optional':         '— Optional —',
+  'app.mileageKm':        'MILEAGE (KM)',
+  'app.startDiag':        'START DIAGNOSIS',
+
+  // App — diagnosis
+  'app.tokenLimit':       'Case reached the limit of {limit} tokens. Close the case and summarise results.',
+  'app.aiError':          'AI returned an error.',
+  'app.aiNoResponse':     'AI did not return a response. Please try again.',
+  'app.aiUnreadable':     'AI did not return a readable result. Try adding more symptoms.',
+  'app.noFaults':         'No matching faults found.',
+  'app.defaultVehicle':   'Vehicle',
+  'app.errorPrefix':      'Error: ',
+
+  // App — session
+  'app.caseReady':        'Case ready — enter symptoms below and run diagnosis',
+  'app.inputRound':       'Input #{num} · {date}',
+  'app.aiProcessing':     '◈ AI DIAGNOSIS IN PROGRESS ◈',
+  'app.aiProcessingSub':  'Searching service database · Analysing symptoms...',
+  'app.caseClosed':       '✓ CASE CLOSED · {date}',
+  'app.firstDiag':        'FIRST DIAGNOSIS — enter symptoms',
+  'app.runDiag':          'RUN DIAGNOSIS',
+  'app.addInfo':          'ADD INFORMATION',
+
+  // App — close case modal
+  'app.closeCaseTitle':   '✓ CLOSE CASE',
+  'app.closeCaseHelp':    'Describe the repair performed. This information will be saved to the service database and will help with future diagnoses.',
+  'app.repairLabel':      'REPAIR PERFORMED *',
+  'app.repairPlaceholder':'e.g. Replaced EGR valve + EGR cooler. After intake cleaning and DPF regeneration the vehicle runs without issues. Code P0401 cleared, did not return.',
+  'app.cancel':           'Cancel',
+  'app.confirm':          '✓ Confirm',
+
+  // App — delete case modal
+  'app.deleteCaseTitle':  'DELETE CASE',
+  'app.deleteClosedMsg':  'Really delete this case? This action is irreversible.\n⚠ Case is closed and is part of the service database.',
+  'app.deleteOpenMsg':    'Really delete this case? This action is irreversible.',
+  'app.deleteBtn':        '✕ Delete',
+  'app.closeBtn':         '✓ CLOSE',
+  'app.deleteLabel':      '✕ DELETE',
+
+  // App — user prompt labels (sent to AI)
+  'app.userVehicle':      'Vehicle',
+  'app.userMileage':      'Mileage',
+  'app.userSymptoms':     'Symptoms',
+  'app.userObd':          'OBD codes',
+  'app.userMechDesc':     'Mechanic description',
+
+  // Status
+  'status.closed':        '✓ CLOSED',
+  'status.active':        '● ACTIVE',
+
+  // Login
+  'login.subtitle':           'AI DIAGNOSTICS · WEB',
+  'login.verifyTitle':        'VERIFY YOUR EMAIL',
+  'login.verifyMsg':          'We sent a verification link to {email}. Click the link and then sign in.',
+  'login.backToLogin':        'BACK TO LOGIN',
+  'login.loginTitle':         'SIGN IN',
+  'login.registerTitle':      'REGISTER',
+  'login.google':             'Continue with Google',
+  'login.or':                 'OR',
+  'login.email':              'EMAIL',
+  'login.emailPlaceholder':   'your@email.com',
+  'login.password':           'PASSWORD',
+  'login.passwordPlaceholder':'min. 6 characters',
+  'login.processing':         'Processing...',
+  'login.loginBtn':           'SIGN IN',
+  'login.registerBtn':        'REGISTER',
+  'login.noAccount':          "Don't have an account?",
+  'login.register':           'Register',
+  'login.hasAccount':         'Already have an account?',
+  'login.login':              'Sign in',
+  'login.invalidCredentials': 'Invalid email or password.',
+  'login.alreadyRegistered':  'This email is already registered. Please sign in.',
+
+  // InputForm
+  'input.symptomsTab':        '⚡ SYMPTOMS',
+  'input.obdTab':             '📡 OBD',
+  'input.textTab':            '✍️ DESCRIPTION',
+  'input.selectedCount':      '{count} sel.',
+  'input.codesCount':         '{count} codes',
+  'input.obdPlaceholder':     'P0401, P2263...',
+  'input.describeFault':      "Describe the fault in your own words... e.g. 'After starting, it went into limp mode, black smoke, engine and DPF warning lights on...'",
+  'input.enterHint':          'Enter symptoms or OBD codes',
+  'input.analyzing':          'Analysing...',
+  'input.followupPlaceholder':'Describe new findings or add information... (Enter = send, Shift+Enter = new line)',
+  'input.send':               '▶ Send',
+
+  // DiagCard
+  'diag.title':               'AI DIAGNOSTICS',
+  'diag.probability':         'PROB.',
+  'diag.repairProcedure':     'REPAIR PROCEDURE',
+  'diag.ragInfo':             '◈ Service database: {count} similar cases considered',
+  'diag.recommendedTests':    'RECOMMENDED TESTS',
+  'diag.notes':               'NOTES',
+
+  // ConfirmModal
+  'confirm.cancel':           'Cancel',
+
+  // ErrorBoundary
+  'error.title':              'UNEXPECTED ERROR',
+  'error.description':        'The application encountered an unexpected problem. Try restarting it.',
+  'error.unknown':            'Unknown error',
+  'error.restart':            '↺ RESTART',
+
+  // Validation
+  'validation.resolutionEmpty':     'Repair description is missing.',
+  'validation.resolutionTooShort':  'Repair description is too short ({length} chars, minimum {min}).',
+  'validation.resolutionTooLong':   'Repair description is too long ({length} chars, maximum {max}).',
+  'validation.resolutionRepeating': 'Repair description contains repeating characters.',
+  'validation.resolutionTerse':     'Repair description is too brief — add at least 2 different words.',
+
+  // AI
+  'ai.topicIrrelevant':  'Description contains no technical data (OBD code, abbreviation like DPF/EGR/ABS, or measured value). Describe the technical problem or fault symptoms.',
+}
+
+export const symptoms = {
+  "Engine & Power": [
+    "Loss of power", "Black exhaust smoke", "White exhaust smoke",
+    "Excessive fuel consumption", "Rough idle", "Engine stalls",
+    "Difficult starting", "Engine fails to start", "Limp mode",
+    "Engine overheating", "Excessive oil consumption",
+  ],
+  "Transmission & Clutch": [
+    "Vibration when shifting", "Difficult shifting", "Clutch slipping",
+    "Shifting jerks", "Gearbox noise", "Acceleration dropouts",
+  ],
+  "Brakes & Chassis": [
+    "ABS warning light on", "Brake pulsation", "Pulling to one side when braking",
+    "Chassis noise", "Steering wheel vibration", "Uneven tyre wear",
+  ],
+  "Steering": [
+    "Heavy steering", "Steering play", "Clicking when turning steering wheel",
+    "Pulling to one side when driving", "Steering warning light on",
+  ],
+  "Electrical & Electronics": [
+    "Engine warning light (MIL) on", "Electrical dropouts", "Alternator problems",
+    "Battery drain", "Central locking problems", "Dashboard errors",
+  ],
+  "Exhaust & Emissions": [
+    "DPF warning light on", "AdBlue warning", "Exhaust smell",
+    "Smoke under acceleration", "DPF regeneration failure",
+  ],
+}

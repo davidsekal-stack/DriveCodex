@@ -1,4 +1,5 @@
 import { urgColor } from "../lib/utils.js";
+import { useI18n } from "../i18n/index.jsx";
 
 // ── Pomocné sub-komponenty ────────────────────────────────────────────────────
 
@@ -20,7 +21,7 @@ function ObdChip({ code, t }) {
 
 // ── Jedna závada ──────────────────────────────────────────────────────────────
 
-function FaultCard({ fault: f, isPrimary, t }) {
+function FaultCard({ fault: f, isPrimary, t, tr }) {
   const accentCol = urgColor(f.naléhavost);
   return (
     <div style={{ background: t.bgCard, border: `1px solid ${isPrimary ? t.accent : t.border}`, padding: "16px", borderLeft: `4px solid ${accentCol}`, marginBottom: 8, borderRadius: 2 }}>
@@ -41,7 +42,7 @@ function FaultCard({ fault: f, isPrimary, t }) {
           <div style={{ fontSize: "1.5rem", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, color: f.pravděpodobnost > 70 ? t.accent : f.pravděpodobnost > 40 ? "#d97706" : t.textFaint }}>
             {f.pravděpodobnost}%
           </div>
-          <div style={{ fontSize: "0.5rem", color: t.textFaint, letterSpacing: "0.08em" }}>PRAVDĚP.</div>
+          <div style={{ fontSize: "0.5rem", color: t.textFaint, letterSpacing: "0.08em" }}>{tr('diag.probability')}</div>
         </div>
       </div>
 
@@ -64,7 +65,7 @@ function FaultCard({ fault: f, isPrimary, t }) {
       {/* Postup opravy */}
       {f.postup && (
         <div style={{ background: t.postupBg, border: `1px solid ${t.postupBorder}`, padding: "10px 14px", marginBottom: 8, borderRadius: 2 }}>
-          <SectionLabel t={t}>POSTUP OPRAVY</SectionLabel>
+          <SectionLabel t={t}>{tr('diag.repairProcedure')}</SectionLabel>
           <div style={{ fontSize: "0.8rem", color: t.textMuted, lineHeight: 1.8 }}>{f.postup}</div>
         </div>
       )}
@@ -82,6 +83,7 @@ function FaultCard({ fault: f, isPrimary, t }) {
 // ── Hlavní komponenta ─────────────────────────────────────────────────────────
 
 export default function DiagCard({ result, ragMatches = [], t }) {
+  const { tr } = useI18n();
   const dalsiInfo = result.další_info === "Výsledek zkrácen." ? null : result.další_info;
   const hasMeta = result.doporučené_testy?.length > 0 || result.varování || dalsiInfo;
 
@@ -89,18 +91,18 @@ export default function DiagCard({ result, ragMatches = [], t }) {
     <div className="fade-in">
       {/* Shrnutí */}
       <div style={{ padding: "14px 16px", background: t.bgCardAlt, border: `1px solid ${t.borderAccent}`, borderLeft: `3px solid ${t.accent}`, marginBottom: 12, borderRadius: 2 }}>
-        <div style={{ fontSize: "0.62rem", color: t.textFaint, letterSpacing: "0.15em", marginBottom: 5 }}>AI DIAGNOSTIKA</div>
+        <div style={{ fontSize: "0.62rem", color: t.textFaint, letterSpacing: "0.15em", marginBottom: 5 }}>{tr('diag.title')}</div>
         <div style={{ fontSize: "0.88rem", color: t.diagText, lineHeight: 1.6 }}>{result.shrnutí}</div>
         {ragMatches.length > 0 && (
           <div style={{ marginTop: 6, fontSize: "0.7rem", color: t.doneStatusColor }}>
-            ◈ Databáze servisu: {ragMatches.length} podobných případů zohledněno
+            {tr('diag.ragInfo', { count: ragMatches.length })}
           </div>
         )}
       </div>
 
       {/* Závady */}
       {result.závady?.map((f, i) => (
-        <FaultCard key={i} fault={f} isPrimary={i === 0} t={t} />
+        <FaultCard key={i} fault={f} isPrimary={i === 0} t={t} tr={tr} />
       ))}
 
       {/* Doporučené testy + poznámky */}
@@ -108,7 +110,7 @@ export default function DiagCard({ result, ragMatches = [], t }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
           {result.doporučené_testy?.length > 0 && (
             <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2 }}>
-              <SectionLabel t={t}>DOPORUČENÉ TESTY</SectionLabel>
+              <SectionLabel t={t}>{tr('diag.recommendedTests')}</SectionLabel>
               {result.doporučené_testy.map((test, i) => (
                 <div key={i} style={{ fontSize: "0.78rem", color: t.textMuted, padding: "3px 0", borderBottom: `1px solid ${t.border}`, display: "flex", gap: 6 }}>
                   <span style={{ color: t.accent }}>{String(i + 1).padStart(2, "0")}.</span>
@@ -118,7 +120,7 @@ export default function DiagCard({ result, ragMatches = [], t }) {
             </div>
           )}
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2 }}>
-            <SectionLabel t={t}>POZNÁMKY</SectionLabel>
+            <SectionLabel t={t}>{tr('diag.notes')}</SectionLabel>
             {result.varování && (
               <div style={{ fontSize: "0.76rem", color: "#dc2626", background: "rgba(220,38,38,0.07)", padding: "6px 8px", marginBottom: 6, borderLeft: "2px solid #dc2626", borderRadius: 2 }}>
                 ⚠ {result.varování}

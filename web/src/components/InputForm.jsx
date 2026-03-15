@@ -1,21 +1,26 @@
 import { useState } from "react";
-import { SYMPTOM_CATEGORIES, COMMON_OBD_CODES } from "../constants/index.js";
+import { COMMON_OBD_CODES } from "../constants/index.js";
+import { useI18n } from "../i18n/index.jsx";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
-const TABS = [
-  { key: "symptoms", label: "⚡ PŘÍZNAKY" },
-  { key: "obd",      label: "📡 OBD"      },
-  { key: "text",     label: "✍️ POPIS"   },
-];
+export default function InputForm({ onSubmit, loading, label, t }) {
+  const { tr, symptoms: SYMPTOM_CATEGORIES } = useI18n();
 
-export default function InputForm({ onSubmit, loading, label = "SPUSTIT DIAGNOSTIKU", t }) {
+  const TABS = [
+    { key: "symptoms", label: tr('input.symptomsTab') },
+    { key: "obd",      label: tr('input.obdTab')      },
+    { key: "text",     label: tr('input.textTab')      },
+  ];
+
+  const categories = Object.keys(SYMPTOM_CATEGORIES);
+
   const [tab,      setTab]      = useState("symptoms");
   const [symptoms, setSymptoms] = useState([]);
   const [obdInput, setObdInput] = useState("");
   const [obdCodes, setObdCodes] = useState([]);
   const [text,     setText]     = useState("");
-  const [openCat,  setOpenCat]  = useState("Motor & Výkon");
+  const [openCat,  setOpenCat]  = useState(categories[0] ?? "");
 
   const toggleSymptom = (s) =>
     setSymptoms((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
@@ -40,10 +45,12 @@ export default function InputForm({ onSubmit, loading, label = "SPUSTIT DIAGNOST
   const total = symptoms.length + obdCodes.length + (text.trim() ? 1 : 0);
 
   const tabHints = {
-    symptoms: `${symptoms.length} vyb.`,
-    obd:      `${obdCodes.length} kódů`,
+    symptoms: tr('input.selectedCount', { count: symptoms.length }),
+    obd:      tr('input.codesCount', { count: obdCodes.length }),
     text:     text.trim() ? "✓" : "—",
   };
+
+  const displayLabel = label || tr('app.runDiag');
 
   return (
     <div>
@@ -92,12 +99,12 @@ export default function InputForm({ onSubmit, loading, label = "SPUSTIT DIAGNOST
         </div>
       )}
 
-      {/* Panel: OBD kódy (bez OBD čtečky ve webové verzi) */}
+      {/* Panel: OBD kódy */}
       {tab === "obd" && (
         <div>
           <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
             <input value={obdInput} onChange={(e) => setObdInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addObdFromInput()}
-              placeholder="P0401, P2263..."
+              placeholder={tr('input.obdPlaceholder')}
               style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "8px 10px", fontSize: "0.78rem", fontFamily: "'IBM Plex Mono',monospace", borderRadius: 2, outline: "none" }} />
             <button onClick={addObdFromInput}
               style={{ background: t.accent, color: "#fff", border: "none", cursor: "pointer", padding: "8px 14px", fontSize: "0.7rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2 }}>
@@ -133,7 +140,7 @@ export default function InputForm({ onSubmit, loading, label = "SPUSTIT DIAGNOST
       {/* Panel: Volný text */}
       {tab === "text" && (
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4}
-          placeholder="Popište závadu vlastními slovy... např. 'Po nastartování přešel do nouzového režimu, černý kouř, svítí kontrolka motoru a DPF...'"
+          placeholder={tr('input.describeFault')}
           style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.8rem", lineHeight: 1.7, fontFamily: "'IBM Plex Mono',monospace", resize: "vertical", outline: "none", borderRadius: 2 }} />
       )}
 
@@ -143,13 +150,13 @@ export default function InputForm({ onSubmit, loading, label = "SPUSTIT DIAGNOST
           {symptoms.length > 0 && <span style={{ color: t.accent }}>⚡ {symptoms.length}</span>}
           {obdCodes.length > 0 && <span style={{ color: t.obdText }}>📡 {obdCodes.length}</span>}
           {text.trim()         && <span style={{ color: t.doneStatusColor }}>✍️</span>}
-          {total === 0         && <span style={{ color: t.textVeryFaint }}>Zadejte příznaky nebo OBD kódy</span>}
+          {total === 0         && <span style={{ color: t.textVeryFaint }}>{tr('input.enterHint')}</span>}
         </div>
         <button disabled={total === 0 || loading} onClick={handleSubmit}
           style={{ background: total > 0 ? t.accent : t.border, color: total > 0 ? "#fff" : t.textFaint, border: "none", cursor: total > 0 && !loading ? "pointer" : "not-allowed", padding: "9px 22px", letterSpacing: "0.1em", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2, transition: "all 0.2s", opacity: total === 0 || loading ? 0.55 : 1 }}>
           {loading
-            ? <span style={{ display: "inline-block", animation: "pulse 1.5s ease infinite" }}>Analyzuji...</span>
-            : `▶ ${label}`}
+            ? <span style={{ display: "inline-block", animation: "pulse 1.5s ease infinite" }}>{tr('input.analyzing')}</span>
+            : `▶ ${displayLabel}`}
         </button>
       </div>
     </div>
@@ -158,6 +165,7 @@ export default function InputForm({ onSubmit, loading, label = "SPUSTIT DIAGNOST
 
 // ── FollowUpPrompt — jednoduchá promptlina pro pokračování diagnostiky ─────────
 export function FollowUpPrompt({ onSubmit, loading, t }) {
+  const { tr } = useI18n();
   const [text, setText] = useState("");
 
   const handleSubmit = () => {
@@ -173,7 +181,7 @@ export function FollowUpPrompt({ onSubmit, loading, t }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-        placeholder="Popište nové zjištění nebo doplňte informace... (Enter = odeslat, Shift+Enter = nový řádek)"
+        placeholder={tr('input.followupPlaceholder')}
         rows={2}
         style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.88rem", lineHeight: 1.6, fontFamily: "'IBM Plex Mono',monospace", resize: "none", outline: "none", borderRadius: 2 }}
       />
@@ -183,7 +191,7 @@ export function FollowUpPrompt({ onSubmit, loading, t }) {
         style={{ background: text.trim() ? t.accent : t.border, color: text.trim() ? "#fff" : t.textFaint, border: "none", cursor: text.trim() && !loading ? "pointer" : "not-allowed", padding: "10px 20px", fontSize: "0.82rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2, transition: "all 0.2s", whiteSpace: "nowrap", flexShrink: 0 }}>
         {loading
           ? <span style={{ animation: "pulse 1.5s ease infinite", display: "inline-block" }}>...</span>
-          : "▶ Odeslat"}
+          : tr('input.send')}
       </button>
     </div>
   );

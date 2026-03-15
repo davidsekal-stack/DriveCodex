@@ -1,101 +1,70 @@
-# TransitDiag – Instalační příručka
+# GearBrain – AI Diagnostika Ford Transit EU
+
+Webová aplikace pro AI diagnostiku poruch Ford Transit. Kombinuje symptomy, OBD kódy a popis mechanika s AI analýzou (Claude) a databází ověřených oprav (RAG).
 
 ## Požadavky
 
-- [Node.js](https://nodejs.org) verze 18 nebo novější
-- Připojení k internetu (pro AI diagnostiku)
-- Anthropic API klíč (viz níže)
+- [Node.js](https://nodejs.org) verze 18+
+- Supabase projekt (viz [SUPABASE_SETUP.md](SUPABASE_SETUP.md))
 
----
-
-## Jak získat API klíč
-
-1. Jděte na [console.anthropic.com](https://console.anthropic.com)
-2. Zaregistrujte se nebo přihlaste
-3. Vlevo klikněte na **API Keys**
-4. Klikněte **Create Key**, pojmenujte ho např. "TransitDiag"
-5. Klíč zkopírujte – zobrazí se jen jednou!
-
-> Klíč je uložen **pouze lokálně** na vašem počítači v šifrovaném úložišti. Nikam se neodesílá.
-
----
-
-## Instalace a spuštění (vývojový režim)
+## Spuštění (vývoj)
 
 ```bash
-# 1. Rozbalte nebo naklonujte projekt
-cd transitdiag
-
-# 2. Nainstalujte závislosti
+cd web
 npm install
-
-# 3. Spusťte v dev režimu (otevře se okno aplikace)
 npm run dev
 ```
 
-Při prvním spuštění vás aplikace vyzve k zadání API klíče.
+Aplikace poběží na `http://localhost:5173`.
 
----
+## Build
 
-## Sestavení instalačního balíčku
-
-### Windows (.exe instalátor)
 ```bash
-npm run build:win
+cd web
+npm run build
 ```
-Výsledek: `release/TransitDiag Setup 1.0.0.exe`
 
-### macOS (.dmg)
+Výstup: `web/dist/` — statické soubory připravené k nasazení.
+
+## Deployment
+
+Aplikace je nasazena na **Vercel** s automatickým deploy z GitHub:
+- Push do `main` → production deploy
+- Push do feature branch → preview deploy
+
+## Testy
+
 ```bash
-npm run build:mac
+npm test
 ```
-Výsledek: `release/TransitDiag-1.0.0.dmg`
-
-### Linux (.AppImage)
-```bash
-npm run build:linux
-```
-Výsledek: `release/TransitDiag-1.0.0.AppImage`
-
----
 
 ## Struktura projektu
 
 ```
-transitdiag/
-├── electron/
-│   ├── main/index.js      ← Hlavní proces (API volání, storage)
-│   └── preload/index.js   ← Bezpečný most renderer ↔ main
-├── src/
-│   ├── main.jsx           ← React vstupní bod
-│   └── App.jsx            ← Celá aplikace
-├── index.html
-├── vite.config.js
-└── package.json
+gearbrain/
+├── web/                    ← Webová aplikace (React + Vite)
+│   ├── src/
+│   │   ├── App.jsx         ← Hlavní komponenta
+│   │   ├── components/     ← UI komponenty
+│   │   ├── hooks/          ← React hooks
+│   │   ├── lib/            ← AI, validace, storage, utils
+│   │   ├── i18n/           ← Lokalizace (CS/EN/DE)
+│   │   └── constants/      ← Katalog vozidel, symptomy
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+├── supabase/               ← Edge Functions + DB migrace
+│   ├── functions/
+│   │   ├── anthropic-proxy/ ← Claude API proxy
+│   │   ├── push-case/       ← Uložení případu do RAG
+│   │   └── search-cases/    ← Vyhledání podobných případů
+│   └── migrations/
+├── tests/                  ← Unit testy
+└── package.json            ← Root (testy)
 ```
 
----
+## Dokumentace
 
-## Náklady na API
-
-Přibližná cena jedné diagnostiky (Claude Sonnet): **0,50–2 Kč**  
-Při 10 diagnostikách denně: cca **300–600 Kč/měsíc**
-
-Aktuální ceník: [anthropic.com/pricing](https://www.anthropic.com/pricing)
-
----
-
-## Nastavení
-
-V aplikaci klikněte na **⚙️ Nastavení** (vpravo nahoře) pro:
-- Zobrazení/změnu API klíče
-- Smazání API klíče
-
----
-
-## Data aplikace
-
-Případy a diagnostiky jsou uloženy lokálně na počítači:
-- **Windows:** `%APPDATA%\transitdiag-data\`
-- **macOS:** `~/Library/Application Support/transitdiag-data/`
-- **Linux:** `~/.config/transitdiag-data/`
+- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) — nastavení Supabase projektu
+- [SUPABASE_EDGE_FUNCTION.md](SUPABASE_EDGE_FUNCTION.md) — Edge Functions
+- [SUPABASE_GATEKEEPER.md](SUPABASE_GATEKEEPER.md) — RLS a bezpečnost

@@ -9,7 +9,7 @@
  *   - created_at, updated_at
  *
  * Při uzavření případu se navíc pushne normalizovaný záznam do gearbrain_cases
- * (pro RAG — stejný formát jako Electron verze).
+ * (pro RAG).
  */
 
 import { supabase } from './supabase.js'
@@ -79,7 +79,7 @@ export async function pushClosedCase(kase) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Nepřihlášen' }
 
-  // Validate before push (mirrors Electron validateCase)
+  // Validate before push
   const resVal = validateResolution(kase.resolution)
   if (!resVal.ok) return { ok: false, error: resVal.reason }
   if (!kase.vehicle?.model) return { ok: false, error: 'Chybí model vozidla.' }

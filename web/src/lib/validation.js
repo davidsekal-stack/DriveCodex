@@ -1,30 +1,33 @@
+import { translate } from '../i18n/translate.js'
+
 /**
  * Sdílená validační logika pro resolution text.
- * ESM verze pro web — stejná logika jako electron/lib/validation.js
+ * Validuje délku, opakování znaků a rozmanitost slov.
  *
  * @param {string} resolutionRaw - text popisující provedenou opravu
+ * @param {string} [lang] - jazyk pro lokalizované chybové hlášky
  * @returns {{ ok: boolean, reason: string|null }}
  */
-export function validateResolution(resolutionRaw) {
+export function validateResolution(resolutionRaw, lang) {
   const resolution = (resolutionRaw ?? '').trim()
 
   if (!resolution) {
-    return { ok: false, reason: 'Chybí popis provedené opravy.' }
+    return { ok: false, reason: translate('validation.resolutionEmpty', null, lang) }
   }
   if (resolution.length < 10) {
-    return { ok: false, reason: `Popis opravy je příliš krátký (${resolution.length} znaků, minimum 10).` }
+    return { ok: false, reason: translate('validation.resolutionTooShort', { length: resolution.length, min: 10 }, lang) }
   }
   if (resolution.length > 200) {
-    return { ok: false, reason: `Popis opravy je příliš dlouhý (${resolution.length} znaků, maximum 200).` }
+    return { ok: false, reason: translate('validation.resolutionTooLong', { length: resolution.length, max: 200 }, lang) }
   }
   if (/(.)\1{6,}/.test(resolution)) {
-    return { ok: false, reason: 'Popis opravy obsahuje opakující se znaky.' }
+    return { ok: false, reason: translate('validation.resolutionRepeating', null, lang) }
   }
   const uniqueWords = new Set(
     resolution.toLowerCase().split(/\s+/).filter(w => w.length > 2)
   )
   if (uniqueWords.size < 2) {
-    return { ok: false, reason: 'Popis opravy je příliš stručný — přidejte alespoň 2 různá slova.' }
+    return { ok: false, reason: translate('validation.resolutionTerse', null, lang) }
   }
 
   return { ok: true, reason: null }
