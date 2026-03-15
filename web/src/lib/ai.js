@@ -1,5 +1,6 @@
 import { extractSignals } from "./rag.js";
 import { getBrandEntry }  from "../constants/index.js";
+import { translate }       from "../i18n/translate.js";
 
 // ── Limity ────────────────────────────────────────────────────────────────────
 
@@ -8,10 +9,10 @@ export const CASE_TOKEN_LIMIT = 40_000
 // ── Off-topic detekce ─────────────────────────────────────────────────────────
 
 // Technické zkratky — jejich přítomnost silně indikuje diagnostický kontext
-const TECH_ABBREVIATIONS = /(dpf|egr|adblue|ecu|ecm|tcm|abs|esp|eps|can|lin|obd|dtc|mil|vin|rpm|tdci|ecoblue|ecoboost|scr|nox|def|urea|vgt|egts|maf|map|iac|tps|ckp|cmp|evap|purge|swirl|pid)/i
+const TECH_ABBREVIATIONS = /(dpf|egr|adblue|ecu|ecm|tcm|abs|esp|eps|can|lin|obd|dtc|mil|vin|rpm|tdci|ecoblue|ecoboost|scr|nox|def|urea|vgt|egts|maf|map|iac|tps|ckp|cmp|evap|purge|swirl|pid)/i
 
 // OBD kód ve formátu P0401, C1234, B0001, U0100
-const OBD_CODE_PATTERN = /[PCBU][0-9A-F]{4}/i
+const OBD_CODE_PATTERN = /[PCBU][0-9A-F]{4}/i
 
 // Čísla s technickým kontextem — nájezd, teplota, tlak, RPM, napětí
 const TECHNICAL_NUMBER = /\d+\s*(km|bar|kpa|rpm|psi|mbar|nm|ms|mv|mg)|\d+°[cf]/i
@@ -31,7 +32,7 @@ const TECHNICAL_NUMBER = /\d+\s*(km|bar|kpa|rpm|psi|mbar|nm|ms|mv|mg)|\d+°[cf]/
  * @param {string} text
  * @returns {{ ok: boolean, reason: string|null }}
  */
-export function checkTopicRelevance(text) {
+export function checkTopicRelevance(text, lang) {
   const trimmed = (text ?? "").trim()
 
   // Krátké texty vždy projdou — jsou to doplňující odpovědi v kontextu případu
@@ -48,7 +49,7 @@ export function checkTopicRelevance(text) {
 
   return {
     ok: false,
-    reason: "Popis neobsahuje žádný technický údaj (OBD kód, zkratku jako DPF/EGR/ABS, nebo měřenou hodnotu). Popište technický problém nebo příznaky závady.",
+    reason: translate('ai.topicIrrelevant', null, lang),
   }
 }
 
@@ -101,51 +102,110 @@ export function smartRepair(raw) {
  * @param {Object} vehicle      - { brand, model, mileage } aktuálního případu
  * @returns {string}
  */
-export function buildSystemPrompt(similarCases, vehicle = {}) {
-  const entry    = getBrandEntry(vehicle.brand)
-  const expertise = entry?.expertise
-    ?? "užitková vozidla pro evropský trh (EU spec), včetně systémů AdBlue, DPF Euro 5/6 a SCR"
-  const ragBlock = similarCases.length > 0 ? buildRagBlock(similarCases) : ""
+// ── Localized system prompt templates ────────────────────────────────────────
+// JSON keys MUST stay in Czech (závady, postup, naléhavost…) to avoid breaking
+// smartRepair parsing and DiagCard rendering. Only descriptive text changes lang.
 
-  return `Jsi expertní AI diagnostika pro mechaniky specializující se na ${expertise}.${ragBlock}
+const SYSTEM_PROMPTS = {
+  cs: (expertise, ragBlock) =>
+    `Jsi expertní AI diagnostika pro mechaniky specializující se na ${expertise}.${ragBlock}
 
 Když dostaneš příznaky, OBD kódy nebo popis závady, vrať POUZE validní JSON (bez textu před/za JSON):
 {"shrnutí":"...","závady":[{"název":"...","pravděpodobnost":85,"popis":"...","příznaky_shoda":[],"obd_kódy":[],"díly":[],"postup":"...","naléhavost":"vysoká","poznámka":"..."}],"doporučené_testy":[],"varování":null,"další_info":null}
 
-Pravidla: Odpovídáš VÝHRADNĚ na otázky týkající se diagnostiky a opravy vozidel. Pokud dostaneš dotaz nesouvisející s diagnostikou vozidla, vrať JSON se závadou název "Nesouvisející dotaz" a pravděpodobností 0 a popisem "Tento systém slouží pouze pro diagnostiku vozidel." Jinak: Když nevíš, přiznej to. 1–4 závady seřazené dle pravděpodobnosti. Naléhavost: nízká/střední/vysoká/kritická. Zohledni EU specifika (AdBlue, DPF Euro6). VRAŤ POUZE JSON.`
+Pravidla: Odpovídáš VÝHRADNĚ na otázky týkající se diagnostiky a opravy vozidel. Pokud dostaneš dotaz nesouvisející s diagnostikou vozidla, vrať JSON se závadou název "Nesouvisející dotaz" a pravděpodobností 0 a popisem "Tento systém slouží pouze pro diagnostiku vozidel." Jinak: Když nevíš, přiznej to. 1–4 závady seřazené dle pravděpodobnosti. Naléhavost: nízká/střední/vysoká/kritická. Zohledni EU specifika (AdBlue, DPF Euro6). VRAŤ POUZE JSON.`,
+
+  en: (expertise, ragBlock) =>
+    `You are an expert AI diagnostics system for mechanics specialising in ${expertise}.${ragBlock}
+
+When you receive symptoms, OBD codes or a fault description, return ONLY valid JSON (no text before/after JSON).
+IMPORTANT: The JSON keys MUST be in Czech exactly as shown below — do NOT translate the keys:
+{"shrnutí":"...","závady":[{"název":"...","pravděpodobnost":85,"popis":"...","příznaky_shoda":[],"obd_kódy":[],"díly":[],"postup":"...","naléhavost":"vysoká","poznámka":"..."}],"doporučené_testy":[],"varování":null,"další_info":null}
+
+Write all VALUES (descriptions, fault names, repair procedures, notes) in English.
+Rules: You answer ONLY questions related to vehicle diagnostics and repair. If you receive a non-diagnostic query, return JSON with fault název "Unrelated query" and pravděpodobnost 0 and popis "This system is for vehicle diagnostics only." Otherwise: If you don't know, admit it. 1–4 faults sorted by probability. naléhavost values: nízká/střední/vysoká/kritická. Consider EU specifics (AdBlue, DPF Euro6). RETURN ONLY JSON.`,
+
+  de: (expertise, ragBlock) =>
+    `Du bist ein Experten-AI-Diagnosesystem für Mechaniker, spezialisiert auf ${expertise}.${ragBlock}
+
+Wenn du Symptome, OBD-Codes oder eine Fehlerbeschreibung erhältst, gib NUR gültiges JSON zurück (kein Text vor/nach JSON).
+WICHTIG: Die JSON-Schlüssel MÜSSEN auf Tschechisch sein, genau wie unten gezeigt — übersetze die Schlüssel NICHT:
+{"shrnutí":"...","závady":[{"název":"...","pravděpodobnost":85,"popis":"...","příznaky_shoda":[],"obd_kódy":[],"díly":[],"postup":"...","naléhavost":"vysoká","poznámka":"..."}],"doporučené_testy":[],"varování":null,"další_info":null}
+
+Schreibe alle WERTE (Beschreibungen, Fehlernamen, Reparaturverfahren, Anmerkungen) auf Deutsch.
+Regeln: Du antwortest AUSSCHLIESSLICH auf Fragen zur Fahrzeugdiagnose und -reparatur. Bei einer nicht-diagnostischen Anfrage gib JSON mit název "Nicht verwandte Anfrage" und pravděpodobnost 0 und popis "Dieses System dient nur der Fahrzeugdiagnose." zurück. Sonst: Wenn du es nicht weißt, gib es zu. 1–4 Fehler sortiert nach Wahrscheinlichkeit. naléhavost-Werte: nízká/střední/vysoká/kritická. Berücksichtige EU-Spezifika (AdBlue, DPF Euro6). GIB NUR JSON ZURÜCK.`,
 }
 
-function buildRagBlock(cases) {
+export function buildSystemPrompt(similarCases, vehicle = {}, lang) {
+  const entry    = getBrandEntry(vehicle.brand)
+  const expertise = entry?.expertise
+    ?? "užitková vozidla pro evropský trh (EU spec), včetně systémů AdBlue, DPF Euro 5/6 a SCR"
+  const ragBlock = similarCases.length > 0 ? buildRagBlock(similarCases, lang) : ""
+  const builder  = SYSTEM_PROMPTS[lang] || SYSTEM_PROMPTS.cs
+
+  return builder(expertise, ragBlock)
+}
+
+// ── Localized RAG block labels ────────────────────────────────────────────────
+const RAG_LABELS = {
+  cs: {
+    high: "🔴 VYSOKÁ SHODA", mid: "🟡 STŘEDNÍ SHODA", low: "🟢 ČÁSTEČNÁ SHODA",
+    score: "skóre", symptoms: "Příznaky", solution: "✅ Ověřené řešení",
+    title: "OVĚŘENÉ OPRAVY Z DATABÁZE SERVISU",
+    instrTitle: "INSTRUKCE K DATABÁZI",
+    instrHigh:  "🔴 VYSOKÁ SHODA: Toto řešení MUSÍ být na 1. nebo 2. místě — má prokázaný výsledek na velmi podobném vozidle se shodnými OBD kódy i příznaky.",
+    instrMid:   "🟡 STŘEDNÍ SHODA: Zahrň jako pravděpodobnou variantu, uveď výše než obecné hypotézy.",
+    instrLow:   "🟢 ČÁSTEČNÁ SHODA: Zmiň jako možnost, hodnoť volně podle ostatních příznaků.",
+    instrNote:  "Pokud databázové řešení neodpovídá aktuálním příznakům, vysvětli proč se liší.",
+  },
+  en: {
+    high: "🔴 HIGH MATCH", mid: "🟡 MEDIUM MATCH", low: "🟢 PARTIAL MATCH",
+    score: "score", symptoms: "Symptoms", solution: "✅ Verified solution",
+    title: "VERIFIED REPAIRS FROM SERVICE DATABASE",
+    instrTitle: "DATABASE INSTRUCTIONS",
+    instrHigh:  "🔴 HIGH MATCH: This solution MUST be ranked 1st or 2nd — it has a proven result on a very similar vehicle with matching OBD codes and symptoms.",
+    instrMid:   "🟡 MEDIUM MATCH: Include as a likely variant, rank above generic hypotheses.",
+    instrLow:   "🟢 PARTIAL MATCH: Mention as a possibility, evaluate freely based on other symptoms.",
+    instrNote:  "If the database solution does not match current symptoms, explain why it differs.",
+  },
+  de: {
+    high: "🔴 HOHE ÜBEREINSTIMMUNG", mid: "🟡 MITTLERE ÜBEREINSTIMMUNG", low: "🟢 TEILWEISE ÜBEREINSTIMMUNG",
+    score: "Punktzahl", symptoms: "Symptome", solution: "✅ Verifizierte Lösung",
+    title: "VERIFIZIERTE REPARATUREN AUS DER SERVICEDATENBANK",
+    instrTitle: "DATENBANK-ANWEISUNGEN",
+    instrHigh:  "🔴 HOHE ÜBEREINSTIMMUNG: Diese Lösung MUSS auf Platz 1 oder 2 stehen — sie hat ein nachgewiesenes Ergebnis bei einem sehr ähnlichen Fahrzeug mit übereinstimmenden OBD-Codes und Symptomen.",
+    instrMid:   "🟡 MITTLERE ÜBEREINSTIMMUNG: Als wahrscheinliche Variante einbeziehen, über allgemeinen Hypothesen einordnen.",
+    instrLow:   "🟢 TEILWEISE ÜBEREINSTIMMUNG: Als Möglichkeit erwähnen, frei nach anderen Symptomen bewerten.",
+    instrNote:  "Wenn die Datenbanklösung nicht zu den aktuellen Symptomen passt, erkläre warum sie abweicht.",
+  },
+}
+
+function buildRagBlock(cases, lang) {
+  const L = RAG_LABELS[lang] || RAG_LABELS.cs
+
   const entries = cases.map((c, i) => {
     const { symptoms, obdCodes } = extractSignals(c)
     const vehicle = [c.vehicle?.brand, c.vehicle?.model, c.vehicle?.enginePower].filter(Boolean).join(" ") || "?"
     const score   = c.ragScore ?? 0
 
-    // Odstupňování podle skutečného skóre z Edge Function
-    // Skóre (v rámci stejné značky): model(3) + power(2) + OBD×4 + příznak×1.5 + text(max 2)
-    // Vysoká shoda ≥ 8  = min. model + OBD + příznak nebo model + power + OBD
-    // Střední shoda ≥ 5  = min. model + power nebo OBD + příznak
-    // Částečná shoda < 5 = slabá kombinace signálů
-    const strength = score >= 8 ? "🔴 VYSOKÁ SHODA"
-                   : score >= 5 ? "🟡 STŘEDNÍ SHODA"
-                                : "🟢 ČÁSTEČNÁ SHODA"
+    const strength = score >= 8 ? L.high : score >= 5 ? L.mid : L.low
 
     return (
-      `[${i + 1}] ${strength} (skóre: ${score.toFixed(1)}) | ${vehicle}\n` +
-      `   Příznaky: ${symptoms.join(", ") || "—"}\n` +
+      `[${i + 1}] ${strength} (${L.score}: ${score.toFixed(1)}) | ${vehicle}\n` +
+      `   ${L.symptoms}: ${symptoms.join(", ") || "—"}\n` +
       `   OBD: ${obdCodes.join(", ") || "—"}\n` +
-      `   ✅ Ověřené řešení: ${c.resolution}`
+      `   ${L.solution}: ${c.resolution}`
     )
   })
 
   return `
 
-OVĚŘENÉ OPRAVY Z DATABÁZE SERVISU:
+${L.title}:
 ${entries.join("\n\n")}
 
-INSTRUKCE K DATABÁZI:
-- 🔴 VYSOKÁ SHODA: Toto řešení MUSÍ být na 1. nebo 2. místě — má prokázaný výsledek na velmi podobném vozidle se shodnými OBD kódy i příznaky.
-- 🟡 STŘEDNÍ SHODA: Zahrň jako pravděpodobnou variantu, uveď výše než obecné hypotézy.
-- 🟢 ČÁSTEČNÁ SHODA: Zmiň jako možnost, hodnoť volně podle ostatních příznaků.
-Pokud databázové řešení neodpovídá aktuálním příznakům, vysvětli proč se liší.`
+${L.instrTitle}:
+- ${L.instrHigh}
+- ${L.instrMid}
+- ${L.instrLow}
+${L.instrNote}`
 }

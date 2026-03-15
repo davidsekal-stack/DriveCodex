@@ -13,6 +13,13 @@ import LoginPage                            from "./components/LoginPage.jsx";
 import ErrorBoundary                        from "./components/ErrorBoundary.jsx";
 import ConfirmModal                         from "./components/ConfirmModal.jsx";
 import useCases                             from "./hooks/useCases.js";
+import { useI18n }                          from "./i18n/index.jsx";
+
+const LANGS = [
+  { code: "cs", label: "CS" },
+  { code: "en", label: "EN" },
+  { code: "de", label: "DE" },
+];
 
 // ── Globální styly ────────────────────────────────────────────────────────────
 function GlobalStyles({ t, darkMode }) {
@@ -35,11 +42,11 @@ function GlobalStyles({ t, darkMode }) {
 }
 
 // ── StatusBadge ───────────────────────────────────────────────────────────────
-function StatusBadge({ status, t }) {
+function StatusBadge({ status, t, tr }) {
   const closed = status === "uzavřený";
   return (
     <span style={{ padding: "2px 8px", fontSize: "0.65rem", fontWeight: 600, background: closed ? t.doneStatusBg : t.openStatusBg, color: closed ? t.doneStatusColor : t.openStatusColor, border: `1px solid ${closed ? t.doneStatusBorder : t.openStatusBorder}`, borderRadius: 2, whiteSpace: "nowrap" }}>
-      {closed ? "✓ UZAVŘENÝ" : "● AKTIVNÍ"}
+      {closed ? tr("status.closed") : tr("status.active")}
     </span>
   );
 }
@@ -65,6 +72,7 @@ function Modal({ onClose, children, width = 480 }) {
 function App() {
   const [darkMode, setDarkMode] = useState(true);
   const t = darkMode ? DARK : LIGHT;
+  const { tr, lang, changeLang } = useI18n();
 
   const [session,    setSession]    = useState(null);
   const [appReady,   setAppReady]   = useState(false);
@@ -155,16 +163,16 @@ function App() {
     const ragInput = { vehicle, symptoms: allSymptoms, obdCodes: allObdCodes, text: allTexts.join(" ") };
 
     const userPrompt = [
-      (vehicle.brand || vehicle.model) && `Vozidlo: ${[vehicle.brand, vehicle.model, vehicle.enginePower].filter(Boolean).join(" ")}`,
-      vehicle.mileage                  && `Nájezd: ${vehicle.mileage} km`,
-      allSymptoms.length               && `Příznaky: ${allSymptoms.join(", ")}`,
-      allObdCodes.length               && `OBD kódy: ${allObdCodes.join(", ")}`,
-      ...allTexts.map((tx, i) => `Popis mechanika${allTexts.length > 1 ? ` ${i + 1}` : ""}:\n${tx}`),
+      (vehicle.brand || vehicle.model) && `${tr('app.userVehicle')}: ${[vehicle.brand, vehicle.model, vehicle.enginePower].filter(Boolean).join(" ")}`,
+      vehicle.mileage                  && `${tr('app.userMileage')}: ${vehicle.mileage} km`,
+      allSymptoms.length               && `${tr('app.userSymptoms')}: ${allSymptoms.join(", ")}`,
+      allObdCodes.length               && `${tr('app.userObd')}: ${allObdCodes.join(", ")}`,
+      ...allTexts.map((tx, i) => `${tr('app.userMechDesc')}${allTexts.length > 1 ? ` ${i + 1}` : ""}:\n${tx}`),
     ].filter(Boolean).join("\n");
 
     const currentTokens = current.tokenCount ?? 0;
     if (currentTokens >= CASE_TOKEN_LIMIT) {
-      setError(`Případ dosáhl limitu ${CASE_TOKEN_LIMIT.toLocaleString()} tokenů. Uzavřete případ a výsledky shrňte do poznámky.`);
+      setError(tr('app.tokenLimit', { limit: CASE_TOKEN_LIMIT.toLocaleString() }));
       updateCase(caseId, (c) => ({ messages: c.messages.filter((m) => m.id !== inputMsg.id) }));
       setLoading(false);
       return;
@@ -172,7 +180,7 @@ function App() {
 
     const freeText = inputData.text?.trim() ?? "";
     if (freeText && !inputData.symptoms?.length && !inputData.obdCodes?.length) {
-      const topicCheck = checkTopicRelevance(freeText);
+      const topicCheck = checkTopicRelevance(freeText, lang);
       if (!topicCheck.ok) {
         setError(topicCheck.reason);
         updateCase(caseId, (c) => ({ messages: c.messages.filter((m) => m.id !== inputMsg.id) }));
@@ -188,14 +196,14 @@ function App() {
 
     try {
       await ragPromise;
-      const data   = await storage.callClaude({ systemPrompt: buildSystemPrompt(similar, vehicle), userMessage: userPrompt, maxTokens: 4000 });
-      if (data.error) throw new Error(data.error.message || "AI vrátilo chybu.");
-      if (!data.content) throw new Error("AI nevrátilo odpověď. Zkuste to znovu.");
+      const data   = await storage.callClaude({ systemPrompt: buildSystemPrompt(similar, vehicle, lang), userMessage: userPrompt, maxTokens: 4000 });
+      if (data.error) throw new Error(data.error.message || tr('app.aiError'));
+      if (!data.content) throw new Error(tr('app.aiNoResponse'));
       const raw    = data.content.map((b) => b.text ?? "").join("");
       const parsed = smartRepair(raw);
 
-      if (!parsed)                throw new Error("AI nevrátilo čitelný výsledek. Zkuste přidat více příznaků.");
-      if (!parsed.závady?.length) throw new Error("Nebyly nalezeny odpovídající závady.");
+      if (!parsed)                throw new Error(tr('app.aiUnreadable'));
+      if (!parsed.závady?.length) throw new Error(tr('app.noFaults'));
 
       const usedTokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
 
@@ -204,7 +212,7 @@ function App() {
       updateCase(caseId, (c) => {
         const isFirst = c.messages.filter((m) => m.type === "diagnosis").length === 0;
         const newName = isFirst && parsed.závady[0]
-          ? `${vehicle.model?.split(" ").slice(0, 3).join(" ") || vehicle.brand || "Vozidlo"} | ${parsed.závady[0].název}`
+          ? `${vehicle.model?.split(" ").slice(0, 3).join(" ") || vehicle.brand || tr('app.defaultVehicle')} | ${parsed.závady[0].název}`
           : c.name;
         return {
           messages: [...c.messages, diagMsg],
@@ -213,12 +221,12 @@ function App() {
         };
       });
     } catch (e) {
-      setError("Chyba: " + e.message);
+      setError(tr('app.errorPrefix') + e.message);
       updateCase(caseId, (c) => ({ messages: c.messages.filter((m) => m.id !== inputMsg.id) }));
     } finally {
       setLoading(false);
     }
-  }, [updateCase, casesRef]);
+  }, [updateCase, casesRef, tr, lang]);
 
   const handleNewCase = useCallback((inputData) => {
     const id = handleCreateCase(newVehicle);
@@ -230,7 +238,7 @@ function App() {
     const resText = resolution.trim();
     if (!resText) return;
 
-    const validation = validateResolution(resText);
+    const validation = validateResolution(resText, lang);
     if (!validation.ok) {
       setCloseError(validation.reason);
       return;
@@ -242,8 +250,6 @@ function App() {
 
     if (currentCase) {
       const fullCase = { ...currentCase, status: "uzavřený", closedAt, resolution: resText };
-      // RAG push is best-effort — failure doesn't affect cloudStatus
-      // (case is already saved in gearbrain_web_sessions)
       storage.pushClosedCase(fullCase)
         .then((result) => { if (!result.ok) console.warn('[rag push]', result.error); })
         .catch((e) => { console.warn('[rag push]', e.message); });
@@ -252,7 +258,7 @@ function App() {
     setCloseModal(false);
     setCloseError(null);
     setResolution("");
-  }, [activeId, resolution, updateCase, casesRef]);
+  }, [activeId, resolution, updateCase, casesRef, lang]);
 
   const handleDeleteCase = useCallback((id) => {
     deleteCaseFromStore(id);
@@ -276,7 +282,7 @@ function App() {
   if (!appReady) {
     return (
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: DARK.bg, color: DARK.textFaint, fontFamily: "'IBM Plex Mono',monospace", fontSize: "0.85rem", letterSpacing: "0.1em" }}>
-        Načítám...
+        {tr('app.loading')}
       </div>
     );
   }
@@ -301,27 +307,38 @@ function App() {
             <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.5rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em", lineHeight: 1 }}>
               GEAR<span style={{ color: t.accent }}>Brain</span>
             </div>
-            <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.1em", lineHeight: 1, marginTop: 1 }}>AI DIAGNOSTIKA · FORD TRANSIT EU</div>
+            <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.1em", lineHeight: 1, marginTop: 1 }}>{tr('app.subtitle')}</div>
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: "0.75rem", color: t.textFaint }}>{cases.length} případů</span>
+          <span style={{ fontSize: "0.75rem", color: t.textFaint }}>{tr('app.casesCount', { count: cases.length })}</span>
           <span style={{ color: t.border }}>·</span>
           <span style={{ fontSize: "0.75rem", color: cloudStatus === "ok" ? t.doneStatusColor : t.textFaint }}>
-            {cloudStatus === "ok" ? "cloud ✓" : cloudStatus === "error" ? "cloud offline" : "cloud —"}
+            {cloudStatus === "ok" ? tr('app.cloudOk') : cloudStatus === "error" ? tr('app.cloudOffline') : tr('app.cloudIdle')}
           </span>
           <span style={{ color: t.border, margin: "0 4px" }}>|</span>
+
+          {/* Language switcher */}
+          <div style={{ display: "flex", gap: 2 }}>
+            {LANGS.map((l) => (
+              <button key={l.code} onClick={() => changeLang(l.code)}
+                style={{ background: lang === l.code ? t.accent : "transparent", color: lang === l.code ? "#fff" : t.textFaint, border: `1px solid ${lang === l.code ? t.accent : t.border}`, padding: "3px 7px", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", borderRadius: 2, letterSpacing: "0.04em" }}>
+                {l.label}
+              </button>
+            ))}
+          </div>
+
           <button onClick={() => setDarkMode((d) => !d)}
             style={{ display: "flex", alignItems: "center", gap: 5, background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 11px", fontSize: "0.75rem", fontFamily: "inherit", cursor: "pointer", borderRadius: 20, height: 30 }}>
-            {darkMode ? "☀️ Světlý" : "🌙 Tmavý"}
+            {darkMode ? tr('app.lightMode') : tr('app.darkMode')}
           </button>
           <span style={{ fontSize: "0.7rem", color: t.textFaint, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {session.user?.email}
           </span>
           <button onClick={handleLogout}
             style={{ display: "flex", alignItems: "center", gap: 5, background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 11px", fontSize: "0.75rem", cursor: "pointer", borderRadius: 20, height: 30, fontFamily: "inherit" }}>
-            Odhlásit
+            {tr('app.logout')}
           </button>
         </div>
       </header>
@@ -334,14 +351,14 @@ function App() {
           <div style={{ padding: "10px 12px", borderBottom: `1px solid ${t.border}` }}>
             <button onClick={() => { setView("new"); setActiveId(null); setError(null); }}
               style={{ width: "100%", background: t.accent, color: "#fff", border: "none", cursor: "pointer", padding: "10px", fontSize: "0.78rem", letterSpacing: "0.1em", fontWeight: 700, fontFamily: "inherit", borderRadius: 2, clipPath: "polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%)" }}>
-              + NOVÝ PŘÍPAD
+              {tr('app.newCase')}
             </button>
           </div>
 
           <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
             {cases.length === 0 && (
               <div style={{ padding: "24px 12px", textAlign: "center", color: t.textVeryFaint, fontSize: "0.75rem", lineHeight: 1.8 }}>
-                Žádné případy.<br />Klikněte na NOVÝ PŘÍPAD.
+                {tr('app.noCases')}<br />{tr('app.noCasesHint')}
               </div>
             )}
             {cases.map((c) => (
@@ -351,10 +368,10 @@ function App() {
                   <div style={{ fontSize: "0.75rem", color: activeId === c.id ? t.text : t.textLabel, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: activeId === c.id ? 600 : 400 }}>
                     {c.name}
                   </div>
-                  <StatusBadge status={c.status} t={t} />
+                  <StatusBadge status={c.status} t={t} tr={tr} />
                 </div>
                 <div style={{ fontSize: "0.65rem", color: t.textVeryFaint }}>
-                  {fmtDate(c.createdAt)}
+                  {fmtDate(c.createdAt, lang)}
                   {c.vehicle?.model && <span style={{ marginLeft: 6 }}>· {c.vehicle.model.split(" ").slice(0, 2).join(" ")}</span>}
                 </div>
               </div>
@@ -363,12 +380,12 @@ function App() {
 
           <div style={{ borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
             <div style={{ padding: "7px 12px", fontSize: "0.67rem", color: t.textVeryFaint, borderBottom: `1px solid ${t.border}` }}>
-              Cloud: {closedCount > 0 ? `${closedCount} uzavřených` : "prázdná"}
+              {closedCount > 0 ? tr('app.cloudCount', { count: closedCount }) : tr('app.cloudEmpty')}
             </div>
             <div style={{ padding: "7px 12px", fontSize: "0.67rem", color: cloudStatus === "ok" ? t.doneStatusColor : cloudStatus === "error" ? "#dc2626" : t.textVeryFaint, display: "flex", alignItems: "center", gap: 5 }}>
-              {cloudStatus === "ok"    && <><span>●</span><span>Cloud RAG aktivní</span></>}
-              {cloudStatus === "error" && <><span>✕</span><span>Cloud nedostupný</span></>}
-              {cloudStatus === "idle"  && <><span>○</span><span>Cloud: připojuji...</span></>}
+              {cloudStatus === "ok"    && <><span>●</span><span>{tr('app.ragActive')}</span></>}
+              {cloudStatus === "error" && <><span>✕</span><span>{tr('app.ragUnavailable')}</span></>}
+              {cloudStatus === "idle"  && <><span>○</span><span>{tr('app.ragConnecting')}</span></>}
             </div>
           </div>
         </aside>
@@ -381,11 +398,11 @@ function App() {
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
               <div style={{ fontSize: "3rem", opacity: 0.07 }}>🔧</div>
               <div style={{ fontSize: "0.8rem", color: t.textFaint, letterSpacing: "0.1em", textAlign: "center", lineHeight: 1.9 }}>
-                Vyberte případ ze seznamu vlevo<br />nebo vytvořte novou diagnostiku
+                {tr('app.welcomeText')}<br />{tr('app.welcomeHint')}
               </div>
               <button onClick={() => setView("new")}
                 style={{ background: t.accent, color: "#fff", border: "none", cursor: "pointer", padding: "11px 30px", fontSize: "0.78rem", letterSpacing: "0.12em", fontFamily: "inherit", fontWeight: 700, borderRadius: 2, marginTop: 8 }}>
-                + NOVÝ PŘÍPAD
+                {tr('app.newCase')}
               </button>
             </div>
           )}
@@ -395,17 +412,17 @@ function App() {
             <div style={{ flex: 1, overflowY: "auto", padding: "24px", background: t.bg }}>
               <div style={{ maxWidth: 680, margin: "0 auto" }}>
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em", marginBottom: 4 }}>NOVÝ DIAGNOSTICKÝ PŘÍPAD</div>
-                  <div style={{ fontSize: "0.78rem", color: t.textFaint }}>Zadejte informace o vozidle a první příznaky závady</div>
+                  <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em", marginBottom: 4 }}>{tr('app.newCaseTitle')}</div>
+                  <div style={{ fontSize: "0.78rem", color: t.textFaint }}>{tr('app.newCaseSubtitle')}</div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                   <div>
-                    <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>MODEL VOZIDLA</div>
+                    <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.vehicleModel')}</div>
                     <select value={newVehicle.model}
                       onChange={(e) => { const item = VEHICLE_MODELS.find((m) => m.label === e.target.value); if (item?.label) setNewVehicle((v) => ({ ...v, model: item.label, enginePower: "" })); }}
                       style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
-                      <option value="">— Vyberte model —</option>
+                      <option value="">{tr('app.selectModel')}</option>
                       {VEHICLE_MODELS.map((item, i) =>
                         item.group
                           ? <option key={i} disabled>── {item.group} ──</option>
@@ -414,27 +431,27 @@ function App() {
                     </select>
                   </div>
                   <div>
-                    <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>VÝKON MOTORU</div>
+                    <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.enginePower')}</div>
                     {(() => { const powers = getModelPowers(newVehicle.model); return (
                       <select value={newVehicle.enginePower}
                         onChange={(e) => setNewVehicle((v) => ({ ...v, enginePower: e.target.value }))}
                         disabled={!powers.length}
                         style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: powers.length ? t.text : t.textFaint, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none", opacity: powers.length ? 1 : 0.5 }}>
-                        <option value="">— Nepovinné —</option>
+                        <option value="">{tr('app.optional')}</option>
                         {powers.map((p, i) => <option key={i} value={p}>{p}</option>)}
                       </select>
                     ); })()}
                   </div>
                 </div>
                 <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>NÁJEZD (KM)</div>
+                  <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.mileageKm')}</div>
                   <input type="number" placeholder="185000" value={newVehicle.mileage}
                     onChange={(e) => setNewVehicle((v) => ({ ...v, mileage: e.target.value }))}
                     style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }} />
                 </div>
 
                 {error && <div style={{ marginBottom: 14, padding: "10px 13px", background: "rgba(220,38,38,0.08)", border: "1px solid #dc2626", color: "#dc2626", fontSize: "0.82rem", borderRadius: 2 }}>⚠ {error}</div>}
-                <InputForm onSubmit={handleNewCase} loading={loading} label="ZAHÁJIT DIAGNOSTIKU" t={t} />
+                <InputForm onSubmit={handleNewCase} loading={loading} label={tr('app.startDiag')} t={t} />
               </div>
             </div>
           )}
@@ -450,14 +467,14 @@ function App() {
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     {activeCase.vehicle?.model   && <span style={{ fontSize: "0.68rem", color: t.textFaint }}>{activeCase.vehicle.model}</span>}
                     {activeCase.vehicle?.enginePower && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {activeCase.vehicle.enginePower}</span>}
-                    {activeCase.vehicle?.mileage && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {fmtMileage(activeCase.vehicle.mileage)}</span>}
-                    <StatusBadge status={activeCase.status} t={t} />
+                    {activeCase.vehicle?.mileage && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {fmtMileage(activeCase.vehicle.mileage, lang)}</span>}
+                    <StatusBadge status={activeCase.status} t={t} tr={tr} />
                     {activeCase.status === "rozpracovaný" && (() => {
                       const used  = activeCase.tokenCount ?? 0;
                       const pct   = Math.min(100, Math.round(used / CASE_TOKEN_LIMIT * 100));
                       const color = pct >= 90 ? "#dc2626" : pct >= 70 ? "#d97706" : t.textVeryFaint;
                       return (
-                        <span title={`${used.toLocaleString()} / ${CASE_TOKEN_LIMIT.toLocaleString()} tokenů`}
+                        <span title={`${used.toLocaleString()} / ${CASE_TOKEN_LIMIT.toLocaleString()} tokens`}
                           style={{ fontSize: "0.62rem", color, letterSpacing: "0.04em" }}>
                           {pct >= 5 ? `▓ ${pct}%` : "▓ <1%"}
                         </span>
@@ -469,12 +486,12 @@ function App() {
                   {activeCase.status === "rozpracovaný" && (
                     <button onClick={() => setCloseModal(true)}
                       style={{ background: t.doneStatusBg, border: `1px solid ${t.doneStatusBorder}`, color: t.doneStatusColor, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
-                      ✓ UZAVŘÍT
+                      {tr('app.closeBtn')}
                     </button>
                   )}
                   <button onClick={() => setDeleteId(activeCase.id)}
                     style={{ background: "rgba(220,38,38,0.07)", border: "1px solid rgba(220,38,38,0.3)", color: "#dc2626", padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
-                    ✕ SMAZAT
+                    {tr('app.deleteLabel')}
                   </button>
                 </div>
               </div>
@@ -485,7 +502,7 @@ function App() {
 
                   {activeCase.messages.length === 0 && !loading && (
                     <div style={{ textAlign: "center", color: t.textVeryFaint, fontSize: "0.78rem", letterSpacing: "0.08em", padding: "40px 0" }}>
-                      Případ připraven — zadejte příznaky níže a spusťte diagnostiku
+                      {tr('app.caseReady')}
                     </div>
                   )}
 
@@ -497,7 +514,7 @@ function App() {
                         <div key={msg.id} style={{ display: "flex", justifyContent: "flex-end" }}>
                           <div style={{ maxWidth: "72%", minWidth: 120 }}>
                             <div style={{ fontSize: "0.65rem", color: t.textFaint, textAlign: "right", marginBottom: 4, letterSpacing: "0.06em" }}>
-                              Vstup #{roundNo} · {fmtDate(msg.timestamp)}
+                              {tr('app.inputRound', { num: roundNo, date: fmtDate(msg.timestamp, lang) })}
                             </div>
                             <div style={{ background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRight: `3px solid ${t.accent}`, borderRadius: "8px 2px 8px 8px", padding: "10px 14px" }}>
                               {hasChips && (
@@ -526,7 +543,7 @@ function App() {
                         <div key={msg.id} style={{ display: "flex", justifyContent: "flex-start" }}>
                           <div style={{ maxWidth: "92%" }}>
                             <div style={{ fontSize: "0.65rem", color: t.accentText, marginBottom: 4, letterSpacing: "0.06em" }}>
-                              ◈ GearBrain · {fmtDate(msg.timestamp)}
+                              ◈ GearBrain · {fmtDate(msg.timestamp, lang)}
                             </div>
                             <DiagCard result={msg.result} ragMatches={ragSessions} t={t} />
                           </div>
@@ -540,8 +557,8 @@ function App() {
                   {loading && (
                     <div style={{ display: "flex", justifyContent: "flex-start" }}>
                       <div style={{ padding: "16px 20px", background: t.bgMuted, border: `1px solid ${t.border}`, borderLeft: `3px solid ${t.accent}`, borderRadius: "2px 8px 8px 8px" }}>
-                        <div style={{ animation: "pulse 1.5s ease infinite", fontSize: "0.78rem", color: t.accent, letterSpacing: "0.15em" }}>◈ AI DIAGNOSTIKA PROBÍHÁ ◈</div>
-                        <div style={{ fontSize: "0.7rem", color: t.textVeryFaint, marginTop: 4 }}>Prohledávám databázi servisu · Analyzuji příznaky...</div>
+                        <div style={{ animation: "pulse 1.5s ease infinite", fontSize: "0.78rem", color: t.accent, letterSpacing: "0.15em" }}>{tr('app.aiProcessing')}</div>
+                        <div style={{ fontSize: "0.7rem", color: t.textVeryFaint, marginTop: 4 }}>{tr('app.aiProcessingSub')}</div>
                       </div>
                     </div>
                   )}
@@ -555,7 +572,7 @@ function App() {
                   {activeCase.status === "uzavřený" && activeCase.resolution && (
                     <div style={{ padding: "14px 16px", background: t.closedBg, border: `1px solid ${t.closedBorder}`, borderLeft: `4px solid ${t.doneStatusColor}`, borderRadius: 2, marginTop: 4 }}>
                       <div style={{ fontSize: "0.68rem", color: t.doneStatusColor, letterSpacing: "0.1em", marginBottom: 6 }}>
-                        ✓ PŘÍPAD UZAVŘEN · {activeCase.closedAt ? fmtDate(activeCase.closedAt) : ""}
+                        {tr('app.caseClosed', { date: activeCase.closedAt ? fmtDate(activeCase.closedAt, lang) : "" })}
                       </div>
                       <div style={{ fontSize: "0.9rem", color: t.doneStatusColor, lineHeight: 1.6 }}>{activeCase.resolution}</div>
                     </div>
@@ -571,12 +588,12 @@ function App() {
                   <div style={{ maxWidth: 760, margin: "0 auto" }}>
                     {diagCount === 0 ? (
                       <>
-                        <div style={{ fontSize: "0.68rem", color: t.textVeryFaint, letterSpacing: "0.08em", marginBottom: 10 }}>PRVNÍ DIAGNOSTIKA — zadejte příznaky</div>
-                        <InputForm onSubmit={(d) => runDiag(activeId, d)} loading={loading} label="SPUSTIT DIAGNOSTIKU" t={t} />
+                        <div style={{ fontSize: "0.68rem", color: t.textVeryFaint, letterSpacing: "0.08em", marginBottom: 10 }}>{tr('app.firstDiag')}</div>
+                        <InputForm onSubmit={(d) => runDiag(activeId, d)} loading={loading} label={tr('app.runDiag')} t={t} />
                       </>
                     ) : (
                       <>
-                        <div style={{ fontSize: "0.68rem", color: t.textVeryFaint, letterSpacing: "0.08em", marginBottom: 10 }}>DOPLNIT INFORMACE</div>
+                        <div style={{ fontSize: "0.68rem", color: t.textVeryFaint, letterSpacing: "0.08em", marginBottom: 10 }}>{tr('app.addInfo')}</div>
                         <FollowUpPrompt onSubmit={(d) => runDiag(activeId, d)} loading={loading} t={t} />
                       </>
                     )}
@@ -592,13 +609,13 @@ function App() {
       {closeModal && (
         <Modal onClose={() => { setCloseModal(false); setCloseError(null); }} width={500}>
           <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: "26px", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
-            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 8 }}>✓ UZAVŘÍT PŘÍPAD</div>
+            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 8 }}>{tr('app.closeCaseTitle')}</div>
             <p style={{ fontSize: "0.85rem", color: t.textMuted, marginBottom: 16, lineHeight: 1.7 }}>
-              Popište provedenou opravu. Tato informace bude uložena do databáze servisu a pomůže při budoucích diagnostikách.
+              {tr('app.closeCaseHelp')}
             </p>
-            <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>PROVEDENÁ OPRAVA *</div>
+            <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.repairLabel')}</div>
             <textarea value={resolution} onChange={(e) => { setResolution(e.target.value); setCloseError(null); }} autoFocus rows={5}
-              placeholder="např. Vyměněn EGR ventil + EGR chladič. Po vyčištění sání a regeneraci DPF vozidlo jede bez závad. Kód P0401 vymazán, nevrátil se."
+              placeholder={tr('app.repairPlaceholder')}
               style={{ width: "100%", background: t.bgInput, border: `1px solid ${closeError ? "#dc2626" : t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.88rem", lineHeight: 1.7, marginBottom: closeError ? 8 : 16, fontFamily: "'IBM Plex Mono',monospace", resize: "vertical", outline: "none", borderRadius: 2 }} />
             {closeError && (
               <div style={{ fontSize: "0.8rem", color: "#dc2626", marginBottom: 12, padding: "6px 10px", background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: 2 }}>
@@ -608,11 +625,11 @@ function App() {
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <button onClick={() => { setCloseModal(false); setCloseError(null); }}
                 style={{ background: "transparent", border: `1px solid ${t.border}`, color: t.textFaint, padding: "8px 20px", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
-                Zrušit
+                {tr('app.cancel')}
               </button>
               <button disabled={!resolution.trim()} onClick={closeCase}
                 style={{ background: resolution.trim() ? t.doneStatusColor : "transparent", color: resolution.trim() ? "#fff" : t.textVeryFaint, border: `1px solid ${resolution.trim() ? t.doneStatusColor : t.border}`, padding: "8px 24px", fontSize: "0.82rem", fontWeight: 700, cursor: resolution.trim() ? "pointer" : "not-allowed", fontFamily: "inherit", borderRadius: 2 }}>
-                ✓ Potvrdit
+                {tr('app.confirm')}
               </button>
             </div>
           </div>
@@ -623,13 +640,13 @@ function App() {
       {deleteId && (
         <ConfirmModal
           t={t}
-          title="SMAZAT PŘÍPAD"
+          title={tr('app.deleteCaseTitle')}
           message={
             cases.find((c) => c.id === deleteId)?.status === "uzavřený"
-              ? "Opravdu smazat tento případ? Akce je nevratná.\n⚠ Případ je uzavřen a je součástí databáze servisu."
-              : "Opravdu smazat tento případ? Akce je nevratná."
+              ? tr('app.deleteClosedMsg')
+              : tr('app.deleteOpenMsg')
           }
-          confirmLabel="✕ Smazat"
+          confirmLabel={tr('app.deleteBtn')}
           danger
           onConfirm={() => handleDeleteCase(deleteId)}
           onCancel={() => setDeleteId(null)}

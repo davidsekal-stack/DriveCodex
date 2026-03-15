@@ -10,7 +10,7 @@
     "build:mac": "vite build && electron-builder --mac",
     "build:linux": "vite build && electron-builder --linux",
     "postinstall": "electron-builder install-app-deps",
-    "test": "node tests/obd.test.js && node tests/cloud.test.js && node tests/rag.test.js && node tests/validation.test.js && node tests/validation-standalone.test.js"
+    "test": "node tests/obd.test.js && node tests/cloud.test.js && node tests/rag.test.js && node tests/validation.test.js && node tests/validation-standalone.test.js && node tests/i18n.test.js && node tests/utils-i18n.test.js && node tests/validation-i18n.test.js && node tests/ai-i18n.test.js"
   },
   "dependencies": {
     "electron-store": "^8.1.0",
