@@ -473,22 +473,368 @@ export const VEHICLE_CATALOG = [
     ],
   },
 
-  // ── Připraveno, zatím neaktivní ───────────────────────────────────────────
+  // ── BMW ──────────────────────────────────────────────────────────────────────
+
+  {
+    brand:     "BMW",
+    active:    true,
+    expertise: "BMW osobní vozy a SUV všech modelových řad (1, 3, 5, X1, X3, X5) — motory N47/B47 diesel, N20/B48 benzín, N55/B58 R6, S-série M Performance, hybridní a elektrické pohony od roku 2006, EU spec",
+    models: [
+      // ── Řada 1 ───────────────────────────────────────────────────────────────
+      { group: "Řada 1" },
+      { label: "1 E87 (2004–2011)", powers: ["85 kW – 1.6 N45", "95 kW – 2.0 N46", "105 kW – 2.0 N43", "125 kW – 2.0 N43", "195 kW – 3.0 N52", "225 kW – 3.0T N54", "85 kW – 2.0d N47", "105 kW – 2.0d N47", "130 kW – 2.0d N47", "150 kW – 2.0d N47S"] },
+      { label: "1 F20 (2011–2019)", powers: ["75 kW – 1.6T N13", "100 kW – 1.6T N13", "80 kW – 1.5T B38", "100 kW – 1.5T B38", "135 kW – 2.0T B48", "165 kW – 2.0T B48", "250 kW – 3.0T B58 M140i", "85 kW – 1.5d B37", "105 kW – 2.0d N47", "110 kW – 2.0d B47", "140 kW – 2.0d B47"] },
+      { label: "1 F40 (2019–dosud)", powers: ["80 kW – 1.5T B38", "103 kW – 1.5T B38", "131 kW – 2.0T B48", "195 kW – 2.0T B48 128ti", "225 kW – 2.0T B48 M135i", "85 kW – 1.5d B37", "110 kW – 2.0d B47", "140 kW – 2.0d B47"] },
+
+      // ── Řada 3 ───────────────────────────────────────────────────────────────
+      { group: "Řada 3" },
+      { label: "3 E90 (2005–2012)", powers: ["105 kW – 2.0 N43", "110 kW – 2.0 N46", "125 kW – 2.0 N43", "160 kW – 2.5 N52", "190 kW – 3.0 N52", "225 kW – 3.0T N54", "85 kW – 2.0d N47", "105 kW – 2.0d N47", "130 kW – 2.0d N47", "150 kW – 3.0d N57", "180 kW – 3.0d N57", "210 kW – 3.0d M57"] },
+      { label: "3 F30 (2012–2019)", powers: ["100 kW – 1.6T N13", "135 kW – 2.0T N20", "135 kW – 2.0T B48", "185 kW – 2.0T B48", "240 kW – 3.0T B58 340i", "85 kW – 2.0d N47", "110 kW – 2.0d B47", "135 kW – 2.0d N47", "140 kW – 2.0d B47", "190 kW – 3.0d N57", "195 kW – 3.0d B57"] },
+      { label: "3 G20 (2019–dosud)", powers: ["115 kW – 2.0T B48", "135 kW – 2.0T B48", "190 kW – 2.0T B48", "275 kW – 3.0T B58 M340i", "110 kW – 2.0d B47", "140 kW – 2.0d B47", "210 kW – 3.0d B57", "250 kW – 3.0d B57 M340d"] },
+
+      // ── Řada 5 ───────────────────────────────────────────────────────────────
+      { group: "Řada 5" },
+      { label: "5 E60 (2003–2010)", powers: ["125 kW – 2.0 N43", "160 kW – 2.5 N52", "190 kW – 3.0 N52", "225 kW – 3.0T N54", "270 kW – 4.8 N62", "120 kW – 2.0d M47", "130 kW – 2.0d N47", "145 kW – 3.0d M57", "170 kW – 3.0d M57", "200 kW – 3.0d M57 bi-turbo"] },
+      { label: "5 F10 (2010–2017)", powers: ["135 kW – 2.0T N20", "185 kW – 2.0T B48", "225 kW – 3.0T N55", "250 kW – 3.0T B58", "300 kW – 4.4T N63", "105 kW – 2.0d N47", "140 kW – 2.0d B47", "190 kW – 3.0d N57", "195 kW – 3.0d B57", "230 kW – 3.0d N57 bi-turbo"] },
+      { label: "5 G30 (2017–dosud)", powers: ["135 kW – 2.0T B48", "185 kW – 2.0T B48", "250 kW – 3.0T B58", "340 kW – 4.4T N63 M550i", "110 kW – 2.0d B47", "140 kW – 2.0d B47", "195 kW – 3.0d B57", "210 kW – 3.0d B57", "235 kW – 3.0d B57 540d"] },
+
+      // ── X1 ───────────────────────────────────────────────────────────────────
+      { group: "X1" },
+      { label: "X1 E84 (2009–2015)", powers: ["110 kW – 2.0 N46", "135 kW – 2.0T N20", "180 kW – 2.0T N20", "85 kW – 2.0d N47", "105 kW – 2.0d N47", "135 kW – 2.0d N47", "160 kW – 2.0d N47S"] },
+      { label: "X1 F48 (2015–2022)", powers: ["103 kW – 1.5T B38", "141 kW – 2.0T B48", "85 kW – 1.5d B37", "110 kW – 2.0d B47", "140 kW – 2.0d B47", "170 kW – 2.0d B47", "162 kW – 1.5T+E PHEV"] },
+      { label: "X1 U11 (2022–dosud)", powers: ["100 kW – 1.5T B38", "125 kW – 2.0T B48", "150 kW – 2.0T B48", "233 kW – 2.0T B48 M35i", "110 kW – 2.0d B47", "155 kW – 2.0d B47", "150 kW – Electric iX1 eDrive20", "230 kW – Electric iX1 xDrive30"] },
+
+      // ── X3 ───────────────────────────────────────────────────────────────────
+      { group: "X3" },
+      { label: "X3 F25 (2010–2017)", powers: ["135 kW – 2.0T N20", "180 kW – 2.0T N20", "225 kW – 3.0T N55", "110 kW – 2.0d N47", "140 kW – 2.0d B47", "190 kW – 3.0d N57", "230 kW – 3.0d N57 bi-turbo"] },
+      { label: "X3 G01 (2017–dosud)", powers: ["135 kW – 2.0T B48", "185 kW – 2.0T B48", "265 kW – 3.0T B58 M40i", "110 kW – 2.0d B47", "140 kW – 2.0d B47", "195 kW – 3.0d B57", "240 kW – 3.0d B57 M40d", "215 kW – 2.0T+E PHEV", "210 kW – Electric iX3"] },
+
+      // ── X5 ───────────────────────────────────────────────────────────────────
+      { group: "X5" },
+      { label: "X5 E70 (2006–2013)", powers: ["190 kW – 3.0 N52", "225 kW – 3.0T N55", "300 kW – 4.4T N63", "173 kW – 3.0d M57", "180 kW – 3.0d N57", "210 kW – 3.0d M57 bi-turbo", "225 kW – 3.0d N57"] },
+      { label: "X5 F15 (2013–2018)", powers: ["225 kW – 3.0T N55", "330 kW – 4.4T N63", "170 kW – 2.0d B47", "190 kW – 3.0d N57", "230 kW – 3.0d N57", "280 kW – 3.0d N57 M50d", "230 kW – 2.0T+E PHEV"] },
+      { label: "X5 G05 (2018–dosud)", powers: ["250 kW – 3.0T B58", "390 kW – 4.4T N63 M50i", "170 kW – 2.0d B47", "195 kW – 3.0d B57", "250 kW – 3.0d B57", "294 kW – 3.0d B57 M50d", "290 kW – 3.0T+E PHEV xDrive45e"] },
+
+      // ── Elektro ──────────────────────────────────────────────────────────────
+      { group: "Elektro" },
+      { label: "i3 (2013–2022)", powers: ["125 kW – Electric", "135 kW – Electric (2017+)", "170 kW – Electric S (2018+)"] },
+    ],
+  },
+
+  // ── Tesla ──────────────────────────────────────────────────────────────────
+
+  {
+    brand:     "Tesla",
+    active:    true,
+    expertise: "Tesla elektromobily všech modelových řad (Model 3, Model Y, Model S, Model X) — elektrické pohony, bateriové systémy NMC/LFP, BMS, tepelné čerpadlo, rekuperace, supercharging, HV bezpečnost, OTA aktualizace",
+    models: [
+      // ── Model 3 ──────────────────────────────────────────────────────────────
+      { group: "Model 3" },
+      { label: "Model 3 (2017–2023)", powers: ["208 kW – Standard Range RWD", "324 kW – Long Range AWD", "357 kW – Performance AWD"] },
+      { label: "Model 3 Highland (2024–dosud)", powers: ["208 kW – RWD", "348 kW – Long Range AWD"] },
+
+      // ── Model Y ──────────────────────────────────────────────────────────────
+      { group: "Model Y" },
+      { label: "Model Y (2020–2024)", powers: ["220 kW – RWD", "258 kW – Long Range RWD", "324 kW – Long Range AWD", "357 kW – Performance AWD"] },
+      { label: "Model Y Juniper (2025–dosud)", powers: ["220 kW – RWD", "340 kW – Long Range AWD"] },
+
+      // ── Model S ──────────────────────────────────────────────────────────────
+      { group: "Model S" },
+      { label: "Model S (2012–2020)", powers: ["245 kW – 75D AWD", "311 kW – 100D AWD", "449 kW – P100D AWD"] },
+      { label: "Model S (2021–dosud)", powers: ["493 kW – Dual Motor AWD", "750 kW – Plaid Tri-Motor"] },
+
+      // ── Model X ──────────────────────────────────────────────────────────────
+      { group: "Model X" },
+      { label: "Model X (2015–2020)", powers: ["311 kW – 100D AWD", "449 kW – P100D AWD"] },
+      { label: "Model X (2021–dosud)", powers: ["493 kW – Dual Motor AWD", "750 kW – Plaid Tri-Motor"] },
+    ],
+  },
+
+  // ── Kia ────────────────────────────────────────────────────────────────────
+
+  {
+    brand:     "Kia",
+    active:    true,
+    expertise: "Kia osobní vozy a SUV všech modelových řad (Picanto, Rio, Ceed, Sportage, Sorento, Niro, Stonic, EV6) — motory T-GDi, GDi, CRDi, hybridní a elektrické pohony od roku 2010, EU spec",
+    models: [
+      // ── Picanto ──────────────────────────────────────────────────────────────
+      { group: "Picanto" },
+      { label: "Picanto II (2011–2017)", powers: ["51 kW – 1.0 Kappa", "63 kW – 1.2 Kappa"] },
+      { label: "Picanto III (2017–dosud)", powers: ["49 kW – 1.0 MPI", "67 kW – 1.0 T-GDi", "62 kW – 1.2 MPI"] },
+
+      // ── Rio ──────────────────────────────────────────────────────────────────
+      { group: "Rio" },
+      { label: "Rio III (2011–2017)", powers: ["62 kW – 1.2 CVVT", "80 kW – 1.4 CVVT", "66 kW – 1.1 CRDi", "74 kW – 1.4 CRDi"] },
+      { label: "Rio IV (2017–dosud)", powers: ["62 kW – 1.2 MPI", "74 kW – 1.0 T-GDi", "88 kW – 1.0 T-GDi", "74 kW – 1.4 MPI", "55 kW – 1.5 CRDi"] },
+
+      // ── Ceed ─────────────────────────────────────────────────────────────────
+      { group: "Ceed" },
+      { label: "Ceed II JD (2012–2018)", powers: ["74 kW – 1.4 MPI", "88 kW – 1.0 T-GDi", "103 kW – 1.6 GDi", "150 kW – 1.6 T-GDi GT", "66 kW – 1.4 CRDi", "85 kW – 1.6 CRDi", "100 kW – 1.6 CRDi"] },
+      { label: "Ceed III CD (2018–dosud)", powers: ["74 kW – 1.0 T-GDi", "88 kW – 1.0 T-GDi", "103 kW – 1.5 T-GDi", "150 kW – 1.6 T-GDi GT", "73 kW – 1.6 CRDi", "85 kW – 1.6 CRDi", "100 kW – 1.6 CRDi"] },
+
+      // ── Stonic ───────────────────────────────────────────────────────────────
+      { group: "Stonic" },
+      { label: "Stonic (2017–dosud)", powers: ["74 kW – 1.0 T-GDi", "88 kW – 1.0 T-GDi", "74 kW – 1.4 MPI", "55 kW – 1.5 CRDi", "85 kW – 1.6 CRDi"] },
+
+      // ── Sportage ─────────────────────────────────────────────────────────────
+      { group: "Sportage" },
+      { label: "Sportage III (2010–2015)", powers: ["122 kW – 2.0 GDi", "100 kW – 1.7 CRDi", "135 kW – 2.0 CRDi"] },
+      { label: "Sportage IV QL (2015–2021)", powers: ["97 kW – 1.6 GDi", "130 kW – 1.6 T-GDi", "85 kW – 1.6 CRDi", "100 kW – 1.7 CRDi", "136 kW – 2.0 CRDi"] },
+      { label: "Sportage V NQ5 (2021–dosud)", powers: ["110 kW – 1.6 T-GDi", "132 kW – 1.6 T-GDi MHEV", "169 kW – 1.6 T-GDi HEV", "195 kW – 1.6 T-GDi PHEV", "85 kW – 1.6 CRDi", "100 kW – 1.6 CRDi MHEV"] },
+
+      // ── Sorento ──────────────────────────────────────────────────────────────
+      { group: "Sorento" },
+      { label: "Sorento II XM (2009–2014)", powers: ["128 kW – 2.4 GDi", "110 kW – 2.0 CRDi", "145 kW – 2.2 CRDi"] },
+      { label: "Sorento III UM (2014–2020)", powers: ["176 kW – 2.0 T-GDi", "136 kW – 2.0 CRDi", "147 kW – 2.2 CRDi"] },
+      { label: "Sorento IV MQ4 (2020–dosud)", powers: ["169 kW – 1.6 T-GDi HEV", "195 kW – 1.6 T-GDi PHEV", "147 kW – 2.2 CRDi"] },
+
+      // ── Niro ─────────────────────────────────────────────────────────────────
+      { group: "Niro" },
+      { label: "Niro I DE (2016–2022)", powers: ["104 kW – 1.6 GDi HEV", "104 kW – 1.6 GDi PHEV", "100 kW – Electric 39 kWh", "150 kW – Electric 64 kWh"] },
+      { label: "Niro II SG2 (2022–dosud)", powers: ["104 kW – 1.6 GDi HEV", "135 kW – 1.6 GDi PHEV", "110 kW – Electric 58 kWh", "150 kW – Electric 64 kWh"] },
+
+      // ── EV6 ──────────────────────────────────────────────────────────────────
+      { group: "EV6" },
+      { label: "EV6 (2021–dosud)", powers: ["125 kW – Standard Range RWD", "168 kW – Long Range RWD", "239 kW – Long Range AWD", "430 kW – GT AWD"] },
+    ],
+  },
+
+  // ── Hyundai ────────────────────────────────────────────────────────────────
+
+  {
+    brand:     "Hyundai",
+    active:    true,
+    expertise: "Hyundai osobní vozy a SUV všech modelových řad (i10, i20, i30, Tucson, Santa Fe, Kona, IONIQ 5/6) — motory T-GDi, GDi, CRDi, hybridní a elektrické pohony E-GMP od roku 2008, EU spec",
+    models: [
+      // ── i10 ──────────────────────────────────────────────────────────────────
+      { group: "i10" },
+      { label: "i10 II BA (2013–2019)", powers: ["49 kW – 1.0 Kappa MPI", "64 kW – 1.2 Kappa MPI"] },
+      { label: "i10 III AC3 (2019–dosud)", powers: ["49 kW – 1.0 MPI", "62 kW – 1.2 MPI", "74 kW – 1.0 T-GDi"] },
+
+      // ── i20 ──────────────────────────────────────────────────────────────────
+      { group: "i20" },
+      { label: "i20 II GB (2014–2020)", powers: ["55 kW – 1.2 MPI", "62 kW – 1.2 MPI", "74 kW – 1.0 T-GDi", "88 kW – 1.0 T-GDi", "74 kW – 1.4 MPI", "55 kW – 1.1 CRDi", "66 kW – 1.4 CRDi"] },
+      { label: "i20 III BC3 (2020–dosud)", powers: ["62 kW – 1.2 MPI", "74 kW – 1.0 T-GDi", "88 kW – 1.0 T-GDi MHEV", "150 kW – 1.6 T-GDi N"] },
+
+      // ── i30 ──────────────────────────────────────────────────────────────────
+      { group: "i30" },
+      { label: "i30 II GD (2012–2017)", powers: ["74 kW – 1.4 MPI", "99 kW – 1.6 GDi", "88 kW – 1.0 T-GDi", "137 kW – 1.6 T-GDi Turbo", "66 kW – 1.4 CRDi", "81 kW – 1.6 CRDi", "100 kW – 1.6 CRDi"] },
+      { label: "i30 III PD (2017–dosud)", powers: ["88 kW – 1.0 T-GDi", "103 kW – 1.4 T-GDi", "117 kW – 1.5 T-GDi", "206 kW – 2.0 T-GDi N", "85 kW – 1.6 CRDi", "100 kW – 1.6 CRDi"] },
+
+      // ── Tucson ───────────────────────────────────────────────────────────────
+      { group: "Tucson" },
+      { label: "Tucson III TL (2015–2020)", powers: ["97 kW – 1.6 GDi", "130 kW – 1.6 T-GDi", "85 kW – 1.6 CRDi", "100 kW – 1.7 CRDi", "136 kW – 2.0 CRDi"] },
+      { label: "Tucson IV NX4 (2021–dosud)", powers: ["110 kW – 1.6 T-GDi", "132 kW – 1.6 T-GDi MHEV", "169 kW – 1.6 T-GDi HEV", "195 kW – 1.6 T-GDi PHEV", "85 kW – 1.6 CRDi", "100 kW – 1.6 CRDi MHEV"] },
+
+      // ── Santa Fe ─────────────────────────────────────────────────────────────
+      { group: "Santa Fe" },
+      { label: "Santa Fe III DM (2012–2018)", powers: ["138 kW – 2.4 GDi", "176 kW – 2.0 T-GDi", "110 kW – 2.0 CRDi", "145 kW – 2.2 CRDi"] },
+      { label: "Santa Fe IV TM (2018–dosud)", powers: ["136 kW – 2.4 GDi", "169 kW – 1.6 T-GDi HEV", "195 kW – 1.6 T-GDi PHEV", "110 kW – 2.0 CRDi", "147 kW – 2.2 CRDi"] },
+
+      // ── Kona ─────────────────────────────────────────────────────────────────
+      { group: "Kona" },
+      { label: "Kona I OS (2017–2023)", powers: ["88 kW – 1.0 T-GDi", "130 kW – 1.6 T-GDi", "104 kW – 1.6 GDi HEV", "85 kW – 1.6 CRDi", "100 kW – Electric 39 kWh", "150 kW – Electric 64 kWh"] },
+      { label: "Kona II SX2 (2023–dosud)", powers: ["88 kW – 1.0 T-GDi", "104 kW – 1.6 GDi HEV", "115 kW – Electric 48 kWh", "160 kW – Electric 65 kWh"] },
+
+      // ── IONIQ 5 / IONIQ 6 ────────────────────────────────────────────────────
+      { group: "IONIQ" },
+      { label: "IONIQ 5 NE (2021–dosud)", powers: ["125 kW – Standard Range RWD", "168 kW – Long Range RWD", "239 kW – Long Range AWD", "448 kW – N AWD"] },
+      { label: "IONIQ 6 CE (2022–dosud)", powers: ["111 kW – Standard Range RWD", "168 kW – Long Range RWD", "239 kW – Long Range AWD"] },
+    ],
+  },
+
+  // ── Mercedes-Benz ──────────────────────────────────────────────────────────
 
   {
     brand:     "Mercedes-Benz",
-    active:    false,
-    expertise: "Mercedes-Benz Sprinter a Vito CDI/d všech generací, EU spec (BlueTEC, AdBlue, OM651/OM654)",
+    active:    true,
+    expertise: "Mercedes-Benz osobní a užitková vozidla (A, B, C, E, GLA, GLB, GLC, Sprinter, Vito) — motory M270/M260/M264/M282/M133/M139 benzín, OM607/OM608/OM651/OM654/OM656 diesel, elektrické pohony od roku 2006, EU spec (BlueTEC, AdBlue, DPF Euro 5/6, SCR)",
     models: [
-      { group: "Sprinter W906" },
-      { label: "Sprinter 314 CDI (2006–2018)" },
-      { label: "Sprinter 316 CDI (2006–2018)" },
-      { group: "Sprinter W907/W910" },
-      { label: "Sprinter 314 CDI (2018–současnost)" },
-      { label: "Sprinter 316 CDI (2018–současnost)" },
-      { group: "Vito W447" },
-      { label: "Vito 114 CDI (2014–současnost)" },
-      { label: "Vito 116 CDI (2014–současnost)" },
+      // ── A-Class ────────────────────────────────────────────────────────────────
+      { group: "A-Class" },
+      { label: "A-Class W176 (2012–2018)", powers: ["75 kW – A160 1.6 (M270)", "90 kW – A180 1.6 (M270)", "115 kW – A200 1.6 (M270)", "155 kW – A250 2.0 (M270)", "265 kW – A45 AMG 2.0 (M133)", "280 kW – A45 AMG FL 2.0 (M133)", "80 kW – A160d 1.5 (OM607)", "80 kW – A180d 1.5 (OM607)", "100 kW – A180d 1.5 (OM607)", "100 kW – A200d 2.1 (OM651)", "130 kW – A220d 2.1 (OM651)"] },
+      { label: "A-Class W177 (2018–současnost)", powers: ["80 kW – A160 1.3 (M282)", "100 kW – A180 1.3 (M282)", "120 kW – A200 1.3 (M282)", "165 kW – A250 2.0 (M260)", "225 kW – A35 AMG 2.0 (M260)", "306 kW – A45 S AMG 2.0 (M139)", "85 kW – A180d 1.5 (OM608)", "110 kW – A200d 2.0 (OM654)", "140 kW – A220d 2.0 (OM654)"] },
+
+      // ── B-Class ────────────────────────────────────────────────────────────────
+      { group: "B-Class" },
+      { label: "B-Class W246 (2011–2018)", powers: ["75 kW – B160 1.6 (M270)", "90 kW – B180 1.6 (M270)", "115 kW – B200 1.6 (M270)", "155 kW – B250 2.0 (M270)", "80 kW – B160d 1.5 (OM607)", "80 kW – B180d 1.5 (OM607)", "100 kW – B180d 1.5 (OM607)", "100 kW – B200d 2.1 (OM651)", "130 kW – B220d 2.1 (OM651)"] },
+      { label: "B-Class W247 (2018–současnost)", powers: ["80 kW – B160 1.3 (M282)", "100 kW – B180 1.3 (M282)", "120 kW – B200 1.3 (M282)", "165 kW – B250 2.0 (M260)", "85 kW – B180d 1.5 (OM608)", "110 kW – B200d 2.0 (OM654)", "140 kW – B220d 2.0 (OM654)"] },
+
+      // ── C-Class ────────────────────────────────────────────────────────────────
+      { group: "C-Class" },
+      { label: "C-Class W204 (2007–2014)", powers: ["115 kW – C180 1.8 K (M271)", "135 kW – C200 1.8 K (M271)", "125 kW – C200 CGI 1.8 (M271)", "150 kW – C250 CGI 1.8 (M271)", "170 kW – C300 3.0 (M272)", "170 kW – C350 3.5 (M272)", "336 kW – C63 AMG 6.2 (M156)", "350 kW – C63 AMG FL 6.2 (M156)", "100 kW – C200 CDI 2.1 (OM651)", "125 kW – C220 CDI 2.1 (OM651)", "150 kW – C250 CDI 2.1 (OM651)", "150 kW – C250 BlueTEC 2.1 (OM651)", "170 kW – C300 CDI 3.0 (OM642)"] },
+      { label: "C-Class W205 (2014–2021)", powers: ["115 kW – C180 1.6 (M274)", "135 kW – C200 2.0 (M274)", "155 kW – C250 2.0 (M274)", "180 kW – C300 2.0 (M274)", "270 kW – C43 AMG 3.0 V6 (M276)", "350 kW – C63 AMG 4.0 V8 (M177)", "375 kW – C63 S AMG 4.0 V8 (M177)", "90 kW – C160d 1.6 (OM626)", "100 kW – C180d 1.6 (OM626)", "125 kW – C220d 2.0 (OM654)", "143 kW – C220d FL 2.0 (OM654)", "140 kW – C250d 2.1 (OM651)", "173 kW – C300d 2.0 (OM654)", "190 kW – C300de 2.0 PHEV (OM654)"] },
+      { label: "C-Class W206 (2021–současnost)", powers: ["125 kW – C180 1.5 (M254)", "150 kW – C200 1.5 (M254)", "190 kW – C300 2.0 (M254)", "280 kW – C43 AMG 2.0 (M139)", "350 kW – C63 S AMG 2.0 PHEV (M139)", "125 kW – C200d 2.0 (OM654M)", "147 kW – C220d 2.0 (OM654M)", "195 kW – C300d 2.0 (OM654M)", "230 kW – C300de 2.0 PHEV (OM654M)"] },
+
+      // ── E-Class ────────────────────────────────────────────────────────────────
+      { group: "E-Class" },
+      { label: "E-Class W212 (2009–2016)", powers: ["135 kW – E200 1.8 CGI (M271)", "150 kW – E250 1.8 CGI (M271)", "155 kW – E250 2.0 (M274)", "185 kW – E300 3.5 (M276)", "225 kW – E400 3.0 V6 (M276)", "300 kW – E500 4.7 V8 (M278)", "386 kW – E63 AMG 5.5 V8 (M157)", "100 kW – E200 CDI 2.1 (OM651)", "125 kW – E220 CDI 2.1 (OM651)", "150 kW – E250 CDI 2.1 (OM651)", "150 kW – E250 BlueTEC 2.1 (OM651)", "170 kW – E300 BlueTEC 3.0 (OM642)", "190 kW – E350 BlueTEC 3.0 (OM642)"] },
+      { label: "E-Class W213 (2016–současnost)", powers: ["135 kW – E200 2.0 (M264)", "145 kW – E200 2.0 FL (M254)", "190 kW – E300 2.0 (M264)", "270 kW – E43 AMG 3.0 V6 (M276)", "310 kW – E53 AMG 3.0 I6 (M256)", "420 kW – E63 S AMG 4.0 V8 (M177)", "120 kW – E200d 2.0 (OM654)", "143 kW – E220d 2.0 (OM654)", "195 kW – E300d 2.0 (OM654)", "210 kW – E350d 3.0 (OM656)", "243 kW – E400d 3.0 (OM656)", "225 kW – E300de 2.0 PHEV (OM654)", "240 kW – E300e 2.0 PHEV (M254)"] },
+
+      // ── GLA ────────────────────────────────────────────────────────────────────
+      { group: "GLA" },
+      { label: "GLA H247 (2020–současnost)", powers: ["100 kW – GLA 180 1.3 (M282)", "120 kW – GLA 200 1.3 (M282)", "165 kW – GLA 250 2.0 (M260)", "225 kW – GLA 35 AMG 2.0 (M260)", "306 kW – GLA 45 S AMG 2.0 (M139)", "85 kW – GLA 180d 1.5 (OM608)", "110 kW – GLA 200d 2.0 (OM654)", "140 kW – GLA 220d 2.0 (OM654)"] },
+
+      // ── GLB ────────────────────────────────────────────────────────────────────
+      { group: "GLB" },
+      { label: "GLB X247 (2019–současnost)", powers: ["100 kW – GLB 180 1.3 (M282)", "120 kW – GLB 200 1.3 (M282)", "165 kW – GLB 250 2.0 (M260)", "225 kW – GLB 35 AMG 2.0 (M260)", "85 kW – GLB 180d 1.5 (OM608)", "110 kW – GLB 200d 2.0 (OM654)", "140 kW – GLB 220d 2.0 (OM654)"] },
+
+      // ── GLC ────────────────────────────────────────────────────────────────────
+      { group: "GLC" },
+      { label: "GLC X253 (2015–2022)", powers: ["135 kW – GLC 200 2.0 (M274)", "155 kW – GLC 250 2.0 (M274)", "180 kW – GLC 300 2.0 (M274)", "270 kW – GLC 43 AMG 3.0 V6 (M276)", "375 kW – GLC 63 S AMG 4.0 V8 (M177)", "125 kW – GLC 220d 2.1 (OM651)", "150 kW – GLC 250d 2.1 (OM651)", "173 kW – GLC 300d 2.0 (OM654)", "143 kW – GLC 220d FL 2.0 (OM654)"] },
+      { label: "GLC X254 (2022–současnost)", powers: ["150 kW – GLC 200 2.0 (M254)", "190 kW – GLC 300 2.0 (M254)", "280 kW – GLC 43 AMG 2.0 (M139)", "350 kW – GLC 63 S AMG 2.0 PHEV (M139)", "147 kW – GLC 220d 2.0 (OM654M)", "195 kW – GLC 300d 2.0 (OM654M)", "245 kW – GLC 300de 2.0 PHEV (OM654M)", "230 kW – GLC 300e 2.0 PHEV (M254)"] },
+
+      // ── Sprinter ───────────────────────────────────────────────────────────────
+      { group: "Sprinter" },
+      { label: "Sprinter W906 2.1 CDI (2006–2018)", powers: ["65 kW – 209/211 CDI (OM646)", "80 kW – 213 CDI (OM646)", "95 kW – 214/216 CDI (OM651)", "105 kW – 216 CDI (OM651)", "120 kW – 219/316 CDI (OM651)", "140 kW – 319/519 CDI (OM642)", "65 kW – 210/211 CDI (OM651)", "84 kW – 214 CDI (OM651)", "105 kW – 311/314 CDI (OM651)", "120 kW – 316 CDI (OM651)"] },
+      { label: "Sprinter W906 3.0 CDI V6 (2006–2018)", powers: ["135 kW – 318/418 CDI (OM642)", "140 kW – 319/519 CDI (OM642)", "142 kW – 324 (M272)"] },
+      { label: "Sprinter W907/W910 2.1 CDI (2018–současnost)", powers: ["84 kW – 211/311/411/511 CDI (OM651)", "105 kW – 214/314/414/514 CDI (OM651)", "120 kW – 216/316/416/516 CDI (OM651)", "140 kW – 219/319/419/519 CDI (OM651)"] },
+      { label: "eSprinter Electric (2023–současnost)", powers: ["85 kW – eSprinter Electric", "100 kW – eSprinter Electric"] },
+
+      // ── Vito ────────────────────────────────────────────────────────────────────
+      { group: "Vito" },
+      { label: "Vito W447 (2014–současnost)", powers: ["65 kW – 109 CDI 1.6 (OM622)", "75 kW – 111 CDI 1.6 (OM622)", "100 kW – 114 CDI 2.1 (OM651)", "120 kW – 116 CDI 2.1 (OM651)", "140 kW – 119 CDI 2.1 (OM651)", "100 kW – 114 CDI 2.0 FL (OM654)", "120 kW – 116 CDI 2.0 FL (OM654)", "143 kW – 119 CDI 2.0 FL (OM654)", "150 kW – 124 CDI 2.0 FL (OM654)", "100 kW – eVito Electric"] },
+    ],
+  },
+
+  {
+    brand:     "Citroën",
+    active:    true,
+    expertise: "Citroën osobní a užitková vozidla všech modelových řad (C1, C3, C3 Aircross, C4, C4 Cactus, C5 Aircross, Berlingo, Jumpy, Jumper) — motory PureTech, VTi, THP, HDi, BlueHDi a elektrické pohony od roku 2005 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR)",
+    models: [
+      // ── C1 ─────────────────────────────────────────────────────────────────────
+      { group: "C1" },
+      { label: "C1 I (2005–2014)", powers: ["50 kW – 1.0 VVT-i", "51 kW – 1.4 HDi"] },
+      { label: "C1 II (2014–2022)", powers: ["51 kW – 1.0 VTi", "53 kW – 1.0 VTi", "60 kW – 1.2 PureTech"] },
+
+      // ── C3 ─────────────────────────────────────────────────────────────────────
+      { group: "C3" },
+      { label: "C3 II (2009–2016)", powers: ["54 kW – 1.0 VTi", "60 kW – 1.2 VTi", "70 kW – 1.4 VTi", "88 kW – 1.6 VTi", "68 kW – 1.4 HDi", "50 kW – 1.4 HDi", "66 kW – 1.6 HDi", "82 kW – 1.6 HDi", "55 kW – 1.4 e-HDi"] },
+      { label: "C3 III (2016–současnost)", powers: ["60 kW – 1.2 PureTech", "68 kW – 1.2 PureTech", "81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "55 kW – 1.5 BlueHDi", "75 kW – 1.5 BlueHDi", "100 kW – ë-C3 Electric"] },
+
+      // ── C3 Aircross ────────────────────────────────────────────────────────────
+      { group: "C3 Aircross" },
+      { label: "C3 Aircross (2017–současnost)", powers: ["60 kW – 1.2 PureTech", "81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "55 kW – 1.5 BlueHDi", "75 kW – 1.5 BlueHDi", "96 kW – 1.5 BlueHDi"] },
+
+      // ── C4 ─────────────────────────────────────────────────────────────────────
+      { group: "C4" },
+      { label: "C4 II (2010–2018)", powers: ["70 kW – 1.4 VTi", "88 kW – 1.6 VTi", "110 kW – 1.6 THP", "115 kW – 1.6 THP", "68 kW – 1.6 HDi", "82 kW – 1.6 HDi", "84 kW – 1.6 BlueHDi", "73 kW – 1.6 e-HDi", "100 kW – 2.0 HDi", "110 kW – 2.0 BlueHDi"] },
+      { label: "C4 III / ë-C4 (2020–současnost)", powers: ["75 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "114 kW – 1.2 PureTech", "96 kW – 1.5 BlueHDi", "100 kW – ë-C4 Electric", "115 kW – ë-C4 Electric"] },
+
+      // ── C4 Cactus ──────────────────────────────────────────────────────────────
+      { group: "C4 Cactus" },
+      { label: "C4 Cactus (2014–2020)", powers: ["55 kW – 1.2 PureTech", "60 kW – 1.2 PureTech", "68 kW – 1.2 PureTech", "81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "73 kW – 1.5 BlueHDi", "68 kW – 1.6 BlueHDi", "75 kW – 1.6 BlueHDi"] },
+
+      // ── C5 Aircross ────────────────────────────────────────────────────────────
+      { group: "C5 Aircross" },
+      { label: "C5 Aircross (2018–současnost)", powers: ["96 kW – 1.2 PureTech", "114 kW – 1.2 PureTech", "132 kW – 1.6 PureTech", "165 kW – 1.6 PHEV Hybrid", "225 kW – 1.6 PHEV Hybrid4", "96 kW – 1.5 BlueHDi", "118 kW – 2.0 BlueHDi", "130 kW – 2.0 BlueHDi"] },
+
+      // ── Berlingo ───────────────────────────────────────────────────────────────
+      { group: "Berlingo" },
+      { label: "Berlingo III (2018–současnost)", powers: ["81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "55 kW – 1.5 BlueHDi", "75 kW – 1.5 BlueHDi", "96 kW – 1.5 BlueHDi", "100 kW – ë-Berlingo Electric"] },
+
+      // ── Jumpy (Dispatch) ───────────────────────────────────────────────────────
+      { group: "Jumpy" },
+      { label: "Jumpy III (2016–současnost)", powers: ["75 kW – 1.5 BlueHDi", "88 kW – 1.5 BlueHDi", "110 kW – 2.0 BlueHDi", "130 kW – 2.0 BlueHDi", "100 kW – ë-Jumpy Electric"] },
+
+      // ── Jumper (Relay) ─────────────────────────────────────────────────────────
+      { group: "Jumper" },
+      { label: "Jumper III 2.2 HDi (2006–2016)", powers: ["74 kW – 2.2 HDi", "88 kW – 2.2 HDi", "96 kW – 2.2 HDi", "110 kW – 2.2 HDi", "120 kW – 3.0 HDi"] },
+      { label: "Jumper III 2.0/2.2 BlueHDi (2016–současnost)", powers: ["81 kW – 2.0 BlueHDi", "88 kW – 2.2 BlueHDi", "103 kW – 2.2 BlueHDi", "121 kW – 2.2 BlueHDi", "100 kW – ë-Jumper Electric"] },
+    ],
+  },
+
+  {
+    brand:     "Nissan",
+    active:    true,
+    expertise: "Nissan osobní a užitková vozidla všech modelových řad (Micra, Note, Juke, Qashqai, X-Trail, Leaf, NV200, NV300) — motory HR/MR/K9K/R9M benzín a diesel, e-POWER, elektrické pohony od roku 2006 do současnosti, EU spec (DPF, AdBlue Euro 5/6)",
+    models: [
+      // ── Micra ──────────────────────────────────────────────────────────────────
+      { group: "Micra" },
+      { label: "Micra K13 (2010–2017)", powers: ["54 kW – 1.2 HR12DE", "72 kW – 1.2 DIG-S HR12DDR", "48 kW – 1.5 dCi K9K"] },
+      { label: "Micra K14 (2017–současnost)", powers: ["52 kW – 0.9 IG-T H4Bt", "71 kW – 0.9 IG-T H4Bt", "73 kW – 1.0 IG-T HR10DET", "86 kW – 1.0 IG-T HR10DET", "55 kW – 1.5 dCi K9K"] },
+
+      // ── Note ───────────────────────────────────────────────────────────────────
+      { group: "Note" },
+      { label: "Note E12 (2013–2020)", powers: ["54 kW – 1.2 HR12DE", "72 kW – 1.2 DIG-S HR12DDR", "66 kW – 1.5 dCi K9K"] },
+
+      // ── Juke ───────────────────────────────────────────────────────────────────
+      { group: "Juke" },
+      { label: "Juke F15 (2010–2019)", powers: ["86 kW – 1.6 HR16DE", "140 kW – 1.6 DIG-T MR16DDT", "157 kW – 1.6 DIG-T Nismo RS", "81 kW – 1.5 dCi K9K"] },
+      { label: "Juke F16 (2019–současnost)", powers: ["84 kW – 1.0 DIG-T HR10DDT", "86 kW – 1.0 DIG-T HR10DDT", "103 kW – 1.0 DIG-T HR10DDT", "105 kW – 1.6 e-POWER Hybrid"] },
+
+      // ── Qashqai ────────────────────────────────────────────────────────────────
+      { group: "Qashqai" },
+      { label: "Qashqai J10 (2007–2013)", powers: ["86 kW – 1.6 HR16DE", "104 kW – 2.0 MR20DE", "78 kW – 1.5 dCi K9K", "81 kW – 1.5 dCi K9K", "96 kW – 1.6 dCi R9M", "110 kW – 2.0 dCi M9R"] },
+      { label: "Qashqai J11 (2014–2021)", powers: ["85 kW – 1.2 DIG-T HRA2", "120 kW – 1.6 DIG-T MR16DDT", "163 kW – 1.6 DIG-T Nismo RS", "81 kW – 1.5 dCi K9K", "85 kW – 1.5 dCi K9K", "96 kW – 1.6 dCi R9M"] },
+      { label: "Qashqai J12 (2021–současnost)", powers: ["103 kW – 1.3 DIG-T HR13DDT", "116 kW – 1.3 DIG-T HR13DDT", "140 kW – 1.5 e-POWER Hybrid"] },
+
+      // ── X-Trail ────────────────────────────────────────────────────────────────
+      { group: "X-Trail" },
+      { label: "X-Trail T31 (2007–2013)", powers: ["104 kW – 2.0 MR20DE", "124 kW – 2.5 QR25DE", "110 kW – 2.0 dCi M9R", "127 kW – 2.0 dCi M9R"] },
+      { label: "X-Trail T32 (2014–2021)", powers: ["120 kW – 1.6 DIG-T MR16DDT", "126 kW – 2.0 MR20DD", "96 kW – 1.6 dCi R9M", "130 kW – 2.0 dCi M9R"] },
+      { label: "X-Trail T33 (2022–současnost)", powers: ["110 kW – 1.5 VC-Turbo KR15DDT", "150 kW – 1.5 VC-Turbo e-POWER", "157 kW – 1.5 VC-Turbo e-POWER e-4ORCE"] },
+
+      // ── Leaf ───────────────────────────────────────────────────────────────────
+      { group: "Leaf" },
+      { label: "Leaf ZE0 (2010–2017)", powers: ["80 kW – EM57 Electric 24 kWh", "80 kW – EM57 Electric 30 kWh"] },
+      { label: "Leaf ZE1 (2017–současnost)", powers: ["110 kW – EM57 Electric 40 kWh", "160 kW – EM57 Electric 62 kWh e+"] },
+
+      // ── NV200 ──────────────────────────────────────────────────────────────────
+      { group: "NV200" },
+      { label: "NV200 (2009–2021)", powers: ["81 kW – 1.6 HR16DE", "66 kW – 1.5 dCi K9K", "80 kW – e-NV200 Electric"] },
+
+      // ── NV300 ──────────────────────────────────────────────────────────────────
+      { group: "NV300" },
+      { label: "NV300 (2016–současnost)", powers: ["70 kW – 1.6 dCi R9M", "85 kW – 1.6 dCi R9M", "88 kW – 1.6 dCi R9M", "103 kW – 1.6 dCi R9M", "107 kW – 2.0 dCi M9R", "110 kW – 2.0 dCi M9R", "125 kW – 2.0 dCi M9R"] },
+    ],
+  },
+
+  {
+    brand:     "Fiat",
+    active:    true,
+    expertise: "Fiat osobní a užitková vozidla všech modelových řad (500, 500X, 500L, Panda, Punto, Tipo, Ducato, Doblò, Fiorino) — motory FIRE, TwinAir, MultiAir, MultiJet a elektrické pohony od roku 2005 do současnosti, EU spec (DPF, AdBlue Euro 5/6, SCR)",
+    models: [
+      // ── 500 ────────────────────────────────────────────────────────────────────
+      { group: "500" },
+      { label: "500 (2007–2020)", powers: ["51 kW – 1.2 FIRE", "63 kW – 1.4 FIRE", "77 kW – 1.4 FIRE Sport", "99 kW – 0.9 TwinAir Abarth", "132 kW – 1.4 T-Jet Abarth", "135 kW – 1.4 T-Jet 595", "63 kW – 0.9 TwinAir 65", "77 kW – 0.9 TwinAir 85", "55 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet"] },
+      { label: "500e Electric (2020–současnost)", powers: ["70 kW – Electric 23.8 kWh", "87 kW – Electric 42 kWh"] },
+      { label: "500 Hybrid (2020–současnost)", powers: ["51 kW – 1.0 Hybrid FireFly"] },
+
+      // ── 500X ───────────────────────────────────────────────────────────────────
+      { group: "500X" },
+      { label: "500X (2014–současnost)", powers: ["88 kW – 1.0 FireFly T3", "96 kW – 1.3 FireFly T4", "110 kW – 1.3 FireFly T4", "125 kW – 1.3 FireFly T4 PHEV", "132 kW – 1.4 MultiAir", "125 kW – 1.4 MultiAir", "70 kW – 1.3 MultiJet", "88 kW – 1.6 MultiJet", "103 kW – 2.0 MultiJet"] },
+
+      // ── 500L ───────────────────────────────────────────────────────────────────
+      { group: "500L" },
+      { label: "500L (2012–2022)", powers: ["70 kW – 0.9 TwinAir", "77 kW – 0.9 TwinAir", "88 kW – 1.4 T-Jet", "70 kW – 1.4 FIRE", "62 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet", "77 kW – 1.6 MultiJet", "88 kW – 1.6 MultiJet"] },
+
+      // ── Panda ──────────────────────────────────────────────────────────────────
+      { group: "Panda" },
+      { label: "Panda II 169 (2003–2012)", powers: ["40 kW – 1.1 FIRE", "44 kW – 1.2 FIRE", "74 kW – 1.4 FIRE 100HP", "51 kW – 1.3 MultiJet", "55 kW – 1.3 MultiJet"] },
+      { label: "Panda III 319 (2012–současnost)", powers: ["51 kW – 0.9 TwinAir", "63 kW – 0.9 TwinAir", "51 kW – 1.0 Hybrid FireFly", "44 kW – 1.2 FIRE", "51 kW – 1.2 FIRE", "55 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet"] },
+
+      // ── Punto ──────────────────────────────────────────────────────────────────
+      { group: "Punto" },
+      { label: "Grande Punto (2005–2012)", powers: ["48 kW – 1.2 FIRE", "57 kW – 1.4 FIRE", "70 kW – 1.4 FIRE", "96 kW – 1.4 MultiAir", "132 kW – 1.4 T-Jet Abarth", "55 kW – 1.3 MultiJet", "66 kW – 1.3 MultiJet", "88 kW – 1.6 MultiJet", "96 kW – 1.9 MultiJet"] },
+      { label: "Punto Evo / Punto (2009–2018)", powers: ["48 kW – 1.2 FIRE", "57 kW – 1.4 FIRE", "77 kW – 1.4 MultiAir", "99 kW – 1.4 MultiAir", "132 kW – 1.4 T-Jet Abarth", "55 kW – 1.3 MultiJet", "63 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet", "77 kW – 1.6 MultiJet", "88 kW – 1.6 MultiJet"] },
+
+      // ── Tipo ───────────────────────────────────────────────────────────────────
+      { group: "Tipo" },
+      { label: "Tipo (2015–současnost)", powers: ["70 kW – 1.0 FireFly T3", "74 kW – 1.4 FIRE", "88 kW – 1.4 T-Jet", "96 kW – 1.4 T-Jet", "110 kW – 1.5 FireFly Hybrid", "70 kW – 1.3 MultiJet", "88 kW – 1.6 MultiJet", "96 kW – 1.6 MultiJet"] },
+
+      // ── Ducato ─────────────────────────────────────────────────────────────────
+      { group: "Ducato" },
+      { label: "Ducato III 2.0/2.2 MultiJet (2006–2014)", powers: ["74 kW – 2.2 MultiJet", "88 kW – 2.2 MultiJet", "96 kW – 2.2 MultiJet", "100 kW – 2.3 MultiJet", "107 kW – 2.3 MultiJet", "109 kW – 2.3 MultiJet", "130 kW – 3.0 MultiJet", "115 kW – 3.0 MultiJet"] },
+      { label: "Ducato III FL 2.0/2.2/2.3 MultiJet (2014–současnost)", powers: ["85 kW – 2.0 MultiJet", "96 kW – 2.2 MultiJet", "103 kW – 2.2 MultiJet", "121 kW – 2.2 MultiJet", "88 kW – 2.3 MultiJet", "96 kW – 2.3 MultiJet", "109 kW – 2.3 MultiJet", "130 kW – 2.3 MultiJet", "132 kW – 2.3 MultiJet", "90 kW – e-Ducato Electric"] },
+
+      // ── Doblò ──────────────────────────────────────────────────────────────────
+      { group: "Doblò" },
+      { label: "Doblò II (2010–2022)", powers: ["70 kW – 1.4 FIRE", "88 kW – 1.4 T-Jet", "66 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet", "77 kW – 1.6 MultiJet", "88 kW – 1.6 MultiJet", "99 kW – 2.0 MultiJet"] },
+
+      // ── Fiorino ────────────────────────────────────────────────────────────────
+      { group: "Fiorino" },
+      { label: "Fiorino III (2007–současnost)", powers: ["54 kW – 1.4 FIRE", "40 kW – 1.3 MultiJet", "55 kW – 1.3 MultiJet", "59 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet"] },
     ],
   },
 ]
