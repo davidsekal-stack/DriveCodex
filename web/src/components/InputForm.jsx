@@ -168,15 +168,15 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
       )}
 
       {/* Spodní lišta: souhrn + odeslat */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, padding: "10px 12px", background: t.bgMuted, border: `1px solid ${t.border}`, borderRadius: 2 }}>
-        <div style={{ display: "flex", gap: 12, fontSize: "0.7rem" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, padding: "10px 12px", background: t.bgMuted, border: `1px solid ${t.border}`, borderRadius: 2, gap: 8 }}>
+        <div style={{ display: "flex", gap: 12, fontSize: "0.7rem", flex: 1, minWidth: 0, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
           {symptoms.length > 0 && <span style={{ color: t.accent }}>⚡ {symptoms.length}</span>}
           {obdCodes.length > 0 && <span style={{ color: t.obdText }}>📡 {obdCodes.length}</span>}
           {text.trim()         && <span style={{ color: t.doneStatusColor }}>✍️</span>}
           {total === 0         && <span style={{ color: t.textVeryFaint }}>{tr('input.enterHint')}</span>}
         </div>
         <button disabled={total === 0 || loading} onClick={handleSubmit}
-          style={{ background: total > 0 ? t.accent : t.border, color: total > 0 ? "#fff" : t.textFaint, border: "none", cursor: total > 0 && !loading ? "pointer" : "not-allowed", padding: "9px 22px", letterSpacing: "0.1em", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2, transition: "all 0.2s", opacity: total === 0 || loading ? 0.55 : 1 }}>
+          style={{ background: total > 0 ? t.accent : t.border, color: total > 0 ? "#fff" : t.textFaint, border: "none", cursor: total > 0 && !loading ? "pointer" : "not-allowed", padding: "9px 22px", letterSpacing: "0.1em", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2, transition: "background 0.2s, color 0.2s, opacity 0.2s", opacity: total === 0 || loading ? 0.55 : 1, flexShrink: 0, whiteSpace: "nowrap" }}>
           {loading
             ? <span style={{ display: "inline-block", animation: "pulse 1.5s ease infinite" }}>{tr('input.analyzing')}</span>
             : `▶ ${displayLabel}`}
