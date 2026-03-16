@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { COMMON_OBD_CODES, SYMPTOM_CATEGORIES } from "../constants/index.js";
+import { SYMPTOM_CATEGORIES, getObdCodes } from "../constants/index.js";
 import { useI18n } from "../i18n/index.jsx";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
-export default function InputForm({ onSubmit, loading, label, t }) {
+export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
   const { tr } = useI18n();
 
   const TABS = [
@@ -98,7 +98,13 @@ export default function InputForm({ onSubmit, loading, label, t }) {
       )}
 
       {/* Panel: OBD kódy */}
-      {tab === "obd" && (
+      {tab === "obd" && (() => {
+        const codes = getObdCodes(vehicle?.brand, vehicle?.model, vehicle?.enginePower);
+        const hasEngine = codes.engine.length > 0;
+        const hasBrand  = codes.brand.length > 0;
+        const chipStyle = (sel) => ({ cursor: "pointer", userSelect: "none", padding: "4px 10px", fontFamily: "monospace", fontSize: "0.75rem", background: sel ? t.accent : t.bgInput, color: sel ? "#fff" : t.obdText, border: `1px solid ${sel ? t.accent : t.obdBorder}`, borderRadius: 2, transition: "all 0.12s" });
+        const sectionLabel = (text) => ({ fontSize: "0.6rem", letterSpacing: "0.08em", color: t.textFaint, fontWeight: 600, marginBottom: 4, marginTop: 8 });
+        return (
         <div>
           <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
             <input value={obdInput} onChange={(e) => setObdInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addObdFromInput()}
@@ -110,20 +116,36 @@ export default function InputForm({ onSubmit, loading, label, t }) {
             </button>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-            {COMMON_OBD_CODES.map((c) => {
-              const sel = obdCodes.includes(c);
-              return (
-                <div key={c} onClick={() => toggleObd(c)}
-                  style={{ cursor: "pointer", userSelect: "none", padding: "4px 10px", fontFamily: "monospace", fontSize: "0.75rem", background: sel ? t.accent : t.bgInput, color: sel ? "#fff" : t.obdText, border: `1px solid ${sel ? t.accent : t.obdBorder}`, borderRadius: 2, transition: "all 0.12s" }}>
-                  {c}
-                </div>
-              );
-            })}
+          {/* Obecné kódy */}
+          <div style={sectionLabel()}>{tr('input.commonCodes')}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 4 }}>
+            {codes.common.map((c) => (
+              <div key={c} onClick={() => toggleObd(c)} style={chipStyle(obdCodes.includes(c))}>{c}</div>
+            ))}
           </div>
 
+          {/* Kódy dle technologie motoru */}
+          {hasEngine && <>
+            <div style={sectionLabel()}>{tr('input.engineCodes')}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 4 }}>
+              {codes.engine.map((c) => (
+                <div key={c} onClick={() => toggleObd(c)} style={chipStyle(obdCodes.includes(c))}>{c}</div>
+              ))}
+            </div>
+          </>}
+
+          {/* Kódy dle značky */}
+          {hasBrand && <>
+            <div style={sectionLabel()}>{tr('input.brandCodes', { brand: vehicle?.brand })}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 4 }}>
+              {codes.brand.map((c) => (
+                <div key={c} onClick={() => toggleObd(c)} style={chipStyle(obdCodes.includes(c))}>{c}</div>
+              ))}
+            </div>
+          </>}
+
           {obdCodes.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${t.border}` }}>
               {obdCodes.map((c) => (
                 <div key={c} onClick={() => toggleObd(c)}
                   style={{ padding: "2px 8px", background: t.obdBg, border: `1px solid ${t.accent}`, color: t.accent, fontSize: "0.72rem", fontFamily: "monospace", cursor: "pointer", borderRadius: 2 }}>
@@ -133,7 +155,8 @@ export default function InputForm({ onSubmit, loading, label, t }) {
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Panel: Volný text */}
       {tab === "text" && (
