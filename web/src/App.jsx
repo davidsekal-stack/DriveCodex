@@ -457,7 +457,7 @@ function App() {
                 </div>
 
                 {error && <div style={{ marginBottom: 14, padding: "10px 13px", background: "rgba(220,38,38,0.08)", border: "1px solid #dc2626", color: "#dc2626", fontSize: "0.82rem", borderRadius: 2 }}>⚠ {error}</div>}
-                <InputForm onSubmit={handleNewCase} loading={loading} label={tr('app.startDiag')} t={t} />
+                <InputForm onSubmit={handleNewCase} loading={loading} label={tr('app.startDiag')} t={t} vehicle={newVehicle} />
               </div>
             </div>
           )}
@@ -595,7 +595,7 @@ function App() {
                     {diagCount === 0 ? (
                       <>
                         <div style={{ fontSize: "0.68rem", color: t.textVeryFaint, letterSpacing: "0.08em", marginBottom: 10 }}>{tr('app.firstDiag')}</div>
-                        <InputForm onSubmit={(d) => runDiag(activeId, d)} loading={loading} label={tr('app.runDiag')} t={t} />
+                        <InputForm onSubmit={(d) => runDiag(activeId, d)} loading={loading} label={tr('app.runDiag')} t={t} vehicle={activeCase?.vehicle} />
                       </>
                     ) : (
                       <>
