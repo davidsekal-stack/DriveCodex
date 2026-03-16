@@ -489,11 +489,11 @@ function App() {
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
               {/* Case header */}
-              <div style={{ padding: mobile ? "0 10px" : "0 18px", height: 52, background: t.bgHeader, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: 8 }}>
-                <div style={{ overflow: "hidden" }}>
+              <div style={{ padding: mobile ? "6px 10px" : "0 18px", minHeight: 52, background: t.bgHeader, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: 8 }}>
+                <div style={{ overflow: "hidden", flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: "0.9rem", color: t.text, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeCase.name}</div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    {activeCase.vehicle?.model   && <span style={{ fontSize: "0.68rem", color: t.textFaint }}>{activeCase.vehicle.model}</span>}
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "nowrap", overflow: "hidden" }}>
+                    {activeCase.vehicle?.model   && <span style={{ fontSize: "0.68rem", color: t.textFaint, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeCase.vehicle.model}</span>}
                     {!mobile && activeCase.vehicle?.enginePower && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {activeCase.vehicle.enginePower}</span>}
                     {!mobile && activeCase.vehicle?.mileage && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {fmtMileage(activeCase.vehicle.mileage, lang)}</span>}
                     <StatusBadge status={activeCase.status} t={t} tr={tr} />
