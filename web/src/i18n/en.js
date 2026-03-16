@@ -158,6 +158,12 @@ export const strings = {
   'pdf.resolution':       'PERFORMED REPAIR',
   'pdf.generated':        'Generated',
   'pdf.page':             'Page',
+  'pdf.variant.service':       'Service Report',
+  'pdf.variant.service.desc':  'Workshop style — table, stripes, boxes',
+  'pdf.variant.technical':     'Technical Report',
+  'pdf.variant.technical.desc':'Formal — tables, bordered cards',
+  'pdf.variant.minimalist':    'Minimalist',
+  'pdf.variant.minimalist.desc':'Clean, lots of white space',
 
   // Symptom categories
   'sym.cat.engine':       'Engine & Power',
