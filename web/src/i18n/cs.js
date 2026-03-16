@@ -149,6 +149,16 @@ export const strings = {
   // AI
   'ai.topicIrrelevant':  'Popis neobsahuje žádný technický údaj (OBD kód, zkratku jako DPF/EGR/ABS, nebo měřenou hodnotu). Popište technický problém nebo příznaky závady.',
 
+  // PDF export
+  'pdf.title':            'DIAGNOSTICKÝ PROTOKOL',
+  'pdf.vehicle':          'VOZIDLO',
+  'pdf.inputRound':       'VSTUP #{num}',
+  'pdf.diagnosis':        'DIAGNÓZA #{num}',
+  'pdf.summary':          'SHRNUTÍ',
+  'pdf.resolution':       'PROVEDENÁ OPRAVA',
+  'pdf.generated':        'Vygenerováno',
+  'pdf.page':             'Strana',
+
   // Symptom categories
   'sym.cat.engine':       'Motor & Výkon',
   'sym.cat.transmission': 'Převodovka & Spojka',

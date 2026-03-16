@@ -6,6 +6,7 @@ import { uid, fmtDate, fmtMileage }         from "./lib/utils.js";
 import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "./lib/ai.js";
 import { validateResolution }                from "./lib/validation.js";
 import { supabase, signOut }                 from "./lib/supabase.js";
+import { exportCasePdf }                     from "./lib/pdf.js";
 import * as storage                          from "./lib/storage.js";
 import DiagCard                             from "./components/DiagCard.jsx";
 import InputForm, { FollowUpPrompt }        from "./components/InputForm.jsx";
@@ -511,6 +512,12 @@ function App() {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  {activeCase.messages.some((m) => m.type === "diagnosis") && (
+                    <button onClick={() => exportCasePdf(activeCase, lang, tr)}
+                      style={{ background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
+                      PDF
+                    </button>
+                  )}
                   {activeCase.status === "rozpracovaný" && (
                     <button onClick={() => setCloseModal(true)}
                       style={{ background: t.doneStatusBg, border: `1px solid ${t.doneStatusBorder}`, color: t.doneStatusColor, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
