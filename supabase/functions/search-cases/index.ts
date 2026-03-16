@@ -103,19 +103,18 @@ Deno.serve(async (req) => {
     let searchText:     string   = text      ?? ''
 
     const needsNormalization = searchSymptoms.length > 0 || searchText.trim().length > 0
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
+    const apiKey = Deno.env.get('DEEPSEEK_API_KEY')
 
-    if (needsNormalization && anthropicKey) {
+    if (needsNormalization && apiKey) {
       try {
-        const translateRes = await fetch('https://api.anthropic.com/v1/messages', {
+        const translateRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Content-Type':      'application/json',
-            'x-api-key':         anthropicKey,
-            'anthropic-version': '2023-06-01',
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model:      'claude-haiku-4-5-20251001',
+            model:      'deepseek-V3.2-Speciale',
             max_tokens: 300,
             messages: [{
               role:    'user',
@@ -129,7 +128,7 @@ Return format: {"symptoms":["..."],"text":"..."}`,
 
         if (translateRes.ok) {
           const data  = await translateRes.json()
-          const raw   = (data.content?.[0]?.text ?? '').trim()
+          const raw   = (data.choices?.[0]?.message?.content ?? '').trim()
           const start = raw.indexOf('{')
           if (start !== -1) {
             const parsed = JSON.parse(raw.slice(start))

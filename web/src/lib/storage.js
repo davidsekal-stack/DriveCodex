@@ -144,9 +144,9 @@ async function edgeFetch(fnName, body) {
   return res.json()
 }
 
-// ── Call Claude via Edge Function ──────────────────────────────────────────────
+// ── Call AI via Edge Function ─────────────────────────────────────────────────
 
-export async function callClaude({ systemPrompt, userMessage, maxTokens = 4000, model = 'claude-sonnet-4-6' }) {
+export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, model = 'deepseek-V3.2-Speciale' }) {
   const { data: { user } } = await supabase.auth.getUser()
 
   return edgeFetch('anthropic-proxy', {

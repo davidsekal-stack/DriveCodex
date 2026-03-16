@@ -201,7 +201,7 @@ function App() {
 
     try {
       await ragPromise;
-      const data   = await storage.callClaude({ systemPrompt: buildSystemPrompt(similar, vehicle, lang), userMessage: userPrompt, maxTokens: 4000 });
+      const data   = await storage.callAI({ systemPrompt: buildSystemPrompt(similar, vehicle, lang), userMessage: userPrompt, maxTokens: 4000 });
       if (data.error) throw new Error(data.error.message || tr('app.aiError'));
       if (!data.content) throw new Error(tr('app.aiNoResponse'));
       const raw    = data.content.map((b) => b.text ?? "").join("");

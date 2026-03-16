@@ -1,8 +1,9 @@
 /**
  * GearBrain — Edge Function: anthropic-proxy
  *
- * Proxy pro Anthropic API. Klient posílá diagnostický request,
- * Edge Function přidá API klíč a přepošle na Anthropic.
+ * Proxy pro DeepSeek API. Klient posílá diagnostický request,
+ * Edge Function přidá API klíč a přepošle na DeepSeek.
+ * Response se transformuje do Anthropic formátu (frontend beze změn).
  *
  * Rate limiting: max 50 AI volání / den / installation_id.
  *
@@ -13,9 +14,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const ALLOWED_MODELS = [
-  'claude-sonnet-4-6',
-  'claude-opus-4-6',
-  'claude-haiku-4-5-20251001',
+  'deepseek-V3.2-Speciale',
 ]
 
 const DAILY_LIMIT     = 50
@@ -68,45 +67,69 @@ Deno.serve(async (req) => {
       )
     }
 
-    // ── Forward to Anthropic ───────────────────────────────────────────────
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!anthropicKey) {
+    // ── Forward to DeepSeek ──────────────────────────────────────────────
+    const apiKey = Deno.env.get('DEEPSEEK_API_KEY')
+    if (!apiKey) {
       return json({ error: { message: 'Server: chybí konfigurace AI služby.' } }, 500, corsHeaders)
     }
 
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+    // Build OpenAI-format messages: system as first message
+    const dsMessages = [
+      ...(system ? [{ role: 'system', content: system }] : []),
+      ...messages,
+    ]
+
+    const dsRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Content-Type':      'application/json',
-        'x-api-key':         anthropicKey,
-        'anthropic-version': '2023-06-01',
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model,
         max_tokens: safeMaxTokens,
-        system: system ?? undefined,
-        messages,
+        messages: dsMessages,
       }),
     })
 
-    const anthropicData = await anthropicRes.json()
+    const dsData = await dsRes.json()
 
-    // ── Log usage (fire-and-forget) ────────────────────────────────────────
-    if (!anthropicData.error) {
-      supabase
-        .from('gearbrain_ai_usage')
-        .insert({
-          installation_id,
-          model,
-          input_tokens:  anthropicData.usage?.input_tokens  ?? 0,
-          output_tokens: anthropicData.usage?.output_tokens ?? 0,
-        })
-        .then(() => {})
+    // ── Transform DeepSeek (OpenAI) → Anthropic format for frontend ──────
+    if (dsData.error) {
+      return json({ error: { message: dsData.error.message || 'DeepSeek API error' } }, dsRes.status, corsHeaders)
     }
 
-    // ── Pass through ───────────────────────────────────────────────────────
-    return new Response(JSON.stringify(anthropicData), {
-      status: anthropicRes.ok ? 200 : anthropicRes.status,
+    const text = dsData.choices?.[0]?.message?.content ?? ''
+    const inputTokens  = dsData.usage?.prompt_tokens     ?? 0
+    const outputTokens = dsData.usage?.completion_tokens  ?? 0
+
+    const anthropicFormat = {
+      id:           dsData.id ?? '',
+      type:         'message',
+      role:         'assistant',
+      content:      [{ type: 'text', text }],
+      model:        dsData.model ?? model,
+      stop_reason:  dsData.choices?.[0]?.finish_reason === 'stop' ? 'end_turn' : dsData.choices?.[0]?.finish_reason ?? null,
+      usage: {
+        input_tokens:  inputTokens,
+        output_tokens: outputTokens,
+      },
+    }
+
+    // ── Log usage (fire-and-forget) ────────────────────────────────────────
+    supabase
+      .from('gearbrain_ai_usage')
+      .insert({
+        installation_id,
+        model,
+        input_tokens:  inputTokens,
+        output_tokens: outputTokens,
+      })
+      .then(() => {})
+
+    // ── Return Anthropic-shaped response ─────────────────────────────────
+    return new Response(JSON.stringify(anthropicFormat), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 

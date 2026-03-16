@@ -48,8 +48,8 @@ Deno.serve(async (req) => {
     let translatedDescription: string   = description ?? ''
     let translatedResolution:  string   = resolution
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (anthropicKey) {
+    const apiKey = Deno.env.get('DEEPSEEK_API_KEY')
+    if (apiKey) {
       const hasContent = (
         translatedSymptoms.length > 0 ||
         translatedDescription.trim().length > 0 ||
@@ -58,15 +58,14 @@ Deno.serve(async (req) => {
 
       if (hasContent) {
         try {
-          const translateRes = await fetch('https://api.anthropic.com/v1/messages', {
+          const translateRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Content-Type':      'application/json',
-              'x-api-key':         anthropicKey,
-              'anthropic-version': '2023-06-01',
+              'Content-Type':  'application/json',
+              'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-              model:      'claude-haiku-4-5-20251001',
+              model:      'deepseek-V3.2-Speciale',
               max_tokens: 600,
               messages: [{
                 role:    'user',
@@ -82,7 +81,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
 
           if (translateRes.ok) {
             const data    = await translateRes.json()
-            const raw     = (data.content?.[0]?.text ?? '').trim()
+            const raw     = (data.choices?.[0]?.message?.content ?? '').trim()
             const start   = raw.indexOf('{')
             if (start !== -1) {
               const parsed = JSON.parse(raw.slice(start))
