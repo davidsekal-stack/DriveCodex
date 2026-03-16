@@ -149,6 +149,16 @@ export const strings = {
   // AI
   'ai.topicIrrelevant':  'Beschreibung enthält keine technischen Daten (OBD-Code, Abkürzung wie DPF/EGR/ABS oder Messwert). Beschreiben Sie das technische Problem oder die Fehlersymptome.',
 
+  // PDF export
+  'pdf.title':            'DIAGNOSEBERICHT',
+  'pdf.vehicle':          'FAHRZEUG',
+  'pdf.inputRound':       'EINGABE #{num}',
+  'pdf.diagnosis':        'DIAGNOSE #{num}',
+  'pdf.summary':          'ZUSAMMENFASSUNG',
+  'pdf.resolution':       'DURCHGEFÜHRTE REPARATUR',
+  'pdf.generated':        'Generiert',
+  'pdf.page':             'Seite',
+
   // Symptom categories
   'sym.cat.engine':       'Motor & Leistung',
   'sym.cat.transmission': 'Getriebe & Kupplung',

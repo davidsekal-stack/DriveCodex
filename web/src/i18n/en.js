@@ -149,6 +149,16 @@ export const strings = {
   // AI
   'ai.topicIrrelevant':  'Description contains no technical data (OBD code, abbreviation like DPF/EGR/ABS, or measured value). Describe the technical problem or fault symptoms.',
 
+  // PDF export
+  'pdf.title':            'DIAGNOSTIC REPORT',
+  'pdf.vehicle':          'VEHICLE',
+  'pdf.inputRound':       'INPUT #{num}',
+  'pdf.diagnosis':        'DIAGNOSIS #{num}',
+  'pdf.summary':          'SUMMARY',
+  'pdf.resolution':       'PERFORMED REPAIR',
+  'pdf.generated':        'Generated',
+  'pdf.page':             'Page',
+
   // Symptom categories
   'sym.cat.engine':       'Engine & Power',
   'sym.cat.transmission': 'Transmission & Clutch',
