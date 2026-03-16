@@ -6,7 +6,7 @@ import { uid, fmtDate, fmtMileage }         from "./lib/utils.js";
 import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "./lib/ai.js";
 import { validateResolution }                from "./lib/validation.js";
 import { supabase, signOut }                 from "./lib/supabase.js";
-import { exportCasePdf }                     from "./lib/pdf.js";
+import { exportCasePdf, PDF_VARIANTS }       from "./lib/pdf.js";
 import * as storage                          from "./lib/storage.js";
 import DiagCard                             from "./components/DiagCard.jsx";
 import InputForm, { FollowUpPrompt }        from "./components/InputForm.jsx";
@@ -88,6 +88,7 @@ function App() {
   const [resolution, setResolution] = useState("");
   const [closeError,  setCloseError]  = useState(null);
   const [deleteId,   setDeleteId]   = useState(null);
+  const [pdfMenu,    setPdfMenu]    = useState(false);
   const [newVehicle, setNewVehicle] = useState(EMPTY_VEHICLE);
   const [cloudStatus, setCloudStatus] = useState("idle");
 
@@ -513,10 +514,28 @@ function App() {
                 </div>
                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                   {activeCase.messages.some((m) => m.type === "diagnosis") && (
-                    <button onClick={() => exportCasePdf(activeCase, lang, tr)}
-                      style={{ background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
-                      PDF
-                    </button>
+                    <div style={{ position: "relative" }}>
+                      <button onClick={() => setPdfMenu((o) => !o)}
+                        style={{ background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
+                        PDF ▾
+                      </button>
+                      {pdfMenu && (
+                        <>
+                          <div onClick={() => setPdfMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
+                          <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.25)", zIndex: 60, minWidth: 180, overflow: "hidden" }}>
+                            {PDF_VARIANTS.map((v) => (
+                              <button key={v} onClick={() => { setPdfMenu(false); exportCasePdf(activeCase, lang, tr, v); }}
+                                style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none", borderBottom: `1px solid ${t.border}`, color: t.text, padding: "9px 14px", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = t.bgSelected; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
+                                <div style={{ fontWeight: 600, marginBottom: 1 }}>{tr(`pdf.variant.${v}`)}</div>
+                                <div style={{ fontSize: "0.67rem", color: t.textFaint }}>{tr(`pdf.variant.${v}.desc`)}</div>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   )}
                   {activeCase.status === "rozpracovaný" && (
                     <button onClick={() => setCloseModal(true)}

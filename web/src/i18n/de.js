@@ -158,6 +158,12 @@ export const strings = {
   'pdf.resolution':       'DURCHGEFÜHRTE REPARATUR',
   'pdf.generated':        'Generiert',
   'pdf.page':             'Seite',
+  'pdf.variant.service':       'Serviceprotokoll',
+  'pdf.variant.service.desc':  'Werkstattstil — Tabelle, Streifen, Boxen',
+  'pdf.variant.technical':     'Technischer Bericht',
+  'pdf.variant.technical.desc':'Formell — Tabellen, Karten mit Rahmen',
+  'pdf.variant.minimalist':    'Minimalistisch',
+  'pdf.variant.minimalist.desc':'Sauber, viel Weißraum',
 
   // Symptom categories
   'sym.cat.engine':       'Motor & Leistung',

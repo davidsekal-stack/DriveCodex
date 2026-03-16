@@ -158,6 +158,12 @@ export const strings = {
   'pdf.resolution':       'PROVEDENÁ OPRAVA',
   'pdf.generated':        'Vygenerováno',
   'pdf.page':             'Strana',
+  'pdf.variant.service':       'Servisní protokol',
+  'pdf.variant.service.desc':  'Styl autoservisu — tabulka, pruhy, boxy',
+  'pdf.variant.technical':     'Technická zpráva',
+  'pdf.variant.technical.desc':'Formální — tabulky, karty s rámečkem',
+  'pdf.variant.minimalist':    'Minimalistický',
+  'pdf.variant.minimalist.desc':'Čistý, hodně bílého prostoru',
 
   // Symptom categories
   'sym.cat.engine':       'Motor & Výkon',
