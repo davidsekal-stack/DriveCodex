@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { SYMPTOM_CATEGORIES, getObdCodes } from "../constants/index.js";
 import { useI18n } from "../i18n/index.jsx";
+import useIsMobile from "../hooks/useIsMobile.js";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
 export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
   const { tr } = useI18n();
+  const mobile = useIsMobile();
 
   const TABS = [
     { key: "symptoms", label: tr('input.symptomsTab') },
@@ -79,12 +81,12 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
                   {selectedCount > 0 && <span style={{ marginLeft: 8, color: t.textFaint }}>({selectedCount})</span>}
                 </button>
                 {isOpen && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5, padding: "8px 10px", background: t.bgMuted, borderLeft: `3px solid ${t.border}` }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: mobile ? 4 : 5, padding: mobile ? "6px 8px" : "8px 10px", background: t.bgMuted, borderLeft: `3px solid ${t.border}` }}>
                     {symKeys.map((symKey) => {
                       const sel = symptoms.includes(symKey);
                       return (
                         <div key={symKey} onClick={() => toggleSymptom(symKey)}
-                          style={{ cursor: "pointer", userSelect: "none", padding: "4px 9px", fontSize: "0.68rem", background: sel ? t.chipSelBg : t.chipBg, color: sel ? t.chipSelText : t.chipText, border: `1px solid ${sel ? t.accent : t.chipBorder}`, fontWeight: sel ? 600 : 400, borderRadius: 2, transition: "all 0.12s" }}>
+                          style={{ cursor: "pointer", userSelect: "none", padding: mobile ? "3px 7px" : "4px 9px", fontSize: mobile ? "0.62rem" : "0.68rem", background: sel ? t.chipSelBg : t.chipBg, color: sel ? t.chipSelText : t.chipText, border: `1px solid ${sel ? t.accent : t.chipBorder}`, fontWeight: sel ? 600 : 400, borderRadius: 2, transition: "all 0.12s" }}>
                           {tr(symKey)}
                         </div>
                       );
@@ -102,7 +104,7 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
         const codes = getObdCodes(vehicle?.brand, vehicle?.model, vehicle?.enginePower);
         const hasEngine = codes.engine.length > 0;
         const hasBrand  = codes.brand.length > 0;
-        const chipStyle = (sel) => ({ cursor: "pointer", userSelect: "none", padding: "4px 10px", fontFamily: "monospace", fontSize: "0.75rem", background: sel ? t.accent : t.bgInput, color: sel ? "#fff" : t.obdText, border: `1px solid ${sel ? t.accent : t.obdBorder}`, borderRadius: 2, transition: "all 0.12s" });
+        const chipStyle = (sel) => ({ cursor: "pointer", userSelect: "none", padding: mobile ? "3px 7px" : "4px 10px", fontFamily: "monospace", fontSize: mobile ? "0.68rem" : "0.75rem", background: sel ? t.accent : t.bgInput, color: sel ? "#fff" : t.obdText, border: `1px solid ${sel ? t.accent : t.obdBorder}`, borderRadius: 2, transition: "all 0.12s" });
         const sectionLabel = (text) => ({ fontSize: "0.6rem", letterSpacing: "0.08em", color: t.textFaint, fontWeight: 600, marginBottom: 4, marginTop: 8 });
         return (
         <div>
