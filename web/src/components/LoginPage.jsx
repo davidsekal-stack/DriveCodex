@@ -2,6 +2,7 @@ import { useState } from "react";
 import { signIn, signUp, signInWithGoogle } from "../lib/supabase.js";
 import { DARK } from "../theme.js";
 import { useI18n } from "../i18n/index.jsx";
+import useIsMobile from "../hooks/useIsMobile.js";
 
 const LANGS = [
   { code: "cs", label: "CS" },
@@ -12,6 +13,7 @@ const LANGS = [
 export default function LoginPage({ onAuth }) {
   const t = DARK;
   const { tr, lang, changeLang } = useI18n();
+  const mobile = useIsMobile();
   const [mode, setMode]       = useState("login"); // "login" | "register" | "verify"
   const [email, setEmail]     = useState("");
   const [password, setPassword] = useState("");
@@ -56,7 +58,7 @@ export default function LoginPage({ onAuth }) {
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace", padding: 24 }}>
+    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace", padding: mobile ? 12 : 24 }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
 
         {/* Logo */}
@@ -65,7 +67,7 @@ export default function LoginPage({ onAuth }) {
             <span style={{ fontSize: "18px" }}>🔧</span>
           </div>
           <div>
-            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.8rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em" }}>
+            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.4rem" : "1.8rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em" }}>
               GEAR<span style={{ color: t.accent }}>Brain</span>
             </div>
             <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.12em" }}>{tr('login.subtitle')}</div>
@@ -84,7 +86,7 @@ export default function LoginPage({ onAuth }) {
 
         {/* Verify email screen */}
         {mode === "verify" && (
-          <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: 28, textAlign: "center" }}>
+          <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: mobile ? 18 : 28, textAlign: "center" }}>
             <div style={{ fontSize: "2rem", marginBottom: 16 }}>📧</div>
             <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.2rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 12 }}>
               {tr('login.verifyTitle')}
@@ -105,7 +107,7 @@ export default function LoginPage({ onAuth }) {
 
         {/* Login / Register form */}
         {mode !== "verify" && (
-          <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: 28 }}>
+          <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: mobile ? 18 : 28 }}>
             <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.3rem", fontWeight: 700, color: t.text, marginBottom: 20, letterSpacing: "0.05em", textAlign: "center" }}>
               {mode === "login" ? tr('login.loginTitle') : tr('login.registerTitle')}
             </div>

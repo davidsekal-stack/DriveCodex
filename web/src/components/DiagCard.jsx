@@ -1,5 +1,6 @@
 import { urgColor } from "../lib/utils.js";
 import { useI18n } from "../i18n/index.jsx";
+import useIsMobile from "../hooks/useIsMobile.js";
 
 // ── Pomocné sub-komponenty ────────────────────────────────────────────────────
 
@@ -21,15 +22,15 @@ function ObdChip({ code, t }) {
 
 // ── Jedna závada ──────────────────────────────────────────────────────────────
 
-function FaultCard({ fault: f, isPrimary, t, tr }) {
+function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
   const accentCol = urgColor(f.naléhavost);
   return (
-    <div style={{ background: t.bgCard, border: `1px solid ${isPrimary ? t.accent : t.border}`, padding: "16px", borderLeft: `4px solid ${accentCol}`, marginBottom: 8, borderRadius: 2 }}>
+    <div style={{ background: t.bgCard, border: `1px solid ${isPrimary ? t.accent : t.border}`, padding: mobile ? "12px" : "16px", borderLeft: `4px solid ${accentCol}`, marginBottom: 8, borderRadius: 2 }}>
 
       {/* Název + pravděpodobnost */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 8, flexWrap: "wrap" }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.3rem", fontWeight: 700, color: isPrimary ? t.accent : t.text, letterSpacing: "0.04em" }}>
+          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.1rem" : "1.3rem", fontWeight: 700, color: isPrimary ? t.accent : t.text, letterSpacing: "0.04em" }}>
             {isPrimary && "◈ "}{f.název}
           </div>
           {f.díly?.length > 0 && (
@@ -39,7 +40,7 @@ function FaultCard({ fault: f, isPrimary, t, tr }) {
           )}
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "1.5rem", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, color: f.pravděpodobnost > 70 ? t.accent : f.pravděpodobnost > 40 ? "#d97706" : t.textFaint }}>
+          <div style={{ fontSize: mobile ? "1.2rem" : "1.5rem", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, color: f.pravděpodobnost > 70 ? t.accent : f.pravděpodobnost > 40 ? "#d97706" : t.textFaint }}>
             {f.pravděpodobnost}%
           </div>
           <div style={{ fontSize: "0.5rem", color: t.textFaint, letterSpacing: "0.08em" }}>{tr('diag.probability')}</div>
@@ -84,6 +85,7 @@ function FaultCard({ fault: f, isPrimary, t, tr }) {
 
 export default function DiagCard({ result, ragMatches = [], t }) {
   const { tr } = useI18n();
+  const mobile = useIsMobile();
   const dalsiInfo = result.další_info === "Výsledek zkrácen." ? null : result.další_info;
   const hasMeta = result.doporučené_testy?.length > 0 || result.varování || dalsiInfo;
 
@@ -102,12 +104,12 @@ export default function DiagCard({ result, ragMatches = [], t }) {
 
       {/* Závady */}
       {result.závady?.map((f, i) => (
-        <FaultCard key={i} fault={f} isPrimary={i === 0} t={t} tr={tr} />
+        <FaultCard key={i} fault={f} isPrimary={i === 0} t={t} tr={tr} mobile={mobile} />
       ))}
 
       {/* Doporučené testy + poznámky */}
       {hasMeta && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 8, marginTop: 8 }}>
           {result.doporučené_testy?.length > 0 && (
             <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2 }}>
               <SectionLabel t={t}>{tr('diag.recommendedTests')}</SectionLabel>

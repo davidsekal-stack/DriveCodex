@@ -13,6 +13,7 @@ import LoginPage                            from "./components/LoginPage.jsx";
 import ErrorBoundary                        from "./components/ErrorBoundary.jsx";
 import ConfirmModal                         from "./components/ConfirmModal.jsx";
 import useCases                             from "./hooks/useCases.js";
+import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
 
 const LANGS = [
@@ -73,6 +74,8 @@ function App() {
   const [darkMode, setDarkMode] = useState(true);
   const t = darkMode ? DARK : LIGHT;
   const { tr, lang, changeLang } = useI18n();
+  const mobile = useIsMobile();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [session,    setSession]    = useState(null);
   const [appReady,   setAppReady]   = useState(false);
@@ -270,6 +273,7 @@ function App() {
     setActiveId(id);
     setView("session");
     setError(null);
+    setSidebarOpen(false);
   }, [setActiveId]);
 
   const handleLogout = useCallback(async () => {
@@ -298,20 +302,26 @@ function App() {
       <GlobalStyles t={t} darkMode={darkMode} />
 
       {/* ── HEADER ── */}
-      <header style={{ background: t.bgHeader, borderBottom: `2px solid ${t.accent}`, padding: "0 20px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, boxShadow: darkMode ? "none" : "0 1px 8px rgba(0,0,0,0.07)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <header style={{ background: t.bgHeader, borderBottom: `2px solid ${t.accent}`, padding: mobile ? "0 10px" : "0 20px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, boxShadow: darkMode ? "none" : "0 1px 8px rgba(0,0,0,0.07)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: mobile ? 6 : 10 }}>
+          {mobile && (
+            <button onClick={() => setSidebarOpen((o) => !o)}
+              style={{ background: "none", border: "none", color: t.text, fontSize: "1.3rem", cursor: "pointer", padding: "4px 6px", lineHeight: 1 }}>
+              {sidebarOpen ? "✕" : "☰"}
+            </button>
+          )}
           <div style={{ width: 30, height: 30, background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", clipPath: "polygon(10% 0%,90% 0%,100% 10%,100% 90%,90% 100%,10% 100%,0% 90%,0% 10%)", flexShrink: 0 }}>
             <span style={{ fontSize: "15px" }}>🔧</span>
           </div>
           <div>
-            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.5rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em", lineHeight: 1 }}>
+            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.2rem" : "1.5rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em", lineHeight: 1 }}>
               GEAR<span style={{ color: t.accent }}>Brain</span>
             </div>
-            <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.1em", lineHeight: 1, marginTop: 1 }}>{tr('app.subtitle')}</div>
+            {!mobile && <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.1em", lineHeight: 1, marginTop: 1 }}>{tr('app.subtitle')}</div>}
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: mobile ? 4 : 8 }}>
           {/* Language switcher */}
           <select value={lang} onChange={(e) => changeLang(e.target.value)}
             style={{ background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 8px", fontSize: "0.75rem", fontFamily: "inherit", cursor: "pointer", borderRadius: 20, height: 30, outline: "none" }}>
@@ -322,14 +332,16 @@ function App() {
 
           <button onClick={() => setDarkMode((d) => !d)}
             style={{ display: "flex", alignItems: "center", gap: 5, background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 11px", fontSize: "0.75rem", fontFamily: "inherit", cursor: "pointer", borderRadius: 20, height: 30 }}>
-            {darkMode ? tr('app.lightMode') : tr('app.darkMode')}
+            {darkMode ? (mobile ? "☀" : tr('app.lightMode')) : (mobile ? "☾" : tr('app.darkMode'))}
           </button>
-          <span style={{ fontSize: "0.7rem", color: t.textFaint, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {session.user?.email}
-          </span>
+          {!mobile && (
+            <span style={{ fontSize: "0.7rem", color: t.textFaint, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {session.user?.email}
+            </span>
+          )}
           <button onClick={handleLogout}
             style={{ display: "flex", alignItems: "center", gap: 5, background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 11px", fontSize: "0.75rem", cursor: "pointer", borderRadius: 20, height: 30, fontFamily: "inherit" }}>
-            {tr('app.logout')}
+            {mobile ? "↗" : tr('app.logout')}
           </button>
         </div>
       </header>
@@ -337,10 +349,20 @@ function App() {
       {/* ── BODY ── */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
 
+        {/* SIDEBAR OVERLAY (mobile) */}
+        {mobile && sidebarOpen && (
+          <div onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 49 }} />
+        )}
+
         {/* SIDEBAR */}
-        <aside style={{ width: 264, borderRight: `1px solid ${t.border}`, display: "flex", flexDirection: "column", flexShrink: 0, background: t.bgSidebar }}>
+        <aside style={{
+          ...(mobile
+            ? { position: "fixed", top: 52, left: 0, bottom: 0, width: 280, zIndex: 50, transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)", transition: "transform 0.2s ease" }
+            : { width: 264, flexShrink: 0 }),
+          borderRight: `1px solid ${t.border}`, display: "flex", flexDirection: "column", background: t.bgSidebar,
+        }}>
           <div style={{ padding: "10px 12px", borderBottom: `1px solid ${t.border}` }}>
-            <button onClick={() => { setView("new"); setActiveId(null); setError(null); }}
+            <button onClick={() => { setView("new"); setActiveId(null); setError(null); setSidebarOpen(false); }}
               style={{ width: "100%", background: t.accent, color: "#fff", border: "none", cursor: "pointer", padding: "10px", fontSize: "0.78rem", letterSpacing: "0.1em", fontWeight: 700, fontFamily: "inherit", borderRadius: 2, clipPath: "polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%)" }}>
               {tr('app.newCase')}
             </button>
@@ -387,7 +409,7 @@ function App() {
           {/* Welcome */}
           {view === "welcome" && (
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
-              <div style={{ fontSize: "3rem", opacity: 0.07 }}>🔧</div>
+              <div style={{ fontSize: mobile ? "2rem" : "3rem", opacity: 0.07 }}>🔧</div>
               <div style={{ fontSize: "0.8rem", color: t.textFaint, letterSpacing: "0.1em", textAlign: "center", lineHeight: 1.9 }}>
                 {tr('app.welcomeText')}<br />{tr('app.welcomeHint')}
               </div>
@@ -400,15 +422,15 @@ function App() {
 
           {/* Nový případ */}
           {view === "new" && (
-            <div style={{ flex: 1, overflowY: "auto", padding: "24px", background: t.bg }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "14px 10px" : "24px", background: t.bg }}>
               <div style={{ maxWidth: 680, margin: "0 auto" }}>
-                <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em", marginBottom: 4 }}>{tr('app.newCaseTitle')}</div>
+                <div style={{ marginBottom: mobile ? 14 : 20 }}>
+                  <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.2rem" : "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em", marginBottom: 4 }}>{tr('app.newCaseTitle')}</div>
                   <div style={{ fontSize: "0.78rem", color: t.textFaint }}>{tr('app.newCaseSubtitle')}</div>
                 </div>
 
                 {/* Row 1: Brand + Model */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? 8 : 12, marginBottom: mobile ? 8 : 12 }}>
                   <div>
                     <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.vehicleBrand')}</div>
                     <select value={newVehicle.brand}
@@ -435,7 +457,7 @@ function App() {
                 </div>
 
                 {/* Row 2: Engine Power + Mileage */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 18 }}>
+                <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? 8 : 12, marginBottom: mobile ? 12 : 18 }}>
                   <div>
                     <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.enginePower')}</div>
                     {(() => { const powers = getModelPowers(newVehicle.model); return (
@@ -467,13 +489,13 @@ function App() {
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
               {/* Case header */}
-              <div style={{ padding: "0 18px", height: 52, background: t.bgHeader, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+              <div style={{ padding: mobile ? "0 10px" : "0 18px", height: 52, background: t.bgHeader, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: 8 }}>
                 <div style={{ overflow: "hidden" }}>
                   <div style={{ fontSize: "0.9rem", color: t.text, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeCase.name}</div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     {activeCase.vehicle?.model   && <span style={{ fontSize: "0.68rem", color: t.textFaint }}>{activeCase.vehicle.model}</span>}
-                    {activeCase.vehicle?.enginePower && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {activeCase.vehicle.enginePower}</span>}
-                    {activeCase.vehicle?.mileage && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {fmtMileage(activeCase.vehicle.mileage, lang)}</span>}
+                    {!mobile && activeCase.vehicle?.enginePower && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {activeCase.vehicle.enginePower}</span>}
+                    {!mobile && activeCase.vehicle?.mileage && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {fmtMileage(activeCase.vehicle.mileage, lang)}</span>}
                     <StatusBadge status={activeCase.status} t={t} tr={tr} />
                     {activeCase.status === "rozpracovaný" && (() => {
                       const used  = activeCase.tokenCount ?? 0;
@@ -503,8 +525,8 @@ function App() {
               </div>
 
               {/* CHAT MESSAGES */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "20px", background: t.bg }}>
-                <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "10px" : "20px", background: t.bg }}>
+                <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: mobile ? 8 : 12 }}>
 
                   {activeCase.messages.length === 0 && !loading && (
                     <div style={{ textAlign: "center", color: t.textVeryFaint, fontSize: "0.78rem", letterSpacing: "0.08em", padding: "40px 0" }}>
@@ -518,7 +540,7 @@ function App() {
                       const hasChips = (msg.symptoms?.length > 0) || (msg.obdCodes?.length > 0);
                       return (
                         <div key={msg.id} style={{ display: "flex", justifyContent: "flex-end" }}>
-                          <div style={{ maxWidth: "72%", minWidth: 120 }}>
+                          <div style={{ maxWidth: mobile ? "88%" : "72%", minWidth: mobile ? 0 : 120 }}>
                             <div style={{ fontSize: "0.65rem", color: t.textFaint, textAlign: "right", marginBottom: 4, letterSpacing: "0.06em" }}>
                               {tr('app.inputRound', { num: roundNo, date: fmtDate(msg.timestamp, lang) })}
                             </div>
@@ -590,7 +612,7 @@ function App() {
 
               {/* INPUT AREA */}
               {activeCase.status === "rozpracovaný" && (
-                <div style={{ borderTop: `1px solid ${t.border}`, padding: "14px 20px", background: t.bgFollowup, flexShrink: 0 }}>
+                <div style={{ borderTop: `1px solid ${t.border}`, padding: mobile ? "10px" : "14px 20px", background: t.bgFollowup, flexShrink: 0 }}>
                   <div style={{ maxWidth: 760, margin: "0 auto" }}>
                     {diagCount === 0 ? (
                       <>
@@ -614,7 +636,7 @@ function App() {
       {/* ── MODAL: Uzavřít případ ── */}
       {closeModal && (
         <Modal onClose={() => { setCloseModal(false); setCloseError(null); }} width={500}>
-          <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: "26px", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
+          <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: mobile ? "16px" : "26px", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
             <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 8 }}>{tr('app.closeCaseTitle')}</div>
             <p style={{ fontSize: "0.85rem", color: t.textMuted, marginBottom: 16, lineHeight: 1.7 }}>
               {tr('app.closeCaseHelp')}
