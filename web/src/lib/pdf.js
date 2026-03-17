@@ -418,8 +418,8 @@ function renderMessages(doc, ctx, activeCase, lang, tr, F, variant) {
 }
 
 function renderInput(doc, ctx, msg, num, tr, F, variant) {
-  ctx.checkPage(14);
-  ctx.y += 3;
+  ctx.checkPage(20);
+  ctx.y += 8;
 
   // Section heading
   const prefix = variant === "technical" ? "# " : "";
@@ -455,12 +455,12 @@ function renderInput(doc, ctx, msg, num, tr, F, variant) {
     ctx.y += LH.small;
     ctx.text(msg.text.trim(), PAGE.mx, CW, FS.body, C.dark, { style: "italic" });
   }
-  ctx.y += 3;
+  ctx.y += 6;
 }
 
 function renderDiagnosis(doc, ctx, msg, num, lang, tr, F, variant) {
-  ctx.checkPage(14);
-  ctx.y += 3;
+  ctx.checkPage(20);
+  ctx.y += 8;
 
   const prefix = variant === "technical" ? "# " : "";
   doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
@@ -484,7 +484,7 @@ function renderDiagnosis(doc, ctx, msg, num, lang, tr, F, variant) {
   if (r.závady?.length > 0) {
     for (let fi = 0; fi < r.závady.length; fi++) {
       const f = r.závady[fi];
-      ctx.checkPage(22);
+      ctx.checkPage(35);
 
       if (variant === "service") {
         renderFaultService(doc, ctx, f, fi, tr, F, lang);
@@ -494,15 +494,15 @@ function renderDiagnosis(doc, ctx, msg, num, lang, tr, F, variant) {
         renderFaultMinimalist(doc, ctx, f, fi, tr, F, lang);
       }
 
-      ctx.y += 3;
+      ctx.y += 5;
       // Separator between faults
       if (fi < r.závady.length - 1) {
         if (variant === "minimalist") {
           doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.rule);
           doc.text("·", PAGE.w / 2, ctx.y, { align: "center" });
-          ctx.y += 4;
+          ctx.y += 5;
         } else {
-          ctx.hLine(ctx.y, 0.15); ctx.y += 3;
+          ctx.hLine(ctx.y, 0.15); ctx.y += 5;
         }
       }
     }
