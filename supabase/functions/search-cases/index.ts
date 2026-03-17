@@ -8,7 +8,7 @@
  * prochází touto funkcí která nikdy nevrátí více než 5 záznamů.
  *
  * POST /functions/v1/search-cases
- * Body: { vehicle, symptoms, obdCodes, text, installationId }
+ * Body: { vehicle, symptoms, obdCodes, text, userId }
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -61,7 +61,7 @@ function rowToCase(row: any) {
     closedAt:       row.closed_at,
     resolution:     row.resolution,
     fromCloud:      true,
-    installationId: row.installation_id,
+    userId: row.user_id,
     vehicle: {
       brand:       row.vehicle_brand  || '',
       model:       row.vehicle_model  || '',
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { vehicle, symptoms, obdCodes, text, installationId } = await req.json()
+    const { vehicle, symptoms, obdCodes, text, userId } = await req.json()
 
     // ── Normalizace dotazu do angličtiny ───────────────────────────────────────
     // DB záznamy jsou přeloženy do angličtiny při uložení (push-case).
@@ -181,7 +181,7 @@ Return format: {"symptoms":["..."],"text":"..."}`,
     // Scoring + filtrování + řazení
     const scored = (rows ?? []).map((row: any) => {
       const score     = computeSimilarity(row, input)
-      const isOwn     = row.installation_id === installationId
+      const isOwn     = row.user_id === userId
       const threshold = isOwn ? OWN_THRESHOLD : OTHER_THRESHOLD
       return { row, score, isOwn, passes: score >= threshold }
     })

@@ -8,7 +8,7 @@
  * všechny záznamy v DB jsou v angličtině bez ohledu na jazyk zadání.
  *
  * POST /functions/v1/push-case
- * Body: { local_id, installation_id, user_id?, vehicle_brand?, vehicle_model,
+ * Body: { local_id, user_id, vehicle_brand?, vehicle_model,
  *         mileage?, engine_power?, symptoms, obd_codes, description?, resolution, closed_at? }
  */
 
@@ -26,15 +26,15 @@ Deno.serve(async (req) => {
 
   try {
     const {
-      local_id, installation_id, user_id,
+      local_id, user_id,
       vehicle_brand, vehicle_model,
       mileage, engine_power,
       symptoms, obd_codes, description, resolution, closed_at,
     } = await req.json()
 
     // ── Validace ───────────────────────────────────────────────────────────────
-    if (!installation_id) {
-      return json({ error: 'Chybí installation_id.' }, 400)
+    if (!user_id) {
+      return json({ error: 'Chybí user_id.' }, 400)
     }
     if (!vehicle_model) {
       return json({ error: 'Chybí model vozidla.' }, 400)
@@ -105,8 +105,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
 
     const row = {
       local_id:        local_id        ?? null,
-      installation_id,
-      user_id:         user_id         ?? null,
+      user_id,
       vehicle_brand:   vehicle_brand   ?? null,
       vehicle_model,
       mileage:         mileage         ?? null,

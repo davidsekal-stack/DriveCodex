@@ -5,10 +5,10 @@
  * Edge Function přidá API klíč a přepošle na DeepSeek.
  * Response se transformuje do Anthropic formátu (frontend beze změn).
  *
- * Rate limiting: max 50 AI volání / den / installation_id.
+ * Rate limiting: max 50 AI volání / den / user_id.
  *
  * POST /functions/v1/anthropic-proxy
- * Body: { model, system, messages, max_tokens, installation_id }
+ * Body: { model, system, messages, max_tokens, user_id }
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -32,11 +32,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { model, system, messages, max_tokens, installation_id } = await req.json()
+    const { model, system, messages, max_tokens, user_id } = await req.json()
 
     // ── Validace ───────────────────────────────────────────────────────────
-    if (!installation_id || typeof installation_id !== 'string') {
-      return json({ error: { message: 'Chybí installation_id.' } }, 400, corsHeaders)
+    if (!user_id || typeof user_id !== 'string') {
+      return json({ error: { message: 'Chybí user_id.' } }, 400, corsHeaders)
     }
     if (!ALLOWED_MODELS.includes(model)) {
       return json({ error: { message: `Nepovolený model: ${model}` } }, 400, corsHeaders)
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     const { count, error: countErr } = await supabase
       .from('gearbrain_ai_usage')
       .select('*', { count: 'exact', head: true })
-      .eq('installation_id', installation_id)
+      .eq('user_id', user_id)
       .gte('created_at', since)
 
     if (!countErr && (count ?? 0) >= DAILY_LIMIT) {
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     supabase
       .from('gearbrain_ai_usage')
       .insert({
-        installation_id,
+        user_id,
         model,
         input_tokens:  inputTokens,
         output_tokens: outputTokens,
