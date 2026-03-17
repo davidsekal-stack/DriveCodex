@@ -37,6 +37,7 @@ export const strings = {
   'app.defaultBrandHint':  'Set as default brand',
   'app.mileageKm':        'MILEAGE (KM)',
   'app.identLabel':       'PLATE / VIN',
+  'app.identPlate':       'LP',
   'app.identPlaceholder': 'Licence plate or VIN (optional)',
   'app.identHistory':     '📋 {count} previous cases for this vehicle',
   'app.identShowHistory': 'Show history',

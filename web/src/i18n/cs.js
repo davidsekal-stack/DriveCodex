@@ -37,6 +37,7 @@ export const strings = {
   'app.defaultBrandHint':  'Nastavit jako výchozí značku',
   'app.mileageKm':        'NÁJEZD (KM)',
   'app.identLabel':       'SPZ / VIN',
+  'app.identPlate':       'SPZ',
   'app.identPlaceholder': 'SPZ nebo VIN (nepovinné)',
   'app.identHistory':     '📋 {count} předchozích případů pro toto vozidlo',
   'app.identShowHistory': 'Zobrazit historii',

@@ -583,7 +583,7 @@ function App() {
                       <select value={newVehicle.identType || "spz"}
                         onChange={(e) => setNewVehicle((v) => ({ ...v, identType: e.target.value }))}
                         style={{ width: 80, flexShrink: 0, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 8px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
-                        <option value="spz">SPZ</option>
+                        <option value="spz">{tr('app.identPlate')}</option>
                         <option value="vin">VIN</option>
                       </select>
                       <input type="text" placeholder={tr('app.identPlaceholder')} value={newVehicle.identValue || ""}
