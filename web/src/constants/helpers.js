@@ -44,7 +44,7 @@ export function makeEmptyVehicle() {
   return { brand: getDefaultBrand(), model: "", mileage: "", enginePower: "", identType: "spz", identValue: "" };
 }
 
-/** Legacy constant — backward compat */
+/** @deprecated Use makeEmptyVehicle() instead — this is evaluated once at import time */
 export const EMPTY_VEHICLE = makeEmptyVehicle();
 
 /** Vrátí pole modelů pro danou značku (pro dynamický model select) */
