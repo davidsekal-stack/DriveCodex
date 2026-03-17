@@ -543,16 +543,9 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
   doc.text(`${fi + 1}.`, x0, ctx.y);
   const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), textW - 30);
   doc.text(nameLines[0] || "", x0 + 8, ctx.y);
-  doc.setTextColor(C.mid);
-  doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
+  doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+  doc.text(safeTxt(`${tr("diag.probability")}: ${f.pravděpodobnost}%`), PAGE.w - PAGE.mx, ctx.y, { align: "right" });
   ctx.y += 4.5;
-
-  // Urgency (text only, no bar)
-  if (f.naléhavost) {
-    doc.setFontSize(FS.tiny); doc.setFont(F, "normal"); doc.setTextColor(C.mid);
-    doc.text(trUrgency(f.naléhavost, lang), x0, ctx.y);
-    ctx.y += 3.5;
-  }
 
   // Parts
   if (f.díly?.length > 0) {
@@ -567,7 +560,7 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
   if (f.obd_kódy?.length > 0) {
     ctx.checkPage(6);
     doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
-    doc.text(f.obd_kódy.join("  "), x0, ctx.y); ctx.y += 4;
+    doc.text(safeTxt(`${tr("app.userObd")}:  `) + f.obd_kódy.join("  "), x0, ctx.y); ctx.y += 4;
   }
 
   // Repair procedure box — measure first, then draw as single block
@@ -620,14 +613,9 @@ function renderFaultTechnical(doc, ctx, f, fi, tr, F, lang) {
   doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
   const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), innerW - 25);
   doc.text(nameLines[0] || "", innerX, ctx.y);
-  doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx - 4, ctx.y, { align: "right" });
+  doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+  doc.text(safeTxt(`${tr("diag.probability")}: ${f.pravděpodobnost}%`), PAGE.w - PAGE.mx - 4, ctx.y, { align: "right" });
   ctx.y += 4.5;
-
-  if (f.naléhavost) {
-    doc.setFont(F, "normal"); doc.setFontSize(FS.tiny); doc.setTextColor(C.mid);
-    doc.text(safeTxt(`${tr("diag.probability")}: ${trUrgency(f.naléhavost, lang)}`), innerX, ctx.y);
-    ctx.y += LH.small;
-  }
 
   // Divider inside card
   doc.setDrawColor(230, 230, 230); doc.setLineWidth(0.15);
@@ -650,7 +638,7 @@ function renderFaultTechnical(doc, ctx, f, fi, tr, F, lang) {
 
   if (f.obd_kódy?.length > 0) {
     doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
-    doc.text(f.obd_kódy.join("  "), innerX, ctx.y); ctx.y += 4;
+    doc.text(safeTxt(`${tr("app.userObd")}:  `) + f.obd_kódy.join("  "), innerX, ctx.y); ctx.y += 4;
   }
 
   if (f.poznámka) {
@@ -675,17 +663,14 @@ function renderFaultMinimalist(doc, ctx, f, fi, tr, F, lang) {
   doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
   const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), CW - 30);
   doc.text(nameLines[0] || "", PAGE.mx, ctx.y);
-  doc.setTextColor(C.mid);
-  doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
+  doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+  doc.text(safeTxt(`${tr("diag.probability")}: ${f.pravděpodobnost}%`), PAGE.w - PAGE.mx, ctx.y, { align: "right" });
   ctx.y += 4.5;
 
-  // Meta items
-  const metaItems = [];
-  if (f.naléhavost) metaItems.push(trUrgency(f.naléhavost, lang));
-  if (f.díly?.length > 0) metaItems.push(f.díly.join(" · "));
-  for (const item of metaItems) {
+  // Parts (no urgency)
+  if (f.díly?.length > 0) {
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
-    doc.text(safeTxt(`-  ${item}`), PAGE.mx, ctx.y); ctx.y += LH.small;
+    doc.text(safeTxt(`-  ${f.díly.join(" · ")}`), PAGE.mx, ctx.y); ctx.y += LH.small;
   }
 
   if (f.popis) { ctx.text(f.popis, PAGE.mx, CW, FS.body, C.dark); ctx.y += 1; }
@@ -699,7 +684,7 @@ function renderFaultMinimalist(doc, ctx, f, fi, tr, F, lang) {
 
   if (f.obd_kódy?.length > 0) {
     doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
-    doc.text(safeTxt("->  " + f.obd_kódy.join("  ")), PAGE.mx, ctx.y); ctx.y += 4;
+    doc.text(safeTxt(`${tr("app.userObd")}:  `) + f.obd_kódy.join("  "), PAGE.mx, ctx.y); ctx.y += 4;
   }
 
   if (f.poznámka) {
