@@ -36,6 +36,10 @@ export const strings = {
   'app.optional':         '— Optional —',
   'app.defaultBrandHint':  'Als Standardmarke festlegen',
   'app.mileageKm':        'KILOMETERSTAND (KM)',
+  'app.identLabel':       'KENNZEICHEN / VIN',
+  'app.identPlaceholder': 'Kennzeichen oder VIN (optional)',
+  'app.identHistory':     '📋 {count} frühere Fälle für dieses Fahrzeug',
+  'app.identShowHistory': 'Verlauf anzeigen',
   'app.startDiag':        'DIAGNOSE STARTEN',
 
   // App — diagnosis
@@ -83,6 +87,10 @@ export const strings = {
   // Feedback
   'app.feedback':         '✉ Feedback',
   'app.feedbackSubject':  'GearBrain — Feedback',
+  'app.feedbackPlaceholder': 'Schreiben Sie uns Ihr Feedback...',
+  'app.feedbackSend':     'Senden',
+  'app.feedbackSent':     'Gesendet, vielen Dank!',
+  'app.feedbackError':    'Senden fehlgeschlagen',
 
   // Status
   'status.closed':        '✓ ABGESCHLOSSEN',

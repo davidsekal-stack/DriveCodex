@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 import { DARK, LIGHT }                      from "./theme.js";
-import { ACTIVE_BRANDS, getModelPowers, getBrandModels, getDefaultBrand, setDefaultBrand, getStoredDefaultBrand, makeEmptyVehicle } from "./constants/index.js";
+import { ACTIVE_BRANDS, getModelPowers, getBrandModels, getDefaultBrand, setDefaultBrand, getStoredDefaultBrand, makeEmptyVehicle, saveIdent, findIdentHistory } from "./constants/index.js";
 import { uid, fmtDate, fmtMileage }         from "./lib/utils.js";
 import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "./lib/ai.js";
 import { validateResolution }                from "./lib/validation.js";
@@ -92,6 +92,9 @@ function App() {
   const [newVehicle, setNewVehicle] = useState(makeEmptyVehicle);
   const [defaultBrand, setDefaultBrandState] = useState(getStoredDefaultBrand);
   const [cloudStatus, setCloudStatus] = useState("idle");
+  const [identHistory, setIdentHistory] = useState([]);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState("idle"); // idle | sending | sent | error
 
   const {
     cases, activeCase, activeId, setActiveId,
@@ -257,10 +260,17 @@ function App() {
   }, [updateCase, casesRef, tr, lang]);
 
   const handleNewCase = useCallback((inputData) => {
-    const id = handleCreateCase(newVehicle);
+    const vehicleToSave = newVehicle;
+    const id = handleCreateCase(vehicleToSave);
     runDiag(id, inputData);
+    // Save VIN/SPZ to local history (never sent to cloud)
+    if (vehicleToSave.identValue?.trim()) {
+      const caseName = `${vehicleToSave.brand} ${vehicleToSave.model}`.trim() || tr('app.defaultVehicle');
+      saveIdent(vehicleToSave.identValue, id, caseName);
+    }
     setNewVehicle(makeEmptyVehicle());
-  }, [handleCreateCase, runDiag, newVehicle]);
+    setIdentHistory([]);
+  }, [handleCreateCase, runDiag, newVehicle, tr]);
 
   const closeCase = useCallback(async () => {
     const resText = resolution.trim();
@@ -427,12 +437,46 @@ function App() {
                 {cloudStatus === "idle"  && <><span>○</span><span>{tr('app.ragConnecting')}</span></>}
               </span>
             </div>
-            <a href={`mailto:${atob("ZGF2aWRzZWthbEBnbWFpbC5jb20=")}?subject=${encodeURIComponent(tr('app.feedbackSubject'))}`}
-              style={{ display: "block", padding: "7px 12px", fontSize: "0.67rem", color: t.textFaint, textDecoration: "none", cursor: "pointer", transition: "color 0.15s" }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = t.accent; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = t.textFaint; }}>
-              {tr('app.feedback')}
-            </a>
+            <div style={{ padding: "7px 12px" }}>
+              {feedbackStatus === "sent" ? (
+                <div style={{ fontSize: "0.67rem", color: t.doneStatusColor, letterSpacing: "0.04em" }}>
+                  ✓ {tr('app.feedbackSent')}
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  <input type="text" value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && feedbackText.trim() && feedbackStatus !== "sending") {
+                        setFeedbackStatus("sending");
+                        storage.sendFeedback(feedbackText.trim(), lang)
+                          .then(() => { setFeedbackText(""); setFeedbackStatus("sent"); setTimeout(() => setFeedbackStatus("idle"), 3000); })
+                          .catch(() => { setFeedbackStatus("error"); setTimeout(() => setFeedbackStatus("idle"), 3000); });
+                      }
+                    }}
+                    placeholder={tr('app.feedbackPlaceholder')}
+                    disabled={feedbackStatus === "sending"}
+                    style={{ flex: 1, background: t.bgInput, border: `1px solid ${feedbackStatus === "error" ? "#dc2626" : t.borderInput}`, color: t.text, padding: "5px 8px", fontSize: "0.67rem", fontFamily: "inherit", borderRadius: 2, outline: "none", minWidth: 0 }} />
+                  <button
+                    disabled={!feedbackText.trim() || feedbackStatus === "sending"}
+                    onClick={() => {
+                      if (!feedbackText.trim()) return;
+                      setFeedbackStatus("sending");
+                      storage.sendFeedback(feedbackText.trim(), lang)
+                        .then(() => { setFeedbackText(""); setFeedbackStatus("sent"); setTimeout(() => setFeedbackStatus("idle"), 3000); })
+                        .catch(() => { setFeedbackStatus("error"); setTimeout(() => setFeedbackStatus("idle"), 3000); });
+                    }}
+                    style={{ background: feedbackText.trim() ? t.accent : "transparent", border: `1px solid ${feedbackText.trim() ? t.accent : t.borderInput}`, color: feedbackText.trim() ? "#fff" : t.textVeryFaint, padding: "5px 8px", fontSize: "0.67rem", cursor: feedbackText.trim() ? "pointer" : "not-allowed", fontFamily: "inherit", borderRadius: 2, flexShrink: 0, whiteSpace: "nowrap" }}>
+                    {feedbackStatus === "sending" ? "..." : tr('app.feedbackSend')}
+                  </button>
+                </div>
+              )}
+              {feedbackStatus === "error" && (
+                <div style={{ fontSize: "0.62rem", color: "#dc2626", marginTop: 3 }}>
+                  ⚠ {tr('app.feedbackError')}
+                </div>
+              )}
+            </div>
           </div>
         </aside>
 
@@ -528,6 +572,50 @@ function App() {
                     <input type="number" placeholder="185000" value={newVehicle.mileage}
                       onChange={(e) => setNewVehicle((v) => ({ ...v, mileage: e.target.value }))}
                       style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }} />
+                  </div>
+                </div>
+
+                {/* Row 3: VIN/SPZ */}
+                <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? 8 : 12, marginBottom: mobile ? 12 : 18 }}>
+                  <div style={{ gridColumn: mobile ? "1" : "1 / -1" }}>
+                    <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.identLabel')}</div>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <select value={newVehicle.identType || "spz"}
+                        onChange={(e) => setNewVehicle((v) => ({ ...v, identType: e.target.value }))}
+                        style={{ width: 80, flexShrink: 0, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 8px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
+                        <option value="spz">SPZ</option>
+                        <option value="vin">VIN</option>
+                      </select>
+                      <input type="text" placeholder={tr('app.identPlaceholder')} value={newVehicle.identValue || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewVehicle((v) => ({ ...v, identValue: val }));
+                          setIdentHistory(findIdentHistory(val));
+                        }}
+                        style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none", textTransform: "uppercase" }} />
+                    </div>
+                    {identHistory.length > 0 && (
+                      <div style={{ marginTop: 6, padding: "6px 10px", background: t.bgMuted, border: `1px solid ${t.border}`, borderRadius: 2, fontSize: "0.75rem", color: t.textFaint }}>
+                        <span>{tr('app.identHistory', { count: identHistory.length })}</span>
+                        <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+                          {identHistory.slice(0, 5).map((entry, i) => {
+                            const matchCase = cases.find(c => c.id === entry.caseId);
+                            return (
+                              <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: "0.7rem" }}>
+                                <span style={{ color: t.textVeryFaint }}>{fmtDate(entry.date, lang)}</span>
+                                {matchCase ? (
+                                  <span onClick={() => openCase(matchCase.id)} style={{ color: t.accent, cursor: "pointer", textDecoration: "underline" }}>
+                                    {matchCase.name}
+                                  </span>
+                                ) : (
+                                  <span style={{ color: t.textVeryFaint }}>{entry.caseName || "—"}</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -36,6 +36,10 @@ export const strings = {
   'app.optional':         '— Optional —',
   'app.defaultBrandHint':  'Set as default brand',
   'app.mileageKm':        'MILEAGE (KM)',
+  'app.identLabel':       'PLATE / VIN',
+  'app.identPlaceholder': 'Licence plate or VIN (optional)',
+  'app.identHistory':     '📋 {count} previous cases for this vehicle',
+  'app.identShowHistory': 'Show history',
   'app.startDiag':        'START DIAGNOSIS',
 
   // App — diagnosis
@@ -83,6 +87,10 @@ export const strings = {
   // Feedback
   'app.feedback':         '✉ Feedback',
   'app.feedbackSubject':  'GearBrain — Feedback',
+  'app.feedbackPlaceholder': 'Write us your feedback...',
+  'app.feedbackSend':     'Send',
+  'app.feedbackSent':     'Sent, thank you!',
+  'app.feedbackError':    'Failed to send',
 
   // Status
   'status.closed':        '✓ CLOSED',
