@@ -170,6 +170,8 @@ function makeCtx(doc, font) {
   let y = PAGE.mt;
   const maxY = () => PAGE.h - PAGE.mb;
 
+  let pageAtStart = 1; // track which page we started a section on
+
   const checkPage = (need = 12) => {
     if (y + need > maxY()) { doc.addPage(); y = PAGE.mt; }
   };
@@ -192,7 +194,25 @@ function makeCtx(doc, font) {
     }
   };
 
-  return { get y() { return y; }, set y(v) { y = v; }, checkPage, hLine, text, maxY };
+  /** Mark start of a striped section */
+  const markStart = () => { pageAtStart = doc.internal.getNumberOfPages(); };
+
+  /** Draw a vertical stripe from markStart to current y, spanning pages */
+  const drawStripe = (x, w, color) => {
+    const endPage = doc.internal.getNumberOfPages();
+    const curY = y;
+    doc.setFillColor(...color);
+    for (let p = pageAtStart; p <= endPage; p++) {
+      doc.setPage(p);
+      const top = p === pageAtStart ? PAGE.mt : PAGE.mt;
+      const bot = p === endPage ? curY : PAGE.h - PAGE.mb;
+      doc.rect(x, top, w, bot - top, "F");
+    }
+    // Restore to current page
+    doc.setPage(endPage);
+  };
+
+  return { get y() { return y; }, set y(v) { y = v; }, checkPage, hLine, text, maxY, markStart, drawStripe };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -512,7 +532,7 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
   const gap = 2;                        // gap between stripe and text
   const x0 = PAGE.mx + stripeW + gap;   // text starts after stripe
   const textW = CW - stripeW - gap;     // available text width
-  const stripeTop = ctx.y - 1;
+  ctx.markStart();
 
   // Name + probability
   doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
@@ -546,16 +566,18 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
     doc.text(f.obd_kódy.join("  "), x0, ctx.y); ctx.y += 4;
   }
 
-  // Repair procedure box — measure first, then draw
+  // Repair procedure box — measure first, then draw as single block
   if (f.postup) {
-    ctx.checkPage(12);
-    const boxPad = 4;  // inner padding
+    const boxPad = 4;
     doc.setFont(F, "normal"); doc.setFontSize(FS.small);
     const procLines = doc.splitTextToSize(safeTxt(f.postup), textW - boxPad * 2);
     const labelH = 5;
     const textH = procLines.length * LH.small;
     const padTop = 3, padBot = 3;
     const boxH = padTop + labelH + textH + padBot;
+
+    // Ensure the entire box fits on one page (or start fresh page)
+    ctx.checkPage(boxH + 2);
 
     const boxY = ctx.y;
     doc.setFillColor(248, 248, 248); doc.rect(x0, boxY, textW, boxH, "F");
@@ -579,11 +601,9 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
     for (const line of nLines) { ctx.checkPage(4); doc.text(line, x0, ctx.y); ctx.y += LH.small; }
   }
 
-  // Left accent stripe (drawn in margin, does not overlap text)
-  const stripeBottom = ctx.y;
-  const stripeGray = f.pravděpodobnost > 70 ? 60 : f.pravděpodobnost > 40 ? 120 : 180;
-  doc.setFillColor(stripeGray, stripeGray, stripeGray);
-  doc.rect(PAGE.mx, stripeTop, stripeW, stripeBottom - stripeTop, "F");
+  // Left accent stripe (drawn in margin, spans pages if needed)
+  const g = f.pravděpodobnost > 70 ? 60 : f.pravděpodobnost > 40 ? 120 : 180;
+  ctx.drawStripe(PAGE.mx, stripeW, [g, g, g]);
 }
 
 function renderFaultTechnical(doc, ctx, f, fi, tr, F, lang) {
