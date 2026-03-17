@@ -86,8 +86,9 @@ export const strings = {
   'app.userMechDesc':     'Popis mechanika',
 
   // GDPR consent
-  'consent.text':         'Tato aplikace ukládá vaše diagnostické případy do anonymní databáze pro zlepšení výsledků. Osobní údaje (email) slouží pouze k přihlášení. Žádná data neprodáváme třetím stranám.',
-  'consent.privacy':      'Zásady ochrany osobních údajů',
+  'consent.title':        'Ochrana osobních údajů',
+  'consent.text':         'Tato aplikace ukládá vaše diagnostické případy do anonymní databáze, ze které se učí a zlepšuje výsledky pro všechny uživatele. Osobní údaje (email) slouží pouze k přihlášení. Žádná data neprodáváme třetím stranám.',
+  'consent.declineNote':  'Pokud odmítnete, aplikace bude fungovat normálně, ale vaše uzavřené případy nebudou přispívat do sdílené databáze a AI nebude moci využívat zkušenosti ostatních mechaniků.',
   'consent.accept':       'Souhlasím',
   'consent.decline':      'Odmítnout',
 
