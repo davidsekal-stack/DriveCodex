@@ -93,6 +93,7 @@ function App() {
   const [newVehicle, setNewVehicle] = useState(makeEmptyVehicle);
   const [defaultBrand, setDefaultBrandState] = useState(getStoredDefaultBrand);
   const [cloudStatus, setCloudStatus] = useState("idle");
+  const [globalCaseCount, setGlobalCaseCount] = useState(null);
   const [identHistory, setIdentHistory] = useState([]);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState("idle"); // idle | sending | sent | error
@@ -122,10 +123,11 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // ── Load cases after login ────────────────────────────────────────────────
+  // ── Load cases + global count after login ────────────────────────────────
   useEffect(() => {
     if (session) {
       loadCases().then(() => setCloudStatus("ok")).catch(() => setCloudStatus("error"));
+      storage.getGlobalCaseCount().then(setGlobalCaseCount).catch(() => {});
     }
   }, [session, loadCases]);
 
@@ -430,7 +432,7 @@ function App() {
 
           <div style={{ borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
             <div style={{ padding: "7px 12px", fontSize: "0.67rem", color: t.textVeryFaint, borderBottom: `1px solid ${t.border}` }}>
-              {closedCount > 0 ? tr('app.cloudCount', { count: closedCount }) : tr('app.cloudEmpty')}
+              {globalCaseCount > 0 ? tr('app.cloudCount', { count: globalCaseCount }) : globalCaseCount === 0 ? tr('app.cloudEmpty') : tr('app.ragConnecting')}
             </div>
             <div style={{ padding: "7px 12px", fontSize: "0.67rem", color: cloudStatus === "ok" ? t.doneStatusColor : cloudStatus === "error" ? "#dc2626" : t.textVeryFaint, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottom: `1px solid ${t.border}` }}>
               <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
