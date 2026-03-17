@@ -410,7 +410,7 @@ function renderInput(doc, ctx, msg, num, tr, F, variant) {
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
     doc.text(safeTxt(tr("app.userSymptoms")) + ":", PAGE.mx, ctx.y);
     ctx.y += LH.small;
-    ctx.text(msg.symptoms.map(s => tr(s)).join(", "), PAGE.mx + 2, CW - 2, FS.body, C.dark);
+    ctx.text(msg.symptoms.map(s => tr(s)).join(", "), PAGE.mx, CW, FS.body, C.dark);
     ctx.y += 2;
   }
 
@@ -420,7 +420,7 @@ function renderInput(doc, ctx, msg, num, tr, F, variant) {
     doc.text(safeTxt(tr("app.userObd")) + ":", PAGE.mx, ctx.y);
     ctx.y += LH.small;
     doc.setFont(F, "bold"); doc.setFontSize(FS.body); doc.setTextColor(C.black);
-    doc.text(msg.obdCodes.join("  "), PAGE.mx + 2, ctx.y);
+    doc.text(msg.obdCodes.join("  "), PAGE.mx, ctx.y);
     ctx.y += LH.section;
   }
 
@@ -429,7 +429,7 @@ function renderInput(doc, ctx, msg, num, tr, F, variant) {
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
     doc.text(safeTxt(tr("app.userMechDesc")) + ":", PAGE.mx, ctx.y);
     ctx.y += LH.small;
-    ctx.text(msg.text.trim(), PAGE.mx + 2, CW - 2, FS.body, C.dark, { style: "italic" });
+    ctx.text(msg.text.trim(), PAGE.mx, CW, FS.body, C.dark, { style: "italic" });
   }
   ctx.y += 3;
 }
@@ -452,7 +452,7 @@ function renderDiagnosis(doc, ctx, msg, num, lang, tr, F, variant) {
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
     doc.text(safeTxt(tr("pdf.summary")) + ":", PAGE.mx, ctx.y);
     ctx.y += LH.small;
-    ctx.text(r.shrnutí, PAGE.mx + 2, CW - 2, FS.body, C.dark);
+    ctx.text(r.shrnutí, PAGE.mx, CW, FS.body, C.dark);
     ctx.y += 4;
   }
 
@@ -508,14 +508,16 @@ function renderDiagnosis(doc, ctx, msg, num, lang, tr, F, variant) {
 // ── Fault renderers per variant ──────────────────────────────────────────────
 
 function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
-  const x0 = PAGE.mx;       // all content aligned to left margin
-  const textW = CW;          // full content width
+  const stripeW = 2;                    // left accent stripe width
+  const gap = 2;                        // gap between stripe and text
+  const x0 = PAGE.mx + stripeW + gap;   // text starts after stripe
+  const textW = CW - stripeW - gap;     // available text width
   const stripeTop = ctx.y - 1;
 
   // Name + probability
   doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
   doc.text(`${fi + 1}.`, x0, ctx.y);
-  const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), textW - 35);
+  const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), textW - 30);
   doc.text(nameLines[0] || "", x0 + 8, ctx.y);
   doc.setTextColor(C.mid);
   doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
@@ -547,9 +549,10 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
   // Repair procedure box — measure first, then draw
   if (f.postup) {
     ctx.checkPage(12);
+    const boxPad = 4;  // inner padding
     doc.setFont(F, "normal"); doc.setFontSize(FS.small);
-    const procLines = doc.splitTextToSize(safeTxt(f.postup), textW - 10);
-    const labelH = 5;       // space for "REPAIR PROCEDURE" label
+    const procLines = doc.splitTextToSize(safeTxt(f.postup), textW - boxPad * 2);
+    const labelH = 5;
     const textH = procLines.length * LH.small;
     const padTop = 3, padBot = 3;
     const boxH = padTop + labelH + textH + padBot;
@@ -560,11 +563,11 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
 
     ctx.y = boxY + padTop;
     doc.setFont(F, "bold"); doc.setFontSize(FS.tiny); doc.setTextColor(C.mid);
-    doc.text(safeTxt(tr("diag.repairProcedure")), x0 + 3, ctx.y + 2);
+    doc.text(safeTxt(tr("diag.repairProcedure")), x0 + boxPad, ctx.y + 2);
     ctx.y += labelH;
 
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.dark);
-    for (const line of procLines) { doc.text(line, x0 + 3, ctx.y); ctx.y += LH.small; }
+    for (const line of procLines) { doc.text(line, x0 + boxPad, ctx.y); ctx.y += LH.small; }
     ctx.y = boxY + boxH + 2;
   }
 
@@ -576,11 +579,11 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
     for (const line of nLines) { ctx.checkPage(4); doc.text(line, x0, ctx.y); ctx.y += LH.small; }
   }
 
-  // Left accent stripe
+  // Left accent stripe (drawn in margin, does not overlap text)
   const stripeBottom = ctx.y;
   const stripeGray = f.pravděpodobnost > 70 ? 60 : f.pravděpodobnost > 40 ? 120 : 180;
   doc.setFillColor(stripeGray, stripeGray, stripeGray);
-  doc.rect(x0 - 1.5, stripeTop, 1.5, stripeBottom - stripeTop, "F");
+  doc.rect(PAGE.mx, stripeTop, stripeW, stripeBottom - stripeTop, "F");
 }
 
 function renderFaultTechnical(doc, ctx, f, fi, tr, F, lang) {
