@@ -36,6 +36,10 @@ export const strings = {
   'app.optional':         '— Nepovinné —',
   'app.defaultBrandHint':  'Nastavit jako výchozí značku',
   'app.mileageKm':        'NÁJEZD (KM)',
+  'app.identLabel':       'SPZ / VIN',
+  'app.identPlaceholder': 'SPZ nebo VIN (nepovinné)',
+  'app.identHistory':     '📋 {count} předchozích případů pro toto vozidlo',
+  'app.identShowHistory': 'Zobrazit historii',
   'app.startDiag':        'ZAHÁJIT DIAGNOSTIKU',
 
   // App — diagnosis
@@ -83,6 +87,10 @@ export const strings = {
   // Feedback
   'app.feedback':         '✉ Zpětná vazba',
   'app.feedbackSubject':  'GearBrain — Zpětná vazba',
+  'app.feedbackPlaceholder': 'Napište nám zpětnou vazbu...',
+  'app.feedbackSend':     'Odeslat',
+  'app.feedbackSent':     'Odesláno, děkujeme!',
+  'app.feedbackError':    'Nepodařilo se odeslat',
 
   // Status
   'status.closed':        '✓ UZAVŘENÝ',

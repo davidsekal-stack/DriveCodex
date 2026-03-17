@@ -41,12 +41,19 @@ async function saveCase(caseData, status = 'open') {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Nepřihlášen')
 
+  // Strip local-only sensitive fields (VIN/SPZ) before cloud save
+  const safeData = { ...caseData }
+  if (safeData.vehicle) {
+    const { identType, identValue, ...safeVehicle } = safeData.vehicle
+    safeData.vehicle = safeVehicle
+  }
+
   const { error } = await supabase
     .from(TABLE)
     .upsert({
       user_id:  user.id,
       local_id: caseData.id,
-      data:     caseData,
+      data:     safeData,
       status,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id,local_id' })
@@ -155,6 +162,17 @@ export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, mode
     messages: [{ role: 'user', content: userMessage }],
     max_tokens: maxTokens,
     installation_id: user?.id ?? 'web-anonymous',
+  })
+}
+
+// ── Send feedback via Edge Function ─────────────────────────────────────────────
+
+export async function sendFeedback(message, lang) {
+  const { data: { user } } = await supabase.auth.getUser()
+  return edgeFetch('send-feedback', {
+    message,
+    userEmail: user?.email || null,
+    lang: lang || 'cs',
   })
 }
 
