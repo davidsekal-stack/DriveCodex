@@ -7,6 +7,8 @@
 //
 // expertise → odborný kontext vložený do AI system promptu pro tuto značku
 
+import { VEHICLE_CATALOG_US } from "./catalog-us.js"
+
 export const VEHICLE_CATALOG = [
   {
     brand:     "Ford",
@@ -887,5 +889,8 @@ export const VEHICLE_CATALOG = [
       { label: "Fiorino III (2007–současnost)", powers: ["54 kW – 1.4 FIRE", "40 kW – 1.3 MultiJet", "55 kW – 1.3 MultiJet", "59 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet"] },
     ],
   },
+
+  // ── US Market brands ─────────────────────────────────────────────────────────
+  ...VEHICLE_CATALOG_US,
 ]
 
