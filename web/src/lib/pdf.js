@@ -1,6 +1,51 @@
 import { jsPDF } from "jspdf";
 
-// ── Shared palette (black/gray, ink-efficient) ──────────────────────────────
+// ── Font loading (Roboto from jsDelivr CDN, cached in memory) ────────────────
+const FONT_BASE = "https://cdn.jsdelivr.net/gh/google/fonts@main/apache/roboto/static";
+const FONT_FILES = {
+  "Roboto-Regular": `${FONT_BASE}/Roboto-Regular.ttf`,
+  "Roboto-Bold":    `${FONT_BASE}/Roboto-Bold.ttf`,
+  "Roboto-Italic":  `${FONT_BASE}/Roboto-Italic.ttf`,
+};
+
+let _fontCache = null; // { "Roboto-Regular": base64, ... }
+
+function arrayBufferToBase64(buf) {
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+async function loadFonts() {
+  if (_fontCache) return _fontCache;
+  const entries = Object.entries(FONT_FILES);
+  const results = await Promise.all(
+    entries.map(async ([name, url]) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Font fetch failed: ${name}`);
+      const buf = await res.arrayBuffer();
+      return [name, arrayBufferToBase64(buf)];
+    })
+  );
+  _fontCache = Object.fromEntries(results);
+  return _fontCache;
+}
+
+function registerFonts(doc, fonts) {
+  // Register Regular
+  doc.addFileToVFS("Roboto-Regular.ttf", fonts["Roboto-Regular"]);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  // Register Bold
+  doc.addFileToVFS("Roboto-Bold.ttf", fonts["Roboto-Bold"]);
+  doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
+  // Register Italic
+  doc.addFileToVFS("Roboto-Italic.ttf", fonts["Roboto-Italic"]);
+  doc.addFont("Roboto-Italic.ttf", "Roboto", "italic");
+  doc.setFont("Roboto", "normal");
+}
+
+// ── Shared palette ───────────────────────────────────────────────────────────
 const C = {
   black:   "#000000",
   dark:    "#333333",
@@ -13,22 +58,47 @@ const C = {
 const PAGE = { w: 210, h: 297, mx: 18, mt: 22, mb: 20 };
 const CW = PAGE.w - PAGE.mx * 2;
 
+// ── Font sizes ───────────────────────────────────────────────────────────────
+const FS = {
+  title: 14,
+  subtitle: 10,
+  section: 9,
+  body: 8.5,
+  small: 7.5,
+  tiny: 6.5,
+  footer: 6.5,
+};
+
+// ── Line heights ─────────────────────────────────────────────────────────────
+const LH = {
+  body: 4.0,
+  small: 3.5,
+  tiny: 3.0,
+  section: 5.0,
+};
+
 export const PDF_VARIANTS = ["service", "technical", "minimalist"];
 
 /**
  * Export diagnostic case as PDF with selected variant.
- * @param {object} activeCase
- * @param {string} lang
- * @param {function} tr
- * @param {"service"|"technical"|"minimalist"} variant
+ * Async because font loading happens on first call.
  */
-export function exportCasePdf(activeCase, lang, tr, variant = "minimalist") {
+export async function exportCasePdf(activeCase, lang, tr, variant = "minimalist") {
   const renderer = { service: renderService, technical: renderTechnical, minimalist: renderMinimalist }[variant];
   if (!renderer) return;
-  renderer(activeCase, lang, tr);
+
+  let fonts;
+  try {
+    fonts = await loadFonts();
+  } catch (e) {
+    console.warn("Font loading failed, PDF will use fallback Helvetica:", e);
+    fonts = null;
+  }
+
+  renderer(activeCase, lang, tr, fonts);
 }
 
-// ── Shared helpers ──────────────────────────────────────────────────────────
+// ── Shared helpers ───────────────────────────────────────────────────────────
 function dateStr(lang) {
   const loc = lang === "cs" ? "cs-CZ" : lang === "de" ? "de-DE" : "en-GB";
   return new Date().toLocaleDateString(loc, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -40,6 +110,27 @@ function shortDate(iso, lang) {
   return new Date(iso).toLocaleDateString(loc, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+function safeTxt(str) {
+  // Replace special unicode chars that even Roboto may not have with ASCII equivalents
+  return String(str || "")
+    .replace(/▪/g, "-")
+    .replace(/→/g, "->")
+    .replace(/⚠/g, "/!\\");
+}
+
+function initDoc(fonts) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  if (fonts) {
+    registerFonts(doc, fonts);
+  }
+  return doc;
+}
+
+/** Font family name based on whether custom fonts loaded */
+function ff(fonts) {
+  return fonts ? "Roboto" : "helvetica";
+}
+
 function savePdf(doc, activeCase) {
   const brand = activeCase.vehicle?.brand || "";
   const model = (activeCase.vehicle?.model || "").split(" ").slice(0, 2).join("-");
@@ -47,25 +138,25 @@ function savePdf(doc, activeCase) {
   doc.save(`GearBrain-${slug}-${activeCase.id}.pdf`);
 }
 
-function addPageFooter(doc, tr, activeCase, pageNum, pageCount) {
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(6.5);
+function addPageFooter(doc, tr, activeCase, pageNum, pageCount, font) {
+  doc.setFont(font, "normal");
+  doc.setFontSize(FS.footer);
   doc.setTextColor(C.light);
   doc.text("GearBrain", PAGE.mx, PAGE.h - 10);
   doc.text(`${tr("pdf.page")} ${pageNum} / ${pageCount}`, PAGE.w / 2, PAGE.h - 10, { align: "center" });
   doc.text(activeCase.id, PAGE.w - PAGE.mx, PAGE.h - 10, { align: "right" });
 }
 
-function addAllFooters(doc, tr, activeCase) {
+function addAllFooters(doc, tr, activeCase, font) {
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
-    addPageFooter(doc, tr, activeCase, i, total);
+    addPageFooter(doc, tr, activeCase, i, total, font);
   }
 }
 
-// ── Helper: wrap text and track Y ───────────────────────────────────────────
-function makeCtx(doc) {
+// ── Context helper: wrap text and track Y ────────────────────────────────────
+function makeCtx(doc, font) {
   let y = PAGE.mt;
   const maxY = () => PAGE.h - PAGE.mb;
 
@@ -79,235 +170,100 @@ function makeCtx(doc) {
   };
 
   const text = (str, x, maxW, fontSize, color, opts = {}) => {
-    doc.setFont("helvetica", opts.style || "normal");
+    doc.setFont(font, opts.style || "normal");
     doc.setFontSize(fontSize);
     doc.setTextColor(color);
-    const lines = doc.splitTextToSize(String(str || ""), maxW);
-    const lh = fontSize * 0.4 + (opts.spacing || 0.8);
-    for (const line of lines) { checkPage(lh + 2); doc.text(line, x, y); y += lh; }
+    const lines = doc.splitTextToSize(safeTxt(str), maxW);
+    const lh = fontSize <= 7 ? LH.tiny : fontSize <= 7.5 ? LH.small : LH.body;
+    for (const line of lines) {
+      checkPage(lh + 2);
+      doc.text(line, x, y);
+      y += lh;
+    }
   };
 
   return { get y() { return y; }, set y(v) { y = v; }, checkPage, hLine, text, maxY };
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// VARIANT A — SERVISNÍ PROTOKOL
-// ═════════════════════════════════════════════════════════════════════════════
-function renderService(activeCase, lang, tr) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const ctx = makeCtx(doc);
+// ═══════════════════════════════════════════════════════════════════════════════
+// VARIANT A — SERVISNI PROTOKOL
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderService(activeCase, lang, tr, fonts) {
+  const doc = initDoc(fonts);
+  const F = ff(fonts);
+  const ctx = makeCtx(doc, F);
 
   // ── Header ──
-  doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(C.black);
+  doc.setFont(F, "bold"); doc.setFontSize(16); doc.setTextColor(C.black);
   doc.text("GearBrain", PAGE.mx, ctx.y);
-  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(C.mid);
+  doc.setFont(F, "normal"); doc.setFontSize(FS.subtitle); doc.setTextColor(C.mid);
   doc.text(tr("pdf.title"), PAGE.w - PAGE.mx, ctx.y, { align: "right" });
-  ctx.y += 3;
-  doc.setFontSize(7); doc.setTextColor(C.light);
-  doc.text(`${tr("pdf.generated")}: ${dateStr(lang)}  |  ID: ${activeCase.id}`, PAGE.mx, ctx.y);
+  ctx.y += 4;
+  doc.setFontSize(FS.small); doc.setTextColor(C.light);
+  doc.text(safeTxt(`${tr("pdf.generated")}: ${dateStr(lang)}  |  ID: ${activeCase.id}`), PAGE.mx, ctx.y);
   ctx.y += 2;
   ctx.hLine(ctx.y, 0.6);
-  ctx.y += 5;
+  ctx.y += 6;
 
   // ── Vehicle box ──
   const v = activeCase.vehicle || {};
   const boxY = ctx.y;
-  const boxH = 22;
+  const boxH = 24;
   doc.setFillColor(245, 245, 245);
   doc.rect(PAGE.mx, boxY, CW, boxH, "F");
   doc.setDrawColor(C.rule); doc.setLineWidth(0.3);
   doc.rect(PAGE.mx, boxY, CW, boxH, "S");
 
-  // Section label inside box
-  doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(C.mid);
-  doc.text(tr("pdf.vehicle"), PAGE.mx + 3, boxY + 4.5);
-  ctx.hLine(boxY + 6.5, 0.2);
+  doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+  doc.text(tr("pdf.vehicle"), PAGE.mx + 3, boxY + 5);
+  ctx.hLine(boxY + 7, 0.2);
 
-  // Vehicle data 2-column inside box
   const fields = [
     [tr("app.vehicleBrand"), v.brand], [tr("app.vehicleModel"), v.model],
     [tr("app.enginePower"), v.enginePower], [tr("app.mileageKm"), v.mileage ? `${Number(v.mileage).toLocaleString()} km` : ""],
   ].filter(([, val]) => val);
-  const col1X = PAGE.mx + 3; const col2X = PAGE.mx + CW / 2 + 2;
-  let fy = boxY + 10;
+
+  const col1X = PAGE.mx + 3;
+  const col2X = PAGE.mx + CW / 2 + 2;
+  let fy = boxY + 11;
   for (let i = 0; i < fields.length; i++) {
     const x = i % 2 === 0 ? col1X : col2X;
-    doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-    doc.text(fields[i][0] + ":", x, fy);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(C.dark);
-    doc.text(String(fields[i][1]), x + 28, fy);
-    if (i % 2 === 1) fy += 5;
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(fields[i][0]) + ":", x, fy);
+    doc.setFont(F, "bold"); doc.setFontSize(FS.body); doc.setTextColor(C.dark);
+    doc.text(safeTxt(fields[i][1]), x + 30, fy);
+    if (i % 2 === 1) fy += 5.5;
   }
-  if (fields.length % 2 === 1) fy += 5;
+  if (fields.length % 2 === 1) fy += 5.5;
   ctx.y = boxY + boxH + 6;
 
   // ── Messages ──
-  let inputNum = 0, diagNum = 0;
-  for (const msg of activeCase.messages) {
-    if (msg.type === "input") {
-      inputNum++;
-      ctx.checkPage(14);
-      ctx.y += 2;
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(C.black);
-      doc.text(tr("pdf.inputRound", { num: inputNum }), PAGE.mx, ctx.y);
-      ctx.y += 1.5; ctx.hLine(ctx.y, 0.4); ctx.y += 4;
-
-      if (msg.symptoms?.length > 0) {
-        doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-        doc.text(tr("app.userSymptoms") + ":", PAGE.mx, ctx.y); ctx.y += 3.5;
-        ctx.text(msg.symptoms.map(s => tr(s)).join(", "), PAGE.mx + 2, CW - 2, 8, C.dark);
-        ctx.y += 1;
-      }
-      if (msg.obdCodes?.length > 0) {
-        doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-        doc.text(tr("app.userObd") + ":", PAGE.mx, ctx.y); ctx.y += 3.5;
-        doc.setFont("courier", "bold"); doc.setFontSize(8.5); doc.setTextColor(C.black);
-        doc.text(msg.obdCodes.join("  "), PAGE.mx + 2, ctx.y); ctx.y += 5;
-      }
-      if (msg.text?.trim()) {
-        doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-        doc.text(tr("app.userMechDesc") + ":", PAGE.mx, ctx.y); ctx.y += 3.5;
-        ctx.text(msg.text.trim(), PAGE.mx + 2, CW - 2, 8, C.dark, { style: "italic" });
-      }
-      ctx.y += 2;
-    }
-
-    if (msg.type === "diagnosis") {
-      diagNum++;
-      ctx.checkPage(14);
-      ctx.y += 2;
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(C.black);
-      doc.text(tr("pdf.diagnosis", { num: diagNum }), PAGE.mx, ctx.y);
-      ctx.y += 1.5; ctx.hLine(ctx.y, 0.4); ctx.y += 4;
-
-      const r = msg.result;
-      if (r.shrnutí) {
-        doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-        doc.text(tr("pdf.summary") + ":", PAGE.mx, ctx.y); ctx.y += 3.5;
-        ctx.text(r.shrnutí, PAGE.mx + 2, CW - 2, 8.5, C.dark);
-        ctx.y += 3;
-      }
-
-      // Faults with left accent stripe
-      if (r.závady?.length > 0) {
-        for (let fi = 0; fi < r.závady.length; fi++) {
-          const f = r.závady[fi];
-          ctx.checkPage(22);
-
-          const stripeX = PAGE.mx;
-          const stripeTop = ctx.y - 1;
-
-          // Fault number + name + probability
-          doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(C.black);
-          doc.text(`${fi + 1}.`, stripeX + 4, ctx.y);
-          const nameLines = doc.splitTextToSize(f.název || "", CW - 35);
-          doc.text(nameLines[0] || "", stripeX + 12, ctx.y);
-          doc.setTextColor(C.mid);
-          doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
-          ctx.y += 4;
-
-          // Urgency + probability bar
-          if (f.naléhavost) {
-            doc.setFontSize(6.5); doc.setFont("helvetica", "normal"); doc.setTextColor(C.mid);
-            doc.text(f.naléhavost.toUpperCase(), stripeX + 4, ctx.y);
-            const barX = stripeX + 28, barW = 36;
-            doc.setFillColor(230, 230, 230); doc.rect(barX, ctx.y - 2.5, barW, 2.5, "F");
-            const fillW = barW * Math.min(f.pravděpodobnost || 0, 100) / 100;
-            const gray = f.pravděpodobnost > 70 ? 50 : f.pravděpodobnost > 40 ? 100 : 150;
-            doc.setFillColor(gray, gray, gray); doc.rect(barX, ctx.y - 2.5, fillW, 2.5, "F");
-            ctx.y += 3;
-          }
-
-          if (f.díly?.length > 0) {
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-            doc.text(f.díly.join(" · "), stripeX + 4, ctx.y); ctx.y += 3.5;
-          }
-
-          if (f.popis) { ctx.text(f.popis, stripeX + 4, CW - 6, 8, C.dark); ctx.y += 1; }
-
-          if (f.obd_kódy?.length > 0) {
-            ctx.checkPage(6);
-            doc.setFont("courier", "bold"); doc.setFontSize(7.5); doc.setTextColor(C.mid);
-            doc.text(f.obd_kódy.join("  "), stripeX + 4, ctx.y); ctx.y += 4;
-          }
-
-          // Repair procedure in gray box
-          if (f.postup) {
-            ctx.checkPage(12);
-            const procY = ctx.y;
-            const procLines = doc.splitTextToSize(f.postup, CW - 12);
-            const procH = procLines.length * 3.5 + 8;
-            doc.setFillColor(248, 248, 248); doc.rect(stripeX + 2, procY - 2, CW - 4, procH, "F");
-            doc.setDrawColor(C.rule); doc.setLineWidth(0.2); doc.rect(stripeX + 2, procY - 2, CW - 4, procH, "S");
-            doc.setFont("helvetica", "bold"); doc.setFontSize(6.5); doc.setTextColor(C.mid);
-            doc.text(tr("diag.repairProcedure"), stripeX + 5, ctx.y + 1);
-            ctx.y += 4.5;
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(C.dark);
-            for (const line of procLines) { doc.text(line, stripeX + 5, ctx.y); ctx.y += 3.5; }
-            ctx.y += 2;
-          }
-
-          if (f.poznámka) {
-            ctx.checkPage(6);
-            doc.setFont("helvetica", "italic"); doc.setFontSize(7); doc.setTextColor(C.mid);
-            const nLines = doc.splitTextToSize(f.poznámka, CW - 8);
-            for (const line of nLines) { ctx.checkPage(4); doc.text(line, stripeX + 4, ctx.y); ctx.y += 3.5; }
-          }
-
-          // Draw left accent stripe
-          const stripeBottom = ctx.y;
-          const stripeGray = f.pravděpodobnost > 70 ? 60 : f.pravděpodobnost > 40 ? 120 : 180;
-          doc.setFillColor(stripeGray, stripeGray, stripeGray);
-          doc.rect(stripeX, stripeTop, 1.5, stripeBottom - stripeTop, "F");
-
-          ctx.y += 3;
-          if (fi < r.závady.length - 1) { ctx.hLine(ctx.y, 0.15); ctx.y += 3; }
-        }
-      }
-
-      // Tests
-      if (r.doporučené_testy?.length > 0) {
-        ctx.checkPage(10); ctx.y += 2;
-        doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(C.mid);
-        doc.text(tr("diag.recommendedTests"), PAGE.mx, ctx.y); ctx.y += 4;
-        for (let i = 0; i < r.doporučené_testy.length; i++) {
-          ctx.checkPage(5);
-          ctx.text(`${String(i + 1).padStart(2, "0")}. ${r.doporučené_testy[i]}`, PAGE.mx + 2, CW - 4, 8, C.dark);
-        }
-        ctx.y += 2;
-      }
-
-      // Warning
-      if (r.varování) {
-        ctx.checkPage(8);
-        ctx.text(`⚠ ${r.varování}`, PAGE.mx, CW, 8, C.dark, { style: "bold" }); ctx.y += 2;
-      }
-    }
-  }
+  renderMessages(doc, ctx, activeCase, lang, tr, F, "service");
 
   // ── Resolution ──
-  renderResolution(doc, ctx, activeCase, lang, tr);
+  renderResolution(doc, ctx, activeCase, lang, tr, F);
 
-  addAllFooters(doc, tr, activeCase);
+  addAllFooters(doc, tr, activeCase, F);
   savePdf(doc, activeCase);
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// VARIANT B — TECHNICKÁ ZPRÁVA
-// ═════════════════════════════════════════════════════════════════════════════
-function renderTechnical(activeCase, lang, tr) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const ctx = makeCtx(doc);
+// ═══════════════════════════════════════════════════════════════════════════════
+// VARIANT B — TECHNICKA ZPRAVA
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderTechnical(activeCase, lang, tr, fonts) {
+  const doc = initDoc(fonts);
+  const F = ff(fonts);
+  const ctx = makeCtx(doc, F);
 
   // ── Header ──
-  doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(C.black);
+  doc.setFont(F, "bold"); doc.setFontSize(FS.title); doc.setTextColor(C.black);
   doc.text("GearBrain", PAGE.mx, ctx.y);
-  ctx.y += 5;
-  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(C.mid);
+  ctx.y += 5.5;
+  doc.setFont(F, "normal"); doc.setFontSize(FS.subtitle); doc.setTextColor(C.mid);
   doc.text(tr("pdf.title"), PAGE.mx, ctx.y);
-  ctx.y += 4;
-  doc.setFontSize(7); doc.setTextColor(C.light);
-  doc.text(`${tr("pdf.generated")}: ${dateStr(lang)}  |  ID: ${activeCase.id}`, PAGE.mx, ctx.y);
+  ctx.y += 4.5;
+  doc.setFontSize(FS.small); doc.setTextColor(C.light);
+  doc.text(safeTxt(`${tr("pdf.generated")}: ${dateStr(lang)}  |  ID: ${activeCase.id}`), PAGE.mx, ctx.y);
   ctx.y += 2;
   ctx.hLine(ctx.y, 0.6); ctx.y += 6;
 
@@ -319,10 +275,10 @@ function renderTechnical(activeCase, lang, tr) {
   ].filter(([, val]) => val);
 
   if (rows.length > 0) {
-    const labelCol = 40;
+    const labelCol = 42;
     const tableX = PAGE.mx;
     const tableW = CW;
-    const rowH = 6;
+    const rowH = 6.5;
 
     // Table header
     doc.setFillColor(240, 240, 240);
@@ -330,324 +286,401 @@ function renderTechnical(activeCase, lang, tr) {
     doc.setDrawColor(C.rule); doc.setLineWidth(0.3);
     doc.rect(tableX, ctx.y - 3.5, tableW, rowH, "S");
     doc.line(tableX + labelCol, ctx.y - 3.5, tableX + labelCol, ctx.y - 3.5 + rowH);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(C.mid);
+    doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
     doc.text(tr("pdf.vehicle"), tableX + 2, ctx.y);
     ctx.y += rowH - 3.5;
 
-    // Table rows
     for (const [label, value] of rows) {
       doc.setDrawColor(C.rule); doc.setLineWidth(0.15);
       doc.rect(tableX, ctx.y, tableW, rowH, "S");
       doc.line(tableX + labelCol, ctx.y, tableX + labelCol, ctx.y + rowH);
-      doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(C.light);
-      doc.text(label, tableX + 2, ctx.y + 4);
-      doc.setFont("helvetica", "bold"); doc.setTextColor(C.dark);
-      doc.text(String(value), tableX + labelCol + 3, ctx.y + 4);
+      doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+      doc.text(safeTxt(label), tableX + 2, ctx.y + 4.5);
+      doc.setFont(F, "bold"); doc.setTextColor(C.dark);
+      doc.text(safeTxt(value), tableX + labelCol + 3, ctx.y + 4.5);
       ctx.y += rowH;
     }
     ctx.y += 6;
   }
 
   // ── Messages ──
-  let inputNum = 0, diagNum = 0;
-  for (const msg of activeCase.messages) {
-    if (msg.type === "input") {
-      inputNum++;
-      ctx.checkPage(14); ctx.y += 2;
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(C.black);
-      doc.text(`■ ${tr("pdf.inputRound", { num: inputNum })}`, PAGE.mx, ctx.y);
-      ctx.y += 4;
+  renderMessages(doc, ctx, activeCase, lang, tr, F, "technical");
 
-      if (msg.symptoms?.length > 0) {
-        ctx.text(`${tr("app.userSymptoms")}: ${msg.symptoms.map(s => tr(s)).join(", ")}`, PAGE.mx + 2, CW - 4, 8, C.dark);
-        ctx.y += 1;
-      }
-      if (msg.obdCodes?.length > 0) {
-        doc.setFont("courier", "bold"); doc.setFontSize(8); doc.setTextColor(C.black);
-        doc.text(`OBD: ${msg.obdCodes.join("  ")}`, PAGE.mx + 2, ctx.y); ctx.y += 5;
-      }
-      if (msg.text?.trim()) {
-        ctx.text(msg.text.trim(), PAGE.mx + 2, CW - 4, 8, C.dark, { style: "italic" });
-      }
-      ctx.y += 3;
-    }
-
-    if (msg.type === "diagnosis") {
-      diagNum++;
-      ctx.checkPage(14); ctx.y += 2;
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor(C.black);
-      doc.text(`■ ${tr("pdf.diagnosis", { num: diagNum })}`, PAGE.mx, ctx.y);
-      ctx.y += 4;
-
-      const r = msg.result;
-      if (r.shrnutí) {
-        ctx.text(r.shrnutí, PAGE.mx + 2, CW - 4, 8.5, C.dark); ctx.y += 3;
-      }
-
-      // Faults as bordered cards
-      if (r.závady?.length > 0) {
-        for (const f of r.závady) {
-          ctx.checkPage(24);
-          const cardY = ctx.y;
-
-          // Card content (measure first, draw border after)
-          const innerX = PAGE.mx + 4;
-          const innerW = CW - 8;
-          ctx.y += 3;
-
-          // Name + probability
-          doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(C.black);
-          const nameLines = doc.splitTextToSize(f.název || "", innerW - 25);
-          doc.text(nameLines[0] || "", innerX, ctx.y);
-          doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx - 4, ctx.y, { align: "right" });
-          ctx.y += 4;
-
-          if (f.naléhavost) {
-            doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(C.mid);
-            doc.text(`${tr("diag.probability")}: ${f.naléhavost.toUpperCase()}`, innerX, ctx.y);
-            ctx.y += 3.5;
-          }
-
-          // Thin divider inside card
-          doc.setDrawColor(230, 230, 230); doc.setLineWidth(0.15);
-          doc.line(innerX, ctx.y, PAGE.w - PAGE.mx - 4, ctx.y);
-          ctx.y += 3;
-
-          if (f.popis) { ctx.text(f.popis, innerX, innerW, 8, C.dark); ctx.y += 1; }
-
-          if (f.díly?.length > 0) {
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-            doc.text(`${f.díly.join(" · ")}`, innerX, ctx.y); ctx.y += 4;
-          }
-
-          if (f.postup) {
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-            doc.text(tr("diag.repairProcedure") + ":", innerX, ctx.y); ctx.y += 3;
-            ctx.text(f.postup, innerX + 2, innerW - 4, 7.5, C.dark);
-            ctx.y += 1;
-          }
-
-          if (f.obd_kódy?.length > 0) {
-            doc.setFont("courier", "bold"); doc.setFontSize(7.5); doc.setTextColor(C.mid);
-            doc.text(f.obd_kódy.join("  "), innerX, ctx.y); ctx.y += 4;
-          }
-
-          if (f.poznámka) {
-            doc.setFont("helvetica", "italic"); doc.setFontSize(7); doc.setTextColor(C.mid);
-            const nLines = doc.splitTextToSize(f.poznámka, innerW - 4);
-            for (const line of nLines) { ctx.checkPage(4); doc.text(line, innerX, ctx.y); ctx.y += 3.5; }
-          }
-
-          ctx.y += 2;
-
-          // Draw card border
-          const cardH = ctx.y - cardY;
-          doc.setDrawColor(C.rule); doc.setLineWidth(0.4);
-          doc.rect(PAGE.mx, cardY, CW, cardH, "S");
-          // Top accent line
-          doc.setDrawColor(C.dark); doc.setLineWidth(0.8);
-          doc.line(PAGE.mx, cardY, PAGE.w - PAGE.mx, cardY);
-
-          ctx.y += 4;
-        }
-      }
-
-      // Tests
-      if (r.doporučené_testy?.length > 0) {
-        ctx.checkPage(10);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(C.mid);
-        doc.text(tr("diag.recommendedTests"), PAGE.mx, ctx.y); ctx.y += 4;
-        for (let i = 0; i < r.doporučené_testy.length; i++) {
-          ctx.checkPage(5);
-          ctx.text(`${String(i + 1).padStart(2, "0")}. ${r.doporučené_testy[i]}`, PAGE.mx + 2, CW - 4, 8, C.dark);
-        }
-        ctx.y += 2;
-      }
-
-      if (r.varování) {
-        ctx.checkPage(8);
-        ctx.text(`⚠ ${r.varování}`, PAGE.mx, CW, 8, C.dark, { style: "bold" }); ctx.y += 2;
-      }
-    }
-  }
-
-  renderResolution(doc, ctx, activeCase, lang, tr);
-  addAllFooters(doc, tr, activeCase);
+  renderResolution(doc, ctx, activeCase, lang, tr, F);
+  addAllFooters(doc, tr, activeCase, F);
   savePdf(doc, activeCase);
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// VARIANT C — MINIMALISTICKÝ
-// ═════════════════════════════════════════════════════════════════════════════
-function renderMinimalist(activeCase, lang, tr) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const ctx = makeCtx(doc);
+// ═══════════════════════════════════════════════════════════════════════════════
+// VARIANT C — MINIMALISTICKY
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderMinimalist(activeCase, lang, tr, fonts) {
+  const doc = initDoc(fonts);
+  const F = ff(fonts);
+  const ctx = makeCtx(doc, F);
 
-  // ── Header — very clean ──
-  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(C.black);
+  // ── Header ──
+  doc.setFont(F, "bold"); doc.setFontSize(11); doc.setTextColor(C.black);
   doc.text("GEARBRAIN", PAGE.mx, ctx.y);
-  ctx.y += 4.5;
-  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(C.mid);
+  ctx.y += 5;
+  doc.setFont(F, "normal"); doc.setFontSize(FS.body); doc.setTextColor(C.mid);
   doc.text(tr("pdf.title"), PAGE.mx, ctx.y);
-  ctx.y += 4;
-  doc.setFontSize(7); doc.setTextColor(C.light);
-  doc.text(`${dateStr(lang)}  ·  ${activeCase.id}`, PAGE.mx, ctx.y);
+  ctx.y += 4.5;
+  doc.setFontSize(FS.small); doc.setTextColor(C.light);
+  doc.text(safeTxt(`${dateStr(lang)}  ·  ${activeCase.id}`), PAGE.mx, ctx.y);
   ctx.y += 2;
   ctx.hLine(ctx.y, 0.4); ctx.y += 7;
 
-  // ── Vehicle — inline, no box ──
+  // ── Vehicle — inline ──
   const v = activeCase.vehicle || {};
   const vParts = [v.brand, v.model].filter(Boolean);
   if (vParts.length > 0) {
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(C.black);
-    doc.text(vParts.join(" "), PAGE.mx, ctx.y);
-    ctx.y += 4;
+    doc.setFont(F, "bold"); doc.setFontSize(9.5); doc.setTextColor(C.black);
+    doc.text(safeTxt(vParts.join(" ")), PAGE.mx, ctx.y);
+    ctx.y += 4.5;
     const details = [v.enginePower, v.mileage ? `${Number(v.mileage).toLocaleString()} km` : ""].filter(Boolean);
     if (details.length > 0) {
-      doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(C.mid);
-      doc.text(details.join("  ·  "), PAGE.mx, ctx.y);
-      ctx.y += 4;
+      doc.setFont(F, "normal"); doc.setFontSize(FS.body); doc.setTextColor(C.mid);
+      doc.text(safeTxt(details.join("  ·  ")), PAGE.mx, ctx.y);
+      ctx.y += 4.5;
     }
     ctx.y += 4;
   }
 
   // ── Messages ──
-  let inputNum = 0, diagNum = 0;
-  for (const msg of activeCase.messages) {
-    if (msg.type === "input") {
-      inputNum++;
-      ctx.checkPage(12); ctx.y += 2;
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(C.black);
-      doc.text(tr("pdf.inputRound", { num: inputNum }), PAGE.mx, ctx.y);
-      ctx.y += 1.5; ctx.hLine(ctx.y, 0.3); ctx.y += 4;
+  renderMessages(doc, ctx, activeCase, lang, tr, F, "minimalist");
 
-      if (msg.symptoms?.length > 0) {
-        doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(C.dark);
-        ctx.text(msg.symptoms.map(s => tr(s)).join(", "), PAGE.mx, CW, 8, C.dark);
-        ctx.y += 1;
-      }
-      if (msg.obdCodes?.length > 0) {
-        doc.setFont("courier", "bold"); doc.setFontSize(8.5); doc.setTextColor(C.black);
-        doc.text(msg.obdCodes.join("  "), PAGE.mx, ctx.y); ctx.y += 5;
-      }
-      if (msg.text?.trim()) {
-        doc.setFont("helvetica", "italic"); doc.setFontSize(8); doc.setTextColor(C.dark);
-        doc.text(`"`, PAGE.mx, ctx.y);
-        ctx.text(msg.text.trim(), PAGE.mx + 2, CW - 4, 8, C.dark, { style: "italic" });
-        ctx.y += 1;
-      }
-      ctx.y += 2;
-    }
+  renderResolution(doc, ctx, activeCase, lang, tr, F);
 
-    if (msg.type === "diagnosis") {
-      diagNum++;
-      ctx.checkPage(12); ctx.y += 2;
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(C.black);
-      doc.text(tr("pdf.diagnosis", { num: diagNum }), PAGE.mx, ctx.y);
-      ctx.y += 1.5; ctx.hLine(ctx.y, 0.3); ctx.y += 4;
-
-      const r = msg.result;
-      if (r.shrnutí) {
-        ctx.text(r.shrnutí, PAGE.mx, CW, 8.5, C.dark); ctx.y += 4;
-      }
-
-      if (r.závady?.length > 0) {
-        for (let fi = 0; fi < r.závady.length; fi++) {
-          const f = r.závady[fi];
-          ctx.checkPage(16);
-
-          // Name + percentage, right-aligned
-          doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(C.black);
-          const nameLines = doc.splitTextToSize(f.název || "", CW - 30);
-          doc.text(nameLines[0] || "", PAGE.mx, ctx.y);
-          doc.setTextColor(C.mid);
-          doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
-          ctx.y += 4;
-
-          // Bullet-point meta
-          const metaItems = [];
-          if (f.naléhavost) metaItems.push(f.naléhavost);
-          if (f.díly?.length > 0) metaItems.push(f.díly.join(" · "));
-          for (const item of metaItems) {
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.mid);
-            doc.text(`▪  ${item}`, PAGE.mx, ctx.y); ctx.y += 3.5;
-          }
-
-          if (f.popis) { ctx.text(f.popis, PAGE.mx, CW, 8, C.dark); ctx.y += 1; }
-
-          if (f.postup) {
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-            doc.text(tr("diag.repairProcedure") + ":", PAGE.mx, ctx.y); ctx.y += 3;
-            ctx.text(f.postup, PAGE.mx + 2, CW - 4, 7.5, C.dark);
-            ctx.y += 1;
-          }
-
-          if (f.obd_kódy?.length > 0) {
-            doc.setFont("courier", "normal"); doc.setFontSize(7.5); doc.setTextColor(C.mid);
-            doc.text(`→  ${f.obd_kódy.join("  ")}`, PAGE.mx, ctx.y); ctx.y += 4;
-          }
-
-          if (f.poznámka) {
-            doc.setFont("helvetica", "italic"); doc.setFontSize(7); doc.setTextColor(C.mid);
-            ctx.text(`(${f.poznámka})`, PAGE.mx, CW, 7, C.mid, { style: "italic" });
-          }
-
-          ctx.y += 2;
-          // Centered dot separator between faults
-          if (fi < r.závady.length - 1) {
-            doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.rule);
-            doc.text("·", PAGE.w / 2, ctx.y, { align: "center" });
-            ctx.y += 4;
-          }
-        }
-      }
-
-      // Tests
-      if (r.doporučené_testy?.length > 0) {
-        ctx.checkPage(10); ctx.y += 2;
-        doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
-        doc.text(tr("diag.recommendedTests") + ":", PAGE.mx, ctx.y); ctx.y += 4;
-        for (let i = 0; i < r.doporučené_testy.length; i++) {
-          ctx.checkPage(5);
-          ctx.text(`${i + 1}. ${r.doporučené_testy[i]}`, PAGE.mx, CW, 8, C.dark);
-        }
-        ctx.y += 2;
-      }
-
-      if (r.varování) {
-        ctx.checkPage(8);
-        ctx.text(`⚠ ${r.varování}`, PAGE.mx, CW, 8, C.dark, { style: "bold" }); ctx.y += 2;
-      }
-    }
-  }
-
-  renderResolution(doc, ctx, activeCase, lang, tr);
-
-  // Minimalist footer: just a thin line and text
+  // Minimalist footer
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
     doc.setDrawColor(C.rule); doc.setLineWidth(0.3);
     doc.line(PAGE.mx, PAGE.h - 13, PAGE.w - PAGE.mx, PAGE.h - 13);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(C.light);
+    doc.setFont(F, "normal"); doc.setFontSize(FS.footer); doc.setTextColor(C.light);
     doc.text(`GearBrain  ·  ${i}/${total}  ·  ${activeCase.id}`, PAGE.w / 2, PAGE.h - 9, { align: "center" });
   }
 
   savePdf(doc, activeCase);
 }
 
-// ── Shared: resolution block ────────────────────────────────────────────────
-function renderResolution(doc, ctx, activeCase, lang, tr) {
-  if (activeCase.status !== "uzavřený" || !activeCase.resolution) return;
+// ═══════════════════════════════════════════════════════════════════════════════
+// Shared: render all messages (inputs + diagnoses)
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderMessages(doc, ctx, activeCase, lang, tr, F, variant) {
+  let inputNum = 0, diagNum = 0;
+
+  for (const msg of activeCase.messages) {
+    if (msg.type === "input") {
+      inputNum++;
+      renderInput(doc, ctx, msg, inputNum, tr, F, variant);
+    }
+    if (msg.type === "diagnosis") {
+      diagNum++;
+      renderDiagnosis(doc, ctx, msg, diagNum, tr, F, variant);
+    }
+  }
+}
+
+function renderInput(doc, ctx, msg, num, tr, F, variant) {
   ctx.checkPage(14);
   ctx.y += 3;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(C.mid);
-  doc.text(tr("pdf.resolution").toUpperCase(), PAGE.mx, ctx.y);
-  ctx.y += 1.5; ctx.hLine(ctx.y, 0.3); ctx.y += 4;
+
+  // Section heading
+  const prefix = variant === "technical" ? "# " : "";
+  doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
+  doc.text(safeTxt(`${prefix}${tr("pdf.inputRound", { num })}`), PAGE.mx, ctx.y);
+  ctx.y += 2;
+  ctx.hLine(ctx.y, variant === "service" ? 0.4 : 0.3);
+  ctx.y += 4.5;
+
+  // Symptoms
+  if (msg.symptoms?.length > 0) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(tr("app.userSymptoms")) + ":", PAGE.mx, ctx.y);
+    ctx.y += LH.small;
+    ctx.text(msg.symptoms.map(s => tr(s)).join(", "), PAGE.mx + 2, CW - 2, FS.body, C.dark);
+    ctx.y += 2;
+  }
+
+  // OBD codes
+  if (msg.obdCodes?.length > 0) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(tr("app.userObd")) + ":", PAGE.mx, ctx.y);
+    ctx.y += LH.small;
+    doc.setFont(F, "bold"); doc.setFontSize(FS.body); doc.setTextColor(C.black);
+    doc.text(msg.obdCodes.join("  "), PAGE.mx + 2, ctx.y);
+    ctx.y += LH.section;
+  }
+
+  // Free text
+  if (msg.text?.trim()) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(tr("app.userMechDesc")) + ":", PAGE.mx, ctx.y);
+    ctx.y += LH.small;
+    ctx.text(msg.text.trim(), PAGE.mx + 2, CW - 2, FS.body, C.dark, { style: "italic" });
+  }
+  ctx.y += 3;
+}
+
+function renderDiagnosis(doc, ctx, msg, num, tr, F, variant) {
+  ctx.checkPage(14);
+  ctx.y += 3;
+
+  const prefix = variant === "technical" ? "# " : "";
+  doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
+  doc.text(safeTxt(`${prefix}${tr("pdf.diagnosis", { num })}`), PAGE.mx, ctx.y);
+  ctx.y += 2;
+  ctx.hLine(ctx.y, variant === "service" ? 0.4 : 0.3);
+  ctx.y += 4.5;
+
+  const r = msg.result;
+
+  // Summary
+  if (r.shrnutí) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(tr("pdf.summary")) + ":", PAGE.mx, ctx.y);
+    ctx.y += LH.small;
+    ctx.text(r.shrnutí, PAGE.mx + 2, CW - 2, FS.body, C.dark);
+    ctx.y += 4;
+  }
+
+  // Faults
+  if (r.závady?.length > 0) {
+    for (let fi = 0; fi < r.závady.length; fi++) {
+      const f = r.závady[fi];
+      ctx.checkPage(22);
+
+      if (variant === "service") {
+        renderFaultService(doc, ctx, f, fi, tr, F);
+      } else if (variant === "technical") {
+        renderFaultTechnical(doc, ctx, f, fi, tr, F);
+      } else {
+        renderFaultMinimalist(doc, ctx, f, fi, tr, F);
+      }
+
+      ctx.y += 3;
+      // Separator between faults
+      if (fi < r.závady.length - 1) {
+        if (variant === "minimalist") {
+          doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.rule);
+          doc.text("·", PAGE.w / 2, ctx.y, { align: "center" });
+          ctx.y += 4;
+        } else {
+          ctx.hLine(ctx.y, 0.15); ctx.y += 3;
+        }
+      }
+    }
+  }
+
+  // Recommended tests
+  if (r.doporučené_testy?.length > 0) {
+    ctx.checkPage(10); ctx.y += 3;
+    doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    doc.text(safeTxt(tr("diag.recommendedTests")), PAGE.mx, ctx.y);
+    ctx.y += 4.5;
+    for (let i = 0; i < r.doporučené_testy.length; i++) {
+      ctx.checkPage(5);
+      ctx.text(`${String(i + 1).padStart(2, "0")}. ${r.doporučené_testy[i]}`, PAGE.mx + 2, CW - 4, FS.body, C.dark);
+    }
+    ctx.y += 2;
+  }
+
+  // Warning
+  if (r.varování) {
+    ctx.checkPage(8);
+    ctx.text(`/!\\ ${r.varování}`, PAGE.mx, CW, FS.body, C.dark, { style: "bold" });
+    ctx.y += 2;
+  }
+}
+
+// ── Fault renderers per variant ──────────────────────────────────────────────
+
+function renderFaultService(doc, ctx, f, fi, tr, F) {
+  const stripeX = PAGE.mx;
+  const stripeTop = ctx.y - 1;
+
+  // Name + probability
+  doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
+  doc.text(`${fi + 1}.`, stripeX + 4, ctx.y);
+  const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), CW - 35);
+  doc.text(nameLines[0] || "", stripeX + 12, ctx.y);
+  doc.setTextColor(C.mid);
+  doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
+  ctx.y += 4.5;
+
+  // Urgency + bar
+  if (f.naléhavost) {
+    doc.setFontSize(FS.tiny); doc.setFont(F, "normal"); doc.setTextColor(C.mid);
+    doc.text(safeTxt(f.naléhavost.toUpperCase()), stripeX + 4, ctx.y);
+    const barX = stripeX + 30, barW = 36;
+    doc.setFillColor(230, 230, 230); doc.rect(barX, ctx.y - 2.5, barW, 2.5, "F");
+    const fillW = barW * Math.min(f.pravděpodobnost || 0, 100) / 100;
+    const gray = f.pravděpodobnost > 70 ? 50 : f.pravděpodobnost > 40 ? 100 : 150;
+    doc.setFillColor(gray, gray, gray); doc.rect(barX, ctx.y - 2.5, fillW, 2.5, "F");
+    ctx.y += 3.5;
+  }
+
+  // Parts
+  if (f.díly?.length > 0) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(f.díly.join(" · ")), stripeX + 4, ctx.y); ctx.y += LH.small;
+  }
+
+  // Description
+  if (f.popis) { ctx.text(f.popis, stripeX + 4, CW - 6, FS.body, C.dark); ctx.y += 1; }
+
+  // OBD codes
+  if (f.obd_kódy?.length > 0) {
+    ctx.checkPage(6);
+    doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    doc.text(f.obd_kódy.join("  "), stripeX + 4, ctx.y); ctx.y += 4;
+  }
+
+  // Repair procedure box
+  if (f.postup) {
+    ctx.checkPage(12);
+    const procY = ctx.y;
+    const procLines = doc.splitTextToSize(safeTxt(f.postup), CW - 12);
+    const procH = procLines.length * LH.small + 8;
+    doc.setFillColor(248, 248, 248); doc.rect(stripeX + 2, procY - 2, CW - 4, procH, "F");
+    doc.setDrawColor(C.rule); doc.setLineWidth(0.2); doc.rect(stripeX + 2, procY - 2, CW - 4, procH, "S");
+    doc.setFont(F, "bold"); doc.setFontSize(FS.tiny); doc.setTextColor(C.mid);
+    doc.text(safeTxt(tr("diag.repairProcedure")), stripeX + 5, ctx.y + 1);
+    ctx.y += 5;
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.dark);
+    for (const line of procLines) { doc.text(line, stripeX + 5, ctx.y); ctx.y += LH.small; }
+    ctx.y += 2;
+  }
+
+  // Note
+  if (f.poznámka) {
+    ctx.checkPage(6);
+    doc.setFont(F, "italic"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    const nLines = doc.splitTextToSize(safeTxt(f.poznámka), CW - 8);
+    for (const line of nLines) { ctx.checkPage(4); doc.text(line, stripeX + 4, ctx.y); ctx.y += LH.small; }
+  }
+
+  // Left accent stripe
+  const stripeBottom = ctx.y;
+  const stripeGray = f.pravděpodobnost > 70 ? 60 : f.pravděpodobnost > 40 ? 120 : 180;
+  doc.setFillColor(stripeGray, stripeGray, stripeGray);
+  doc.rect(stripeX, stripeTop, 1.5, stripeBottom - stripeTop, "F");
+}
+
+function renderFaultTechnical(doc, ctx, f, fi, tr, F) {
+  const cardY = ctx.y;
+  const innerX = PAGE.mx + 4;
+  const innerW = CW - 8;
+  ctx.y += 3.5;
+
+  // Name + probability
+  doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
+  const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), innerW - 25);
+  doc.text(nameLines[0] || "", innerX, ctx.y);
+  doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx - 4, ctx.y, { align: "right" });
+  ctx.y += 4.5;
+
+  if (f.naléhavost) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.tiny); doc.setTextColor(C.mid);
+    doc.text(safeTxt(`${tr("diag.probability")}: ${f.naléhavost.toUpperCase()}`), innerX, ctx.y);
+    ctx.y += LH.small;
+  }
+
+  // Divider inside card
+  doc.setDrawColor(230, 230, 230); doc.setLineWidth(0.15);
+  doc.line(innerX, ctx.y, PAGE.w - PAGE.mx - 4, ctx.y);
+  ctx.y += 3.5;
+
+  if (f.popis) { ctx.text(f.popis, innerX, innerW, FS.body, C.dark); ctx.y += 1; }
+
+  if (f.díly?.length > 0) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(f.díly.join(" · ")), innerX, ctx.y); ctx.y += 4;
+  }
+
+  if (f.postup) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(tr("diag.repairProcedure")) + ":", innerX, ctx.y); ctx.y += 3.5;
+    ctx.text(f.postup, innerX + 2, innerW - 4, FS.small, C.dark);
+    ctx.y += 1;
+  }
+
+  if (f.obd_kódy?.length > 0) {
+    doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    doc.text(f.obd_kódy.join("  "), innerX, ctx.y); ctx.y += 4;
+  }
+
+  if (f.poznámka) {
+    doc.setFont(F, "italic"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    const nLines = doc.splitTextToSize(safeTxt(f.poznámka), innerW - 4);
+    for (const line of nLines) { ctx.checkPage(4); doc.text(line, innerX, ctx.y); ctx.y += LH.small; }
+  }
+
+  ctx.y += 2;
+
+  // Card border
+  const cardH = ctx.y - cardY;
+  doc.setDrawColor(C.rule); doc.setLineWidth(0.4);
+  doc.rect(PAGE.mx, cardY, CW, cardH, "S");
+  // Top accent line
+  doc.setDrawColor(C.dark); doc.setLineWidth(0.8);
+  doc.line(PAGE.mx, cardY, PAGE.w - PAGE.mx, cardY);
+}
+
+function renderFaultMinimalist(doc, ctx, f, fi, tr, F) {
+  // Name + percentage
+  doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
+  const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), CW - 30);
+  doc.text(nameLines[0] || "", PAGE.mx, ctx.y);
+  doc.setTextColor(C.mid);
+  doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
+  ctx.y += 4.5;
+
+  // Meta items
+  const metaItems = [];
+  if (f.naléhavost) metaItems.push(f.naléhavost);
+  if (f.díly?.length > 0) metaItems.push(f.díly.join(" · "));
+  for (const item of metaItems) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    doc.text(safeTxt(`-  ${item}`), PAGE.mx, ctx.y); ctx.y += LH.small;
+  }
+
+  if (f.popis) { ctx.text(f.popis, PAGE.mx, CW, FS.body, C.dark); ctx.y += 1; }
+
+  if (f.postup) {
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
+    doc.text(safeTxt(tr("diag.repairProcedure")) + ":", PAGE.mx, ctx.y); ctx.y += 3.5;
+    ctx.text(f.postup, PAGE.mx + 2, CW - 4, FS.small, C.dark);
+    ctx.y += 1;
+  }
+
+  if (f.obd_kódy?.length > 0) {
+    doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    doc.text(safeTxt("->  " + f.obd_kódy.join("  ")), PAGE.mx, ctx.y); ctx.y += 4;
+  }
+
+  if (f.poznámka) {
+    doc.setFont(F, "italic"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
+    ctx.text(`(${f.poznámka})`, PAGE.mx, CW, FS.small, C.mid, { style: "italic" });
+  }
+}
+
+// ── Shared: resolution block ─────────────────────────────────────────────────
+function renderResolution(doc, ctx, activeCase, lang, tr, F) {
+  if (activeCase.status !== "uzavřený" || !activeCase.resolution) return;
+  ctx.checkPage(14);
+  ctx.y += 4;
+  doc.setFont(F, "bold"); doc.setFontSize(FS.body); doc.setTextColor(C.mid);
+  doc.text(safeTxt(tr("pdf.resolution").toUpperCase()), PAGE.mx, ctx.y);
+  ctx.y += 2;
+  ctx.hLine(ctx.y, 0.3);
+  ctx.y += 4.5;
 
   if (activeCase.closedAt) {
-    doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(C.light);
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
     doc.text(shortDate(activeCase.closedAt, lang), PAGE.mx, ctx.y); ctx.y += 4;
   }
-  ctx.text(activeCase.resolution, PAGE.mx, CW, 8.5, C.dark);
+  ctx.text(activeCase.resolution, PAGE.mx, CW, FS.body, C.dark);
 }
