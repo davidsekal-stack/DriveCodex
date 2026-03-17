@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
               'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-              model:      'deepseek-chat',
+              model:      'deepseek-reasoner',
               max_tokens: 600,
               messages: [{
                 role:    'user',
