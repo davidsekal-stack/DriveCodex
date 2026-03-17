@@ -1,13 +1,12 @@
 /**
- * GearBrain — Edge Function: anthropic-proxy
+ * GearBrain — Edge Function: deepseek-proxy
  *
  * Proxy pro DeepSeek API. Klient posílá diagnostický request,
  * Edge Function přidá API klíč a přepošle na DeepSeek.
- * Response se transformuje do Anthropic formátu (frontend beze změn).
  *
  * Rate limiting: max 50 AI volání / den / user_id.
  *
- * POST /functions/v1/anthropic-proxy
+ * POST /functions/v1/deepseek-proxy
  * Body: { model, system, messages, max_tokens, user_id }
  */
 
@@ -74,7 +73,6 @@ Deno.serve(async (req) => {
       return json({ error: { message: 'Server: chybí konfigurace AI služby.' } }, 500, corsHeaders)
     }
 
-    // Build OpenAI-format messages: system as first message
     const dsMessages = [
       ...(system ? [{ role: 'system', content: system }] : []),
       ...messages,
@@ -95,7 +93,6 @@ Deno.serve(async (req) => {
 
     const dsData = await dsRes.json()
 
-    // ── Transform DeepSeek (OpenAI) → Anthropic format for frontend ──────
     if (dsData.error) {
       return json({ error: { message: dsData.error.message || 'DeepSeek API error' } }, dsRes.status, corsHeaders)
     }
@@ -104,7 +101,7 @@ Deno.serve(async (req) => {
     const inputTokens  = dsData.usage?.prompt_tokens     ?? 0
     const outputTokens = dsData.usage?.completion_tokens  ?? 0
 
-    const anthropicFormat = {
+    const response = {
       id:           dsData.id ?? '',
       type:         'message',
       role:         'assistant',
@@ -128,8 +125,7 @@ Deno.serve(async (req) => {
       })
       .then(() => {})
 
-    // ── Return Anthropic-shaped response ─────────────────────────────────
-    return new Response(JSON.stringify(anthropicFormat), {
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
