@@ -13,7 +13,7 @@ import InputForm, { FollowUpPrompt }        from "./components/InputForm.jsx";
 import LoginPage                            from "./components/LoginPage.jsx";
 import ErrorBoundary                        from "./components/ErrorBoundary.jsx";
 import ConfirmModal                         from "./components/ConfirmModal.jsx";
-import ConsentBanner, { hasConsent }        from "./components/ConsentBanner.jsx";
+import ConsentGate, { hasConsent }           from "./components/ConsentBanner.jsx";
 import useCases                             from "./hooks/useCases.js";
 import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
@@ -334,6 +334,7 @@ function App() {
 
   // ── Hlavní render ─────────────────────────────────────────────────────────
   return (
+    <ConsentGate>
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: t.bg, color: t.text, fontFamily: "'IBM Plex Mono','Courier New',monospace", overflow: "hidden", transition: "background 0.2s, color 0.2s" }}>
       <GlobalStyles t={t} darkMode={darkMode} />
 
@@ -847,9 +848,8 @@ function App() {
         />
       )}
 
-      {/* ── GDPR Consent Banner ── */}
-      <ConsentBanner t={t} />
     </div>
+    </ConsentGate>
   );
 }
 

@@ -86,8 +86,9 @@ export const strings = {
   'app.userMechDesc':     'Mechanic description',
 
   // GDPR consent
-  'consent.text':         'This app stores your diagnostic cases in an anonymous database to improve results for all users. Personal data (email) is used only for authentication. We do not sell any data to third parties.',
-  'consent.privacy':      'Privacy Policy',
+  'consent.title':        'Privacy & Data',
+  'consent.text':         'This app stores your diagnostic cases in an anonymous shared database that helps improve results for all users. Personal data (email) is used only for authentication. We do not sell any data to third parties.',
+  'consent.declineNote':  'If you decline, the app will work normally, but your closed cases won\'t contribute to the shared database and AI won\'t be able to leverage other mechanics\' experience.',
   'consent.accept':       'I agree',
   'consent.decline':      'Decline',
 

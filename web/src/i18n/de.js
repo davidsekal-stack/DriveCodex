@@ -86,8 +86,9 @@ export const strings = {
   'app.userMechDesc':     'Mechanikerbeschreibung',
 
   // GDPR consent
-  'consent.text':         'Diese App speichert Ihre Diagnosefälle in einer anonymen Datenbank, um die Ergebnisse für alle Benutzer zu verbessern. Personenbezogene Daten (E-Mail) dienen nur zur Anmeldung. Wir verkaufen keine Daten an Dritte.',
-  'consent.privacy':      'Datenschutzrichtlinie',
+  'consent.title':        'Datenschutz',
+  'consent.text':         'Diese App speichert Ihre Diagnosefälle in einer anonymen gemeinsamen Datenbank, um die Ergebnisse für alle Benutzer zu verbessern. Personenbezogene Daten (E-Mail) dienen nur zur Anmeldung. Wir verkaufen keine Daten an Dritte.',
+  'consent.declineNote':  'Wenn Sie ablehnen, funktioniert die App normal, aber Ihre abgeschlossenen Fälle werden nicht zur gemeinsamen Datenbank beigetragen und die KI kann nicht von den Erfahrungen anderer Mechaniker profitieren.',
   'consent.accept':       'Einverstanden',
   'consent.decline':      'Ablehnen',
 

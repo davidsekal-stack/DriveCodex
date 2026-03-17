@@ -9,9 +9,9 @@ function detectLang() {
   const stored = localStorage.getItem('gb-lang')
   if (stored && allStrings[stored]) return stored
   const nav = (navigator.language ?? '').slice(0, 2)
-  if (nav === 'de') return 'de'
-  if (nav === 'en') return 'en'
-  return 'cs'
+  if (nav === 'cs' || nav === 'sk') return 'cs'   // CZ + SK → čeština
+  if (nav === 'de') return 'de'                    // DE/AT/CH → němčina
+  return 'en'                                       // vše ostatní → angličtina
 }
 
 const I18nContext = createContext(null)
