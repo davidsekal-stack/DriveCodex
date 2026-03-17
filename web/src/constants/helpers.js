@@ -19,11 +19,33 @@ export const VEHICLE_MODELS = ACTIVE_BRANDS.length === 1
   ? ACTIVE_BRANDS[0].models
   : ACTIVE_BRANDS.flatMap(b => [{ group: b.brand }, ...b.models])
 
-/** Výchozí značka pro nový případ */
-export const DEFAULT_BRAND  = ACTIVE_BRANDS[0]?.brand ?? ""
+/** Výchozí značka — buď uložená v localStorage, nebo první aktivní */
+export function getDefaultBrand() {
+  try {
+    const saved = localStorage.getItem("gb_defaultBrand");
+    if (saved && ACTIVE_BRANDS.some(b => b.brand === saved)) return saved;
+  } catch (_) {}
+  return ACTIVE_BRANDS[0]?.brand ?? "";
+}
+
+export function setDefaultBrand(brand) {
+  try {
+    if (brand) localStorage.setItem("gb_defaultBrand", brand);
+    else localStorage.removeItem("gb_defaultBrand");
+  } catch (_) {}
+}
+
+export function getStoredDefaultBrand() {
+  try { return localStorage.getItem("gb_defaultBrand") || ""; } catch (_) { return ""; }
+}
 
 /** Prázdné vozidlo pro nový případ */
-export const EMPTY_VEHICLE  = { brand: DEFAULT_BRAND, model: "", mileage: "", enginePower: "" }
+export function makeEmptyVehicle() {
+  return { brand: getDefaultBrand(), model: "", mileage: "", enginePower: "" };
+}
+
+/** Legacy constant — backward compat */
+export const EMPTY_VEHICLE = makeEmptyVehicle();
 
 /** Vrátí pole modelů pro danou značku (pro dynamický model select) */
 export function getBrandModels(brand) {

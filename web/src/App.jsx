@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 import { DARK, LIGHT }                      from "./theme.js";
-import { ACTIVE_BRANDS, EMPTY_VEHICLE, getModelPowers, getBrandModels } from "./constants/index.js";
+import { ACTIVE_BRANDS, getModelPowers, getBrandModels, getDefaultBrand, setDefaultBrand, getStoredDefaultBrand, makeEmptyVehicle } from "./constants/index.js";
 import { uid, fmtDate, fmtMileage }         from "./lib/utils.js";
 import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "./lib/ai.js";
 import { validateResolution }                from "./lib/validation.js";
@@ -89,7 +89,8 @@ function App() {
   const [closeError,  setCloseError]  = useState(null);
   const [deleteId,   setDeleteId]   = useState(null);
   const [pdfMenu,    setPdfMenu]    = useState(false);
-  const [newVehicle, setNewVehicle] = useState(EMPTY_VEHICLE);
+  const [newVehicle, setNewVehicle] = useState(makeEmptyVehicle);
+  const [defaultBrand, setDefaultBrandState] = useState(getStoredDefaultBrand);
   const [cloudStatus, setCloudStatus] = useState("idle");
 
   const {
@@ -218,17 +219,17 @@ function App() {
           pravděpodobnost: Math.max(5, (parsed.závady[parsed.závady.length - 1]?.pravděpodobnost ?? 20) - 15),
           popis: tr('diag.additionalCauseDesc'),
           příznaky_shoda: [], obd_kódy: [], díly: [], postup: "", naléhavost: "nízká",
-          poznámka: tr('diag.additionalCauseNote'), zdroj: "ai", shpipadů: 0,
+          poznámka: tr('diag.additionalCauseNote'), zdroj: "ai", početShod: 0,
         });
       }
 
-      // Override AI's shpipadů with actual RAG match count (AI can hallucinate numbers)
+      // Override AI's početShod with actual RAG match count (AI can hallucinate numbers)
       const actualDbCount = similar.length;
       for (const fault of parsed.závady) {
         if (fault.zdroj === "databáze") {
-          fault.shpipadů = actualDbCount;
+          fault.početShod = actualDbCount;
         } else {
-          fault.shpipadů = 0;
+          fault.početShod = 0;
         }
       }
 
@@ -258,7 +259,7 @@ function App() {
   const handleNewCase = useCallback((inputData) => {
     const id = handleCreateCase(newVehicle);
     runDiag(id, inputData);
-    setNewVehicle(EMPTY_VEHICLE);
+    setNewVehicle(makeEmptyVehicle());
   }, [handleCreateCase, runDiag, newVehicle]);
 
   const closeCase = useCallback(async () => {
@@ -419,11 +420,19 @@ function App() {
             <div style={{ padding: "7px 12px", fontSize: "0.67rem", color: t.textVeryFaint, borderBottom: `1px solid ${t.border}` }}>
               {closedCount > 0 ? tr('app.cloudCount', { count: closedCount }) : tr('app.cloudEmpty')}
             </div>
-            <div style={{ padding: "7px 12px", fontSize: "0.67rem", color: cloudStatus === "ok" ? t.doneStatusColor : cloudStatus === "error" ? "#dc2626" : t.textVeryFaint, display: "flex", alignItems: "center", gap: 5 }}>
-              {cloudStatus === "ok"    && <><span>●</span><span>{tr('app.ragActive')}</span></>}
-              {cloudStatus === "error" && <><span>✕</span><span>{tr('app.ragUnavailable')}</span></>}
-              {cloudStatus === "idle"  && <><span>○</span><span>{tr('app.ragConnecting')}</span></>}
+            <div style={{ padding: "7px 12px", fontSize: "0.67rem", color: cloudStatus === "ok" ? t.doneStatusColor : cloudStatus === "error" ? "#dc2626" : t.textVeryFaint, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 5, borderBottom: `1px solid ${t.border}` }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                {cloudStatus === "ok"    && <><span>●</span><span>{tr('app.ragActive')}</span></>}
+                {cloudStatus === "error" && <><span>✕</span><span>{tr('app.ragUnavailable')}</span></>}
+                {cloudStatus === "idle"  && <><span>○</span><span>{tr('app.ragConnecting')}</span></>}
+              </span>
             </div>
+            <a href={`mailto:${atob("ZGF2aWRzZWthbEBnbWFpbC5jb20=")}?subject=${encodeURIComponent(tr('app.feedbackSubject'))}`}
+              style={{ display: "block", padding: "7px 12px", fontSize: "0.67rem", color: t.textFaint, textDecoration: "none", cursor: "pointer", transition: "color 0.15s" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = t.accent; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = t.textFaint; }}>
+              {tr('app.feedback')}
+            </a>
           </div>
         </aside>
 
@@ -457,13 +466,33 @@ function App() {
                 <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? 8 : 12, marginBottom: mobile ? 8 : 12 }}>
                   <div>
                     <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.vehicleBrand')}</div>
-                    <select value={newVehicle.brand}
-                      onChange={(e) => setNewVehicle((v) => ({ ...v, brand: e.target.value, model: "", enginePower: "" }))}
-                      style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
-                      {ACTIVE_BRANDS.map((b) => (
-                        <option key={b.brand} value={b.brand}>{b.brand}</option>
-                      ))}
-                    </select>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <select value={newVehicle.brand}
+                        onChange={(e) => setNewVehicle((v) => ({ ...v, brand: e.target.value, model: "", enginePower: "" }))}
+                        style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
+                        {ACTIVE_BRANDS.map((b) => (
+                          <option key={b.brand} value={b.brand}>{b.brand}</option>
+                        ))}
+                      </select>
+                      <button
+                        title={tr('app.defaultBrandHint')}
+                        onClick={() => {
+                          const isDefault = defaultBrand === newVehicle.brand;
+                          const next = isDefault ? "" : newVehicle.brand;
+                          setDefaultBrand(next);
+                          setDefaultBrandState(next);
+                        }}
+                        style={{
+                          background: defaultBrand === newVehicle.brand ? t.accent : "transparent",
+                          border: `1px solid ${defaultBrand === newVehicle.brand ? t.accent : t.borderInput}`,
+                          color: defaultBrand === newVehicle.brand ? "#fff" : t.textFaint,
+                          width: 36, height: 36, fontSize: "1rem", cursor: "pointer",
+                          borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0, transition: "all 0.15s",
+                        }}>
+                        ★
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('app.vehicleModel')}</div>

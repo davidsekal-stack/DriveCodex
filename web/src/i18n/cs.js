@@ -34,6 +34,7 @@ export const strings = {
   'app.selectModel':      '— Vyberte model —',
   'app.enginePower':      'VÝKON MOTORU',
   'app.optional':         '— Nepovinné —',
+  'app.defaultBrandHint':  'Nastavit jako výchozí značku',
   'app.mileageKm':        'NÁJEZD (KM)',
   'app.startDiag':        'ZAHÁJIT DIAGNOSTIKU',
 
@@ -78,6 +79,10 @@ export const strings = {
   'app.userSymptoms':     'Příznaky',
   'app.userObd':          'OBD kódy',
   'app.userMechDesc':     'Popis mechanika',
+
+  // Feedback
+  'app.feedback':         '✉ Zpětná vazba',
+  'app.feedbackSubject':  'GearBrain — Zpětná vazba',
 
   // Status
   'status.closed':        '✓ UZAVŘENÝ',

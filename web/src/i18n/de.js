@@ -34,6 +34,7 @@ export const strings = {
   'app.selectModel':      '— Modell wählen —',
   'app.enginePower':      'MOTORLEISTUNG',
   'app.optional':         '— Optional —',
+  'app.defaultBrandHint':  'Als Standardmarke festlegen',
   'app.mileageKm':        'KILOMETERSTAND (KM)',
   'app.startDiag':        'DIAGNOSE STARTEN',
 
@@ -78,6 +79,10 @@ export const strings = {
   'app.userSymptoms':     'Symptome',
   'app.userObd':          'OBD-Codes',
   'app.userMechDesc':     'Mechanikerbeschreibung',
+
+  // Feedback
+  'app.feedback':         '✉ Feedback',
+  'app.feedbackSubject':  'GearBrain — Feedback',
 
   // Status
   'status.closed':        '✓ ABGESCHLOSSEN',
