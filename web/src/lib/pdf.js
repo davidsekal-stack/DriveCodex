@@ -194,8 +194,13 @@ function makeCtx(doc, font) {
     }
   };
 
-  /** Mark start of a striped section */
-  const markStart = () => { pageAtStart = doc.internal.getNumberOfPages(); };
+  let stripeStartY = PAGE.mt;
+
+  /** Mark start of a striped section (saves current Y and page) */
+  const markStart = () => {
+    pageAtStart = doc.internal.getNumberOfPages();
+    stripeStartY = y;
+  };
 
   /** Draw a vertical stripe from markStart to current y, spanning pages */
   const drawStripe = (x, w, color) => {
@@ -204,11 +209,10 @@ function makeCtx(doc, font) {
     doc.setFillColor(...color);
     for (let p = pageAtStart; p <= endPage; p++) {
       doc.setPage(p);
-      const top = p === pageAtStart ? PAGE.mt : PAGE.mt;
+      const top = p === pageAtStart ? stripeStartY : PAGE.mt;
       const bot = p === endPage ? curY : PAGE.h - PAGE.mb;
-      doc.rect(x, top, w, bot - top, "F");
+      if (bot > top) doc.rect(x, top, w, bot - top, "F");
     }
-    // Restore to current page
     doc.setPage(endPage);
   };
 
