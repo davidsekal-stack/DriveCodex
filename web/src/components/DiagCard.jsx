@@ -33,7 +33,7 @@ function ObdChip({ code, t }) {
 function SourceBadge({ fault, t, tr }) {
   const isDb = fault.zdroj === "databáze";
   const sc = sourceColor(fault);
-  const count = fault.shpipadů || 0;
+  const count = fault.početShod ?? fault.shpipadů ?? 0;
 
   return (
     <span style={{

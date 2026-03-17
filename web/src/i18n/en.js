@@ -34,6 +34,7 @@ export const strings = {
   'app.selectModel':      '— Select model —',
   'app.enginePower':      'ENGINE POWER',
   'app.optional':         '— Optional —',
+  'app.defaultBrandHint':  'Set as default brand',
   'app.mileageKm':        'MILEAGE (KM)',
   'app.startDiag':        'START DIAGNOSIS',
 
@@ -78,6 +79,10 @@ export const strings = {
   'app.userSymptoms':     'Symptoms',
   'app.userObd':          'OBD codes',
   'app.userMechDesc':     'Mechanic description',
+
+  // Feedback
+  'app.feedback':         '✉ Feedback',
+  'app.feedbackSubject':  'GearBrain — Feedback',
 
   // Status
   'status.closed':        '✓ CLOSED',

@@ -11,9 +11,59 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Ford",
     active:    true,
-    expertise: "Ford Transit všech generací a variant (TDCi, EcoBlue, EcoBoost, Elektro) od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR systémy)",
+    expertise: "Ford osobní a užitková vozidla všech modelových řad (Fiesta, Focus, Mondeo, Kuga, Puma, EcoSport, Mustang, Galaxy, S-MAX, Transit, Ranger) — motory EcoBoost, TDCi, EcoBlue, Duratec a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR systémy)",
     models: [
-      // ── 1. Transit (velká dodávka) ──────────────────────────────────────────
+      // ── Fiesta ──────────────────────────────────────────────────────────────
+      { group: "Fiesta" },
+      { label: "Fiesta MK6 (2006–2008)", powers: ["44 kW – 1.25 Duratec", "55 kW – 1.4 Duratec", "74 kW – 1.6 Duratec", "50 kW – 1.4 TDCi", "66 kW – 1.6 TDCi"] },
+      { label: "Fiesta MK7 (2008–2017)", powers: ["44 kW – 1.25", "60 kW – 1.25", "60 kW – 1.4", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "100 kW – 1.0 EcoBoost", "134 kW – 1.6 EcoBoost ST", "55 kW – 1.4 TDCi", "51 kW – 1.5 TDCi", "55 kW – 1.5 TDCi", "70 kW – 1.6 TDCi"] },
+      { label: "Fiesta MK8 (2017–2023)", powers: ["52 kW – 1.1 Ti-VCT", "63 kW – 1.1 Ti-VCT", "70 kW – 1.0 EcoBoost", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "100 kW – 1.0 EcoBoost mHEV", "147 kW – 1.5 EcoBoost ST", "55 kW – 1.5 TDCi", "63 kW – 1.5 EcoBlue"] },
+
+      // ── Focus ───────────────────────────────────────────────────────────────
+      { group: "Focus" },
+      { label: "Focus MK2 (2006–2010)", powers: ["59 kW – 1.4 Duratec", "74 kW – 1.6 Duratec", "92 kW – 1.6 Ti-VCT", "107 kW – 2.0 Duratec", "66 kW – 1.6 TDCi", "80 kW – 1.8 TDCi", "100 kW – 2.0 TDCi"] },
+      { label: "Focus MK2 FL (2008–2011)", powers: ["59 kW – 1.4", "74 kW – 1.6 Ti-VCT", "92 kW – 1.6 Ti-VCT", "107 kW – 2.0 Duratec", "66 kW – 1.6 TDCi", "80 kW – 1.8 TDCi", "100 kW – 2.0 TDCi", "120 kW – 2.5 Duratec RS"] },
+      { label: "Focus MK3 (2011–2018)", powers: ["63 kW – 1.0 EcoBoost", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "110 kW – 1.5 EcoBoost", "134 kW – 1.5 EcoBoost", "184 kW – 2.0 EcoBoost ST", "257 kW – 2.3 EcoBoost RS", "70 kW – 1.5 TDCi", "77 kW – 1.5 TDCi", "88 kW – 1.5 TDCi", "110 kW – 2.0 TDCi", "120 kW – 2.0 TDCi"] },
+      { label: "Focus MK4 (2018–dosud)", powers: ["63 kW – 1.0 EcoBoost", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost mHEV", "110 kW – 1.5 EcoBoost", "134 kW – 1.5 EcoBoost", "206 kW – 2.3 EcoBoost ST", "70 kW – 1.5 EcoBlue", "88 kW – 1.5 EcoBlue", "110 kW – 2.0 EcoBlue"] },
+
+      // ── Mondeo ──────────────────────────────────────────────────────────────
+      { group: "Mondeo" },
+      { label: "Mondeo MK4 (2007–2014)", powers: ["92 kW – 1.6 Ti-VCT", "107 kW – 2.0 Duratec", "149 kW – 2.5 Duratec", "162 kW – 2.0 EcoBoost", "176 kW – 2.0 EcoBoost", "74 kW – 1.6 TDCi", "85 kW – 1.8 TDCi", "96 kW – 2.0 TDCi", "103 kW – 2.0 TDCi", "120 kW – 2.0 TDCi", "130 kW – 2.2 TDCi"] },
+      { label: "Mondeo MK5 (2014–2022)", powers: ["118 kW – 1.5 EcoBoost", "140 kW – 1.5 EcoBoost", "176 kW – 2.0 EcoBoost", "138 kW – 2.0 EcoBoost HEV", "88 kW – 1.5 TDCi", "88 kW – 1.5 EcoBlue", "110 kW – 2.0 TDCi", "132 kW – 2.0 TDCi", "110 kW – 2.0 EcoBlue", "140 kW – 2.0 EcoBlue"] },
+
+      // ── Kuga ────────────────────────────────────────────────────────────────
+      { group: "Kuga" },
+      { label: "Kuga I (2008–2012)", powers: ["110 kW – 2.5 Duratec", "147 kW – 2.5 Duratec", "100 kW – 2.0 TDCi", "120 kW – 2.0 TDCi"] },
+      { label: "Kuga II (2013–2019)", powers: ["88 kW – 1.5 EcoBoost", "110 kW – 1.5 EcoBoost", "134 kW – 1.5 EcoBoost", "176 kW – 2.0 EcoBoost", "85 kW – 1.5 TDCi", "88 kW – 1.5 TDCi", "110 kW – 2.0 TDCi", "132 kW – 2.0 TDCi"] },
+      { label: "Kuga III (2020–dosud)", powers: ["88 kW – 1.5 EcoBoost", "110 kW – 1.5 EcoBoost", "140 kW – 1.5 EcoBoost mHEV", "165 kW – 2.5 Duratec FHEV", "165 kW – 2.5 Duratec PHEV", "88 kW – 1.5 EcoBlue", "110 kW – 2.0 EcoBlue", "140 kW – 2.0 EcoBlue"] },
+
+      // ── Puma ────────────────────────────────────────────────────────────────
+      { group: "Puma" },
+      { label: "Puma (2019–dosud)", powers: ["74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost mHEV", "92 kW – 1.0 EcoBoost", "114 kW – 1.0 EcoBoost mHEV", "147 kW – 1.5 EcoBoost ST", "88 kW – 1.5 EcoBlue"] },
+
+      // ── EcoSport ────────────────────────────────────────────────────────────
+      { group: "EcoSport" },
+      { label: "EcoSport (2014–2022)", powers: ["74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "103 kW – 1.5 Ti-VCT", "74 kW – 1.5 TDCi", "92 kW – 1.5 EcoBlue"] },
+
+      // ── Galaxy / S-MAX ──────────────────────────────────────────────────────
+      { group: "Galaxy / S-MAX" },
+      { label: "Galaxy MK3 (2006–2015)", powers: ["92 kW – 1.6 Ti-VCT", "118 kW – 2.0 EcoBoost", "147 kW – 2.0 EcoBoost", "85 kW – 1.8 TDCi", "96 kW – 2.0 TDCi", "103 kW – 2.0 TDCi", "120 kW – 2.0 TDCi", "130 kW – 2.2 TDCi"] },
+      { label: "Galaxy MK4 (2015–2023)", powers: ["118 kW – 1.5 EcoBoost", "176 kW – 2.0 EcoBoost", "88 kW – 1.5 TDCi", "88 kW – 1.5 EcoBlue", "110 kW – 2.0 TDCi", "132 kW – 2.0 TDCi", "110 kW – 2.0 EcoBlue", "140 kW – 2.0 EcoBlue"] },
+      { label: "S-MAX I (2006–2015)", powers: ["92 kW – 1.6 Ti-VCT", "118 kW – 2.0 EcoBoost", "147 kW – 2.0 EcoBoost", "176 kW – 2.0 EcoBoost", "85 kW – 1.8 TDCi", "96 kW – 2.0 TDCi", "103 kW – 2.0 TDCi", "120 kW – 2.0 TDCi"] },
+      { label: "S-MAX II (2015–2023)", powers: ["118 kW – 1.5 EcoBoost", "176 kW – 2.0 EcoBoost", "88 kW – 1.5 TDCi", "88 kW – 1.5 EcoBlue", "110 kW – 2.0 TDCi", "132 kW – 2.0 TDCi", "110 kW – 2.0 EcoBlue", "140 kW – 2.0 EcoBlue"] },
+
+      // ── Mustang ─────────────────────────────────────────────────────────────
+      { group: "Mustang" },
+      { label: "Mustang VI (2015–2023)", powers: ["233 kW – 2.3 EcoBoost", "310 kW – 5.0 V8 GT", "338 kW – 5.0 V8 GT", "350 kW – 5.0 V8 Mach 1", "374 kW – 5.2 V8 Shelby GT350"] },
+      { label: "Mustang VII (2024–dosud)", powers: ["231 kW – 2.3 EcoBoost", "325 kW – 5.0 V8 GT", "355 kW – 5.0 V8 Dark Horse"] },
+      { label: "Mustang Mach-E (2021–dosud)", powers: ["198 kW – Electric RWD", "216 kW – Electric AWD", "258 kW – Electric AWD ER", "346 kW – Electric GT"] },
+
+      // ── Ranger (pickup) ─────────────────────────────────────────────────────
+      { group: "Ranger" },
+      { label: "Ranger III (2011–2018)", powers: ["88 kW – 2.2 TDCi", "110 kW – 2.2 TDCi", "147 kW – 3.2 TDCi"] },
+      { label: "Ranger IV (2019–dosud)", powers: ["96 kW – 2.0 EcoBlue", "125 kW – 2.0 EcoBlue", "157 kW – 2.0 EcoBlue BiTurbo", "210 kW – 3.0 V6 EcoBoost Raptor"] },
+
+      // ── Transit (velká dodávka) ──────────────────────────────────────────
       { group: "Transit (velká dodávka)" },
       { label: "Transit MK7 2.2 TDCi (2006–2011)",        powers: ["63 kW (85 k)", "81 kW (110 k)", "85 kW (115 k)", "96 kW (130 k)", "103 kW (140 k)"] },
       { label: "Transit MK7 2.4 TDCi (2006–2011)",        powers: ["74 kW (100 k)", "85 kW (115 k)", "103 kW (140 k)"] },
