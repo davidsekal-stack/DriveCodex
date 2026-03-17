@@ -1,11 +1,10 @@
 import { jsPDF } from "jspdf";
 
 // ── Font loading (Roboto from jsDelivr CDN, cached in memory) ────────────────
-const FONT_BASE = "https://cdn.jsdelivr.net/gh/google/fonts@main/apache/roboto/static";
 const FONT_FILES = {
-  "Roboto-Regular": `${FONT_BASE}/Roboto-Regular.ttf`,
-  "Roboto-Bold":    `${FONT_BASE}/Roboto-Bold.ttf`,
-  "Roboto-Italic":  `${FONT_BASE}/Roboto-Italic.ttf`,
+  "Roboto-Regular": "https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbWmT.ttf",
+  "Roboto-Bold":    "https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuYjammT.ttf",
+  "Roboto-Italic":  "https://fonts.gstatic.com/s/roboto/v51/KFOKCnqEu92Fr1Mu53ZEC9_Vu3r1gIhOszmOClHrs6ljXfMMLoHQiA8.ttf",
 };
 
 let _fontCache = null; // { "Roboto-Regular": base64, ... }
