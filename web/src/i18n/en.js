@@ -127,6 +127,9 @@ export const strings = {
   'diag.probability':         'PROB.',
   'diag.repairProcedure':     'REPAIR PROCEDURE',
   'diag.ragInfo':             '◈ Service database: {count} similar cases considered',
+  'diag.sourceDb':            'DATABASE',
+  'diag.sourceAi':            'AI ANALYSIS',
+  'diag.dbCases':             '{count} matches',
   'diag.recommendedTests':    'RECOMMENDED TESTS',
   'diag.notes':               'NOTES',
 

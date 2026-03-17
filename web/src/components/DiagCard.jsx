@@ -1,6 +1,16 @@
-import { urgColor } from "../lib/utils.js";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
+
+// ── Source-based colors ──────────────────────────────────────────────────────
+// Green = from database (verified), Blue = AI-generated
+const SOURCE_COLORS = {
+  databáze: { accent: "#16a34a", light: "rgba(22,163,74,0.10)", border: "rgba(22,163,74,0.35)" },
+  ai:       { accent: "#1a6fd8", light: "rgba(26,111,216,0.10)", border: "rgba(26,111,216,0.35)" },
+};
+
+function sourceColor(fault) {
+  return SOURCE_COLORS[fault.zdroj] || SOURCE_COLORS.ai;
+}
 
 // ── Pomocné sub-komponenty ────────────────────────────────────────────────────
 
@@ -20,27 +30,52 @@ function ObdChip({ code, t }) {
   );
 }
 
+function SourceBadge({ fault, t, tr }) {
+  const isDb = fault.zdroj === "databáze";
+  const sc = sourceColor(fault);
+  const count = fault.shpipadů || 0;
+
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      fontSize: "0.6rem", fontWeight: 600, letterSpacing: "0.06em",
+      color: sc.accent, background: sc.light, border: `1px solid ${sc.border}`,
+      padding: "2px 8px", borderRadius: 10,
+    }}>
+      {isDb ? `◈ ${tr('diag.sourceDb')}` : `✦ ${tr('diag.sourceAi')}`}
+      {isDb && count > 0 && (
+        <span style={{ fontSize: "0.55rem", opacity: 0.8 }}>
+          ({tr('diag.dbCases', { count })})
+        </span>
+      )}
+    </span>
+  );
+}
+
 // ── Jedna závada ──────────────────────────────────────────────────────────────
 
 function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
-  const accentCol = urgColor(f.naléhavost);
+  const sc = sourceColor(f);
   return (
-    <div style={{ background: t.bgCard, border: `1px solid ${isPrimary ? t.accent : t.border}`, padding: mobile ? "12px" : "16px", borderLeft: `4px solid ${accentCol}`, marginBottom: 8, borderRadius: 2 }}>
+    <div style={{ background: t.bgCard, border: `1px solid ${isPrimary ? sc.accent : t.border}`, padding: mobile ? "12px" : "16px", borderLeft: `4px solid ${sc.accent}`, marginBottom: 8, borderRadius: 2 }}>
 
       {/* Název + pravděpodobnost */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 8, flexWrap: "wrap" }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.1rem" : "1.3rem", fontWeight: 700, color: isPrimary ? t.accent : t.text, letterSpacing: "0.04em" }}>
+          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.1rem" : "1.3rem", fontWeight: 700, color: isPrimary ? sc.accent : t.text, letterSpacing: "0.04em" }}>
             {isPrimary && "◈ "}{f.název}
           </div>
-          {f.díly?.length > 0 && (
-            <div style={{ fontSize: "0.66rem", color: t.textFaint, marginTop: 2 }}>
-              {f.díly.join(" · ")}
-            </div>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+            <SourceBadge fault={f} t={t} tr={tr} />
+            {f.díly?.length > 0 && (
+              <span style={{ fontSize: "0.66rem", color: t.textFaint }}>
+                {f.díly.join(" · ")}
+              </span>
+            )}
+          </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: mobile ? "1.2rem" : "1.5rem", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, color: f.pravděpodobnost > 70 ? t.accent : f.pravděpodobnost > 40 ? "#d97706" : t.textFaint }}>
+          <div style={{ fontSize: mobile ? "1.2rem" : "1.5rem", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, color: sc.accent }}>
             {f.pravděpodobnost}%
           </div>
           <div style={{ fontSize: "0.5rem", color: t.textFaint, letterSpacing: "0.08em" }}>{tr('diag.probability')}</div>
@@ -49,7 +84,7 @@ function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
 
       {/* Progress bar */}
       <div style={{ height: 3, background: t.probBarBg, marginBottom: 12, borderRadius: 2 }}>
-        <div style={{ height: "100%", width: `${f.pravděpodobnost}%`, background: accentCol, borderRadius: 2, transition: "width 1s ease" }} />
+        <div style={{ height: "100%", width: `${f.pravděpodobnost}%`, background: sc.accent, borderRadius: 2, transition: "width 1s ease" }} />
       </div>
 
       <div style={{ fontSize: "0.84rem", color: t.textMuted, lineHeight: 1.7, marginBottom: 10 }}>

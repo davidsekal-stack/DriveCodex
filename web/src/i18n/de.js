@@ -127,6 +127,9 @@ export const strings = {
   'diag.probability':         'WAHRSCH.',
   'diag.repairProcedure':     'REPARATURVERFAHREN',
   'diag.ragInfo':             '◈ Servicedatenbank: {count} ähnliche Fälle berücksichtigt',
+  'diag.sourceDb':            'DATENBANK',
+  'diag.sourceAi':            'KI-ANALYSE',
+  'diag.dbCases':             '{count} Treffer',
   'diag.recommendedTests':    'EMPFOHLENE TESTS',
   'diag.notes':               'ANMERKUNGEN',
 
