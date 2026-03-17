@@ -102,7 +102,6 @@ export async function pushClosedCase(kase) {
   const result = await edgeFetch('push-case', {
     local_id:        kase.id,
     user_id:         user.id,
-    installation_id: user.id,  // web uses user_id as installation_id
     vehicle_brand:   kase.vehicle?.brand || null,
     vehicle_model:   kase.vehicle?.model || null,
     mileage:         Number.isFinite(mileage) ? mileage : null,
@@ -161,7 +160,7 @@ export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, mode
     system: systemPrompt,
     messages: [{ role: 'user', content: userMessage }],
     max_tokens: maxTokens,
-    installation_id: user?.id ?? 'web-anonymous',
+    user_id: user?.id ?? 'web-anonymous',
   })
 }
 
@@ -187,7 +186,7 @@ export async function searchCases(ragInput) {
       symptoms:       ragInput.symptoms,
       obdCodes:       ragInput.obdCodes,
       text:           ragInput.text,
-      installationId: user?.id ?? 'web-anonymous',
+      userId: user?.id ?? 'web-anonymous',
     })
   } catch {
     return { cases: [], count: 0 }
