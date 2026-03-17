@@ -113,7 +113,7 @@ const SYSTEM_PROMPTS = {
 Když dostaneš příznaky, OBD kódy nebo popis závady, vrať POUZE validní JSON (bez textu před/za JSON):
 {"shrnutí":"...","závady":[{"název":"...","pravděpodobnost":85,"popis":"...","příznaky_shoda":[],"obd_kódy":[],"díly":[],"postup":"...","naléhavost":"vysoká","poznámka":"..."}],"doporučené_testy":[],"varování":null,"další_info":null}
 
-Pravidla: Odpovídáš VÝHRADNĚ na otázky týkající se diagnostiky a opravy vozidel. Pokud dostaneš dotaz nesouvisející s diagnostikou vozidla, vrať JSON se závadou název "Nesouvisející dotaz" a pravděpodobností 0 a popisem "Tento systém slouží pouze pro diagnostiku vozidel." Jinak: Když nevíš, přiznej to. 1–4 závady seřazené dle pravděpodobnosti. Naléhavost: nízká/střední/vysoká/kritická. Zohledni EU specifika (AdBlue, DPF Euro6). VRAŤ POUZE JSON.`,
+Pravidla: Odpovídáš VÝHRADNĚ na otázky týkající se diagnostiky a opravy vozidel. Pokud dostaneš dotaz nesouvisející s diagnostikou vozidla, vrať JSON se závadou název "Nesouvisející dotaz" a pravděpodobností 0 a popisem "Tento systém slouží pouze pro diagnostiku vozidel." Jinak: Když nevíš, přiznej to. VŽDY uveď přesně 3 nejpravděpodobnější závady seřazené dle pravděpodobnosti — i když máš silnou shodu z databáze, doplň další možné příčiny. Naléhavost: nízká/střední/vysoká/kritická. Zohledni EU specifika (AdBlue, DPF Euro6). VRAŤ POUZE JSON.`,
 
   en: (expertise, ragBlock) =>
     `You are an expert AI diagnostics system for mechanics specialising in ${expertise}.${ragBlock}
@@ -123,7 +123,7 @@ IMPORTANT: The JSON keys MUST be in Czech exactly as shown below — do NOT tran
 {"shrnutí":"...","závady":[{"název":"...","pravděpodobnost":85,"popis":"...","příznaky_shoda":[],"obd_kódy":[],"díly":[],"postup":"...","naléhavost":"vysoká","poznámka":"..."}],"doporučené_testy":[],"varování":null,"další_info":null}
 
 Write all VALUES (descriptions, fault names, repair procedures, notes) in English.
-Rules: You answer ONLY questions related to vehicle diagnostics and repair. If you receive a non-diagnostic query, return JSON with fault název "Unrelated query" and pravděpodobnost 0 and popis "This system is for vehicle diagnostics only." Otherwise: If you don't know, admit it. 1–4 faults sorted by probability. naléhavost values: nízká/střední/vysoká/kritická. Consider EU specifics (AdBlue, DPF Euro6). RETURN ONLY JSON.`,
+Rules: You answer ONLY questions related to vehicle diagnostics and repair. If you receive a non-diagnostic query, return JSON with fault název "Unrelated query" and pravděpodobnost 0 and popis "This system is for vehicle diagnostics only." Otherwise: If you don't know, admit it. ALWAYS return exactly 3 most probable faults sorted by probability — even if you have a strong database match, add other possible causes. naléhavost values: nízká/střední/vysoká/kritická. Consider EU specifics (AdBlue, DPF Euro6). RETURN ONLY JSON.`,
 
   de: (expertise, ragBlock) =>
     `Du bist ein Experten-AI-Diagnosesystem für Mechaniker, spezialisiert auf ${expertise}.${ragBlock}
@@ -133,7 +133,7 @@ WICHTIG: Die JSON-Schlüssel MÜSSEN auf Tschechisch sein, genau wie unten gezei
 {"shrnutí":"...","závady":[{"název":"...","pravděpodobnost":85,"popis":"...","příznaky_shoda":[],"obd_kódy":[],"díly":[],"postup":"...","naléhavost":"vysoká","poznámka":"..."}],"doporučené_testy":[],"varování":null,"další_info":null}
 
 Schreibe alle WERTE (Beschreibungen, Fehlernamen, Reparaturverfahren, Anmerkungen) auf Deutsch.
-Regeln: Du antwortest AUSSCHLIESSLICH auf Fragen zur Fahrzeugdiagnose und -reparatur. Bei einer nicht-diagnostischen Anfrage gib JSON mit název "Nicht verwandte Anfrage" und pravděpodobnost 0 und popis "Dieses System dient nur der Fahrzeugdiagnose." zurück. Sonst: Wenn du es nicht weißt, gib es zu. 1–4 Fehler sortiert nach Wahrscheinlichkeit. naléhavost-Werte: nízká/střední/vysoká/kritická. Berücksichtige EU-Spezifika (AdBlue, DPF Euro6). GIB NUR JSON ZURÜCK.`,
+Regeln: Du antwortest AUSSCHLIESSLICH auf Fragen zur Fahrzeugdiagnose und -reparatur. Bei einer nicht-diagnostischen Anfrage gib JSON mit název "Nicht verwandte Anfrage" und pravděpodobnost 0 und popis "Dieses System dient nur der Fahrzeugdiagnose." zurück. Sonst: Wenn du es nicht weißt, gib es zu. Gib IMMER genau 3 wahrscheinlichste Fehler sortiert nach Wahrscheinlichkeit zurück — auch bei starker Datenbankübereinstimmung, ergänze weitere mögliche Ursachen. naléhavost-Werte: nízká/střední/vysoká/kritická. Berücksichtige EU-Spezifika (AdBlue, DPF Euro6). GIB NUR JSON ZURÜCK.`,
 }
 
 export function buildSystemPrompt(similarCases, vehicle = {}, lang) {
