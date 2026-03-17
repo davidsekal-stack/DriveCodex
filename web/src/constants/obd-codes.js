@@ -270,17 +270,225 @@ export const BRAND_OBD_CODES = {
     "P1612", // ECU fault – EEPROM
     "P1614", // Immobilizer communication error
   ],
+
+  // ── US Market brands ────────────────────────────────────────────────────────
+
+  "Chevrolet": [
+    "P1011", // Intake camshaft position actuator park – bank 1
+    "P1014", // Exhaust camshaft position actuator park – bank 1
+    "P1101", // MAF sensor out of self-test range
+    "P1133", // HO2S insufficient switching – bank 1
+    "P1153", // HO2S insufficient switching – bank 2
+    "P1174", // Fuel trim cylinder balance – bank 1
+    "P1361", // ICM 4X reference circuit – low
+    "P1516", // Throttle actuator control module – throttle position
+    "P1689", // Traction control delivered torque output circuit
+    "P3401", // Cylinder 1 deactivation/intake valve control – stuck open (AFM/DFM)
+    "P3441", // Cylinder 5 deactivation/intake valve control – stuck open
+  ],
+  "GMC": [
+    "P1011", // Intake camshaft position actuator park – bank 1
+    "P1014", // Exhaust camshaft position actuator park – bank 1
+    "P1101", // MAF sensor out of self-test range
+    "P1133", // HO2S insufficient switching – bank 1
+    "P1153", // HO2S insufficient switching – bank 2
+    "P1174", // Fuel trim cylinder balance – bank 1
+    "P1361", // ICM 4X reference circuit – low
+    "P1516", // Throttle actuator control module – throttle position
+    "P1689", // Traction control delivered torque output circuit
+    "P3401", // Cylinder 1 deactivation – stuck open (AFM)
+    "P3441", // Cylinder 5 deactivation – stuck open
+  ],
+  "Ram": [
+    "P1128", // Closed loop fueling not achieved – bank 1
+    "P1195", // O2 sensor slow during catalyst monitor (bank 1)
+    "P1281", // Engine is cold too long (thermostat performance)
+    "P1282", // Fuel pump relay control circuit
+    "P1388", // Auto shutdown relay control circuit
+    "P1391", // Intermittent loss of CMP or CKP signal
+    "P1403", // EGR solenoid circuit (Cummins Diesel)
+    "P1488", // Auxiliary 5-volt supply output too low
+    "P1595", // Speed control switch – solenoid circuit
+    "P1693", // Fault in companion module (check companion DTC)
+    "P1F55", // ECM memory – programmed VIN does not match
+  ],
+  "Jeep": [
+    "P1128", // Closed loop fueling not achieved – bank 1
+    "P1281", // Engine cold too long – thermostat performance
+    "P1282", // Fuel pump relay control circuit
+    "P1388", // Auto shutdown relay control circuit
+    "P1391", // Intermittent loss of CMP or CKP signal
+    "P1480", // Cooling fan relay 1 – circuit
+    "P1486", // EVAP leak monitor pinched hose found
+    "P1490", // Low speed fuel pump relay circuit
+    "P1595", // Speed control solenoid circuit
+    "P1693", // Fault in companion module
+    "P155A", // 4WD switch circuit (low range)
+  ],
+  "Dodge": [
+    "P1128", // Closed loop fueling not achieved – bank 1
+    "P1281", // Engine cold too long – thermostat performance
+    "P1282", // Fuel pump relay control circuit
+    "P1388", // Auto shutdown relay control circuit
+    "P1391", // Intermittent loss of CMP or CKP signal
+    "P1486", // EVAP leak monitor – pinched hose
+    "P1595", // Speed control solenoid circuit
+    "P1693", // Fault in companion module
+    "P1762", // Governor pressure sensor offset – volts low
+    "P1899", // Park/neutral switch stuck in park or in gear
+  ],
+  "Chrysler": [
+    "P1128", // Closed loop fueling not achieved – bank 1
+    "P1281", // Engine cold too long – thermostat
+    "P1388", // Auto shutdown relay control circuit
+    "P1391", // Intermittent loss of CMP or CKP signal
+    "P1480", // Cooling fan relay 1 circuit
+    "P1486", // EVAP leak monitor – pinched hose
+    "P1595", // Speed control solenoid circuit
+    "P1693", // Fault in companion module
+    "P1790", // Fault after inhibit or after battery disconnect
+    "P1899", // Park/neutral switch stuck
+  ],
+  "Honda": [
+    "P1009", // Variable valve timing control advance malfunction
+    "P1077", // IMRC system malfunction – low RPM
+    "P1078", // IMRC system malfunction – high RPM
+    "P1157", // A/F sensor (primary O2) – circuit malfunction (bank 2)
+    "P1241", // Paired injector circuit (cyl 1–4 pair) malfunction
+    "P1253", // VTEC system malfunction
+    "P1259", // VTEC system malfunction (bank 1 sensor)
+    "P1297", // Electrical load detector circuit – low input
+    "P1298", // Electrical load detector circuit – high input
+    "P1399", // Random/multiple misfire detected (Honda-specific)
+    "P1457", // EVAP control system leak in fuel tank
+  ],
+  "Acura": [
+    "P1009", // Variable valve timing advance malfunction
+    "P1077", // IMRC malfunction – low RPM
+    "P1157", // A/F sensor circuit malfunction (bank 2)
+    "P1253", // VTEC system malfunction
+    "P1259", // VTEC oil pressure switch (bank 1)
+    "P1279", // VTEC oil pressure switch (bank 2)
+    "P1297", // Electrical load detector – low input
+    "P1298", // Electrical load detector – high input
+    "P1399", // Random/multiple misfire (Acura-specific)
+    "P1457", // EVAP leak – fuel tank
+    "P1491", // EGR valve insufficient lift
+  ],
+  "Subaru": [
+    "P1086", // Tumble generator valve position sensor 1 – low
+    "P1087", // Tumble generator valve position sensor 1 – high
+    "P1088", // Tumble generator valve position sensor 2 – low
+    "P1089", // Tumble generator valve position sensor 2 – high
+    "P1092", // Tumble generator valve actuator 1 – open circuit
+    "P1093", // Tumble generator valve actuator 2 – open circuit
+    "P1130", // Front O2 sensor – circuit range/performance
+    "P1390", // Timing over-retarded – bank 1
+    "P1443", // EVAP canister purge control valve – electrical
+    "P1491", // EGR valve – solenoid circuit
+    "P1560", // Backup power supply circuit
+  ],
+  "Mazda": [
+    "P1170", // Front HO2S – stuck at mid-range
+    "P1195", // Barometric pressure sensor (BARO) circuit
+    "P1250", // Pressure regulator control solenoid – circuit
+    "P1345", // Variable swirl control valve actuator circuit
+    "P1410", // EGR valve position sensor circuit
+    "P1414", // Secondary air injection – bank 2 system
+    "P1442", // EVAP control system – small leak
+    "P1443", // EVAP canister purge valve – solenoid circuit
+    "P1510", // Throttle control – MFI (ETC system)
+    "P1521", // Variable intake air (VIAS) control solenoid
+    "P1523", // Variable intake air (VIAS) control solenoid – stuck
+  ],
+  "Cadillac": [
+    "P1011", // Intake camshaft position actuator park – bank 1
+    "P1014", // Exhaust camshaft position actuator park – bank 1
+    "P1101", // MAF sensor out of self-test range
+    "P1133", // HO2S insufficient switching – bank 1
+    "P1516", // Throttle actuator control module – throttle position
+    "P1571", // Traction control request circuit
+    "P1689", // Traction control delivered torque output circuit
+    "P3401", // Cylinder 1 deactivation – stuck open (AFM)
+    "P3441", // Cylinder 5 deactivation – stuck open
+    "P161B", // Supercharger coolant pump relay circuit (Blackwing)
+  ],
+  "Buick": [
+    "P1011", // Intake camshaft position actuator park – bank 1
+    "P1101", // MAF sensor out of self-test range
+    "P1133", // HO2S insufficient switching – bank 1
+    "P1153", // HO2S insufficient switching – bank 2
+    "P1174", // Fuel trim cylinder balance – bank 1
+    "P1516", // Throttle actuator control module
+    "P1689", // Traction control delivered torque output circuit
+    "P0299", // Turbo underboost – very common on 1.4/1.5T Ecotec
+    "P0171", // System lean – common on 1.4/1.5T with direct injection
+  ],
+  "Lincoln": [
+    "P1000", // OBD monitor testing not complete
+    "P1131", // Lack of HO2S switch – lean (bank 1)
+    "P1151", // Lack of HO2S switch – lean (bank 2)
+    "P1299", // Cylinder head overtemperature protection
+    "P1450", // Unable to bleed up fuel tank vacuum
+    "P1516", // Throttle actuator control module
+    "P1633", // KAM voltage too low
+    "P1744", // Torque converter clutch system performance
+    "P2008", // Intake manifold runner control circuit
+    "P2196", // O2 sensor signal biased/stuck rich (bank 1)
+  ],
+  "Lexus": [
+    "P1120", // Accelerator pedal position sensor – circuit malfunction
+    "P1121", // Accelerator pedal sensor range/performance
+    "P1300", // Igniter circuit malfunction – No. 1
+    "P1310", // Igniter circuit malfunction – No. 2
+    "P1346", // VVT-i sensor range/performance (bank 1)
+    "P1349", // VVT-i system malfunction (bank 1)
+    "P1604", // Startability malfunction
+    "P1633", // ECM backup power source circuit
+    "P1656", // OCV assembly (bank 1)
+    "P1780", // Park/neutral position switch – illegal input
+  ],
+  "Infiniti": [
+    "P1148", // Closed loop control function (bank 1)
+    "P1168", // Closed loop control function (bank 2)
+    "P1320", // Primary ignition signal circuit
+    "P1336", // Crankshaft position sensor (CKPS) learned value
+    "P1402", // EGR system function
+    "P1444", // EVAP canister purge volume control valve
+    "P1610", // Immobilizer NATS – lock mode
+    "P1614", // NATS ECM communication
+    "P1900", // Cooling fan – intermittent malfunction
+    "P1804", // 4WD solenoid circuit (QX80)
+  ],
+  "Genesis": [
+    "P1121", // Throttle position sensor – intermittent signal
+    "P1128", // Throttle control motor position sensor
+    "P1295", // EGI main relay circuit fault
+    "P1307", // Chassis acceleration sensor signal fault
+    "P1386", // Knock sensor 2 peak timing error
+    "P1449", // Canister close valve circuit
+    "P1505", // Idle speed actuator – opening malfunction
+    "P1513", // Idle speed actuator – closing malfunction
+    "P1610", // Immobilizer – ECU code not stored
+    "P0A80", // Replace hybrid/HV battery pack (Genesis electrified)
+  ],
 }
 
 // ── Detekce technologie motoru z enginePower stringu ────────────────────────
 
-const DIESEL_RE = /\b(TDI|HDi|CDI|dCi|CRDi|D-4D|MultiJet|BlueHDi|CRDI|JTD|JTDM|Duratorq|EcoBlue|2\.0d|3\.0d|1\.5d|1\.6d|2\.2d)\b/i
-const TURBO_RE  = /\b(TSI|TFSI|T-GDI|T-GDi|TCe|THP|PureTech|T-Jet|Turbo|EcoBoost|N[0-9]{2}[A-Z]?|B[0-9]{2}[A-Z]?|FireFly T|DIG-T|MultiAir)\b/i
-const ELEC_RE   = /\b(Electric|EV|BEV|e-tron|iD|ID\.|e-208|e-C4|Niro EV|IONIQ|Model [3SXY]|e-Ducato|e-Berlingo)\b/i
-const HYBRID_RE = /\b(Hybrid|PHEV|HEV|GTE|e-TSI|e-HDi|E-TECH|PlugIn|Plug-In)\b/i
-const ADBLUE_RE = /\b(TDI|CDI|dCi|CRDi|D-4D|MultiJet|BlueHDi|CRDI|JTD|JTDM|EcoBlue|SCR)\b/i
+// EU + US engine technology detection
+// Diesel: EU (TDI, CDI, dCi…) + US (Duramax, Cummins, EcoDiesel, PowerStroke)
+const DIESEL_RE = /\b(TDI|HDi|CDI|dCi|CRDi|D-4D|MultiJet|BlueHDi|CRDI|JTD|JTDM|Duratorq|EcoBlue|2\.0d|3\.0d|1\.5d|1\.6d|2\.2d|Duramax|Cummins|EcoDiesel|PowerStroke|Power Stroke|Diesel I4|Diesel I6|Diesel V6)\b/i
+// Turbo: EU (TSI, TFSI, TCe…) + US (EcoBoost, Hurricane, VC-Turbo, Supercharged, Twin Turbo…)
+const TURBO_RE  = /\b(TSI|TFSI|T-GDI|T-GDi|TCe|THP|PureTech|T-Jet|Turbo|EcoBoost|N[0-9]{2}[A-Z]?|B[0-9]{2}[A-Z]?|FireFly T|DIG-T|MultiAir|SkyActiv Turbo|VC-Turbo|Hurricane|Twin Turbo|TwinTurbo|Supercharged|Hellcat|Redeye|Blackwing|EcoTec Turbo|Ecotec Turbo)\b/i
+// Electric: EU + US (Electrified, Dual Motor, Single Motor, Mach-E…)
+const ELEC_RE   = /\b(Electric|EV|BEV|e-tron|iD|ID\.|e-208|e-C4|Niro EV|IONIQ|Model [3SXY]|e-Ducato|e-Berlingo|Electrified|Dual Motor|Single Motor|Mach-E)\b/i
+// Hybrid: EU + US (eTorque, 4xe, i-MMD, e-Boxer, IMA…)
+const HYBRID_RE = /\b(Hybrid|PHEV|HEV|GTE|e-TSI|e-HDi|E-TECH|PlugIn|Plug-In|eTorque|4xe|i-MMD|e-Boxer|Plug-in|IMA|Sport Hybrid|SH-AWD Hybrid|FHEV)\b/i
+// AdBlue/DEF: EU + US diesels requiring urea injection (Duramax L5P, Cummins, EcoDiesel 3.0)
+const ADBLUE_RE = /\b(TDI|CDI|dCi|CRDi|D-4D|MultiJet|BlueHDi|CRDI|JTD|JTDM|EcoBlue|SCR|Duramax|Cummins|EcoDiesel|PowerStroke|Power Stroke)\b/i
 
-// Tesla je vždy elektrický
+// Značky vždy elektrické (žádné ICE)
 const ELECTRIC_BRANDS = ["Tesla"]
 
 /**
