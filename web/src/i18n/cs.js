@@ -127,6 +127,9 @@ export const strings = {
   'diag.probability':         'PRAVDĚP.',
   'diag.repairProcedure':     'POSTUP OPRAVY',
   'diag.ragInfo':             '◈ Databáze servisu: {count} podobných případů zohledněno',
+  'diag.sourceDb':            'DATABÁZE',
+  'diag.sourceAi':            'AI ANALÝZA',
+  'diag.dbCases':             '{count} shod',
   'diag.recommendedTests':    'DOPORUČENÉ TESTY',
   'diag.notes':               'POZNÁMKY',
 
