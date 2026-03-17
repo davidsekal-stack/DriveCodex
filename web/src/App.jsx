@@ -524,7 +524,7 @@ function App() {
                           <div onClick={() => setPdfMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
                           <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.25)", zIndex: 60, minWidth: 180, overflow: "hidden" }}>
                             {PDF_VARIANTS.map((v) => (
-                              <button key={v} onClick={() => { setPdfMenu(false); exportCasePdf(activeCase, lang, tr, v); }}
+                              <button key={v} onClick={() => { setPdfMenu(false); exportCasePdf(activeCase, lang, tr, v).catch(e => console.error("PDF export failed:", e)); }}
                                 style={{ display: "block", width: "100%", textAlign: "left", background: "transparent", border: "none", borderBottom: `1px solid ${t.border}`, color: t.text, padding: "9px 14px", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
                                 onMouseEnter={(e) => { e.currentTarget.style.background = t.bgSelected; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
