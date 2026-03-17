@@ -175,6 +175,16 @@ export async function sendFeedback(message, lang) {
   })
 }
 
+// ── Global closed case count (for RAG counter) ────────────────────────────────
+
+export async function getGlobalCaseCount() {
+  const { count, error } = await supabase
+    .from('gearbrain_cases')
+    .select('*', { count: 'exact', head: true })
+  if (error) throw error
+  return count ?? 0
+}
+
 // ── Search cases via Edge Function ─────────────────────────────────────────────
 
 export async function searchCases(ragInput) {
