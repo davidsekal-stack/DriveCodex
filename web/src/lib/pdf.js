@@ -206,9 +206,9 @@ function makeCtx(doc, font) {
   const drawStripe = (x, w, color) => {
     const endPage = doc.internal.getNumberOfPages();
     const curY = y;
-    doc.setFillColor(...color);
     for (let p = pageAtStart; p <= endPage; p++) {
       doc.setPage(p);
+      doc.setFillColor(...color); // must re-set after setPage
       const top = p === pageAtStart ? stripeStartY : PAGE.mt;
       const bot = p === endPage ? curY : PAGE.h - PAGE.mb;
       if (bot > top) doc.rect(x, top, w, bot - top, "F");
