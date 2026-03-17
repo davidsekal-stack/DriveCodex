@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { uid } from "../lib/utils.js";
-import { EMPTY_VEHICLE } from "../constants/index.js";
 import * as storage from "../lib/storage.js";
 
 /**

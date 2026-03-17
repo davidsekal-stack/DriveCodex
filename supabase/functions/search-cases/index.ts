@@ -82,7 +82,7 @@ function rowToCase(row: any) {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
-  // CORS pro Electron (file:// origin)
+  // CORS
   const corsHeaders = {
     'Access-Control-Allow-Origin':  '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
             'Authorization': `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model:      'deepseek-reasoner',
+            model:      'deepseek-chat',
             max_tokens: 300,
             messages: [{
               role:    'user',

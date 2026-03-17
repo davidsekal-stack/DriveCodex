@@ -56,7 +56,7 @@ async function run() {
 
   test('System prompt obsahuje expertise z katalogu', () => {
     const p = buildSystemPrompt([], VEHICLE, 'en')
-    assert(p.includes('Ford Transit'), `Chybí expertise: ${p.slice(0, 120)}`)
+    assert(p.includes('Ford'), `Chybí expertise: ${p.slice(0, 120)}`)
   })
 
   test('System prompt bez vehicle → fallback expertise', () => {

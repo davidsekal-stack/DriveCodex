@@ -3,7 +3,10 @@
   "version": "2.0.0",
   "description": "GearBrain – AI Diagnostika Ford Transit EU (web)",
   "scripts": {
-    "test": "node tests/i18n.test.js && node tests/utils-i18n.test.js && node tests/validation-i18n.test.js && node tests/ai-i18n.test.js"
+    "test": "node tests/i18n.test.js && node tests/utils-i18n.test.js && node tests/validation-i18n.test.js && node tests/ai-i18n.test.js && node tests/unit.test.js",
+    "test:unit": "node tests/unit.test.js",
+    "test:integration": "node tests/supabase-integration.test.js",
+    "test:all": "npm test && npm run test:integration"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
