@@ -210,6 +210,18 @@ function App() {
       if (!parsed)                throw new Error(tr('app.aiUnreadable'));
       if (!parsed.závady?.length) throw new Error(tr('app.noFaults'));
 
+      // Enforce exactly 3 faults — pad with placeholder if AI returned fewer
+      while (parsed.závady.length < 3) {
+        const idx = parsed.závady.length + 1;
+        parsed.závady.push({
+          název: tr('diag.additionalCause', { num: idx }),
+          pravděpodobnost: Math.max(5, (parsed.závady[parsed.závady.length - 1]?.pravděpodobnost ?? 20) - 15),
+          popis: tr('diag.additionalCauseDesc'),
+          příznaky_shoda: [], obd_kódy: [], díly: [], postup: "", naléhavost: "nízká",
+          poznámka: tr('diag.additionalCauseNote'), zdroj: "ai", shpipadů: 0,
+        });
+      }
+
       const usedTokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
 
       const diagMsg = { id: uid(), type: "diagnosis", result: parsed, ragMatchIds: similar.map((s) => s.id), tokensUsed: usedTokens, timestamp: new Date().toISOString() };

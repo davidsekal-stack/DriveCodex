@@ -130,6 +130,9 @@ export const strings = {
   'diag.sourceDb':            'DATABÁZE',
   'diag.sourceAi':            'AI ANALÝZA',
   'diag.dbCases':             '{count} shod',
+  'diag.additionalCause':     'Další možná příčina #{num}',
+  'diag.additionalCauseDesc': 'AI model neidentifikoval dostatek alternativních příčin. Doporučujeme konzultovat s technikem.',
+  'diag.additionalCauseNote': 'Doplněno automaticky — AI vrátil méně než 3 závady.',
   'diag.recommendedTests':    'DOPORUČENÉ TESTY',
   'diag.notes':               'POZNÁMKY',
 

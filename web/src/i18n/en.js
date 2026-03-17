@@ -130,6 +130,9 @@ export const strings = {
   'diag.sourceDb':            'DATABASE',
   'diag.sourceAi':            'AI ANALYSIS',
   'diag.dbCases':             '{count} matches',
+  'diag.additionalCause':     'Additional possible cause #{num}',
+  'diag.additionalCauseDesc': 'AI model did not identify enough alternative causes. Consult a technician.',
+  'diag.additionalCauseNote': 'Auto-generated — AI returned fewer than 3 faults.',
   'diag.recommendedTests':    'RECOMMENDED TESTS',
   'diag.notes':               'NOTES',
 

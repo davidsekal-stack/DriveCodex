@@ -130,6 +130,9 @@ export const strings = {
   'diag.sourceDb':            'DATENBANK',
   'diag.sourceAi':            'KI-ANALYSE',
   'diag.dbCases':             '{count} Treffer',
+  'diag.additionalCause':     'Weitere mögliche Ursache #{num}',
+  'diag.additionalCauseDesc': 'Das KI-Modell hat nicht genügend alternative Ursachen identifiziert. Konsultieren Sie einen Techniker.',
+  'diag.additionalCauseNote': 'Automatisch ergänzt — KI lieferte weniger als 3 Fehler.',
   'diag.recommendedTests':    'EMPFOHLENE TESTS',
   'diag.notes':               'ANMERKUNGEN',
 
