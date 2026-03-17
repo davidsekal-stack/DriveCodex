@@ -85,6 +85,12 @@ export const strings = {
   'app.userObd':          'OBD kódy',
   'app.userMechDesc':     'Popis mechanika',
 
+  // GDPR consent
+  'consent.text':         'Tato aplikace ukládá vaše diagnostické případy do anonymní databáze pro zlepšení výsledků. Osobní údaje (email) slouží pouze k přihlášení. Žádná data neprodáváme třetím stranám.',
+  'consent.privacy':      'Zásady ochrany osobních údajů',
+  'consent.accept':       'Souhlasím',
+  'consent.decline':      'Odmítnout',
+
   // Feedback
   'app.feedback':         '✉ Zpětná vazba',
   'app.feedbackSubject':  'GearBrain — Zpětná vazba',

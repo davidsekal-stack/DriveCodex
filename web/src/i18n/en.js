@@ -85,6 +85,12 @@ export const strings = {
   'app.userObd':          'OBD codes',
   'app.userMechDesc':     'Mechanic description',
 
+  // GDPR consent
+  'consent.text':         'This app stores your diagnostic cases in an anonymous database to improve results for all users. Personal data (email) is used only for authentication. We do not sell any data to third parties.',
+  'consent.privacy':      'Privacy Policy',
+  'consent.accept':       'I agree',
+  'consent.decline':      'Decline',
+
   // Feedback
   'app.feedback':         '✉ Feedback',
   'app.feedbackSubject':  'GearBrain — Feedback',
