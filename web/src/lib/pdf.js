@@ -117,6 +117,17 @@ function safeTxt(str) {
     .replace(/⚠/g, "/!\\");
 }
 
+/** Translate urgency values (always Czech from AI) to selected language */
+const URGENCY_MAP = {
+  cs: { "nízká": "NÍZKÁ", "střední": "STŘEDNÍ", "vysoká": "VYSOKÁ", "kritická": "KRITICKÁ" },
+  en: { "nízká": "LOW", "střední": "MEDIUM", "vysoká": "HIGH", "kritická": "CRITICAL" },
+  de: { "nízká": "NIEDRIG", "střední": "MITTEL", "vysoká": "HOCH", "kritická": "KRITISCH" },
+};
+function trUrgency(val, lang) {
+  if (!val) return "";
+  return (URGENCY_MAP[lang] || URGENCY_MAP.cs)[val.toLowerCase()] || val.toUpperCase();
+}
+
 function initDoc(fonts) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   if (fonts) {
@@ -377,7 +388,7 @@ function renderMessages(doc, ctx, activeCase, lang, tr, F, variant) {
     }
     if (msg.type === "diagnosis") {
       diagNum++;
-      renderDiagnosis(doc, ctx, msg, diagNum, tr, F, variant);
+      renderDiagnosis(doc, ctx, msg, diagNum, lang, tr, F, variant);
     }
   }
 }
@@ -423,7 +434,7 @@ function renderInput(doc, ctx, msg, num, tr, F, variant) {
   ctx.y += 3;
 }
 
-function renderDiagnosis(doc, ctx, msg, num, tr, F, variant) {
+function renderDiagnosis(doc, ctx, msg, num, lang, tr, F, variant) {
   ctx.checkPage(14);
   ctx.y += 3;
 
@@ -452,11 +463,11 @@ function renderDiagnosis(doc, ctx, msg, num, tr, F, variant) {
       ctx.checkPage(22);
 
       if (variant === "service") {
-        renderFaultService(doc, ctx, f, fi, tr, F);
+        renderFaultService(doc, ctx, f, fi, tr, F, lang);
       } else if (variant === "technical") {
-        renderFaultTechnical(doc, ctx, f, fi, tr, F);
+        renderFaultTechnical(doc, ctx, f, fi, tr, F, lang);
       } else {
-        renderFaultMinimalist(doc, ctx, f, fi, tr, F);
+        renderFaultMinimalist(doc, ctx, f, fi, tr, F, lang);
       }
 
       ctx.y += 3;
@@ -496,79 +507,83 @@ function renderDiagnosis(doc, ctx, msg, num, tr, F, variant) {
 
 // ── Fault renderers per variant ──────────────────────────────────────────────
 
-function renderFaultService(doc, ctx, f, fi, tr, F) {
-  const stripeX = PAGE.mx;
+function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
+  const x0 = PAGE.mx;       // all content aligned to left margin
+  const textW = CW;          // full content width
   const stripeTop = ctx.y - 1;
 
   // Name + probability
   doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
-  doc.text(`${fi + 1}.`, stripeX + 4, ctx.y);
-  const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), CW - 35);
-  doc.text(nameLines[0] || "", stripeX + 12, ctx.y);
+  doc.text(`${fi + 1}.`, x0, ctx.y);
+  const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), textW - 35);
+  doc.text(nameLines[0] || "", x0 + 8, ctx.y);
   doc.setTextColor(C.mid);
   doc.text(`${f.pravděpodobnost}%`, PAGE.w - PAGE.mx, ctx.y, { align: "right" });
   ctx.y += 4.5;
 
-  // Urgency + bar
+  // Urgency (text only, no bar)
   if (f.naléhavost) {
     doc.setFontSize(FS.tiny); doc.setFont(F, "normal"); doc.setTextColor(C.mid);
-    doc.text(safeTxt(f.naléhavost.toUpperCase()), stripeX + 4, ctx.y);
-    const barX = stripeX + 30, barW = 36;
-    doc.setFillColor(230, 230, 230); doc.rect(barX, ctx.y - 2.5, barW, 2.5, "F");
-    const fillW = barW * Math.min(f.pravděpodobnost || 0, 100) / 100;
-    const gray = f.pravděpodobnost > 70 ? 50 : f.pravděpodobnost > 40 ? 100 : 150;
-    doc.setFillColor(gray, gray, gray); doc.rect(barX, ctx.y - 2.5, fillW, 2.5, "F");
+    doc.text(trUrgency(f.naléhavost, lang), x0, ctx.y);
     ctx.y += 3.5;
   }
 
   // Parts
   if (f.díly?.length > 0) {
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.light);
-    doc.text(safeTxt(f.díly.join(" · ")), stripeX + 4, ctx.y); ctx.y += LH.small;
+    doc.text(safeTxt(f.díly.join(" · ")), x0, ctx.y); ctx.y += LH.small;
   }
 
   // Description
-  if (f.popis) { ctx.text(f.popis, stripeX + 4, CW - 6, FS.body, C.dark); ctx.y += 1; }
+  if (f.popis) { ctx.text(f.popis, x0, textW, FS.body, C.dark); ctx.y += 1; }
 
   // OBD codes
   if (f.obd_kódy?.length > 0) {
     ctx.checkPage(6);
     doc.setFont(F, "bold"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
-    doc.text(f.obd_kódy.join("  "), stripeX + 4, ctx.y); ctx.y += 4;
+    doc.text(f.obd_kódy.join("  "), x0, ctx.y); ctx.y += 4;
   }
 
-  // Repair procedure box
+  // Repair procedure box — measure first, then draw
   if (f.postup) {
     ctx.checkPage(12);
-    const procY = ctx.y;
-    const procLines = doc.splitTextToSize(safeTxt(f.postup), CW - 12);
-    const procH = procLines.length * LH.small + 8;
-    doc.setFillColor(248, 248, 248); doc.rect(stripeX + 2, procY - 2, CW - 4, procH, "F");
-    doc.setDrawColor(C.rule); doc.setLineWidth(0.2); doc.rect(stripeX + 2, procY - 2, CW - 4, procH, "S");
+    doc.setFont(F, "normal"); doc.setFontSize(FS.small);
+    const procLines = doc.splitTextToSize(safeTxt(f.postup), textW - 10);
+    const labelH = 5;       // space for "REPAIR PROCEDURE" label
+    const textH = procLines.length * LH.small;
+    const padTop = 3, padBot = 3;
+    const boxH = padTop + labelH + textH + padBot;
+
+    const boxY = ctx.y;
+    doc.setFillColor(248, 248, 248); doc.rect(x0, boxY, textW, boxH, "F");
+    doc.setDrawColor(C.rule); doc.setLineWidth(0.2); doc.rect(x0, boxY, textW, boxH, "S");
+
+    ctx.y = boxY + padTop;
     doc.setFont(F, "bold"); doc.setFontSize(FS.tiny); doc.setTextColor(C.mid);
-    doc.text(safeTxt(tr("diag.repairProcedure")), stripeX + 5, ctx.y + 1);
-    ctx.y += 5;
+    doc.text(safeTxt(tr("diag.repairProcedure")), x0 + 3, ctx.y + 2);
+    ctx.y += labelH;
+
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.dark);
-    for (const line of procLines) { doc.text(line, stripeX + 5, ctx.y); ctx.y += LH.small; }
-    ctx.y += 2;
+    for (const line of procLines) { doc.text(line, x0 + 3, ctx.y); ctx.y += LH.small; }
+    ctx.y = boxY + boxH + 2;
   }
 
   // Note
   if (f.poznámka) {
     ctx.checkPage(6);
     doc.setFont(F, "italic"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);
-    const nLines = doc.splitTextToSize(safeTxt(f.poznámka), CW - 8);
-    for (const line of nLines) { ctx.checkPage(4); doc.text(line, stripeX + 4, ctx.y); ctx.y += LH.small; }
+    const nLines = doc.splitTextToSize(safeTxt(f.poznámka), textW);
+    for (const line of nLines) { ctx.checkPage(4); doc.text(line, x0, ctx.y); ctx.y += LH.small; }
   }
 
   // Left accent stripe
   const stripeBottom = ctx.y;
   const stripeGray = f.pravděpodobnost > 70 ? 60 : f.pravděpodobnost > 40 ? 120 : 180;
   doc.setFillColor(stripeGray, stripeGray, stripeGray);
-  doc.rect(stripeX, stripeTop, 1.5, stripeBottom - stripeTop, "F");
+  doc.rect(x0 - 1.5, stripeTop, 1.5, stripeBottom - stripeTop, "F");
 }
 
-function renderFaultTechnical(doc, ctx, f, fi, tr, F) {
+function renderFaultTechnical(doc, ctx, f, fi, tr, F, lang) {
   const cardY = ctx.y;
   const innerX = PAGE.mx + 4;
   const innerW = CW - 8;
@@ -583,7 +598,7 @@ function renderFaultTechnical(doc, ctx, f, fi, tr, F) {
 
   if (f.naléhavost) {
     doc.setFont(F, "normal"); doc.setFontSize(FS.tiny); doc.setTextColor(C.mid);
-    doc.text(safeTxt(`${tr("diag.probability")}: ${f.naléhavost.toUpperCase()}`), innerX, ctx.y);
+    doc.text(safeTxt(`${tr("diag.probability")}: ${trUrgency(f.naléhavost, lang)}`), innerX, ctx.y);
     ctx.y += LH.small;
   }
 
@@ -628,7 +643,7 @@ function renderFaultTechnical(doc, ctx, f, fi, tr, F) {
   doc.line(PAGE.mx, cardY, PAGE.w - PAGE.mx, cardY);
 }
 
-function renderFaultMinimalist(doc, ctx, f, fi, tr, F) {
+function renderFaultMinimalist(doc, ctx, f, fi, tr, F, lang) {
   // Name + percentage
   doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
   const nameLines = doc.splitTextToSize(safeTxt(f.název || ""), CW - 30);
@@ -639,7 +654,7 @@ function renderFaultMinimalist(doc, ctx, f, fi, tr, F) {
 
   // Meta items
   const metaItems = [];
-  if (f.naléhavost) metaItems.push(f.naléhavost);
+  if (f.naléhavost) metaItems.push(trUrgency(f.naléhavost, lang));
   if (f.díly?.length > 0) metaItems.push(f.díly.join(" · "));
   for (const item of metaItems) {
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.mid);

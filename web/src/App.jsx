@@ -222,6 +222,16 @@ function App() {
         });
       }
 
+      // Override AI's shpipadů with actual RAG match count (AI can hallucinate numbers)
+      const actualDbCount = similar.length;
+      for (const fault of parsed.závady) {
+        if (fault.zdroj === "databáze") {
+          fault.shpipadů = actualDbCount;
+        } else {
+          fault.shpipadů = 0;
+        }
+      }
+
       const usedTokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
 
       const diagMsg = { id: uid(), type: "diagnosis", result: parsed, ragMatchIds: similar.map((s) => s.id), tokensUsed: usedTokens, timestamp: new Date().toISOString() };
