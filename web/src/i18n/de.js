@@ -85,6 +85,12 @@ export const strings = {
   'app.userObd':          'OBD-Codes',
   'app.userMechDesc':     'Mechanikerbeschreibung',
 
+  // GDPR consent
+  'consent.text':         'Diese App speichert Ihre Diagnosefälle in einer anonymen Datenbank, um die Ergebnisse für alle Benutzer zu verbessern. Personenbezogene Daten (E-Mail) dienen nur zur Anmeldung. Wir verkaufen keine Daten an Dritte.',
+  'consent.privacy':      'Datenschutzrichtlinie',
+  'consent.accept':       'Einverstanden',
+  'consent.decline':      'Ablehnen',
+
   // Feedback
   'app.feedback':         '✉ Feedback',
   'app.feedbackSubject':  'GearBrain — Feedback',

@@ -13,6 +13,7 @@ import InputForm, { FollowUpPrompt }        from "./components/InputForm.jsx";
 import LoginPage                            from "./components/LoginPage.jsx";
 import ErrorBoundary                        from "./components/ErrorBoundary.jsx";
 import ConfirmModal                         from "./components/ConfirmModal.jsx";
+import ConsentBanner, { hasConsent }        from "./components/ConsentBanner.jsx";
 import useCases                             from "./hooks/useCases.js";
 import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
@@ -286,7 +287,7 @@ function App() {
     const closedAt = new Date().toISOString();
     updateCase(activeId, () => ({ status: "uzavřený", closedAt, resolution: resText }));
 
-    if (currentCase) {
+    if (currentCase && hasConsent()) {
       const fullCase = { ...currentCase, status: "uzavřený", closedAt, resolution: resText };
       storage.pushClosedCase(fullCase)
         .then((result) => { if (!result.ok) console.warn('[rag push]', result.error); })
@@ -845,6 +846,9 @@ function App() {
           onCancel={() => setDeleteId(null)}
         />
       )}
+
+      {/* ── GDPR Consent Banner ── */}
+      <ConsentBanner t={t} />
     </div>
   );
 }
