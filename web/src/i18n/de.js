@@ -87,7 +87,7 @@ export const strings = {
   // Feedback
   'app.feedback':         '✉ Feedback',
   'app.feedbackSubject':  'GearBrain — Feedback',
-  'app.feedbackPlaceholder': 'Schreiben Sie uns Ihr Feedback...',
+  'app.feedbackPlaceholder': 'Feedback...',
   'app.feedbackSend':     'Senden',
   'app.feedbackSent':     'Gesendet, vielen Dank!',
   'app.feedbackError':    'Senden fehlgeschlagen',
