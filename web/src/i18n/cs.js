@@ -87,7 +87,7 @@ export const strings = {
   // Feedback
   'app.feedback':         '✉ Zpětná vazba',
   'app.feedbackSubject':  'GearBrain — Zpětná vazba',
-  'app.feedbackPlaceholder': 'Napište nám zpětnou vazbu...',
+  'app.feedbackPlaceholder': 'Zpětná vazba...',
   'app.feedbackSend':     'Odeslat',
   'app.feedbackSent':     'Odesláno, děkujeme!',
   'app.feedbackError':    'Nepodařilo se odeslat',
