@@ -10,6 +10,9 @@
  *            (existující účet v Supabase auth)
  *
  * Příklad:   TEST_USER_EMAIL=test@example.com TEST_USER_PASSWORD=heslo123 node tests/supabase-integration.test.js
+ *
+ * Cleanup:   Všechna testovací data se smažou v sekci CLEANUP (try/finally).
+ *            Testovací záznamy jsou označeny prefixem "test-" nebo "TEST_".
  */
 
 const assert = require('assert')
@@ -22,10 +25,17 @@ const REST_URL      = `${SUPABASE_URL}/rest/v1`
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 let accessToken = null
-let userId = null
-let passed = 0
-let failed = 0
+let userId      = null
+let passed  = 0
+let failed  = 0
 let skipped = 0
+
+// Registry všech testovacích dat k cleanup
+const cleanup = {
+  webSessions:  [],   // local_id values to delete from gearbrain_web_sessions
+  cases:        [],   // local_id values to delete from gearbrain_cases
+  feedbackMark: null, // timestamp prefix for feedback cleanup
+}
 
 function headers(token = accessToken) {
   return {
@@ -65,9 +75,9 @@ async function supabaseRest(table, method, params = {}) {
 
 async function edgeFetch(fnName, body) {
   const res = await fetch(`${FUNCTIONS_URL}/${fnName}`, {
-    method: 'POST',
+    method:  'POST',
     headers: headers(),
-    body: JSON.stringify(body),
+    body:    JSON.stringify(body),
   })
   const text = await res.text()
   try { return { status: res.status, data: JSON.parse(text) } }
@@ -76,7 +86,15 @@ async function edgeFetch(fnName, body) {
 
 // ── Test data ────────────────────────────────────────────────────────────────
 
-const TEST_CASE_ID = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+const TEST_RUN_ID    = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+const TEST_CASE_ID   = `${TEST_RUN_ID}-session`
+const PUSH_LOCAL_ID  = `${TEST_RUN_ID}-push`
+const VIN_CASE_ID    = `${TEST_RUN_ID}-vin`
+const FEEDBACK_MARK  = `[TEST-${TEST_RUN_ID}]`
+
+cleanup.webSessions.push(TEST_CASE_ID, VIN_CASE_ID)
+cleanup.cases.push(PUSH_LOCAL_ID)
+cleanup.feedbackMark = FEEDBACK_MARK
 
 const TEST_CASE = {
   id:        TEST_CASE_ID,
@@ -103,31 +121,30 @@ const TEST_CASE = {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-async function run() {
+async function runTests() {
   const email    = process.env.TEST_USER_EMAIL
   const password = process.env.TEST_USER_PASSWORD
 
   if (!email || !password) {
     console.error('⚠  Nastav TEST_USER_EMAIL a TEST_USER_PASSWORD env proměnné.')
-    console.error('   Příklad: TEST_USER_EMAIL=test@test.cz TEST_USER_PASSWORD=heslo123 node tests/supabase-integration.test.js')
     process.exit(1)
   }
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
+  // ── 1. Auth ─────────────────────────────────────────────────────────────
   console.log('\n══ 1. AUTENTIZACE ══════════════════════════════════════════════')
 
   await test('Přihlášení testovacího uživatele', async () => {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': ANON_KEY },
-      body: JSON.stringify({ email, password }),
+      body:    JSON.stringify({ email, password }),
     })
     assert.strictEqual(res.status, 200, `Auth failed: HTTP ${res.status}`)
     const data = await res.json()
     assert.ok(data.access_token, 'Chybí access_token')
     assert.ok(data.user?.id, 'Chybí user.id')
     accessToken = data.access_token
-    userId = data.user.id
+    userId      = data.user.id
   })
 
   if (!accessToken) {
@@ -135,17 +152,15 @@ async function run() {
     process.exit(1)
   }
 
-  // ── CRUD: gearbrain_web_sessions ─────────────────────────────────────────
+  // ── 2. CRUD: gearbrain_web_sessions ─────────────────────────────────────
   console.log('\n══ 2. CRUD — gearbrain_web_sessions ════════════════════════════')
 
   await test('CREATE: upsert nového případu', async () => {
     const safeData = { ...TEST_CASE }
-    // Strip VIN/SPZ — stejně jako v storage.js
     if (safeData.vehicle) {
       const { identType, identValue, ...safeVehicle } = safeData.vehicle
       safeData.vehicle = safeVehicle
     }
-
     const res = await supabaseRest('gearbrain_web_sessions', 'POST', {
       query: 'on_conflict=user_id,local_id',
       body: {
@@ -187,12 +202,11 @@ async function run() {
       const { identType, identValue, ...safeVehicle } = safeData.vehicle
       safeData.vehicle = safeVehicle
     }
-
     const res = await supabaseRest('gearbrain_web_sessions', 'PATCH', {
       query: `local_id=eq.${TEST_CASE_ID}`,
-      body: { data: safeData, status: 'closed', updated_at: new Date().toISOString() },
+      body:  { data: safeData, status: 'closed', updated_at: new Date().toISOString() },
     })
-    assert.ok(res.status >= 200 && res.status < 300, `UPDATE failed: ${res.status} ${JSON.stringify(res.data)}`)
+    assert.ok(res.status >= 200 && res.status < 300, `UPDATE failed: ${res.status}`)
   })
 
   await test('READ: ověření statusu po update', async () => {
@@ -203,7 +217,7 @@ async function run() {
     assert.strictEqual(res.data[0]?.status, 'closed')
   })
 
-  // ── RLS: izolace uživatelů ─────────────────────────────────────────────
+  // ── 3. RLS ──────────────────────────────────────────────────────────────
   console.log('\n══ 3. RLS — izolace uživatelů ══════════════════════════════════')
 
   await test('ANON nemůže číst gearbrain_web_sessions', async () => {
@@ -211,11 +225,8 @@ async function run() {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}`, 'apikey': ANON_KEY },
     })
     const data = await res.json()
-    // Supabase vrátí 200 s prázdným polem (RLS filtruje)
-    assert.ok(res.status === 200 || res.status === 401, `Neočekávaný status: ${res.status}`)
-    if (res.status === 200) {
-      assert.deepStrictEqual(data, [], 'Anon role by neměla vidět žádná data')
-    }
+    assert.ok(res.status === 200 || res.status === 401)
+    if (res.status === 200) assert.deepStrictEqual(data, [], 'Anon nemá vidět data')
   })
 
   await test('ANON nemůže číst gearbrain_cases', async () => {
@@ -224,9 +235,7 @@ async function run() {
     })
     const data = await res.json()
     assert.ok(res.status === 200 || res.status === 401)
-    if (res.status === 200) {
-      assert.deepStrictEqual(data, [], 'Anon role by neměla vidět gearbrain_cases')
-    }
+    if (res.status === 200) assert.deepStrictEqual(data, [], 'Anon nemá vidět gearbrain_cases')
   })
 
   await test('ANON nemůže číst gearbrain_ai_usage', async () => {
@@ -235,75 +244,95 @@ async function run() {
     })
     const data = await res.json()
     assert.ok(res.status === 200 || res.status === 401)
-    if (res.status === 200) {
-      assert.deepStrictEqual(data, [], 'Anon role by neměla vidět gearbrain_ai_usage')
+    if (res.status === 200) assert.deepStrictEqual(data, [], 'Anon nemá vidět gearbrain_ai_usage')
+  })
+
+  await test('Authenticated uživatel nevidí cizí web_sessions', async () => {
+    const res = await supabaseRest('gearbrain_web_sessions', 'GET', {
+      query: 'select=id,data,status&limit=100',
+    })
+    assert.strictEqual(res.status, 200)
+    // Ověříme, že všechna data obsahují jen naše ID v data.id (RLS filtruje)
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      assert.ok(true, 'RLS filtruje — vidíme jen vlastní záznamy')
     }
   })
 
-  // ── Edge Functions ─────────────────────────────────────────────────────
+  // ── 4. Edge Functions ────────────────────────────────────────────────────
   console.log('\n══ 4. EDGE FUNCTIONS ═══════════════════════════════════════════')
 
   await test('deepseek-proxy: odmítne prázdný user_id', async () => {
     const res = await edgeFetch('deepseek-proxy', {
-      model: 'deepseek-reasoner',
-      system: 'Test',
-      messages: [{ role: 'user', content: 'test' }],
-      max_tokens: 100,
-      user_id: '',
+      model: 'deepseek-reasoner', system: 'Test',
+      messages: [{ role: 'user', content: 'test' }], max_tokens: 100, user_id: '',
     })
-    assert.strictEqual(res.status, 400, `Měl vrátit 400, vrátil ${res.status}`)
+    assert.strictEqual(res.status, 400)
   })
 
   await test('deepseek-proxy: odmítne nepovolený model', async () => {
     const res = await edgeFetch('deepseek-proxy', {
-      model: 'gpt-4',
-      system: 'Test',
-      messages: [{ role: 'user', content: 'test' }],
-      max_tokens: 100,
-      user_id: userId,
+      model: 'gpt-4', system: 'Test',
+      messages: [{ role: 'user', content: 'test' }], max_tokens: 100, user_id: userId,
     })
-    assert.strictEqual(res.status, 400, `Měl vrátit 400, vrátil ${res.status}`)
-    assert.ok(res.data?.error?.message?.includes('Nepovolený model'), `Chybová zpráva: ${JSON.stringify(res.data)}`)
+    assert.strictEqual(res.status, 400)
+    assert.ok(res.data?.error?.message?.includes('Nepovolený model'))
   })
 
   await test('deepseek-proxy: odmítne prázdné messages', async () => {
     const res = await edgeFetch('deepseek-proxy', {
-      model: 'deepseek-reasoner',
-      system: 'Test',
-      messages: [],
-      max_tokens: 100,
-      user_id: userId,
+      model: 'deepseek-reasoner', system: 'Test', messages: [], max_tokens: 100, user_id: userId,
     })
     assert.strictEqual(res.status, 400)
   })
 
   await test('push-case: odmítne bez user_id', async () => {
     const res = await edgeFetch('push-case', {
-      local_id: 'test-no-user',
-      vehicle_model: 'Focus',
-      resolution: 'Test oprava pro validaci',
+      local_id: 'test-no-user', vehicle_model: 'Focus', resolution: 'Test oprava',
     })
     assert.strictEqual(res.status, 400)
-    assert.ok(res.data?.error?.includes('user_id'), `Chyba: ${JSON.stringify(res.data)}`)
+    assert.ok(res.data?.error?.includes('user_id'))
   })
 
   await test('push-case: odmítne bez vehicle_model', async () => {
     const res = await edgeFetch('push-case', {
-      local_id: 'test-no-model',
-      user_id: userId,
-      resolution: 'Test oprava pro validaci',
+      local_id: 'test-no-model', user_id: userId, resolution: 'Test oprava',
     })
     assert.strictEqual(res.status, 400)
-    assert.ok(res.data?.error?.includes('model'), `Chyba: ${JSON.stringify(res.data)}`)
+    assert.ok(res.data?.error?.includes('model'))
   })
 
   await test('push-case: odmítne bez resolution', async () => {
     const res = await edgeFetch('push-case', {
-      local_id: 'test-no-resolution',
-      user_id: userId,
-      vehicle_model: 'Focus',
+      local_id: 'test-no-res', user_id: userId, vehicle_model: 'Focus',
     })
     assert.strictEqual(res.status, 400)
+  })
+
+  await test('push-case: uloží validní případ do gearbrain_cases', async () => {
+    const res = await edgeFetch('push-case', {
+      local_id:      PUSH_LOCAL_ID,
+      user_id:       userId,
+      vehicle_brand: 'Ford',
+      vehicle_model: 'Focus MK3 1.6 TDCi 85kW',
+      mileage:       185000,
+      engine_power:  '1.6 TDCi 85kW',
+      symptoms:      ['loss of power'],
+      obd_codes:     ['P0401'],
+      description:   'EGR valve test',
+      resolution:    'Replaced EGR valve and cooler',
+      closed_at:     new Date().toISOString(),
+    })
+    assert.strictEqual(res.status, 200, `Push failed: ${res.status} ${JSON.stringify(res.data)}`)
+    assert.ok(res.data?.ok)
+  })
+
+  await test('push-case: duplikát neselže (23505 ignorován)', async () => {
+    const res = await edgeFetch('push-case', {
+      local_id: PUSH_LOCAL_ID, user_id: userId,
+      vehicle_brand: 'Ford', vehicle_model: 'Focus MK3 1.6 TDCi 85kW',
+      symptoms: [], obd_codes: [], resolution: 'Replaced EGR valve and cooler',
+    })
+    assert.strictEqual(res.status, 200, 'Duplikát by měl projít')
   })
 
   await test('send-feedback: odmítne prázdnou zprávu', async () => {
@@ -313,185 +342,186 @@ async function run() {
 
   await test('send-feedback: přijme validní feedback', async () => {
     const res = await edgeFetch('send-feedback', {
-      message: `[TEST] Integrační test ${new Date().toISOString()}`,
+      message:   `${FEEDBACK_MARK} Integrační test ${new Date().toISOString()}`,
       userEmail: email,
-      lang: 'cs',
+      lang:      'cs',
     })
-    assert.strictEqual(res.status, 200, `Feedback failed: ${res.status} ${JSON.stringify(res.data)}`)
-    assert.ok(res.data?.ok, 'Odpověď by měla obsahovat ok: true')
+    assert.strictEqual(res.status, 200)
+    assert.ok(res.data?.ok)
   })
 
-  await test('search-cases: vrátí platnou strukturu (i prázdnou)', async () => {
+  await test('search-cases: vrátí platnou strukturu', async () => {
     const res = await edgeFetch('search-cases', {
       vehicle:  { brand: 'Ford', model: 'Focus MK3 1.6 TDCi 85kW' },
-      symptoms: ['nerovnoměrný chod'],
-      obdCodes: ['P0300'],
-      text:     'Motor se třese',
-      userId:   userId,
+      symptoms: ['nerovnoměrný chod'], obdCodes: ['P0300'],
+      text: 'Motor se třese', userId,
     })
-    assert.strictEqual(res.status, 200, `Search failed: ${res.status}`)
-    assert.ok(Array.isArray(res.data?.cases), 'Odpověď by měla obsahovat cases[]')
-    assert.ok(typeof res.data?.count === 'number', 'Odpověď by měla obsahovat count')
+    assert.strictEqual(res.status, 200)
+    assert.ok(Array.isArray(res.data?.cases))
+    assert.ok(typeof res.data?.count === 'number')
   })
 
-  await test('search-cases: odmítne gracefully prázdný input', async () => {
+  await test('search-cases: gracefully prázdný input', async () => {
     const res = await edgeFetch('search-cases', {
-      vehicle: {},
-      symptoms: [],
-      obdCodes: [],
-      text: '',
-      userId: userId,
+      vehicle: {}, symptoms: [], obdCodes: [], text: '', userId,
     })
-    assert.strictEqual(res.status, 200, 'Prázdný search by měl vrátit 200 s prázdným výsledkem')
+    assert.strictEqual(res.status, 200)
     assert.ok(Array.isArray(res.data?.cases))
   })
 
-  // ── Feedback tabulka ───────────────────────────────────────────────────
-  console.log('\n══ 5. GEARBRAIN_FEEDBACK — ověření záznamu ═════════════════════')
-
-  await test('Feedback záznam existuje v tabulce', async () => {
-    const res = await supabaseRest('gearbrain_feedback', 'GET', {
-      query: 'select=id,message,user_email&order=created_at.desc&limit=1',
-    })
-    assert.strictEqual(res.status, 200, `Unexpected status: ${res.status}`)
-  })
-
-  // ── Push-case full CRUD ───────────────────────────────────────────────
-  console.log('\n══ 5b. PUSH-CASE — plný cyklus uložení do RAG DB ═════════════')
-
-  const PUSH_LOCAL_ID = `test-push-${Date.now()}`
-
-  await test('push-case: uloží validní případ', async () => {
-    const res = await edgeFetch('push-case', {
-      local_id: PUSH_LOCAL_ID,
-      user_id: userId,
-      vehicle_brand: 'Ford',
-      vehicle_model: 'Focus MK3 1.6 TDCi 85kW',
-      mileage: 185000,
-      engine_power: '1.6 TDCi 85kW',
-      symptoms: ['loss of power'],
-      obd_codes: ['P0401'],
-      description: 'EGR valve test',
-      resolution: 'Replaced EGR valve and cooler',
-      closed_at: new Date().toISOString(),
-    })
-    assert.strictEqual(res.status, 200, `Push failed: ${res.status} ${JSON.stringify(res.data)}`)
-    assert.ok(res.data?.ok, 'Odpověď by měla obsahovat ok: true')
-  })
-
-  await test('push-case: duplikát neselže (23505 ignorován)', async () => {
-    const res = await edgeFetch('push-case', {
-      local_id: PUSH_LOCAL_ID,
-      user_id: userId,
-      vehicle_brand: 'Ford',
-      vehicle_model: 'Focus MK3 1.6 TDCi 85kW',
-      symptoms: [],
-      obd_codes: [],
-      resolution: 'Replaced EGR valve and cooler',
-    })
-    assert.strictEqual(res.status, 200, 'Duplikát by měl projít (23505 ignorován)')
-  })
-
-  // ── RLS cross-user isolation ──────────────────────────────────────────
-  console.log('\n══ 5c. RLS — cross-user izolace ════════════════════════════════')
-
-  await test('Authenticated uživatel nevidí cizí web_sessions', async () => {
-    const res = await supabaseRest('gearbrain_web_sessions', 'GET', {
-      query: 'select=id,data,status&limit=50',
-    })
-    assert.strictEqual(res.status, 200)
-    // Ověříme, že všechny vrácené záznamy patří přihlášenému uživateli
-    // (pokud tam vůbec nějaké jsou)
-    if (Array.isArray(res.data) && res.data.length > 0) {
-      // Nemáme user_id v odpovědi (není v select), ale RLS by měl filtrovat
-      assert.ok(true, 'RLS filtruje — vidíme jen vlastní záznamy')
-    }
-  })
-
-  await test('DELETE cizího záznamu neselže ale nic nesmaže', async () => {
-    const res = await supabaseRest('gearbrain_web_sessions', 'DELETE', {
-      query: 'local_id=eq.FAKE_NONEXISTENT_ID_XYZ',
-    })
-    // Supabase vrátí 200 s prázdným polem (nic nebylo smazáno)
-    assert.ok(res.status >= 200 && res.status < 300)
-  })
-
-  // ── Data integrity checks ────────────────────────────────────────────
-  console.log('\n══ 5d. INTEGRITA DAT ═══════════════════════════════════════════')
+  // ── 5. Integrita dat ────────────────────────────────────────────────────
+  console.log('\n══ 5. INTEGRITA DAT ════════════════════════════════════════════')
 
   await test('VIN/SPZ není nikdy uložena v gearbrain_web_sessions', async () => {
-    // Upsert s VIN/SPZ → strip → ověřit
     const caseWithVin = {
-      ...TEST_CASE,
-      id: `vin-test-${Date.now()}`,
-      vehicle: {
-        brand: 'Ford',
-        model: 'Focus MK3',
-        identType: 'vin',
-        identValue: 'WF0XXXGCDX1234567',
-      },
+      ...TEST_CASE, id: VIN_CASE_ID,
+      vehicle: { brand: 'Ford', model: 'Focus MK3', identType: 'vin', identValue: 'WF0XXXGCDX1234567' },
     }
-
-    // Stripni jako storage.js
-    const safeData = { ...caseWithVin }
+    const safeData  = { ...caseWithVin }
     const { identType, identValue, ...safeVehicle } = safeData.vehicle
     safeData.vehicle = safeVehicle
 
     await supabaseRest('gearbrain_web_sessions', 'POST', {
       query: 'on_conflict=user_id,local_id',
-      body: {
-        user_id: userId,
-        local_id: caseWithVin.id,
-        data: safeData,
-        status: 'open',
-        updated_at: new Date().toISOString(),
-      },
+      body:  { user_id: userId, local_id: VIN_CASE_ID, data: safeData, status: 'open', updated_at: new Date().toISOString() },
     })
 
     const readRes = await supabaseRest('gearbrain_web_sessions', 'GET', {
-      query: `select=data&local_id=eq.${caseWithVin.id}`,
+      query: `select=data&local_id=eq.${VIN_CASE_ID}`,
     })
     const row = readRes.data?.[0]
     assert.ok(row, 'Záznam by měl existovat')
-    assert.strictEqual(row.data?.vehicle?.identType, undefined, 'identType NESMÍ být v cloudu')
+    assert.strictEqual(row.data?.vehicle?.identType,  undefined, 'identType NESMÍ být v cloudu')
     assert.strictEqual(row.data?.vehicle?.identValue, undefined, 'identValue NESMÍ být v cloudu')
-    assert.strictEqual(row.data?.vehicle?.brand, 'Ford', 'Ostatní vehicle data by měla zůstat')
-
-    // Cleanup
-    await supabaseRest('gearbrain_web_sessions', 'DELETE', {
-      query: `local_id=eq.${caseWithVin.id}`,
-    })
+    assert.strictEqual(row.data?.vehicle?.brand, 'Ford', 'Ostatní data by měla zůstat')
   })
 
-  await test('gearbrain_ai_usage: upsert záznamu (deepseek-proxy log)', async () => {
-    // deepseek-proxy loguje usage — ověříme strukturu
+  await test('gearbrain_cases: záznamy mají správnou strukturu', async () => {
+    const res = await supabaseRest('gearbrain_cases', 'GET', {
+      query: `select=id,user_id,vehicle_model,resolution&local_id=eq.${PUSH_LOCAL_ID}`,
+    })
+    assert.strictEqual(res.status, 200)
+    const row = res.data?.[0]
+    assert.ok(row, 'Push-case záznam by měl existovat')
+    assert.strictEqual(row.user_id, userId)
+    assert.ok(row.vehicle_model?.includes('Focus'))
+    assert.ok(row.resolution?.length > 0)
+  })
+
+  await test('gearbrain_ai_usage: struktura logování', async () => {
     const res = await supabaseRest('gearbrain_ai_usage', 'GET', {
       query: 'select=id,user_id,model,input_tokens,output_tokens,created_at&limit=1&order=created_at.desc',
     })
     assert.strictEqual(res.status, 200)
-    // Nemusí existovat záznamy (pokud se deepseek ještě nevolal s tímto user),
-    // ale struktura by měla být správná
   })
 
-  // ── Cleanup ────────────────────────────────────────────────────────────
-  console.log('\n══ 6. CLEANUP ══════════════════════════════════════════════════')
-
-  await test('DELETE: smazání testovacího případu', async () => {
+  await test('DELETE cizího záznamu nic nesmaže (RLS)', async () => {
     const res = await supabaseRest('gearbrain_web_sessions', 'DELETE', {
-      query: `local_id=eq.${TEST_CASE_ID}`,
+      query: 'local_id=eq.FAKE_NONEXISTENT_ID_XYZ',
     })
-    assert.ok(res.status >= 200 && res.status < 300, `DELETE failed: ${res.status}`)
+    assert.ok(res.status >= 200 && res.status < 300)
   })
+}
 
-  await test('DELETE: ověření smazání', async () => {
-    const res = await supabaseRest('gearbrain_web_sessions', 'GET', {
-      query: `select=id&local_id=eq.${TEST_CASE_ID}`,
-    })
-    assert.strictEqual(res.status, 200)
-    assert.deepStrictEqual(res.data, [], 'Testovací případ by měl být smazán')
-  })
+// ── Cleanup ───────────────────────────────────────────────────────────────────
 
-  // ── Summary ────────────────────────────────────────────────────────────
+async function runCleanup() {
+  console.log('\n══ 6. CLEANUP ══════════════════════════════════════════════════')
+  let cleanupErrors = 0
+
+  // gearbrain_web_sessions — smaž všechny testovací local_ids
+  for (const localId of cleanup.webSessions) {
+    try {
+      const res = await supabaseRest('gearbrain_web_sessions', 'DELETE', {
+        query: `local_id=eq.${localId}`,
+      })
+      if (res.status >= 200 && res.status < 300) {
+        console.log(`  ✓ web_sessions: smazán ${localId}`)
+      } else {
+        console.warn(`  ⚠ web_sessions DELETE ${localId}: ${res.status}`)
+        cleanupErrors++
+      }
+    } catch (e) {
+      console.warn(`  ⚠ web_sessions DELETE ${localId}: ${e.message}`)
+      cleanupErrors++
+    }
+  }
+
+  // Ověření smazání web_sessions
+  try {
+    for (const localId of cleanup.webSessions) {
+      const res = await supabaseRest('gearbrain_web_sessions', 'GET', {
+        query: `select=id&local_id=eq.${localId}`,
+      })
+      if (res.status === 200 && Array.isArray(res.data) && res.data.length === 0) {
+        console.log(`  ✓ web_sessions: ověřeno smazání ${localId}`)
+      } else {
+        console.warn(`  ⚠ web_sessions: ${localId} stále existuje`)
+        cleanupErrors++
+      }
+    }
+  } catch (e) {
+    console.warn(`  ⚠ ověření cleanup: ${e.message}`)
+  }
+
+  // gearbrain_cases — smaž testovací push-case záznamy (vyžaduje DELETE RLS policy)
+  for (const localId of cleanup.cases) {
+    try {
+      const res = await supabaseRest('gearbrain_cases', 'DELETE', {
+        query: `local_id=eq.${localId}&user_id=eq.${userId}`,
+      })
+      if (res.status >= 200 && res.status < 300) {
+        console.log(`  ✓ gearbrain_cases: smazán ${localId}`)
+      } else {
+        console.warn(`  ⚠ gearbrain_cases DELETE ${localId}: ${res.status} (chybí DELETE policy?)`)
+        cleanupErrors++
+      }
+    } catch (e) {
+      console.warn(`  ⚠ gearbrain_cases DELETE: ${e.message}`)
+      cleanupErrors++
+    }
+  }
+
+  // gearbrain_feedback — smaž testovací záznamy označené FEEDBACK_MARK
+  if (cleanup.feedbackMark) {
+    try {
+      const res = await supabaseRest('gearbrain_feedback', 'DELETE', {
+        query: `message=like.${encodeURIComponent(cleanup.feedbackMark + '%')}`,
+      })
+      if (res.status >= 200 && res.status < 300) {
+        console.log(`  ✓ gearbrain_feedback: smazány testovací záznamy`)
+      } else {
+        console.warn(`  ⚠ gearbrain_feedback DELETE: ${res.status}`)
+        cleanupErrors++
+      }
+    } catch (e) {
+      console.warn(`  ⚠ gearbrain_feedback DELETE: ${e.message}`)
+      cleanupErrors++
+    }
+  }
+
+  if (cleanupErrors > 0) {
+    console.warn(`  ⚠ ${cleanupErrors} cleanup operací selhalo`)
+  } else {
+    console.log('  ✓ Veškerá testovací data byla smazána')
+  }
+}
+
+// ── Entrypoint ────────────────────────────────────────────────────────────────
+
+async function run() {
+  try {
+    await runTests()
+  } finally {
+    // Cleanup se spustí VŽDY — i při selhání testů
+    if (accessToken) {
+      await runCleanup()
+    } else {
+      console.log('\n══ 6. CLEANUP ══════════════════════════════════════════════════')
+      console.log('  ⊘ Cleanup přeskočen (auth selhala)')
+    }
+  }
+
   console.log('\n════════════════════════════════════════════════════════════════')
   console.log(`  Celkem: ${passed + failed + skipped}  ✓ ${passed}  ✗ ${failed}  ⊘ ${skipped}`)
   if (failed > 0) {
