@@ -577,7 +577,7 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
     const procLines = doc.splitTextToSize(safeTxt(f.postup), textW - boxPad * 2);
     const labelH = 5;
     const textH = procLines.length * LH.small;
-    const padTop = 3, padBot = 3;
+    const padTop = 3, padBot = 5;
     const boxH = padTop + labelH + textH + padBot;
 
     // Ensure the entire box fits on one page (or start fresh page)
@@ -594,7 +594,7 @@ function renderFaultService(doc, ctx, f, fi, tr, F, lang) {
 
     doc.setFont(F, "normal"); doc.setFontSize(FS.small); doc.setTextColor(C.dark);
     for (const line of procLines) { doc.text(line, x0 + boxPad, ctx.y); ctx.y += LH.small; }
-    ctx.y = boxY + boxH + 2;
+    ctx.y = boxY + boxH + 4;
   }
 
   // Note
