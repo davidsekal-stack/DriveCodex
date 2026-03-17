@@ -14,7 +14,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const ALLOWED_MODELS = [
-  'deepseek-V3.2-Speciale',
+  'deepseek-chat',
 ]
 
 const DAILY_LIMIT     = 50

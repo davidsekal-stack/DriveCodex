@@ -146,7 +146,7 @@ async function edgeFetch(fnName, body) {
 
 // ── Call AI via Edge Function ─────────────────────────────────────────────────
 
-export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, model = 'deepseek-V3.2-Speciale' }) {
+export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, model = 'deepseek-chat' }) {
   const { data: { user } } = await supabase.auth.getUser()
 
   return edgeFetch('anthropic-proxy', {
