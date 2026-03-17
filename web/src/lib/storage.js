@@ -155,7 +155,7 @@ async function edgeFetch(fnName, body) {
 export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, model = 'deepseek-reasoner' }) {
   const { data: { user } } = await supabase.auth.getUser()
 
-  return edgeFetch('anthropic-proxy', {
+  return edgeFetch('deepseek-proxy', {
     model,
     system: systemPrompt,
     messages: [{ role: 'user', content: userMessage }],
