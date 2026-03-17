@@ -37,6 +37,7 @@ export const strings = {
   'app.defaultBrandHint':  'Als Standardmarke festlegen',
   'app.mileageKm':        'KILOMETERSTAND (KM)',
   'app.identLabel':       'KENNZEICHEN / VIN',
+  'app.identPlate':       'KZ',
   'app.identPlaceholder': 'Kennzeichen oder VIN (optional)',
   'app.identHistory':     '📋 {count} frühere Fälle für dieses Fahrzeug',
   'app.identShowHistory': 'Verlauf anzeigen',
