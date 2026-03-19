@@ -1096,8 +1096,36 @@ function isCompleteRecord(rec) {
   return true;
 }
 
+const UNRESOLVED_RESOLUTION_PATTERNS = [
+  /\bnap[ií][sš]u\b.{0,50}\b(?:jak|az|až)\b.{0,40}\bdopadlo\b/i,
+  /\b(?:z[ií]tra|tomorrow)\b.{0,60}\b(?:bude|by mělo být|should be|will be)\b.{0,20}\bok\b/i,
+  /\b(?:dnes|today)\b.{0,60}\b(?:odvezl|odvezla|took it in|taken in)\b.{0,80}\b(?:opravu|repair)\b/i,
+  /\b(?:pl[aá]nuj(?:i|e)|planning to|plan to)\b.{0,80}\b(?:servis|service|electrician|repair|opravu)\b/i,
+  /\b(?:will|nap[ií][sš]u)\b.{0,40}\b(?:update|let you know|report back)\b/i,
+];
+
+function hasUnresolvedResolutionLanguage(resolution) {
+  const text = (resolution ?? "").toString().trim();
+  if (!text) return false;
+  return UNRESOLVED_RESOLUTION_PATTERNS.some(pattern => pattern.test(text));
+}
+
+function extractedCaseUsesUnresolvedResolutionPost(item, postTextByNumber) {
+  if (!(postTextByNumber instanceof Map) || postTextByNumber.size === 0) return false;
+  const resolutionPosts = normalizeEvidencePosts(item?.resolution_post_numbers);
+  if (resolutionPosts.length === 0) return false;
+  return resolutionPosts.some(postNumber => {
+    const text = postTextByNumber.get(postNumber) ?? "";
+    return hasUnresolvedResolutionLanguage(text);
+  });
+}
+
 function isReadyRecord(rec, classifier) {
-  return isCompleteRecord(rec) && isClassifierApproved(classifier);
+  return (
+    isCompleteRecord(rec) &&
+    isClassifierApproved(classifier) &&
+    !hasUnresolvedResolutionLanguage(rec?.resolution)
+  );
 }
 
 function isReviewWorthClassifier(result) {
@@ -1144,6 +1172,31 @@ function parsePostMetaFromThreadText(threadText) {
       is_thread_author: isThreadAuthorMatch?.[1] === "true",
     });
   }
+  return map;
+}
+
+function parsePostTextByNumber(threadText) {
+  const map = new Map();
+  let currentPostNumber = null;
+  let buffer = [];
+
+  const flush = () => {
+    if (!Number.isFinite(currentPostNumber)) return;
+    map.set(currentPostNumber, buffer.join("\n").trim());
+  };
+
+  for (const line of (threadText ?? "").toString().split(/\r?\n/)) {
+    const match = line.match(/^POST\s+(\d+)\s*\|/);
+    if (match) {
+      flush();
+      currentPostNumber = Number(match[1]);
+      buffer = [];
+      continue;
+    }
+    if (Number.isFinite(currentPostNumber)) buffer.push(line);
+  }
+
+  flush();
   return map;
 }
 
@@ -1308,6 +1361,7 @@ async function main() {
       ? rawThreadText.slice(0, args.maxChars) + "\n\n[TRUNCATED]"
       : rawThreadText;
     const postMetaByNumber = parsePostMetaFromThreadText(rawThreadText);
+    const postTextByNumber = parsePostTextByNumber(rawThreadText);
 
     const sourceUrl = threadUrl || args.sourceUrl;
     const brands = getCatalogBrands();
@@ -1479,6 +1533,15 @@ async function main() {
         ...(item ?? {}),
         case_author: authorValidation.caseAuthor ?? (item?.case_author ?? ""),
       };
+      if (extractedCaseUsesUnresolvedResolutionPost(normalizedItem, postTextByNumber)) {
+        const kept = await writeReview("record", "Resolution post still uses future or uncertain language in the source thread.", {
+          classifier,
+          extracted_raw: normalizedItem ?? null,
+        });
+        if (kept) reviewCount++;
+        else discardedCount++;
+        continue;
+      }
 
       const brandRaw = (normalizedItem?.brand_raw ?? "").toString();
       const modelRaw = (normalizedItem?.model_raw ?? "").toString();
@@ -1687,10 +1750,12 @@ export {
   isCompleteRecord,
   normalizeText,
   parsePostMetaFromThreadText,
+  parsePostTextByNumber,
   pickModelLabel,
   pickEnginePower,
   isReviewWorthClassifier,
   isReadyRecord,
+  extractedCaseUsesUnresolvedResolutionPost,
   normalizeEvidencePosts,
   safeParseJsonArray,
   safeParseJsonObject,

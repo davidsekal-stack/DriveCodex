@@ -497,6 +497,10 @@ const BRAND_CANONICAL_FOR_OBD = {
   "Hyundai (US)": "Hyundai",
   "Kia (US)": "Kia",
   "Volkswagen (US)": "Volkswagen",
+  "SEAT": "Volkswagen",
+  "Seat": "Volkswagen",
+  // Opel katalog zde zatím pokrývá novější PSA/Stellantis-era modely.
+  "Opel": "Peugeot",
 }
 
 /**

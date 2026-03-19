@@ -21,6 +21,11 @@ export const strings = {
   'app.ragActive':        'Cloud RAG active',
   'app.ragUnavailable':   'Cloud unavailable',
   'app.ragConnecting':    'Cloud: connecting...',
+  'app.syncIdle':         'Cases: no pending changes',
+  'app.syncSyncing':      'Cases: syncing...',
+  'app.syncSynced':       'Cases saved',
+  'app.syncError':        'Cloud save failed',
+  'app.syncWarning':      'Some changes may not have been saved.',
 
   // App — welcome
   'app.welcomeText':      'Select a case from the list',

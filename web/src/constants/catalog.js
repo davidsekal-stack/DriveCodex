@@ -281,6 +281,45 @@ export const VEHICLE_CATALOG = [
   },
 
   {
+    brand:     "SEAT",
+    active:    true,
+    expertise: "SEAT osobní vozidla klíčových modelových řad (Mii, Ibiza, Leon, Toledo, Arona, Ateca, Tarraco, Alhambra) — motory MPI, TSI, TDI, EcoFuel, e-HYBRID a elektrické pohony od roku 2012 do současnosti, EU spec",
+    models: [
+      // ── Mii ───────────────────────────────────────────────────────────────────
+      { group: "Mii" },
+      { label: "Mii (2012–2020)", powers: ["44 kW – 1.0 MPI", "50 kW – 1.0 EcoFuel CNG", "55 kW – 1.0 MPI", "61 kW – Electric"] },
+
+      // ── Ibiza ─────────────────────────────────────────────────────────────────
+      { group: "Ibiza" },
+      { label: "Ibiza V (2017–dosud)", powers: ["59 kW – 1.0 MPI", "70 kW – 1.0 TSI", "81 kW – 1.0 TSI", "85 kW – 1.0 TSI", "110 kW – 1.5 TSI", "59 kW – 1.6 TDI", "85 kW – 1.6 TDI"] },
+
+      // ── Leon ──────────────────────────────────────────────────────────────────
+      { group: "Leon" },
+      { label: "Leon IV (2020–dosud)", powers: ["85 kW – 1.5 TSI", "85 kW – 1.5 eTSI mHEV", "110 kW – 1.5 TSI", "110 kW – 1.5 eTSI mHEV", "150 kW – 1.5 e-HYBRID", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI"] },
+
+      // ── Toledo ────────────────────────────────────────────────────────────────
+      { group: "Toledo" },
+      { label: "Toledo IV (2012–2019)", powers: ["70 kW – 1.0 TSI", "81 kW – 1.0 TSI", "92 kW – 1.4 TSI DSG", "85 kW – 1.6 TDI"] },
+
+      // ── Arona ────────────────────────────────────────────────────────────────
+      { group: "Arona" },
+      { label: "Arona (2017–dosud)", powers: ["70 kW – 1.0 TSI", "81 kW – 1.0 TSI", "110 kW – 1.5 TSI"] },
+
+      // ── Ateca ────────────────────────────────────────────────────────────────
+      { group: "Ateca" },
+      { label: "Ateca (2016–dosud)", powers: ["85 kW – 1.0 TSI", "110 kW – 1.5 TSI", "140 kW – 2.0 TSI", "85 kW – 1.6 TDI", "110 kW – 2.0 TDI", "140 kW – 2.0 TDI"] },
+
+      // ── Tarraco ──────────────────────────────────────────────────────────────
+      { group: "Tarraco" },
+      { label: "Tarraco (2018–dosud)", powers: ["110 kW – 1.5 TSI", "110 kW – 2.0 TDI", "147 kW – 2.0 TDI", "180 kW – 1.4 e-HYBRID"] },
+
+      // ── Alhambra ─────────────────────────────────────────────────────────────
+      { group: "Alhambra" },
+      { label: "Alhambra II (2010–2022)", powers: ["110 kW – 1.4 TSI", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI", "135 kW – 2.0 TDI"] },
+    ],
+  },
+
+  {
     brand:     "Audi",
     active:    true,
     expertise: "Audi osobní vozidla všech modelových řad (A1–A8, Q2–Q8, TT, e-tron) — motory TFSI, TDI a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR, quattro)",
@@ -358,7 +397,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Toyota",
     active:    true,
-    expertise: "Toyota osobní a užitková vozidla všech modelových řad (Aygo, Yaris, Corolla, Auris, Avensis, Camry, C-HR, RAV4, Land Cruiser, Hilux, Proace, Supra) — motory VVT-i, D-4D, hybridní systémy a elektrické pohony od roku 2006 do současnosti, EU spec",
+    expertise: "Toyota osobní a užitková vozidla hlavních i vybraných globálních modelových řad (Aygo, Yaris, Corolla, Corolla Cross, Auris, Avensis, Prius, Camry, C-HR, RAV4, Land Cruiser, Hilux, Proace, Supra/GT86/GR86, Highlander, Tacoma, 4Runner) — motory VVT-i, D-4D, hybridní systémy a elektrické pohony od roku 2006 do současnosti, primárně EU spec, s opatrným rozšířením pro vybrané globální modely z Toyota Club fóra",
     models: [
       // ── Aygo ──────────────────────────────────────────────────────────────────
       { group: "Aygo" },
@@ -381,6 +420,10 @@ export const VEHICLE_CATALOG = [
       { label: "Corolla E150 (2006–2013)", powers: ["71 kW – 1.33 VVT-i", "97 kW – 1.6 VVT-i", "100 kW – 1.8 VVT-i", "66 kW – 1.4 D-4D", "93 kW – 2.0 D-4D", "91 kW – 2.2 D-CAT"] },
       { label: "Corolla E210 (2019–dosud)", powers: ["85 kW – 1.5 VVT-i", "90 kW – 1.8 Hybrid", "103 kW – 1.8 Hybrid", "140 kW – 2.0 Hybrid", "221 kW – 2.0 Turbo GR"] },
 
+      // ── Corolla Cross ───────────────────────────────────────────────────────
+      { group: "Corolla Cross" },
+      { label: "Corolla Cross (2022–dosud)", powers: ["103 kW – 1.8 Hybrid", "145 kW – 2.0 Hybrid", "145 kW – 2.0 Hybrid AWD"] },
+
       // ── Auris ─────────────────────────────────────────────────────────────────
       { group: "Auris" },
       { label: "Auris I (2006–2012)", powers: ["73 kW – 1.33 VVT-i", "97 kW – 1.6 VVT-i", "100 kW – 1.8 VVT-i", "66 kW – 1.4 D-4D", "91 kW – 2.0 D-4D", "130 kW – 2.2 D-CAT"] },
@@ -393,6 +436,12 @@ export const VEHICLE_CATALOG = [
       // ── Camry ─────────────────────────────────────────────────────────────────
       { group: "Camry" },
       { label: "Camry XV70 (2019–dosud)", powers: ["131 kW – 2.5 Hybrid", "160 kW – 2.5 Hybrid AWD"] },
+
+      // ── Prius ────────────────────────────────────────────────────────────────
+      { group: "Prius" },
+      { label: "Prius III (2009–2016)", powers: ["100 kW – 1.8 Hybrid"] },
+      { label: "Prius IV (2016–2022)", powers: ["90 kW – 1.8 Hybrid", "90 kW – 1.8 Plug-in Hybrid"] },
+      { label: "Prius V (2023–dosud)", powers: ["164 kW – 2.0 Plug-in Hybrid"] },
 
       // ── C-HR ──────────────────────────────────────────────────────────────────
       { group: "C-HR" },
@@ -414,10 +463,27 @@ export const VEHICLE_CATALOG = [
       { group: "Hilux" },
       { label: "Hilux VIII (2015–dosud)", powers: ["110 kW – 2.4 D-4D", "130 kW – 2.8 D-4D", "150 kW – 2.8 D-4D"] },
 
+      // ── Global / forum-backed Toyota lines ──────────────────────────────────
+      { group: "4Runner" },
+      { label: "4Runner (2009–dosud)" },
+
+      { group: "Highlander / Kluger" },
+      { label: "Highlander / Kluger IV (2020–dosud)", powers: ["182 kW – 2.5 Hybrid AWD"] },
+
+      { group: "Tacoma" },
+      { label: "Tacoma (2016–dosud)" },
+
       // ── Proace ────────────────────────────────────────────────────────────────
       { group: "Proace" },
       { label: "Proace II (2016–dosud)", powers: ["70 kW – 1.5 D-4D", "88 kW – 1.5 D-4D", "110 kW – 2.0 D-4D", "130 kW – 2.0 D-4D", "100 kW – Electric"] },
       { label: "Proace City (2019–dosud)", powers: ["55 kW – 1.5 D-4D", "75 kW – 1.5 D-4D", "96 kW – 1.2 Turbo", "81 kW – 1.5 D-4D", "100 kW – Electric"] },
+
+      // ── GT86 / GR86 ──────────────────────────────────────────────────────────
+      { group: "GT86" },
+      { label: "GT86 (2012–2021)", powers: ["147 kW – 2.0 Boxer"] },
+
+      { group: "GR86" },
+      { label: "GR86 (2022–dosud)", powers: ["172 kW – 2.4 Boxer"] },
 
       // ── Supra ─────────────────────────────────────────────────────────────────
       { group: "Supra" },
@@ -1070,6 +1136,50 @@ export const VEHICLE_CATALOG = [
       // ── Fiorino ────────────────────────────────────────────────────────────────
       { group: "Fiorino" },
       { label: "Fiorino III (2007–současnost)", powers: ["54 kW – 1.4 FIRE", "40 kW – 1.3 MultiJet", "55 kW – 1.3 MultiJet", "59 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet"] },
+    ],
+  },
+
+  {
+    brand:     "Opel",
+    active:    true,
+    expertise: "Opel osobní a užitková vozidla klíčových modelových řad (Corsa, Astra, Mokka, Crossland, Grandland, Combo, Vivaro, Zafira, Movano) — motory Turbo, Diesel, Hybrid a elektrické pohony od roku 2018 do současnosti, EU spec (Euro 6d, DPF, SCR, 48V hybridy)",
+    models: [
+      // ── Corsa ─────────────────────────────────────────────────────────────────
+      { group: "Corsa" },
+      { label: "Corsa F (2019–dosud)", powers: ["55 kW – 1.2", "74 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "74 kW – 1.2 Hybrid", "100 kW – 1.2 Hybrid", "100 kW – Electric", "115 kW – Electric"] },
+
+      // ── Astra ─────────────────────────────────────────────────────────────────
+      { group: "Astra" },
+      { label: "Astra L (2021–dosud)", powers: ["81 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "96 kW – 1.5 Diesel", "133 kW – 1.6 Plug-in Hybrid", "165 kW – 1.6 Plug-in Hybrid GSe", "115 kW – Electric"] },
+
+      // ── Mokka ────────────────────────────────────────────────────────────────
+      { group: "Mokka" },
+      { label: "Mokka B (2021–dosud)", powers: ["100 kW – 1.2 Turbo", "100 kW – 1.2 Hybrid", "100 kW – Electric", "115 kW – Electric"] },
+
+      // ── Crossland ────────────────────────────────────────────────────────────
+      { group: "Crossland" },
+      { label: "Crossland (2020–2024)", powers: ["61 kW – 1.2", "81 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "81 kW – 1.5 Diesel", "88 kW – 1.5 Diesel"] },
+
+      // ── Grandland ────────────────────────────────────────────────────────────
+      { group: "Grandland" },
+      { label: "Grandland II (2024–dosud)", powers: ["100 kW – 1.2 Hybrid", "143 kW – Plug-in Hybrid", "157 kW – Electric"] },
+
+      // ── Combo ────────────────────────────────────────────────────────────────
+      { group: "Combo" },
+      { label: "Combo E (2018–dosud)", powers: ["56 kW – 1.5 Diesel", "75 kW – 1.5 Diesel", "96 kW – 1.2 Turbo", "96 kW – 1.5 Diesel", "100 kW – Electric"] },
+
+      // ── Vivaro ───────────────────────────────────────────────────────────────
+      { group: "Vivaro" },
+      { label: "Vivaro C (2019–dosud)", powers: ["75 kW – 1.5 Diesel", "88 kW – 1.5 Diesel", "90 kW – 2.0 Diesel", "110 kW – 2.0 Diesel", "130 kW – 2.0 Diesel", "132 kW – 2.2 Diesel", "100 kW – Electric"] },
+
+      // ── Zafira ───────────────────────────────────────────────────────────────
+      { group: "Zafira" },
+      { label: "Zafira Life / Zafira Electric (2019–dosud)", powers: ["132 kW – 2.2 Diesel", "100 kW – Electric 50", "100 kW – Electric 75"] },
+
+      // ── Movano ───────────────────────────────────────────────────────────────
+      { group: "Movano" },
+      { label: "Movano C 2.2 Diesel (2021–dosud)", powers: ["88 kW – 2.2 Diesel", "103 kW – 2.2 Diesel", "121 kW – 2.2 Diesel"] },
+      { label: "Movano Electric (2021–dosud)", powers: ["90 kW – Electric", "205 kW – Electric"] },
     ],
   },
 

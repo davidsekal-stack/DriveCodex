@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 
 import {
   buildThreadText,
+  extractedCaseUsesUnresolvedResolutionPost,
   extractPostsFromInvision,
   extractTargetChildSections,
   isClassifierApproved,
   isReviewWorthClassifier,
   isReadyRecord,
   parsePostMetaFromThreadText,
+  parsePostTextByNumber,
   pickEnginePower,
   selectThreadPages,
   selectCatalogForMarket,
@@ -179,6 +181,68 @@ test("isReadyRecord accepts non-powertrain case without engine_power", () => {
   };
 
   assert.equal(isReadyRecord(rec, classifier), true);
+});
+
+test("isReadyRecord rejects future-tense resolutions without confirmed outcome", () => {
+  const classifier = {
+    should_seed: true,
+    is_relevant: true,
+    has_explicit_fault: true,
+    has_confirmed_resolution: true,
+    same_user_confirms_resolution: true,
+    has_required_fields: true,
+    evidence_post_numbers: [1, 7],
+  };
+
+  const rec = {
+    vehicle_brand: "Toyota",
+    vehicle_model: "Avensis T27 (2009–2018)",
+    engine_power: null,
+    symptoms: [
+      "check parking brake system warning",
+      "check VSC system warning",
+      "vehicle entered limp mode",
+    ],
+    obd_codes: [],
+    description: "The car intermittently showed parking brake and VSC warnings before entering limp mode.",
+    resolution: "The authorized service diagnosed a faulty Valvematic unit. Today I took the car in for repair and tomorrow it should be ok. I will write how it turned out.",
+  };
+
+  assert.equal(isReadyRecord(rec, classifier), false);
+});
+
+test("extractedCaseUsesUnresolvedResolutionPost checks original resolution post text", () => {
+  const threadText = [
+    "TITLE: Avensis III T27 - chyba VSC a brzdového systému",
+    "THREAD_AUTHOR: Dolph_76",
+    "",
+    "POST 1 | page: 1 | author: Dolph_76 | is_thread_author: true:",
+    "Auto pada do nouzoveho rezimu a hlasi check parking brake system.",
+    "",
+    "POST 2 | page: 1 | author: Dolph_76 | is_thread_author: true:",
+    "Dnes jsem tam auto odvezl a zitra by melo byt ok. Napisu, jak to cele dopadlo.",
+    "",
+    "POST 3 | page: 1 | author: inox_007 | is_thread_author: false:",
+    "U me pomohla oprava skrtici klapky a od te doby 40000 km bez problemu.",
+  ].join("\n");
+
+  const postTextByNumber = parsePostTextByNumber(threadText);
+
+  assert.equal(
+    extractedCaseUsesUnresolvedResolutionPost(
+      { resolution_post_numbers: [2] },
+      postTextByNumber,
+    ),
+    true,
+  );
+
+  assert.equal(
+    extractedCaseUsesUnresolvedResolutionPost(
+      { resolution_post_numbers: [3] },
+      postTextByNumber,
+    ),
+    false,
+  );
 });
 
 test("selectCatalogForMarket defaults to EU-like entries", () => {

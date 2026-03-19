@@ -21,6 +21,11 @@ export const strings = {
   'app.ragActive':        'Cloud RAG aktivní',
   'app.ragUnavailable':   'Cloud nedostupný',
   'app.ragConnecting':    'Cloud: připojuji...',
+  'app.syncIdle':         'Případy: bez změn',
+  'app.syncSyncing':      'Případy: synchronizuji...',
+  'app.syncSynced':       'Případy uložené',
+  'app.syncError':        'Uložení do cloudu selhalo',
+  'app.syncWarning':      'Některé změny se nemusely uložit.',
 
   // App — welcome
   'app.welcomeText':      'Vyberte případ ze seznamu vlevo',

@@ -21,6 +21,11 @@ export const strings = {
   'app.ragActive':        'Cloud RAG aktiv',
   'app.ragUnavailable':   'Cloud nicht verfügbar',
   'app.ragConnecting':    'Cloud: verbinde...',
+  'app.syncIdle':         'Fälle: keine offenen Änderungen',
+  'app.syncSyncing':      'Fälle: synchronisiere...',
+  'app.syncSynced':       'Fälle gespeichert',
+  'app.syncError':        'Cloud-Speicherung fehlgeschlagen',
+  'app.syncWarning':      'Einige Änderungen wurden möglicherweise nicht gespeichert.',
 
   // App — welcome
   'app.welcomeText':      'Wählen Sie einen Fall aus der Liste',
