@@ -135,7 +135,7 @@ export const VEHICLE_CATALOG = [
 
       // ── Golf ──────────────────────────────────────────────────────────────────
       { group: "Golf" },
-      { label: "Golf V (2006–2008)", powers: ["55 kW – 1.4", "75 kW – 1.6", "66 kW – 1.9 TDI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI", "147 kW – 2.0 TFSI GTI", "184 kW – 3.2 VR6 R32"] },
+      { label: "Golf V (2006–2008)", powers: ["55 kW – 1.4", "75 kW – 1.6", "103 kW – 1.4 TSI", "66 kW – 1.9 TDI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI", "147 kW – 2.0 TFSI GTI", "184 kW – 3.2 VR6 R32"] },
       { label: "Golf VI (2008–2012)", powers: ["77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "118 kW – 1.4 TSI", "66 kW – 1.6 TDI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI", "155 kW – 2.0 TSI GTI"] },
       { label: "Golf VII (2012–2020)", powers: ["63 kW – 1.0 TSI", "85 kW – 1.0 TSI", "63 kW – 1.2 TSI", "77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "103 kW – 1.4 TSI", "96 kW – 1.5 TSI", "110 kW – 1.5 TSI", "66 kW – 1.6 TDI", "81 kW – 1.6 TDI", "110 kW – 2.0 TDI", "135 kW – 2.0 TDI GTD", "162 kW – 2.0 TSI GTI", "169 kW – 2.0 TSI GTI", "221 kW – 2.0 TSI R", "228 kW – 2.0 TSI R"] },
       { label: "Golf VIII (2020–dosud)", powers: ["81 kW – 1.0 TSI", "96 kW – 1.5 TSI", "110 kW – 1.5 TSI", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI", "180 kW – 2.0 TSI GTI", "235 kW – 2.0 TSI R"] },
@@ -219,7 +219,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Škoda",
     active:    true,
-    expertise: "Škoda osobní vozidla všech modelových řad (Fabia, Scala, Octavia, Superb, Kamiq, Karoq, Kodiaq, Yeti, Roomster, Citigo, Enyaq) — motory TSI, TDI, MPI, HTP a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6)",
+    expertise: "Škoda osobní vozidla všech modelových řad (Fabia, Scala, Octavia, Superb, Kamiq, Karoq, Kodiaq, Yeti, Roomster, Citigo, Elroq, Enyaq) — motory TSI, TDI, MPI, HTP a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6)",
     models: [
       // ── Citigo ────────────────────────────────────────────────────────────────
       { group: "Citigo" },
@@ -240,12 +240,14 @@ export const VEHICLE_CATALOG = [
       { group: "Octavia" },
       { label: "Octavia II (2006–2013)", powers: ["59 kW – 1.4", "75 kW – 1.6", "77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "118 kW – 1.8 TSI", "147 kW – 2.0 TSI RS", "77 kW – 1.6 TDI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI"] },
       { label: "Octavia III (2013–2020)", powers: ["63 kW – 1.2 TSI", "77 kW – 1.2 TSI", "81 kW – 1.2 TSI", "85 kW – 1.0 TSI", "103 kW – 1.4 TSI", "110 kW – 1.4 TSI", "110 kW – 1.5 TSI", "162 kW – 2.0 TSI RS", "180 kW – 2.0 TSI RS", "66 kW – 1.6 TDI", "77 kW – 1.6 TDI", "85 kW – 1.6 TDI", "110 kW – 2.0 TDI", "135 kW – 2.0 TDI"] },
-      { label: "Octavia IV (2020–dosud)", powers: ["81 kW – 1.0 TSI", "110 kW – 1.5 TSI", "140 kW – 2.0 TSI", "180 kW – 2.0 TSI RS", "195 kW – 2.0 TSI RS", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI", "147 kW – 2.0 TDI"] },
+      { label: "Octavia IV (2020–2024)", powers: ["81 kW – 1.0 TSI", "81 kW – 1.0 TSI e-TEC", "110 kW – 1.5 TSI", "110 kW – 1.5 TSI e-TEC", "140 kW – 2.0 TSI", "150 kW – 1.4 TSI iV", "180 kW – 1.4 TSI RS iV", "180 kW – 2.0 TSI RS", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI", "147 kW – 2.0 TDI"] },
+      { label: "Octavia IV FL (2024–dosud)", powers: ["85 kW – 1.5 TSI", "85 kW – 1.5 TSI mHEV", "110 kW – 1.5 TSI", "110 kW – 1.5 TSI mHEV", "150 kW – 2.0 TSI 4x4", "195 kW – 2.0 TSI RS", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI"] },
 
       // ── Superb ────────────────────────────────────────────────────────────────
       { group: "Superb" },
       { label: "Superb II (2008–2015)", powers: ["92 kW – 1.4 TSI", "118 kW – 1.8 TSI", "132 kW – 1.8 TSI", "147 kW – 2.0 TSI", "206 kW – 2.0 TSI", "77 kW – 1.6 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "140 kW – 2.0 TDI"] },
-      { label: "Superb III (2015–dosud)", powers: ["110 kW – 1.4 TSI", "110 kW – 1.5 TSI", "140 kW – 2.0 TSI", "200 kW – 2.0 TSI", "88 kW – 1.6 TDI", "110 kW – 2.0 TDI", "140 kW – 2.0 TDI", "176 kW – 2.0 TDI"] },
+      { label: "Superb III (2015–2024)", powers: ["110 kW – 1.4 TSI", "110 kW – 1.5 TSI", "160 kW – 1.4 TSI iV", "140 kW – 2.0 TSI", "200 kW – 2.0 TSI", "88 kW – 1.6 TDI", "110 kW – 2.0 TDI", "140 kW – 2.0 TDI", "176 kW – 2.0 TDI"] },
+      { label: "Superb IV (2024–dosud)", powers: ["110 kW – 1.5 TSI mHEV", "150 kW – 1.5 TSI iV", "150 kW – 2.0 TSI", "195 kW – 2.0 TSI", "110 kW – 2.0 TDI", "142 kW – 2.0 TDI"] },
 
       // ── Yeti ──────────────────────────────────────────────────────────────────
       { group: "Yeti" },
@@ -265,7 +267,12 @@ export const VEHICLE_CATALOG = [
 
       // ── Kodiaq ────────────────────────────────────────────────────────────────
       { group: "Kodiaq" },
-      { label: "Kodiaq (2016–dosud)", powers: ["110 kW – 1.4 TSI", "110 kW – 1.5 TSI", "132 kW – 2.0 TSI", "180 kW – 2.0 TSI", "180 kW – 2.0 TSI RS", "110 kW – 2.0 TDI", "140 kW – 2.0 TDI", "147 kW – 2.0 TDI"] },
+      { label: "Kodiaq I (2016–2024)", powers: ["110 kW – 1.4 TSI", "110 kW – 1.5 TSI", "132 kW – 2.0 TSI", "180 kW – 2.0 TSI", "180 kW – 2.0 TSI RS", "110 kW – 2.0 TDI", "140 kW – 2.0 TDI", "147 kW – 2.0 TDI"] },
+      { label: "Kodiaq II (2024–dosud)", powers: ["110 kW – 1.5 TSI mHEV", "150 kW – 1.5 TSI iV", "150 kW – 2.0 TSI", "195 kW – 2.0 TSI RS", "110 kW – 2.0 TDI", "142 kW – 2.0 TDI"] },
+
+      // ── Elroq ─────────────────────────────────────────────────────────────────
+      { group: "Elroq" },
+      { label: "Elroq (2024–dosud)", powers: ["125 kW – Electric 50", "150 kW – Electric 60", "210 kW – Electric 85", "210 kW – Electric 85x"] },
 
       // ── Enyaq ─────────────────────────────────────────────────────────────────
       { group: "Enyaq" },

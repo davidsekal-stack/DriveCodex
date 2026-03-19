@@ -84,7 +84,7 @@ Args:
 
 Options:
   --forum <name>        Used for deterministic local_id hashing. Default: ${DEFAULT_FORUM}
-  --user-id <id>        Stored into user_id. Default: ${DEFAULT_USER_ID}
+  --user-id <id>        Stored into user_id. Default: ${DEFAULT_USER_ID} (alias resolved during cloud import)
   --preset <name>       Built-in input preset. Available: ${Object.keys(PRESET_INPUTS).join(", ")}
   --source-url <url>    Optional source pointer (used in local_id hashing only). If input is a URL, it is used by default.
   --model <name>        DeepSeek model. Default: ${DEFAULT_MODEL}
@@ -775,7 +775,23 @@ function normalizeText(s) {
 function tokenize(s) {
   const n = normalizeText(s);
   if (!n) return [];
-  return n.split(/\s+/g).filter(Boolean);
+  const rawTokens = n.split(/\s+/g).filter(Boolean);
+  const expanded = [];
+  for (const token of rawTokens) {
+    expanded.push(token);
+
+    const numberPrefix = token.match(/^(\d+)([a-z]+)$/);
+    if (numberPrefix) {
+      expanded.push(numberPrefix[1], numberPrefix[2]);
+      continue;
+    }
+
+    const numberSuffix = token.match(/^([a-z]+)(\d+)$/);
+    if (numberSuffix) {
+      expanded.push(numberSuffix[1], numberSuffix[2]);
+    }
+  }
+  return expanded;
 }
 
 function tokenOverlapScore(query, candidate) {

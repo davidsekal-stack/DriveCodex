@@ -10,9 +10,14 @@
  * POST /functions/v1/push-case
  * Body: { local_id, user_id, vehicle_brand?, vehicle_model,
  *         mileage?, engine_power?, symptoms, obd_codes, description?, resolution, closed_at? }
+ * user_id accepts either a real UUID or the seed importer alias `ai_importer`,
+ * which is resolved server-side via IMPORTER_USER_ID.
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const IMPORTER_USER_ALIAS = 'ai_importer'
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -32,9 +37,11 @@ Deno.serve(async (req) => {
       symptoms, obd_codes, description, resolution, closed_at,
     } = await req.json()
 
+    const resolvedUserId = resolveIncomingUserId(user_id)
+
     // ── Validace ───────────────────────────────────────────────────────────────
-    if (!user_id) {
-      return json({ error: 'Chybí user_id.' }, 400)
+    if (resolvedUserId.error) {
+      return json({ error: resolvedUserId.error }, 400)
     }
     if (!vehicle_model) {
       return json({ error: 'Chybí model vozidla.' }, 400)
@@ -105,7 +112,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
 
     const row = {
       local_id:        local_id        ?? null,
-      user_id,
+      user_id:         resolvedUserId.userId,
       vehicle_brand:   vehicle_brand   ?? null,
       vehicle_model,
       mileage:         mileage         ?? null,
@@ -139,4 +146,26 @@ function json(body: unknown, status: number) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
+}
+
+function resolveIncomingUserId(value: unknown): { userId: string } | { error: string } {
+  const raw = (value ?? '').toString().trim()
+  if (!raw) return { error: 'Chybí user_id.' }
+
+  if (raw === IMPORTER_USER_ALIAS) {
+    const importerUserId = (Deno.env.get('IMPORTER_USER_ID') ?? '').trim()
+    if (!importerUserId) {
+      return { error: 'Alias ai_importer vyžaduje nastavený IMPORTER_USER_ID.' }
+    }
+    if (!UUID_RE.test(importerUserId)) {
+      return { error: 'IMPORTER_USER_ID musí být validní UUID.' }
+    }
+    return { userId: importerUserId }
+  }
+
+  if (!UUID_RE.test(raw)) {
+    return { error: 'user_id musí být validní UUID nebo alias ai_importer.' }
+  }
+
+  return { userId: raw }
 }

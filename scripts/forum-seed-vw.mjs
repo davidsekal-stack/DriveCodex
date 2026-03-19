@@ -144,7 +144,7 @@ Usage:
 
 Options:
   --forum <name>      Deterministic local_id namespace. Default: ${DEFAULT_FORUM}
-  --user-id <id>      Stored into user_id. Default: ${DEFAULT_USER_ID}
+  --user-id <id>      Stored into user_id. Default: ${DEFAULT_USER_ID} (alias resolved during cloud import)
   --source-url <url>  Optional source pointer for hashing.
   --model <name>      DeepSeek model. Default: ${DEFAULT_MODEL}
   --max-chars <n>     Max characters sent to the LLM. Default: 60000
@@ -347,6 +347,44 @@ function normalizeModelForumMatchText(value) {
 function bestVwModelMatch(rawText) {
   const models = (VOLKSWAGEN_ENTRY.models ?? []).filter(model => model?.label);
   return bestByScore(models, model => scoreModelLabel(model.label, normalizeModelForumMatchText(rawText)));
+}
+
+function resolveVwVehicleModel({ modelRaw = "", threadTitle = "", subforumTitle = "", parentForumTitle = "" }) {
+  const rawModelText = normalizeModelForumMatchText(modelRaw);
+  const forumContextText = normalizeModelForumMatchText([parentForumTitle, subforumTitle].filter(Boolean).join(" | "));
+  const derivedHints = [];
+
+  if (/\bjetta\b/i.test(rawModelText)) {
+    if (/\bgolf\s+v\b/i.test(forumContextText)) derivedHints.push("Jetta V");
+    if (/\bgolf\s+vi\b/i.test(forumContextText)) derivedHints.push("Jetta VI");
+    if (/\bgolf\s+vii\b/i.test(forumContextText)) derivedHints.push("Jetta VII");
+  }
+
+  if (/\bgolf\b/i.test(rawModelText)) {
+    if (/\bgolf\s+v\b/i.test(forumContextText)) derivedHints.push("Golf V");
+    if (/\bgolf\s+vi\b/i.test(forumContextText)) derivedHints.push("Golf VI");
+    if (/\bgolf\s+vii\b/i.test(forumContextText)) derivedHints.push("Golf VII");
+    if (/\bgolf\s+viii\b/i.test(forumContextText)) derivedHints.push("Golf VIII");
+  }
+
+  const contexts = [
+    ...derivedHints,
+    modelRaw,
+    threadTitle,
+    subforumTitle,
+    [modelRaw, threadTitle].filter(Boolean).join(" | "),
+    [modelRaw, subforumTitle].filter(Boolean).join(" | "),
+    [modelRaw, parentForumTitle, subforumTitle, threadTitle].filter(Boolean).join(" | "),
+  ]
+    .map(value => normalizeModelForumMatchText(value))
+    .filter(Boolean);
+
+  for (const context of contexts) {
+    const label = pickModelLabel(VOLKSWAGEN_ENTRY, context);
+    if (label) return label;
+  }
+
+  return null;
 }
 
 function parseForumYearRange(text) {
@@ -880,15 +918,14 @@ async function processThreadFactory({ args, apiKey, outReady, discardedPath }) {
       }
 
       const normalizedItem = { ...(item ?? {}), case_author: authorValidation.caseAuthor ?? (item?.case_author ?? "") };
-      const rawModelContext = normalizeModelForumMatchText([
-        normalizedItem?.model_raw ?? "",
-        parentForumTitle,
-        subforumTitle,
-        normalizedThreadTitle,
-      ].filter(Boolean).join(" | "));
 
       const vehicle_brand = "Volkswagen";
-      const vehicle_model = pickModelLabel(VOLKSWAGEN_ENTRY, rawModelContext) ?? null;
+      const vehicle_model = resolveVwVehicleModel({
+        modelRaw: normalizedItem?.model_raw ?? "",
+        threadTitle: normalizedThreadTitle,
+        subforumTitle,
+        parentForumTitle,
+      }) ?? null;
       const engine_power = vehicle_model
         ? pickEnginePower(
             VOLKSWAGEN_ENTRY,
@@ -1097,5 +1134,6 @@ export {
   extractVwTopicEntriesFromForumPage,
   looksLikeUsefulVwTopicTitle,
   parseForumYearRange,
+  resolveVwVehicleModel,
   shouldKeepVwModelForum,
 };

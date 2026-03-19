@@ -27,6 +27,7 @@ import { smartRepair, checkTopicRelevance } from '../web/src/lib/ai.js'
 import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
 import { uid, urgColor, fmtMileage } from '../web/src/lib/utils.js'
+import { detectEngineTech, getObdCodes, BRAND_OBD_CODES } from '../web/src/constants/obd-codes.js'
 import {
   getBrandEntry, ACTIVE_BRANDS, getBrandModels, getModelPowers,
   getDefaultBrand, setDefaultBrand, getStoredDefaultBrand, makeEmptyVehicle,
@@ -255,6 +256,25 @@ describe('translate — i18n', () => {
   })
 })
 
+describe('obd-codes', () => {
+  test('diesel bez explicitního SCR/DEF signálu nedostane adblue tag', () => {
+    const tags = detectEngineTech('Ford', 'Focus MK4', '110 kW - 2.0 EcoBlue')
+    ok(tags.includes('diesel'))
+    strictEqual(tags.includes('adblue'), false)
+  })
+
+  test('explicitní SCR/AdBlue signál přidá adblue tag', () => {
+    const tags = detectEngineTech('Mercedes-Benz', 'Sprinter', '140 kW - 2.0 Diesel SCR AdBlue')
+    ok(tags.includes('diesel'))
+    ok(tags.includes('adblue'))
+  })
+
+  test('US značka použije canonical OBD lookup', () => {
+    const codes = getObdCodes('Ford (US)', 'F-150', '298 kW - 3.5 EcoBoost')
+    deepStrictEqual(codes.brand, BRAND_OBD_CODES.Ford)
+  })
+})
+
 describe('helpers — vehicle catalog', () => {
   test('getBrandEntry najde Ford', () => {
     const entry = getBrandEntry('Ford')
@@ -287,6 +307,39 @@ describe('helpers — vehicle catalog', () => {
     ok(hasGroup || hasLabel, 'Ford by měl obsahovat Focus')
   })
 
+  test('Škoda katalog obsahuje Elroq i v expertise', () => {
+    const entry = getBrandEntry('Škoda')
+    ok(entry.expertise.includes('Elroq'))
+    const models = getBrandModels('Škoda')
+    ok(models.some(m => m.group === 'Elroq'))
+    ok(models.some(m => m.label === 'Elroq (2024–dosud)'))
+  })
+
+  test('Škoda katalog rozlišuje Octavia IV před a po faceliftu', () => {
+    const models = getBrandModels('Škoda')
+    const octaviaIv = models.find(m => m.label === 'Octavia IV (2020–2024)')
+    const octaviaIvFl = models.find(m => m.label === 'Octavia IV FL (2024–dosud)')
+    ok(octaviaIv)
+    ok(octaviaIvFl)
+    ok(octaviaIv.powers.includes('150 kW – 1.4 TSI iV'))
+    ok(octaviaIv.powers.includes('110 kW – 1.5 TSI e-TEC'))
+    ok(octaviaIvFl.powers.includes('110 kW – 1.5 TSI mHEV'))
+    ok(octaviaIvFl.powers.includes('150 kW – 2.0 TSI 4x4'))
+  })
+
+  test('Škoda katalog rozlišuje Superb a Kodiaq po generacích', () => {
+    const labels = getBrandModels('Škoda').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Superb III (2015–2024)'))
+    ok(labels.includes('Superb IV (2024–dosud)'))
+    ok(labels.includes('Kodiaq I (2016–2024)'))
+    ok(labels.includes('Kodiaq II (2024–dosud)'))
+  })
+
+  test('Volkswagen Golf V katalog obsahuje 103 kW - 1.4 TSI pro BMY thready', () => {
+    const golfV = getBrandModels('Volkswagen').find(m => m.label === 'Golf V (2006–2008)')
+    ok(golfV)
+    ok(golfV.powers.includes('103 kW – 1.4 TSI'))
+  })
   test('getBrandModels vrátí prázdné pole pro neznámou značku', () => {
     deepStrictEqual(getBrandModels('Neznámá'), [])
     deepStrictEqual(getBrandModels(''), [])

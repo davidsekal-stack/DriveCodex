@@ -478,18 +478,26 @@ export const BRAND_OBD_CODES = {
 
 // EU + US engine technology detection
 // Diesel: EU (TDI, CDI, dCi…) + US (Duramax, Cummins, EcoDiesel, PowerStroke)
-const DIESEL_RE = /\b(TDI|HDi|CDI|dCi|CRDi|D-4D|MultiJet|BlueHDi|CRDI|JTD|JTDM|Duratorq|EcoBlue|2\.0d|3\.0d|1\.5d|1\.6d|2\.2d|Duramax|Cummins|EcoDiesel|PowerStroke|Power Stroke|Diesel I4|Diesel I6|Diesel V6)\b/i
+const DIESEL_RE = /\b(TDI|HDi|CDI|dCi|CRDi|D-4D|MultiJet|BlueHDi|CRDI|JTD|JTDM|Duratorq|EcoBlue|2\.0d|3\.0d|1\.5d|1\.6d|2\.2d|Duramax|Cummins|EcoDiesel|PowerStroke|Power Stroke|Diesel|Diesel I4|Diesel I6|Diesel V6)\b/i
 // Turbo: EU (TSI, TFSI, TCe…) + US (EcoBoost, Hurricane, VC-Turbo, Supercharged, Twin Turbo…)
 const TURBO_RE  = /\b(TSI|TFSI|T-GDI|T-GDi|TCe|THP|PureTech|T-Jet|Turbo|EcoBoost|N[0-9]{2}[A-Z]?|B[0-9]{2}[A-Z]?|FireFly T|DIG-T|MultiAir|SkyActiv Turbo|VC-Turbo|Hurricane|Twin Turbo|TwinTurbo|Supercharged|Hellcat|Redeye|Blackwing|EcoTec Turbo|Ecotec Turbo)\b/i
 // Electric: EU + US (Electrified, Dual Motor, Single Motor, Mach-E…)
 const ELEC_RE   = /\b(Electric|EV|BEV|e-tron|iD|ID\.|e-208|e-C4|Niro EV|IONIQ|Model [3SXY]|e-Ducato|e-Berlingo|Electrified|Dual Motor|Single Motor|Mach-E)\b/i
 // Hybrid: EU + US (eTorque, 4xe, i-MMD, e-Boxer, IMA…)
 const HYBRID_RE = /\b(Hybrid|PHEV|HEV|GTE|e-TSI|e-HDi|E-TECH|PlugIn|Plug-In|eTorque|4xe|i-MMD|e-Boxer|Plug-in|IMA|Sport Hybrid|SH-AWD Hybrid|FHEV)\b/i
-// AdBlue/DEF: EU + US diesels requiring urea injection (Duramax L5P, Cummins, EcoDiesel 3.0)
-const ADBLUE_RE = /\b(TDI|CDI|dCi|CRDi|D-4D|MultiJet|BlueHDi|CRDI|JTD|JTDM|EcoBlue|SCR|Duramax|Cummins|EcoDiesel|PowerStroke|Power Stroke)\b/i
+// AdBlue/DEF: only explicit SCR/urea markers, not generic diesel naming
+const ADBLUE_RE = /\b(AdBlue|DEF|SCR|BlueTEC|BlueHDi|Reductant|Urea|NOx)\b/i
 
 // Značky vždy elektrické (žádné ICE)
 const ELECTRIC_BRANDS = ["Tesla"]
+const BRAND_CANONICAL_FOR_OBD = {
+  "Ford (US)": "Ford",
+  "Toyota (US)": "Toyota",
+  "Nissan (US)": "Nissan",
+  "Hyundai (US)": "Hyundai",
+  "Kia (US)": "Kia",
+  "Volkswagen (US)": "Volkswagen",
+}
 
 /**
  * Detekuje technologie motoru z enginePower stringu a značky.
@@ -508,7 +516,7 @@ export function detectEngineTech(brand, model, enginePower) {
   if (TURBO_RE.test(pw))   tags.push("turbo")
   if (ELEC_RE.test(pw))    tags.push("electric")
   if (HYBRID_RE.test(pw))  tags.push("hybrid")
-  // AdBlue typicky u dieselů od Euro 6 (2014+), zjednodušeně = diesel
+  // AdBlue přidáváme jen při explicitním SCR/DEF signálu.
   if (tags.includes("diesel") && ADBLUE_RE.test(pw)) tags.push("adblue")
 
   return tags
@@ -538,7 +546,8 @@ export function getObdCodes(brand, model, enginePower) {
   const uniqueEngine = [...new Set(engineCodes)].filter(c => !commonSet.has(c))
 
   // Brand-specific kódy
-  const brandCodes = BRAND_OBD_CODES[brand] ?? []
+  const obdBrand = BRAND_CANONICAL_FOR_OBD[brand] ?? brand
+  const brandCodes = BRAND_OBD_CODES[obdBrand] ?? []
 
   return { common, engine: uniqueEngine, brand: brandCodes }
 }

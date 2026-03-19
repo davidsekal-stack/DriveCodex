@@ -8,8 +8,10 @@ import {
   extractVwTopicEntriesFromForumPage,
   looksLikeUsefulVwTopicTitle,
   parseForumYearRange,
+  resolveVwVehicleModel,
   shouldKeepVwModelForum,
 } from "../scripts/forum-seed-vw.mjs";
+import { pickEnginePower, selectCatalogForMarket } from "../scripts/forum-seed.mjs";
 
 let passed = 0;
 let failed = 0;
@@ -113,6 +115,35 @@ test("extractVwTopicEntriesFromForumPage filters out bazar and manual topics", (
     topics.map(item => item.url),
     ["https://www.vw-club.cz/golf-v-jetta/1-9-tdi-pd-77kw-skube-t360634.html"]
   );
+});
+
+test("resolveVwVehicleModel prefers explicit Golf over shared forum title", () => {
+  const model = resolveVwVehicleModel({
+    modelRaw: "Golf V",
+    threadTitle: "Golf V 1.4 TSI 103kW BMY hláška Tlak oleje vypněte motor",
+    parentForumTitle: "VW Golf 5 / Jetta - Volkswagen club Česká republika",
+  });
+  assert.equal(model, "Golf V (2006–2008)");
+});
+
+test("resolveVwVehicleModel prefers explicit Jetta over shared forum title", () => {
+  const model = resolveVwVehicleModel({
+    modelRaw: "Jetta",
+    threadTitle: "Elektrika",
+    parentForumTitle: "VW Golf 5 / Jetta - Volkswagen club Česká republika",
+  });
+  assert.equal(model, "Jetta V (2006–2010)");
+});
+
+test("pickEnginePower matches Golf V BMY thread to 103 kW 1.4 TSI", () => {
+  const { catalog } = selectCatalogForMarket("eu");
+  const vw = catalog.find(item => item.brand === "Volkswagen");
+  const power = pickEnginePower(
+    vw,
+    "Golf V (2006–2008)",
+    "1.4 TSI 103kW BMY | Golf V 1.4 TSI 103kW BMY hláška Tlak oleje vypněte motor"
+  );
+  assert.equal(power, "103 kW – 1.4 TSI");
 });
 
 test("extractPostsFromVwText parses multi-user conversation", () => {
