@@ -240,7 +240,43 @@ Pokračovat patchem pro:
 2. `obd-codes.js`
 3. až potom znovu pustit VW a Škoda seed skripty na větším vzorku
 
-## 14. Externí zdroje použité při posledním review
+## 14. Konkrétní TODO pro OBD vrstvu
+
+Na dalším počítači je doporučené začít přesně tímto:
+
+1. v [web/src/constants/obd-codes.js](/C:/GB/web/src/constants/obd-codes.js) upravit `adblue` logiku
+2. odstranit současné chování, kdy téměř každý diesel dostane i `adblue`
+3. `adblue` přidávat jen při explicitních signálech typu:
+   - `SCR`
+   - `AdBlue`
+   - `DEF`
+   - případně další opravdu explicitní emission-tech tokeny
+4. přidat `BRAND_CANONICAL_FOR_OBD` mapu pro:
+   - `Ford (US)` -> `Ford`
+   - `Toyota (US)` -> `Toyota`
+   - `Nissan (US)` -> `Nissan`
+   - `Hyundai (US)` -> `Hyundai`
+   - `Kia (US)` -> `Kia`
+   - `Volkswagen (US)` -> `Volkswagen`
+5. v `getObdCodes()` lookupnout:
+
+```js
+const obdBrand = BRAND_CANONICAL_FOR_OBD[brand] ?? brand
+```
+
+6. po patchi pustit:
+
+```powershell
+cd C:\GB
+npm.cmd test
+```
+
+Smysl:
+- zlepšit přesnost doporučených OBD kódů
+- přestat do dieselů slepě přimíchávat SCR/AdBlue vrstvu
+- zachovat US katalog, ale neztrácet brand-specific OBD lookup
+
+## 15. Externí zdroje použité při posledním review
 
 - https://www.skoda-storyboard.com/en/press-releases/skoda-releases-the-first-silhouette-of-the-all-new-battery-electric-elroq/
 - https://www.skoda-storyboard.com/en/press-kits/skoda-elroq-press-kit/batteries-and-powertrains-long-range-and-reduced-charging-times-for-an-even-better-customer-experience/
