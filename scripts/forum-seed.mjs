@@ -1082,13 +1082,13 @@ function computeLocalId({ forum, sourceUrl, item, canonical }) {
 
 function isCompleteRecord(rec) {
   // User's strict requirements for "ready":
-  // - canonical vehicle_brand, vehicle_model, engine_power must be present
+  // - canonical vehicle_brand and vehicle_model must be present
+  // - engine_power is nice-to-have, not required
   // - symptoms must be non-empty
   // - description and resolution must be non-empty strings
   // - obd_codes array exists (can be empty)
   if (!rec.vehicle_brand) return false;
   if (!rec.vehicle_model) return false;
-  if (!rec.engine_power) return false;
   if (!Array.isArray(rec.symptoms) || rec.symptoms.length === 0) return false;
   if (!Array.isArray(rec.obd_codes)) return false;
   if (!rec.description || !rec.description.trim()) return false;

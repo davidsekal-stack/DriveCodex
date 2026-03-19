@@ -146,10 +146,39 @@ test("isReadyRecord combines classifier and schema completeness", () => {
     resolution: "Replaced failed crankshaft sensor.",
   };
 
-  const incomplete = { ...complete, engine_power: null };
+  const noEngine = { ...complete, engine_power: null };
+  const noModel = { ...complete, vehicle_model: null };
 
   assert.equal(isReadyRecord(complete, classifier), true);
-  assert.equal(isReadyRecord(incomplete, classifier), false);
+  assert.equal(isReadyRecord(noEngine, classifier), true);
+  assert.equal(isReadyRecord(noModel, classifier), false);
+});
+
+test("isReadyRecord accepts non-powertrain case without engine_power", () => {
+  const classifier = {
+    should_seed: true,
+    is_relevant: true,
+    has_explicit_fault: true,
+    has_confirmed_resolution: true,
+    same_user_confirms_resolution: true,
+    has_required_fields: true,
+    evidence_post_numbers: [1, 7],
+  };
+
+  const rec = {
+    vehicle_brand: "Volkswagen",
+    vehicle_model: "Passat B8 (2014–2023)",
+    engine_power: null,
+    symptoms: [
+      "Reversing camera does not retract",
+      "Camera remains permanently open",
+    ],
+    obd_codes: [],
+    description: "The original reversing camera in the VW badge stopped retracting and later stopped closing entirely.",
+    resolution: "Replaced only the motor module. The issue is resolved.",
+  };
+
+  assert.equal(isReadyRecord(rec, classifier), true);
 });
 
 test("selectCatalogForMarket defaults to EU-like entries", () => {
