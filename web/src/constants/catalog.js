@@ -13,7 +13,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Ford",
     active:    true,
-    expertise: "Ford osobní a užitková vozidla všech modelových řad (Fiesta, Focus, Mondeo, Kuga, Puma, EcoSport, Mustang, Galaxy, S-MAX, Transit, Ranger) — motory EcoBoost, TDCi, EcoBlue, Duratec a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR systémy)",
+    expertise: "Ford osobní a užitková vozidla všech modelových řad (Fiesta, Focus, Mondeo, Kuga, Puma, EcoSport, Mustang, Galaxy, S-MAX, Transit, Tourneo, Ranger) — motory EcoBoost, TDCi, EcoBlue, Duratec a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR systémy)",
     models: [
       // ── Fiesta ──────────────────────────────────────────────────────────────
       { group: "Fiesta" },
@@ -60,8 +60,9 @@ export const VEHICLE_CATALOG = [
       { label: "Mustang VII (2024–dosud)", powers: ["231 kW – 2.3 EcoBoost", "325 kW – 5.0 V8 GT", "355 kW – 5.0 V8 Dark Horse"] },
       { label: "Mustang Mach-E (2021–dosud)", powers: ["198 kW – Electric RWD", "216 kW – Electric AWD", "258 kW – Electric AWD ER", "346 kW – Electric GT"] },
 
-      // ── Ka+ ──────────────────────────────────────────────────────────────
-      { group: "Ka+" },
+      // ── Ka / Ka+ ───────────────────────────────────────────────────────────
+      { group: "Ka / Ka+" },
+      { label: "Ka II (2008–2016)", powers: ["1.2 MPI", "1.3 TDCi"] },
       { label: "Ka+ (2016–2021)", powers: ["51 kW – 1.2 Ti-VCT", "63 kW – 1.2 Ti-VCT", "70 kW – 1.5 TDCi"] },
 
       // ── B-MAX ──────────────────────────────────────────────────────────
@@ -98,6 +99,13 @@ export const VEHICLE_CATALOG = [
       { label: "Transit Custom II 2.5 Duratec PHEV (2023–současnost)", powers: ["171 kW (232 k)"] },
       { label: "E-Transit Custom Elektro (2024–současnost)",     powers: ["100 kW (136 k)", "160 kW (218 k)", "210 kW (285 k)"] },
 
+      // ── Tourneo Custom (osobní varianta) ─────────────────────────────────
+      { group: "Tourneo Custom" },
+      { label: "Tourneo Custom I 2.2 TDCi (2012–2016)",          powers: ["74 kW (100 k)", "92 kW (125 k)", "113 kW (154 k)"] },
+      { label: "Tourneo Custom I FL 2.0 EcoBlue (2016–2023)",    powers: ["77 kW (105 k)", "96 kW (130 k)", "125 kW (170 k)", "136 kW (185 k)"] },
+      { label: "Tourneo Custom II 2.0 EcoBlue (2023–současnost)", powers: ["81 kW (110 k)", "100 kW (136 k)", "110 kW (150 k)", "125 kW (170 k)"] },
+      { label: "Tourneo Custom II 2.5 Duratec PHEV (2023–současnost)", powers: ["171 kW (232 k)"] },
+
       // ── 3. Transit Connect (kompaktní dodávka) ─────────────────────────────
       { group: "Transit Connect" },
       { label: "Transit Connect I 1.8 TDCi (2006–2013)",         powers: ["55 kW (75 k)", "66 kW (90 k)", "81 kW (110 k)"] },
@@ -115,6 +123,13 @@ export const VEHICLE_CATALOG = [
       { label: "Transit Courier II 1.0 EcoBoost (2023–současnost)", powers: ["74 kW (100 k)", "92 kW (125 k)"] },
       { label: "Transit Courier II 1.5 EcoBlue (2023–současnost)", powers: ["74 kW (100 k)"] },
       { label: "E-Transit Courier Elektro (2025–současnost)",    powers: ["100 kW (136 k)"] },
+
+      // ── Tourneo Courier (osobní varianta) ────────────────────────────────
+      { group: "Tourneo Courier" },
+      { label: "Tourneo Courier I 1.5/1.6 TDCi (2014–2023)",    powers: ["55 kW (75 k)", "70 kW (95 k)", "74 kW (100 k)"] },
+      { label: "Tourneo Courier I 1.0 EcoBoost (2014–2023)",    powers: ["74 kW (100 k)"] },
+      { label: "Tourneo Courier II 1.0 EcoBoost (2023–současnost)", powers: ["74 kW (100 k)", "92 kW (125 k)"] },
+      { label: "Tourneo Courier II 1.5 EcoBlue (2023–současnost)", powers: ["74 kW (100 k)"] },
     ],
   },
 
@@ -283,7 +298,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "SEAT",
     active:    true,
-    expertise: "SEAT osobní vozidla klíčových modelových řad (Mii, Ibiza, Leon, Toledo, Arona, Ateca, Tarraco, Alhambra) — motory MPI, TSI, TDI, EcoFuel, e-HYBRID a elektrické pohony od roku 2012 do současnosti, EU spec",
+    expertise: "SEAT osobní vozidla hlavních EU modelových řad (Mii, Ibiza, Leon, Toledo, Altea, Exeo, Arona, Ateca, Tarraco, Alhambra) — motory MPI, TSI, TDI, TGI/CNG, EcoFuel, e-HYBRID a elektrické pohony od roku 2008 do současnosti, EU spec",
     models: [
       // ── Mii ───────────────────────────────────────────────────────────────────
       { group: "Mii" },
@@ -291,15 +306,25 @@ export const VEHICLE_CATALOG = [
 
       // ── Ibiza ─────────────────────────────────────────────────────────────────
       { group: "Ibiza" },
+      { label: "Ibiza IV (2008–2017)", powers: ["44 kW – 1.2 12V", "51 kW – 1.2 12V", "63 kW – 1.4 16V", "60 kW – 1.6 BiFuel", "63 kW – 1.2 TSI", "77 kW – 1.2 TSI", "110 kW – 1.4 TSI", "132 kW – 1.4 TSI Cupra", "55 kW – 1.2 TDI", "66 kW – 1.6 TDI", "77 kW – 1.6 TDI", "105 kW – 2.0 TDI"] },
       { label: "Ibiza V (2017–dosud)", powers: ["59 kW – 1.0 MPI", "70 kW – 1.0 TSI", "81 kW – 1.0 TSI", "85 kW – 1.0 TSI", "110 kW – 1.5 TSI", "59 kW – 1.6 TDI", "85 kW – 1.6 TDI"] },
 
       // ── Leon ──────────────────────────────────────────────────────────────────
       { group: "Leon" },
+      { label: "Leon III (2012–2020)", powers: ["63 kW – 1.2 TSI", "77 kW – 1.2 TSI", "85 kW – 1.0 TSI", "90 kW – 1.4 TSI", "96 kW – 1.5 TSI", "96 kW – 1.5 TGI", "103 kW – 1.4 TSI", "110 kW – 1.5 TSI", "132 kW – 1.8 TSI", "66 kW – 1.6 TDI", "77 kW – 1.6 TDI", "85 kW – 1.6 TDI", "110 kW – 2.0 TDI", "135 kW – 2.0 TDI"] },
       { label: "Leon IV (2020–dosud)", powers: ["85 kW – 1.5 TSI", "85 kW – 1.5 eTSI mHEV", "110 kW – 1.5 TSI", "110 kW – 1.5 eTSI mHEV", "150 kW – 1.5 e-HYBRID", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI"] },
 
       // ── Toledo ────────────────────────────────────────────────────────────────
       { group: "Toledo" },
-      { label: "Toledo IV (2012–2019)", powers: ["70 kW – 1.0 TSI", "81 kW – 1.0 TSI", "92 kW – 1.4 TSI DSG", "85 kW – 1.6 TDI"] },
+      { label: "Toledo IV (2012–2019)", powers: ["55 kW – 1.2 MPI", "63 kW – 1.2 TSI", "70 kW – 1.0 TSI", "77 kW – 1.2 TSI", "81 kW – 1.0 TSI", "90 kW – 1.4 TSI", "77 kW – 1.6 TDI"] },
+
+      // ── Altea ─────────────────────────────────────────────────────────────────
+      { group: "Altea" },
+      { label: "Altea / Altea XL / Freetrack (2004–2015)", powers: ["63 kW – 1.4", "77 kW – 1.2 TSI", "92 kW – 1.4 TSI", "72 kW – 1.6 BiFuel", "118 kW – 1.8 TSI", "66 kW – 1.6 TDI", "77 kW – 1.6 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI"] },
+
+      // ── Exeo ──────────────────────────────────────────────────────────────────
+      { group: "Exeo" },
+      { label: "Exeo / Exeo ST (2009–2013)", powers: ["88 kW – 1.8 TSI", "118 kW – 1.8 TSI", "155 kW – 2.0 TSI", "88 kW – 2.0 TDI", "105 kW – 2.0 TDI", "125 kW – 2.0 TDI"] },
 
       // ── Arona ────────────────────────────────────────────────────────────────
       { group: "Arona" },
@@ -1146,7 +1171,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Opel",
     active:    true,
-    expertise: "Opel osobní a užitková vozidla klíčových modelových řad (Corsa, Astra, Mokka, Crossland, Grandland, Combo, Vivaro, Zafira, Movano) — motory Turbo, Diesel, Hybrid a elektrické pohony od roku 2018 do současnosti, EU spec (Euro 6d, DPF, SCR, 48V hybridy)",
+    expertise: "Opel osobní a lehká užitková vozidla hlavních EU modelových řad (Corsa, Astra, Mokka, Crossland, Grandland, Combo, Vivaro, Zafira, Movano) — motory Turbo, Diesel, Hybrid a elektrické pohony od roku 2015 do současnosti, EU spec (Euro 6/6d, DPF, SCR, 48V hybridy)",
     models: [
       // ── Corsa ─────────────────────────────────────────────────────────────────
       { group: "Corsa" },
@@ -1154,18 +1179,22 @@ export const VEHICLE_CATALOG = [
 
       // ── Astra ─────────────────────────────────────────────────────────────────
       { group: "Astra" },
+      { label: "Astra K (2015–2021)", powers: ["77 kW – 1.0 Turbo", "110 kW – 1.4 Turbo", "147 kW – 1.6 Turbo", "100 kW – 1.6 CDTI"] },
       { label: "Astra L (2021–dosud)", powers: ["81 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "96 kW – 1.5 Diesel", "133 kW – 1.6 Plug-in Hybrid", "165 kW – 1.6 Plug-in Hybrid GSe", "115 kW – Electric"] },
 
       // ── Mokka ────────────────────────────────────────────────────────────────
       { group: "Mokka" },
+      { label: "Mokka X (2016–2020)", powers: ["88 kW – 1.4 Turbo", "103 kW – 1.4 Turbo", "100 kW – 1.6 Diesel"] },
       { label: "Mokka B (2021–dosud)", powers: ["100 kW – 1.2 Turbo", "100 kW – 1.2 Hybrid", "100 kW – Electric", "115 kW – Electric"] },
 
       // ── Crossland ────────────────────────────────────────────────────────────
       { group: "Crossland" },
+      { label: "Crossland X (2017–2020)", powers: ["60 kW – 1.2 LPG", "61 kW – 1.2", "81 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "88 kW – 1.5 Diesel"] },
       { label: "Crossland (2020–2024)", powers: ["61 kW – 1.2", "81 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "81 kW – 1.5 Diesel", "88 kW – 1.5 Diesel"] },
 
       // ── Grandland ────────────────────────────────────────────────────────────
       { group: "Grandland" },
+      { label: "Grandland I (2017–2024)", powers: ["96 kW – 1.2 Turbo", "88 kW – 1.6 Diesel", "96 kW – 1.5 Diesel", "133 kW – 1.6 Turbo", "165 kW – 1.6 Plug-in Hybrid", "221 kW – Hybrid4"] },
       { label: "Grandland II (2024–dosud)", powers: ["100 kW – 1.2 Hybrid", "143 kW – Plug-in Hybrid", "157 kW – Electric"] },
 
       // ── Combo ────────────────────────────────────────────────────────────────

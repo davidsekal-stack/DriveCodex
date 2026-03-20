@@ -906,31 +906,73 @@ describe('helpers — vehicle catalog', () => {
     ok(labels.includes('Kodiaq II (2024–dosud)'))
   })
 
-  test('SEAT katalog obsahuje ověřené modely a elektrifikované motorizace', () => {
+  test('SEAT katalog obsahuje starší ověřené generace i elektrifikované motorizace', () => {
     const entry = getBrandEntry('SEAT')
     ok(entry)
-    ok(entry.expertise.includes('Tarraco'))
+    ok(entry.expertise.includes('Exeo'))
 
     const models = getBrandModels('SEAT')
     ok(models.some(m => m.group === 'Mii'))
     ok(models.some(m => m.label === 'Mii (2012–2020)'))
+
+    const ibizaIv = models.find(m => m.label === 'Ibiza IV (2008–2017)')
+    ok(ibizaIv)
+    ok(ibizaIv.powers.includes('132 kW – 1.4 TSI Cupra'))
+    ok(ibizaIv.powers.includes('105 kW – 2.0 TDI'))
+
+    const leonIii = models.find(m => m.label === 'Leon III (2012–2020)')
+    ok(leonIii)
+    ok(leonIii.powers.includes('96 kW – 1.5 TGI'))
+    ok(leonIii.powers.includes('135 kW – 2.0 TDI'))
 
     const leon = models.find(m => m.label === 'Leon IV (2020–dosud)')
     ok(leon)
     ok(leon.powers.includes('150 kW – 1.5 e-HYBRID'))
     ok(leon.powers.includes('110 kW – 2.0 TDI'))
 
+    const toledo = models.find(m => m.label === 'Toledo IV (2012–2019)')
+    ok(toledo)
+    ok(toledo.powers.includes('55 kW – 1.2 MPI'))
+    ok(toledo.powers.includes('90 kW – 1.4 TSI'))
+
+    const altea = models.find(m => m.label === 'Altea / Altea XL / Freetrack (2004–2015)')
+    ok(altea)
+    ok(altea.powers.includes('118 kW – 1.8 TSI'))
+
+    const exeo = models.find(m => m.label === 'Exeo / Exeo ST (2009–2013)')
+    ok(exeo)
+    ok(exeo.powers.includes('125 kW – 2.0 TDI'))
+
     const tarraco = models.find(m => m.label === 'Tarraco (2018–dosud)')
     ok(tarraco)
     ok(tarraco.powers.includes('180 kW – 1.4 e-HYBRID'))
   })
 
-  test('Opel katalog obsahuje hybridní a elektrické pohony včetně dodávek', () => {
+  test('Opel katalog obsahuje ověřené starší generace i elektrifikaci', () => {
     const entry = getBrandEntry('Opel')
     ok(entry)
     ok(entry.expertise.includes('Grandland'))
 
     const models = getBrandModels('Opel')
+    const astraK = models.find(m => m.label === 'Astra K (2015–2021)')
+    ok(astraK)
+    ok(astraK.powers.includes('147 kW – 1.6 Turbo'))
+    ok(astraK.powers.includes('100 kW – 1.6 CDTI'))
+
+    const mokkaX = models.find(m => m.label === 'Mokka X (2016–2020)')
+    ok(mokkaX)
+    ok(mokkaX.powers.includes('103 kW – 1.4 Turbo'))
+
+    const crosslandX = models.find(m => m.label === 'Crossland X (2017–2020)')
+    ok(crosslandX)
+    ok(crosslandX.powers.includes('60 kW – 1.2 LPG'))
+    ok(crosslandX.powers.includes('88 kW – 1.5 Diesel'))
+
+    const grandlandI = models.find(m => m.label === 'Grandland I (2017–2024)')
+    ok(grandlandI)
+    ok(grandlandI.powers.includes('165 kW – 1.6 Plug-in Hybrid'))
+    ok(grandlandI.powers.includes('221 kW – Hybrid4'))
+
     const corsa = models.find(m => m.label === 'Corsa F (2019–dosud)')
     ok(corsa)
     ok(corsa.powers.includes('100 kW – 1.2 Hybrid'))
