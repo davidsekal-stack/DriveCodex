@@ -73,7 +73,7 @@ import { translate } from '../web/src/i18n/translate.js'
 import { uid, urgColor, fmtDate, fmtMileage } from '../web/src/lib/utils.js'
 import { detectEngineTech, getObdCodes, BRAND_OBD_CODES } from '../web/src/constants/obd-codes.js'
 import {
-  getBrandEntry, ACTIVE_BRANDS, getBrandModels, getModelPowers,
+  getBrandEntry, ACTIVE_BRAND_SECTIONS, ACTIVE_BRANDS, getBrandModels, getModelPowers,
   getDefaultBrand, setDefaultBrand, getStoredDefaultBrand, makeEmptyVehicle,
   saveIdent, findIdentHistory, loadIdentHistory,
 } from '../web/src/constants/helpers.js'
@@ -670,8 +670,8 @@ describe('validateResolution — validace opravy', () => {
     strictEqual(validateResolution('krátké', 'cs').ok, false)
   })
 
-  test('příliš dlouhý text (>200 znaků) = chyba', () => {
-    const long = 'a '.repeat(150)
+  test('příliš dlouhý text (>400 znaků) = chyba', () => {
+    const long = 'a '.repeat(250)
     strictEqual(validateResolution(long, 'cs').ok, false)
   })
 
@@ -851,6 +851,24 @@ describe('helpers — vehicle catalog', () => {
     ok(ACTIVE_BRANDS.length >= 1)
   })
 
+  test('ACTIVE_BRAND_SECTIONS řadí dropdown do EU a US sekcí abecedně', () => {
+    deepStrictEqual(ACTIVE_BRAND_SECTIONS.map((entry) => entry.section), ['EU', 'US'])
+
+    const euBrands = ACTIVE_BRAND_SECTIONS[0].brands.map((entry) => entry.brand)
+    const usBrands = ACTIVE_BRAND_SECTIONS[1].brands.map((entry) => entry.brand)
+    const sortBrands = (brands) => [...brands].sort((a, b) => a.localeCompare(b, 'cs', { sensitivity: 'base' }))
+
+    deepStrictEqual(euBrands, sortBrands(euBrands))
+    deepStrictEqual(usBrands, sortBrands(usBrands))
+    ok(euBrands.includes('SEAT'))
+    ok(euBrands.includes('Opel'))
+    ok(euBrands.includes('Ford'))
+    ok(usBrands.includes('Ford (US)'))
+    ok(usBrands.includes('Hyundai (US)'))
+    ok(usBrands.includes('Kia (US)'))
+    ok(!euBrands.includes('Ford (US)'))
+  })
+
   test('getBrandModels vrátí modely pro Ford', () => {
     const models = getBrandModels('Ford')
     ok(models.length > 0, 'Ford by měl mít modely')
@@ -936,9 +954,15 @@ describe('helpers — vehicle catalog', () => {
   test('Toyota katalog obsahuje nové modelové řady z Toyota Club fóra', () => {
     const models = getBrandModels('Toyota')
 
+    const avensisT25 = models.find(m => m.label === 'Avensis T25 (2003–2009)')
+    ok(avensisT25)
+
     const prius3 = models.find(m => m.label === 'Prius III (2009–2016)')
     ok(prius3)
     ok(prius3.powers.includes('100 kW – 1.8 Hybrid'))
+
+    const prius2 = models.find(m => m.label === 'Prius II (2004–2009)')
+    ok(prius2)
 
     const prius = models.find(m => m.label === 'Prius IV (2016–2022)')
     ok(prius)
@@ -951,6 +975,12 @@ describe('helpers — vehicle catalog', () => {
     const highlander = models.find(m => m.label === 'Highlander / Kluger IV (2020–dosud)')
     ok(highlander)
     ok(highlander.powers.includes('182 kW – 2.5 Hybrid AWD'))
+
+    const rav4ii = models.find(m => m.label === 'RAV4 II (2000–2006)')
+    ok(rav4ii)
+
+    const oldVerso = models.find(m => m.label === 'Corolla Verso / Verso II (2004–2009)')
+    ok(oldVerso)
   })
 
   test('Toyota katalog obsahuje sportovní a globální Toyota Club modely', () => {

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -13,6 +14,7 @@ import {
   extractTitleFromHtml,
   htmlToText,
   isClassifierApproved,
+  isReviewWorthClassifier,
   isReadyRecord,
   extractedCaseUsesUnresolvedResolutionPost,
   normalizeEvidencePosts,
@@ -74,18 +76,21 @@ const MODEL_ALIAS_BY_LABEL = new Map([
   ["Yaris III (2011–2020)", ["Yaris"]],
   ["Yaris IV (2020–dosud)", ["Yaris"]],
   ["Yaris Cross (2021–dosud)", ["Yaris Cross"]],
-  ["Corolla E150 (2006–2013)", ["Corolla"]],
+  ["Corolla E150 (2006–2013)", ["Corolla", "Corolla E15"]],
   ["Corolla E210 (2019–dosud)", ["Corolla"]],
   ["Corolla Cross (2022–dosud)", ["Corolla Cross"]],
   ["Auris I (2006–2012)", ["Auris"]],
   ["Auris II (2012–2018)", ["Auris"]],
-  ["Avensis T27 (2009–2018)", ["Avensis"]],
+  ["Avensis T25 (2003–2009)", ["Avensis T25", "Avensis II"]],
+  ["Avensis T27 (2009–2018)", ["Avensis T27", "Avensis III", "Avensis 3"]],
   ["Camry XV70 (2019–dosud)", ["Camry"]],
+  ["Prius II (2004–2009)", ["Prius II"]],
   ["Prius III (2009–2016)", ["Prius"]],
   ["Prius IV (2016–2022)", ["Prius"]],
   ["Prius V (2023–dosud)", ["Prius"]],
   ["C-HR I (2016–2023)", ["C-HR", "CHR", "C HR"]],
   ["C-HR II (2023–dosud)", ["C-HR", "CHR", "C HR"]],
+  ["RAV4 II (2000–2006)", ["RAV4 II", "Rav 4 II"]],
   ["RAV4 III (2006–2012)", ["RAV4", "Rav 4"]],
   ["RAV4 IV (2013–2018)", ["RAV4", "Rav 4"]],
   ["RAV4 V (2019–dosud)", ["RAV4", "Rav 4"]],
@@ -101,7 +106,8 @@ const MODEL_ALIAS_BY_LABEL = new Map([
   ["GR86 (2022–dosud)", ["GR86", "GR 86"]],
   ["Supra GR (2019–dosud)", ["Supra", "GR Supra"]],
   ["bZ4X (2022–dosud)", ["bZ4X", "BZ4X", "bZ 4X"]],
-  ["Verso (2009–2018)", ["Verso", "Verso R20"]],
+  ["Corolla Verso / Verso II (2004–2009)", ["Corolla Verso", "Verso II", "Verso 2"]],
+  ["Verso (2009–2018)", ["Verso", "Verso R20", "Toyota Verso"]],
 ]);
 
 const { catalog: EU_CATALOG } = selectCatalogForMarket("eu");
@@ -118,9 +124,23 @@ Usage:
   node scripts/forum-seed-toyota.mjs <https://www.toyota-club.eu/forum> <out_dir> [options]
   node scripts/forum-seed-toyota.mjs <https://en.toyota-club.eu/forum-category/auris-14> <out_dir> [options]
   node scripts/forum-seed-toyota.mjs <https://www.toyota-club.eu/forum-tema/...> <out_dir> [options]
+
+Options:
+  --keep-review   Store borderline but promising cases into to_review/
 `.trim();
   console.log(msg);
   process.exit(exitCode);
+}
+
+function computeToyotaReviewId({ forum, sourceUrl, threadTitle, stage }) {
+  const input = JSON.stringify({
+    forum: forum ?? "",
+    source_url: sourceUrl ?? "",
+    thread_title: threadTitle ?? "",
+    stage: stage ?? "",
+  });
+  const hash = crypto.createHash("sha256").update(input, "utf8").digest("hex").slice(0, 16);
+  return `review_${hash}`;
 }
 
 function parseArgs(argv) {
@@ -137,6 +157,7 @@ function parseArgs(argv) {
     maxThreads: 20000,
     sleepMs: 250,
     cookie: "",
+    keepReview: false,
     dry: false,
   };
 
@@ -145,6 +166,7 @@ function parseArgs(argv) {
     const value = argv[i];
     if (value === "--help" || value === "-h") usage(0);
     if (value === "--dry") { args.dry = true; continue; }
+    if (value === "--keep-review") { args.keepReview = true; continue; }
     if (value === "--forum") { args.forum = argv[++i] ?? ""; continue; }
     if (value === "--user-id") { args.userId = argv[++i] ?? ""; continue; }
     if (value === "--source-url") { args.sourceUrl = argv[++i] ?? ""; continue; }
@@ -282,6 +304,10 @@ function scoreModelLabel(modelLabel, rawText) {
   return Math.max(...getModelAliasTexts(modelLabel).map(alias => tokenOverlapScore(rawText, alias)), 0);
 }
 
+function escapeRegExp(value) {
+  return (value ?? "").toString().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function normalizeToyotaForumMatchText(value) {
   let text = (value ?? "").toString();
   const replacements = [
@@ -292,6 +318,8 @@ function normalizeToyotaForumMatchText(value) {
     [/\b4[\s-]?runner\b/gi, "4Runner"],
     [/\bbz[\s-]?4x\b/gi, "bZ4X"],
     [/\blandcruiser\b/gi, "Land Cruiser"],
+    [/\bverso\s+ii\b/gi, "Corolla Verso"],
+    [/\bverso\s+2\b/gi, "Corolla Verso"],
     [/\bverso\s+r20\b/gi, "Verso"],
   ];
   for (const [pattern, replacement] of replacements) text = text.replace(pattern, replacement);
@@ -318,6 +346,63 @@ function extractExplicitYears(text) {
 function bestToyotaModelMatch(rawText) {
   const models = (TOYOTA_ENTRY.models ?? []).filter(model => model?.label);
   return bestByScore(models, model => scoreModelLabel(model.label, normalizeToyotaForumMatchText(rawText)));
+}
+
+function pickToyotaModelLabelByExplicitAlias(rawText) {
+  const normalized = normalizeToyotaForumMatchText(rawText);
+  if (!normalized?.trim()) return null;
+
+  const models = (TOYOTA_ENTRY.models ?? []).filter(model => model?.label);
+  const matches = [];
+
+  for (const model of models) {
+    for (const alias of getModelAliasTexts(model.label).map(normalizeToyotaForumMatchText).filter(Boolean)) {
+      const regex = new RegExp(`(^|\\b)${escapeRegExp(alias)}(\\b|$)`, "i");
+      if (!regex.test(normalized)) continue;
+      matches.push({
+        label: model.label,
+        alias,
+        aliasTokens: alias.split(/\s+/).filter(Boolean).length,
+        aliasLength: alias.length,
+      });
+    }
+  }
+
+  if (matches.length === 0) return null;
+
+  matches.sort((a, b) => (
+    b.aliasTokens - a.aliasTokens ||
+    b.aliasLength - a.aliasLength ||
+    a.label.localeCompare(b.label)
+  ));
+
+  const best = matches[0];
+  const tied = matches.filter(match => match.aliasTokens === best.aliasTokens && match.aliasLength === best.aliasLength);
+  const distinctLabels = [...new Set(tied.map(match => match.label))];
+  if (distinctLabels.length !== 1) return null;
+
+  return best.label;
+}
+
+function pickToyotaModelLabel(rawText) {
+  const normalized = normalizeToyotaForumMatchText(rawText);
+  if (!normalized?.trim()) return null;
+
+  const explicitAliasLabel = pickToyotaModelLabelByExplicitAlias(normalized);
+  if (explicitAliasLabel) return explicitAliasLabel;
+
+  const models = (TOYOTA_ENTRY.models ?? []).filter(model => model?.label);
+  const best = bestByScore(models, model => scoreModelLabel(model.label, normalized));
+  if (!best || best.score < 0.30) return null;
+
+  const epsilon = 0.03;
+  const near = models
+    .map(model => ({ model, score: scoreModelLabel(model.label, normalized) }))
+    .filter(item => Math.abs(item.score - best.score) <= epsilon)
+    .sort((a, b) => b.score - a.score);
+  if (near.length >= 2) return null;
+
+  return best.it.label;
 }
 
 function resolveToyotaVehicleModel({ modelRaw = "", threadTitle = "", parentForumTitle = "" }) {
@@ -351,7 +436,7 @@ function resolveToyotaVehicleModel({ modelRaw = "", threadTitle = "", parentForu
     .filter(Boolean);
 
   for (const context of contexts) {
-    const label = pickModelLabel(TOYOTA_ENTRY, context);
+    const label = pickToyotaModelLabel(context) ?? pickModelLabel(TOYOTA_ENTRY, context);
     if (label) return label;
   }
 
@@ -725,7 +810,7 @@ async function deepseekChatJson({ apiKey, model, messages, maxTokens = 1400 }) {
   return (data?.choices?.[0]?.message?.content ?? "").toString();
 }
 
-async function processThreadFactory({ args, apiKey, outReady, discardedPath }) {
+async function processThreadFactory({ args, apiKey, outReady, outReview, discardedPath }) {
   return async function processOneThread({
     threadUrl,
     threadTitle = "",
@@ -761,6 +846,37 @@ async function processThreadFactory({ args, apiKey, outReady, discardedPath }) {
         ...extra,
       });
     };
+    const writeReview = async (stage, reason, extra = {}) => {
+      const payload = {
+        stage,
+        reason,
+        thread_url: sourceUrl || null,
+        thread_title: normalizedThreadTitle || null,
+        parent_forum_title: parentForumTitle || null,
+        subforum_name: subforumName || null,
+        subforum_title: subforumTitle || null,
+        subforum_url: subforumUrl || null,
+        created_at: new Date().toISOString(),
+        ...extra,
+      };
+
+      if (!args.keepReview) {
+        await logDiscard(stage, reason, { review_candidate: payload });
+        return false;
+      }
+
+      const reviewId = computeToyotaReviewId({
+        forum: args.forum,
+        sourceUrl,
+        threadTitle: normalizedThreadTitle,
+        stage,
+      });
+      await writeJsonFileUnique(outReview, reviewId, {
+        review_id: reviewId,
+        ...payload,
+      });
+      return true;
+    };
 
     const classifierPrompt = [
       "You are an automotive forum thread classifier for seed data quality control.",
@@ -791,8 +907,14 @@ async function processThreadFactory({ args, apiKey, outReady, discardedPath }) {
     classifier.evidence_post_numbers = normalizeEvidencePosts(classifier.evidence_post_numbers);
 
     if (!isClassifierApproved(classifier)) {
+      if (isReviewWorthClassifier(classifier)) {
+        const kept = await writeReview("classifier", classifier.reason || "Thread looks like a real diagnostic case but did not pass READY gate.", {
+          classifier,
+        });
+        return { ready: 0, review: kept ? 1 : 0, discarded: kept ? 0 : 1 };
+      }
       await logDiscard("classifier", classifier.reason || "Thread did not pass strict seed gate.", { classifier });
-      return { ready: 0, discarded: 1 };
+      return { ready: 0, review: 0, discarded: 1 };
     }
 
     const extractorPrompt = [
@@ -829,31 +951,37 @@ async function processThreadFactory({ args, apiKey, outReady, discardedPath }) {
     }));
 
     if (!Array.isArray(extracted) || extracted.length < 1) {
-      await logDiscard("extractor", "Extractor did not return any clear case.", { classifier });
-      return { ready: 0, discarded: 1 };
+      const kept = await writeReview("extractor", `Expected one or more clear extracted cases, got ${Array.isArray(extracted) ? extracted.length : 0}.`, {
+        classifier,
+        extracted_count: Array.isArray(extracted) ? extracted.length : 0,
+      });
+      return { ready: 0, review: kept ? 1 : 0, discarded: kept ? 0 : 1 };
     }
 
     let readyCount = 0;
+    let reviewCount = 0;
     let discardedCount = 0;
 
     for (const item of extracted) {
       const authorValidation = validateExtractedCaseAuthor(item, postMetaByNumber);
       if (!authorValidation.ok) {
-        await logDiscard("record", authorValidation.reason || "Author validation failed.", {
+        const kept = await writeReview("record", authorValidation.reason || "Author validation failed.", {
           classifier,
           extracted_raw: item ?? null,
         });
-        discardedCount++;
+        if (kept) reviewCount++;
+        else discardedCount++;
         continue;
       }
 
       const normalizedItem = { ...(item ?? {}), case_author: authorValidation.caseAuthor ?? (item?.case_author ?? "") };
       if (extractedCaseUsesUnresolvedResolutionPost(normalizedItem, postTextByNumber)) {
-        await logDiscard("record", "Resolution post still uses future/uncertain language in the source thread.", {
+        const kept = await writeReview("record", "Resolution post still uses future/uncertain language in the source thread.", {
           classifier,
           extracted_raw: normalizedItem ?? null,
         });
-        discardedCount++;
+        if (kept) reviewCount++;
+        else discardedCount++;
         continue;
       }
 
@@ -901,12 +1029,13 @@ async function processThreadFactory({ args, apiKey, outReady, discardedPath }) {
       };
 
       if (!isReadyRecord(record, classifier)) {
-        await logDiscard("record", "Extracted case failed strict READY validation.", {
+        const kept = await writeReview("record", "Extracted case failed strict READY validation.", {
           classifier,
           candidate: record,
           extracted_raw: normalizedItem ?? null,
         });
-        discardedCount++;
+        if (kept) reviewCount++;
+        else discardedCount++;
         continue;
       }
 
@@ -914,7 +1043,7 @@ async function processThreadFactory({ args, apiKey, outReady, discardedPath }) {
       readyCount++;
     }
 
-    return { ready: readyCount, discarded: discardedCount };
+    return { ready: readyCount, review: reviewCount, discarded: discardedCount };
   };
 }
 
@@ -924,8 +1053,12 @@ async function main() {
   if (!args.cookie) args.cookie = process.env.FORUM_COOKIE ?? "";
 
   const outReady = path.join(args.outDir, "ready");
+  const outReview = path.join(args.outDir, "to_review");
   const discardedPath = path.join(args.outDir, "discarded.jsonl");
   await fs.mkdir(outReady, { recursive: true });
+  if (args.keepReview) {
+    await fs.mkdir(outReview, { recursive: true });
+  }
 
   if (args.dry) {
     await appendJsonLine(discardedPath, {
@@ -944,8 +1077,9 @@ async function main() {
     process.exit(2);
   }
 
-  const processOneThread = await processThreadFactory({ args, apiKey, outReady, discardedPath });
+  const processOneThread = await processThreadFactory({ args, apiKey, outReady, outReview, discardedPath });
   let totalReady = 0;
+  let totalReview = 0;
   let totalDiscarded = 0;
   let totalProcessedThreads = 0;
 
@@ -957,6 +1091,7 @@ async function main() {
       const raw = await fetchToyotaThreadAsText({ url: input, pages: args.pages, cookie: args.cookie });
       const res = await processOneThread({ threadUrl: input, threadTextRaw: raw });
       totalReady += res.ready;
+      totalReview += res.review;
       totalDiscarded += res.discarded;
       totalProcessedThreads++;
       continue;
@@ -1024,6 +1159,7 @@ async function main() {
           subforumUrl: thread.subforumUrl || "",
         });
         totalReady += res.ready;
+        totalReview += res.review;
         totalDiscarded += res.discarded;
         totalProcessedThreads++;
         await fs.appendFile(donePath, `${thread.url}\n`, "utf8");
@@ -1034,7 +1170,11 @@ async function main() {
     }
   }
 
-  console.log(`Processed ${totalProcessedThreads} thread(s). Wrote ${totalReady} ready record(s) and discarded ${totalDiscarded} item(s) into: ${args.outDir}`);
+  if (args.keepReview) {
+    console.log(`Processed ${totalProcessedThreads} thread(s). Wrote ${totalReady} ready record(s), ${totalReview} review item(s) and discarded ${totalDiscarded} item(s) into: ${args.outDir}`);
+  } else {
+    console.log(`Processed ${totalProcessedThreads} thread(s). Wrote ${totalReady} ready record(s) and discarded ${totalDiscarded} item(s) into: ${args.outDir}`);
+  }
 }
 
 const entryArg = process.argv[1];
@@ -1054,6 +1194,7 @@ export {
   extractToyotaModelForumsFromRoot,
   extractToyotaTopicEntriesFromForumPage,
   looksLikeUsefulToyotaTopicTitle,
+  parseArgs,
   parseToyotaForumYearRange,
   resolveToyotaVehicleModel,
   shouldKeepToyotaModelForum,

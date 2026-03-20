@@ -1,4 +1,4 @@
-import { ACTIVE_BRANDS, findIdentHistory, getBrandModels, getModelPowers, setDefaultBrand } from "../constants/index.js";
+import { ACTIVE_BRAND_DROPDOWN_OPTIONS, findIdentHistory, getBrandModels, getModelPowers, setDefaultBrand } from "../constants/index.js";
 import { fmtDate } from "../lib/utils.js";
 import InputForm from "./InputForm.jsx";
 
@@ -37,8 +37,10 @@ export default function NewCaseView({
               <select value={newVehicle.brand}
                 onChange={(e) => setNewVehicle((vehicle) => ({ ...vehicle, brand: e.target.value, model: "", enginePower: "" }))}
                 style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
-                {ACTIVE_BRANDS.map((brand) => (
-                  <option key={brand.brand} value={brand.brand}>{brand.brand}</option>
+                {ACTIVE_BRAND_DROPDOWN_OPTIONS.map((item) => (
+                  item.type === "separator"
+                    ? <option key={item.key} disabled>{item.label}</option>
+                    : <option key={item.key} value={item.brand}>{item.label}</option>
                 ))}
               </select>
               <button

@@ -397,7 +397,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Toyota",
     active:    true,
-    expertise: "Toyota osobní a užitková vozidla hlavních i vybraných globálních modelových řad (Aygo, Yaris, Corolla, Corolla Cross, Auris, Avensis, Prius, Camry, C-HR, RAV4, Land Cruiser, Hilux, Proace, Supra/GT86/GR86, Highlander, Tacoma, 4Runner) — motory VVT-i, D-4D, hybridní systémy a elektrické pohony od roku 2006 do současnosti, primárně EU spec, s opatrným rozšířením pro vybrané globální modely z Toyota Club fóra",
+    expertise: "Toyota osobní a užitková vozidla hlavních i vybraných globálních modelových řad (Aygo, Yaris, Corolla, Corolla Cross, Auris, Avensis, Prius, Camry, C-HR, RAV4, Land Cruiser, Hilux, Proace, Supra/GT86/GR86, Highlander, Tacoma, 4Runner) — motory VVT-i, D-4D, hybridní systémy a elektrické pohony primárně od roku 2006 do současnosti, doplněné o vybrané starší forum-backed generace z Toyota Club fóra",
     models: [
       // ── Aygo ──────────────────────────────────────────────────────────────────
       { group: "Aygo" },
@@ -431,6 +431,7 @@ export const VEHICLE_CATALOG = [
 
       // ── Avensis ───────────────────────────────────────────────────────────────
       { group: "Avensis" },
+      { label: "Avensis T25 (2003–2009)" },
       { label: "Avensis T27 (2009–2018)", powers: ["97 kW – 1.6 VVT-i", "108 kW – 1.8 VVT-i", "112 kW – 2.0 VVT-i", "91 kW – 2.0 D-4D", "93 kW – 2.0 D-4D", "105 kW – 2.2 D-4D", "110 kW – 2.2 D-CAT"] },
 
       // ── Camry ─────────────────────────────────────────────────────────────────
@@ -439,6 +440,7 @@ export const VEHICLE_CATALOG = [
 
       // ── Prius ────────────────────────────────────────────────────────────────
       { group: "Prius" },
+      { label: "Prius II (2004–2009)" },
       { label: "Prius III (2009–2016)", powers: ["100 kW – 1.8 Hybrid"] },
       { label: "Prius IV (2016–2022)", powers: ["90 kW – 1.8 Hybrid", "90 kW – 1.8 Plug-in Hybrid"] },
       { label: "Prius V (2023–dosud)", powers: ["164 kW – 2.0 Plug-in Hybrid"] },
@@ -450,6 +452,7 @@ export const VEHICLE_CATALOG = [
 
       // ── RAV4 ──────────────────────────────────────────────────────────────────
       { group: "RAV4" },
+      { label: "RAV4 II (2000–2006)" },
       { label: "RAV4 III (2006–2012)", powers: ["112 kW – 2.0 VVT-i", "125 kW – 2.4 VVT-i", "100 kW – 2.2 D-4D", "110 kW – 2.2 D-4D", "130 kW – 2.2 D-CAT"] },
       { label: "RAV4 IV (2013–2018)", powers: ["111 kW – 2.0 VVT-i", "107 kW – 2.5 Hybrid", "91 kW – 2.0 D-4D", "110 kW – 2.2 D-4D"] },
       { label: "RAV4 V (2019–dosud)", powers: ["130 kW – 2.0 VVT-i", "160 kW – 2.5 Hybrid", "163 kW – 2.5 Hybrid AWD", "225 kW – 2.5 Plug-in Hybrid"] },
@@ -495,6 +498,7 @@ export const VEHICLE_CATALOG = [
 
       // ── Verso ───────────────────────────────────────────────────────────────
       { group: "Verso" },
+      { label: "Corolla Verso / Verso II (2004–2009)" },
       { label: "Verso (2009–2018)", powers: ["97 kW – 1.6 VVT-i", "108 kW – 1.8 VVT-i", "111 kW – 2.0 VVT-i", "99 kW – 1.8 Hybrid", "66 kW – 1.4 D-4D", "82 kW – 2.0 D-4D", "93 kW – 2.0 D-4D", "110 kW – 2.2 D-4D"] },
     ],
   },

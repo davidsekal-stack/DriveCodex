@@ -8,10 +8,10 @@ Spusťte níže uvedené SQL příkazy v Supabase SQL Editoru.
 ## Krok 1 — CHECK constraints na gearbrain_cases
 
 ```sql
--- Resolution: 10–200 znaků
+-- Resolution: 10–400 znaků
 ALTER TABLE public.gearbrain_cases
   ADD CONSTRAINT chk_resolution_length
-  CHECK (LENGTH(resolution) >= 10 AND LENGTH(resolution) <= 200);
+  CHECK (LENGTH(resolution) >= 10 AND LENGTH(resolution) <= 400);
 
 -- Alespoň jeden diagnostický signál (OBD kód, příznak, nebo popis)
 ALTER TABLE public.gearbrain_cases
@@ -186,8 +186,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_gearbrain_idempotent
 
 -- 2. CHECK constraints
 ALTER TABLE public.gearbrain_cases
-  ADD CONSTRAINT IF NOT EXISTS chk_resolution_length
-  CHECK (LENGTH(resolution) >= 10 AND LENGTH(resolution) <= 200);
+  DROP CONSTRAINT IF EXISTS chk_resolution_length;
+
+ALTER TABLE public.gearbrain_cases
+  ADD CONSTRAINT chk_resolution_length
+  CHECK (LENGTH(resolution) >= 10 AND LENGTH(resolution) <= 400);
 
 ALTER TABLE public.gearbrain_cases
   ADD CONSTRAINT IF NOT EXISTS chk_has_diagnostic_signal

@@ -5,6 +5,7 @@ import {
   extractToyotaModelForumsFromRoot,
   extractToyotaTopicEntriesFromForumPage,
   looksLikeUsefulToyotaTopicTitle,
+  parseArgs,
   parseToyotaForumYearRange,
   resolveToyotaVehicleModel,
   shouldKeepToyotaModelForum,
@@ -75,6 +76,15 @@ test("looksLikeUsefulToyotaTopicTitle keeps fault titles and rejects manuals", (
   assert.equal(looksLikeUsefulToyotaTopicTitle("How to remove headliner"), false);
 });
 
+test("parseArgs enables keep-review mode", () => {
+  const args = parseArgs(["out_dir", "--keep-review"]);
+  assert.equal(args.keepReview, true);
+  assert.deepEqual(args.inputs, [
+    "https://www.toyota-club.eu/forum",
+    "https://en.toyota-club.eu/forum",
+  ]);
+});
+
 test("extractToyotaTopicEntriesFromForumPage filters out guide topics", () => {
   const html = `
     <a href="/forum-topic/auris-1-6-vvt-i-oil-leak-4369">Auris 1.6 VVT-i oil leak</a>
@@ -106,6 +116,66 @@ test("resolveToyotaVehicleModel uses year and engine hints", () => {
     parentForumTitle: "Forum Corolla Cross",
   });
   assert.equal(corollaCross, "Corolla Cross (2022–dosud)");
+});
+
+test("resolveToyotaVehicleModel maps older Toyota forum generations explicitly named in threads", () => {
+  const avensis = resolveToyotaVehicleModel({
+    modelRaw: "Avensis T25",
+    threadTitle: "Avensis T25 po výměně brzdové trubky nejde odvzduš",
+    parentForumTitle: "Avensis - Fórum - Toyota klub",
+  });
+  assert.equal(avensis, "Avensis T25 (2003–2009)");
+
+  const rav4 = resolveToyotaVehicleModel({
+    modelRaw: "RAV4 II",
+    threadTitle: "Chyba P0657 2004 2.0 D4D",
+    parentForumTitle: "Rav 4 - Fórum - Toyota klub",
+  });
+  assert.equal(rav4, "RAV4 II (2000–2006)");
+
+  const oldPrius = resolveToyotaVehicleModel({
+    modelRaw: "Prius II",
+    threadTitle: "2008 Prius II ABS and traction control",
+    parentForumTitle: "Forum Prius",
+  });
+  assert.equal(oldPrius, "Prius II (2004–2009)");
+
+  const oldVerso = resolveToyotaVehicleModel({
+    modelRaw: "Verso II",
+    threadTitle: "Zkušenosti s VERSO II, 2.2 D-4D, 130 kW",
+    parentForumTitle: "Corolla - Fórum - Toyota klub",
+  });
+  assert.equal(oldVerso, "Corolla Verso / Verso II (2004–2009)");
+
+  const oldVersoFromTitleOnly = resolveToyotaVehicleModel({
+    modelRaw: "",
+    threadTitle: "Zkušenosti s VERSO II, 2.2 D-4D, 130 kW",
+    parentForumTitle: "Corolla - Fórum - Toyota klub",
+  });
+  assert.equal(oldVersoFromTitleOnly, "Corolla Verso / Verso II (2004–2009)");
+});
+
+test("resolveToyotaVehicleModel keeps generic Toyota model names ambiguous", () => {
+  const rav4 = resolveToyotaVehicleModel({
+    modelRaw: "RAV4",
+    threadTitle: "RAV4 D4D Chyba vstřikovače - indikace závady",
+    parentForumTitle: "Rav 4 - Fórum - Toyota klub",
+  });
+  assert.equal(rav4, null);
+
+  const auris = resolveToyotaVehicleModel({
+    modelRaw: "Auris",
+    threadTitle: "Senzor tlaku v pneu",
+    parentForumTitle: "Auris - Fórum - Toyota klub",
+  });
+  assert.equal(auris, null);
+
+  const avensis = resolveToyotaVehicleModel({
+    modelRaw: "Avensis",
+    threadTitle: "Check parking brake system and check vsc system",
+    parentForumTitle: "Avensis - Fórum - Toyota klub",
+  });
+  assert.equal(avensis, null);
 });
 
 test("extractPostsFromToyotaText parses Czech and English style timestamps", () => {
