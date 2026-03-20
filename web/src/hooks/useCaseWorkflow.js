@@ -10,6 +10,7 @@ import {
   collectCaseInputs,
   normalizeDiagnosisResult,
   removeMessageById,
+  searchSimilarCases,
 } from "../lib/diagnosis.js";
 import * as storage from "../lib/storage.js";
 import { hasConsent } from "../components/ConsentBanner.jsx";
@@ -90,10 +91,7 @@ export default function useCaseWorkflow({
       }
     }
 
-    let similarCases = [];
-
-    const { cases = [], ok: searchOk } = await storage.searchCases(ragInput);
-    similarCases = cases;
+    const { cases: similarCases = [], ok: searchOk } = await searchSimilarCases(storage.searchCases, ragInput);
     setCloudStatus(searchOk ? "ok" : "error");
 
     try {

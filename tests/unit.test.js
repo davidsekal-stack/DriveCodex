@@ -67,6 +67,7 @@ import {
   collectCaseInputs,
   normalizeDiagnosisResult,
   removeMessageById,
+  searchSimilarCases,
 } from '../web/src/lib/diagnosis.js'
 import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
@@ -80,6 +81,7 @@ import {
 
 // ── Test runner ──────────────────────────────────────────────────────────────
 let passed = 0, failed = 0
+const pendingTests = []
 
 function describe(section, fn) {
   console.log(`\n══ ${section} ══`)
@@ -87,14 +89,7 @@ function describe(section, fn) {
 }
 
 function test(name, fn) {
-  try {
-    fn()
-    console.log(`  ✓ ${name}`)
-    passed++
-  } catch (e) {
-    console.error(`  ✗ ${name}\n    ${e.message}`)
-    failed++
-  }
+  pendingTests.push({ name, fn })
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -184,6 +179,17 @@ describe('diagnosis helpers — workflow extrakce', () => {
       obdCodes: ['P0401'],
       text: 'A B',
     })
+  })
+
+  test('searchSimilarCases převede nečekanou chybu lookupu na bezpečný fallback', async () => {
+    const result = await searchSimilarCases(
+      async () => { throw new Error('network down') },
+      { vehicle: { brand: 'Ford' } },
+    )
+
+    deepStrictEqual(result.cases, [])
+    strictEqual(result.ok, false)
+    strictEqual(result.error.message, 'network down')
   })
 
   test('buildDiagnosisUserPrompt použije lokalizované labely', () => {
@@ -1195,6 +1201,17 @@ describe('utils', () => {
 })
 
 // ── Summary ──────────────────────────────────────────────────────────────────
+for (const { name, fn } of pendingTests) {
+  try {
+    await fn()
+    console.log(`  ✓ ${name}`)
+    passed++
+  } catch (e) {
+    console.error(`  ✗ ${name}\n    ${e.message}`)
+    failed++
+  }
+}
+
 console.log('\n════════════════════════════════════════════════════════════════')
 console.log(`  Celkem: ${passed + failed}  ✓ ${passed}  ✗ ${failed}`)
 if (failed > 0) {

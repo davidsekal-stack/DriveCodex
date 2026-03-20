@@ -8,6 +8,7 @@ import {
   collectRetryErrorFiles,
   normalizeSeedPayload,
   normalizeResolutionText,
+  parseSeedJson,
   parseArgs,
   wasResolutionTruncated,
 } from "../scripts/import-seeds-to-supabase.mjs";
@@ -90,6 +91,13 @@ test("normalizeResolutionText trims long resolutions to database limit", () => {
   assert.equal(normalized.length <= 400, true);
   assert.equal(normalized.startsWith("Replaced the gateway module"), true);
   assert.equal(normalized.length < input.length, true);
+});
+
+test("parseSeedJson tolerates UTF-8 BOM at file start", () => {
+  const parsed = parseSeedJson('\uFEFF{"local_id":"seed_bom","vehicle_model":"Focus","resolution":"Replaced injector harness"}');
+
+  assert.equal(parsed.local_id, "seed_bom");
+  assert.equal(parsed.vehicle_model, "Focus");
 });
 
 test("wasResolutionTruncated reports truncation only when content changes", () => {

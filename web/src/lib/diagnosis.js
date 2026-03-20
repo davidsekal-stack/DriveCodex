@@ -29,6 +29,23 @@ export function buildDiagnosisUserPrompt({ vehicle = {}, allSymptoms = [], allOb
   ].filter(Boolean).join("\n");
 }
 
+export async function searchSimilarCases(searchCases, ragInput) {
+  try {
+    const result = await searchCases(ragInput);
+    return {
+      cases: Array.isArray(result?.cases) ? result.cases : [],
+      ok: result?.ok === true,
+      error: result?.ok === false ? (result.error ?? null) : null,
+    };
+  } catch (error) {
+    return {
+      cases: [],
+      ok: false,
+      error,
+    };
+  }
+}
+
 export function removeMessageById(messages = [], messageId) {
   return messages.filter((message) => message.id !== messageId);
 }

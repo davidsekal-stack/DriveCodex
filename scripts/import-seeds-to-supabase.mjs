@@ -20,6 +20,14 @@ const DEFAULT_USER_ID = "ai_importer";
 const MIN_RESOLUTION_LENGTH = 10;
 const MAX_RESOLUTION_LENGTH = 400;
 
+export function stripLeadingBom(text) {
+  return typeof text === "string" ? text.replace(/^\uFEFF/, "") : "";
+}
+
+export function parseSeedJson(rawText) {
+  return JSON.parse(stripLeadingBom(rawText));
+}
+
 function usage(exitCode = 1) {
   console.log(`
 Usage:
@@ -213,7 +221,7 @@ function validatePayload(payload, filePath) {
 }
 
 async function loadSeedPayload(filePath, forcedUserId = "") {
-  const raw = JSON.parse(await fs.readFile(filePath, "utf8"));
+  const raw = parseSeedJson(await fs.readFile(filePath, "utf8"));
   const payload = normalizeSeedPayload(raw, DEFAULT_USER_ID, forcedUserId);
   validatePayload(payload, filePath);
   return {
