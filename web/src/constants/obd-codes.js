@@ -401,6 +401,30 @@ export const BRAND_OBD_CODES = {
     "P1521", // Variable intake air (VIAS) control solenoid
     "P1523", // Variable intake air (VIAS) control solenoid – stuck
   ],
+  "Suzuki": [
+    "P1011", // Intake camshaft position actuator – incorrect park position bank 1
+    "P1107", // Manifold absolute pressure (MAP) sensor – signal voltage low
+    "P1116", // Engine coolant temperature (ECT) circuit performance
+    "P1121", // Throttle position sensor intermittent high voltage
+    "P1231", // Fuel pump relay high voltage
+    "P1320", // Crankshaft segment malfunction
+    "P1408", // MAP sensor / EGR system circuit malfunction
+    "P1443", // EVAP purge control valve malfunction – stuck open
+    "P1510", // Engine control module (ECM) supply voltage
+    "P1614", // Transponder response error / immobilizer key mismatch
+  ],
+  "Volvo": [
+    "P1171", // System too lean – bank 1 part load
+    "P1172", // System too rich – bank 1 part load
+    "P1237", // Turbocharger boost control deviation
+    "P1238", // Turbocharger boost pressure sensor / boost control malfunction
+    "P1273", // Electronic throttle system malfunction
+    "P1336", // Crankshaft position sensor / RPM signal range-performance
+    "P1449", // EVAP leak detection pump circuit malfunction
+    "P1505", // Idle air control valve opening signal
+    "P1602", // Engine control module power stage group B
+    "P1618", // Transmission control module MIL ON request
+  ],
   "Cadillac": [
     "P1011", // Intake camshaft position actuator park – bank 1
     "P1014", // Exhaust camshaft position actuator park – bank 1
@@ -499,6 +523,8 @@ const BRAND_CANONICAL_FOR_OBD = {
   "Volkswagen (US)": "Volkswagen",
   "SEAT": "Volkswagen",
   "Seat": "Volkswagen",
+  "Cupra": "Volkswagen",
+  "CUPRA": "Volkswagen",
   // Opel katalog zde zatím pokrývá novější PSA/Stellantis-era modely.
   "Opel": "Peugeot",
 }

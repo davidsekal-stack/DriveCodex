@@ -13,23 +13,31 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Ford",
     active:    true,
-    expertise: "Ford osobní a užitková vozidla všech modelových řad (Fiesta, Focus, Mondeo, Kuga, Puma, EcoSport, Mustang, Galaxy, S-MAX, Transit, Tourneo, Ranger) — motory EcoBoost, TDCi, EcoBlue, Duratec a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR systémy)",
+    expertise: "Ford osobní a užitková vozidla hlavních evropských i užitkových modelových řad (Fiesta, Focus, Escort, Mondeo, Kuga, Puma, EcoSport, Mustang, Galaxy, S-MAX, Ka, Transit, Tourneo, Ranger) — motory Zetec, Endura, Duratec, EcoBoost, TDDi, TDCi, EcoBlue a elektrické pohony od roku 1995 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR systémy)",
     models: [
       // ── Fiesta ──────────────────────────────────────────────────────────────
       { group: "Fiesta" },
+      { label: "Fiesta MK4 / MK5 (1995–2002)" },
       { label: "Fiesta MK6 (2006–2008)", powers: ["44 kW – 1.25 Duratec", "55 kW – 1.4 Duratec", "74 kW – 1.6 Duratec", "50 kW – 1.4 TDCi", "66 kW – 1.6 TDCi"] },
       { label: "Fiesta MK7 (2008–2017)", powers: ["44 kW – 1.25", "60 kW – 1.25", "60 kW – 1.4", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "100 kW – 1.0 EcoBoost", "134 kW – 1.6 EcoBoost ST", "55 kW – 1.4 TDCi", "51 kW – 1.5 TDCi", "55 kW – 1.5 TDCi", "70 kW – 1.6 TDCi"] },
       { label: "Fiesta MK8 (2017–2023)", powers: ["52 kW – 1.1 Ti-VCT", "63 kW – 1.1 Ti-VCT", "70 kW – 1.0 EcoBoost", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "100 kW – 1.0 EcoBoost mHEV", "147 kW – 1.5 EcoBoost ST", "55 kW – 1.5 TDCi", "63 kW – 1.5 EcoBlue"] },
 
       // ── Focus ───────────────────────────────────────────────────────────────
       { group: "Focus" },
+      { label: "Focus MK1 (1998–2005)" },
       { label: "Focus MK2 (2006–2010)", powers: ["59 kW – 1.4 Duratec", "74 kW – 1.6 Duratec", "92 kW – 1.6 Ti-VCT", "107 kW – 2.0 Duratec", "166 kW – 2.5T ST", "66 kW – 1.6 TDCi", "80 kW – 1.8 TDCi", "100 kW – 2.0 TDCi"] },
       { label: "Focus MK2 FL (2008–2011)", powers: ["59 kW – 1.4", "74 kW – 1.6 Ti-VCT", "92 kW – 1.6 Ti-VCT", "107 kW – 2.0 Duratec", "166 kW – 2.5T ST", "224 kW – 2.5T RS", "66 kW – 1.6 TDCi", "80 kW – 1.8 TDCi", "100 kW – 2.0 TDCi"] },
       { label: "Focus MK3 (2011–2018)", powers: ["63 kW – 1.0 EcoBoost", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "110 kW – 1.5 EcoBoost", "134 kW – 1.5 EcoBoost", "184 kW – 2.0 EcoBoost ST", "257 kW – 2.3 EcoBoost RS", "70 kW – 1.5 TDCi", "77 kW – 1.5 TDCi", "88 kW – 1.5 TDCi", "110 kW – 2.0 TDCi", "120 kW – 2.0 TDCi"] },
       { label: "Focus MK4 (2018–dosud)", powers: ["63 kW – 1.0 EcoBoost", "74 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost", "92 kW – 1.0 EcoBoost mHEV", "110 kW – 1.5 EcoBoost", "134 kW – 1.5 EcoBoost", "206 kW – 2.3 EcoBoost ST", "70 kW – 1.5 EcoBlue", "88 kW – 1.5 EcoBlue", "110 kW – 2.0 EcoBlue"] },
 
+      // ── Escort ──────────────────────────────────────────────────────────────
+      { group: "Escort" },
+      { label: "Escort MkVII / Classic (1995–2000)" },
+
       // ── Mondeo ──────────────────────────────────────────────────────────────
       { group: "Mondeo" },
+      { label: "Mondeo II (1996–2000)" },
+      { label: "Mondeo MK III (2000–2007)" },
       { label: "Mondeo MK4 (2007–2014)", powers: ["92 kW – 1.6 Ti-VCT", "107 kW – 2.0 Duratec", "149 kW – 2.5 Duratec", "162 kW – 2.0 EcoBoost", "176 kW – 2.0 EcoBoost", "74 kW – 1.6 TDCi", "85 kW – 1.8 TDCi", "96 kW – 2.0 TDCi", "103 kW – 2.0 TDCi", "120 kW – 2.0 TDCi", "130 kW – 2.2 TDCi"] },
       { label: "Mondeo MK5 (2014–2022)", powers: ["118 kW – 1.5 EcoBoost", "140 kW – 1.5 EcoBoost", "176 kW – 2.0 EcoBoost", "138 kW – 2.0 EcoBoost HEV", "88 kW – 1.5 TDCi", "88 kW – 1.5 EcoBlue", "110 kW – 2.0 TDCi", "132 kW – 2.0 TDCi", "110 kW – 2.0 EcoBlue", "140 kW – 2.0 EcoBlue"] },
 
@@ -62,6 +70,7 @@ export const VEHICLE_CATALOG = [
 
       // ── Ka / Ka+ ───────────────────────────────────────────────────────────
       { group: "Ka / Ka+" },
+      { label: "Ka I (1996–2008)" },
       { label: "Ka II (2008–2016)", powers: ["1.2 MPI", "1.3 TDCi"] },
       { label: "Ka+ (2016–2021)", powers: ["51 kW – 1.2 Ti-VCT", "63 kW – 1.2 Ti-VCT", "70 kW – 1.5 TDCi"] },
 
@@ -634,13 +643,20 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Peugeot",
     active:    true,
-    expertise: "Peugeot osobní a užitková vozidla všech modelových řad (208, 308, 508, 2008, 3008, 5008, Rifter, Expert, Boxer) — motory PureTech, BlueHDi, THP a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR)",
+    expertise: "Peugeot osobní a užitková vozidla hlavních evropských modelových řad (107, 206, 207, 208, 301, 307, 308, 405, 4007, 4008, 5008, 508, 607, 807, RCZ, Bipper, Partner, Rifter, Expert, Traveller, Boxer) — motory TU, EW, Prince/THP, PureTech, HDi, BlueHDi a elektrické pohony od konce 80. let do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR)",
     models: [
       // ── 207 / 208 ────────────────────────────────────────────────────────────
       { group: "207 / 208" },
+      { label: "107" },
+      { label: "206 / 206+" },
       { label: "207 (2006–2012)", powers: ["54 kW – 1.4 VTi", "65 kW – 1.4 VTi", "88 kW – 1.6 VTi", "110 kW – 1.6 THP", "128 kW – 1.6 THP GTi", "150 kW – 1.6 THP RC", "50 kW – 1.4 HDi", "66 kW – 1.6 HDi", "80 kW – 1.6 HDi"] },
       { label: "208 I (2012–2019)", powers: ["50 kW – 1.0 VTi", "60 kW – 1.2 VTi", "81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "147 kW – 1.6 THP GTi", "153 kW – 1.6 THP GTi by PS", "50 kW – 1.4 HDi", "68 kW – 1.6 HDi", "55 kW – 1.5 BlueHDi", "75 kW – 1.5 BlueHDi"] },
       { label: "208 II (2019–dosud)", powers: ["55 kW – 1.2 PureTech", "75 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "100 kW – Electric e-208", "115 kW – Electric e-208"] },
+
+      // ── 301 / 307 ────────────────────────────────────────────────────────────
+      { group: "301 / 307" },
+      { label: "301" },
+      { label: "307" },
 
       // ── 308 ───────────────────────────────────────────────────────────────────
       { group: "308" },
@@ -663,22 +679,38 @@ export const VEHICLE_CATALOG = [
       { label: "3008 I (2009–2016)", powers: ["88 kW – 1.6 VTi", "110 kW – 1.6 THP", "115 kW – 1.6 THP", "121 kW – 1.6 THP", "80 kW – 1.6 HDi", "82 kW – 1.6 BlueHDi", "110 kW – 2.0 HDi", "120 kW – 2.0 HDi", "133 kW – 2.0 BlueHDi", "150 kW – 2.0 HDi Hybrid4"] },
       { label: "3008 II (2016–dosud)", powers: ["96 kW – 1.2 PureTech", "132 kW – 1.6 PureTech", "165 kW – 1.6 PureTech", "165 kW – 1.6 PHEV", "265 kW – 1.6 PHEV", "96 kW – 1.5 BlueHDi", "118 kW – 2.0 BlueHDi", "133 kW – 2.0 BlueHDi"] },
 
+      // ── 4007 / 4008 / 405 ────────────────────────────────────────────────────
+      { group: "4007 / 4008 / 405" },
+      { label: "405" },
+      { label: "4007" },
+      { label: "4008" },
+
       // ── 5008 ──────────────────────────────────────────────────────────────────
       { group: "5008" },
       { label: "5008 I (2009–2017)", powers: ["88 kW – 1.6 VTi", "110 kW – 1.6 THP", "121 kW – 1.6 THP", "80 kW – 1.6 HDi", "82 kW – 1.6 BlueHDi", "110 kW – 2.0 HDi", "120 kW – 2.0 HDi"] },
       { label: "5008 II (2017–dosud)", powers: ["96 kW – 1.2 PureTech", "132 kW – 1.6 PureTech", "165 kW – 1.6 PureTech", "165 kW – 1.6 PHEV", "73 kW – 1.5 BlueHDi", "96 kW – 1.5 BlueHDi", "118 kW – 2.0 BlueHDi", "133 kW – 2.0 BlueHDi"] },
 
+      // ── 607 / 807 / RCZ ──────────────────────────────────────────────────────
+      { group: "607 / 807 / RCZ" },
+      { label: "607" },
+      { label: "807" },
+      { label: "RCZ" },
+
       // ── Rifter (Partner) ──────────────────────────────────────────────────────
       { group: "Rifter" },
+      { label: "Bipper / Bipper Tepee" },
       { label: "Partner Tepee (2008–2018)", powers: ["54 kW – 1.4", "72 kW – 1.6 VTi", "88 kW – 1.6 VTi", "110 kW – 1.6 THP", "50 kW – 1.6 HDi", "66 kW – 1.6 HDi", "82 kW – 1.6 BlueHDi", "73 kW – 1.5 BlueHDi", "96 kW – 2.0 HDi"] },
       { label: "Rifter (2018–dosud)", powers: ["81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "73 kW – 1.5 BlueHDi", "96 kW – 1.5 BlueHDi", "100 kW – Electric e-Rifter"] },
 
       // ── Expert ────────────────────────────────────────────────────────────────
       { group: "Expert" },
+      { label: "Expert / Traveller II (2007–2016)" },
       { label: "Expert III (2016–dosud)", powers: ["75 kW – 1.5 BlueHDi", "88 kW – 1.5 BlueHDi", "110 kW – 2.0 BlueHDi", "130 kW – 2.0 BlueHDi", "100 kW – Electric e-Expert"] },
+      { label: "Traveller (2016–dosud)" },
 
       // ── Boxer ─────────────────────────────────────────────────────────────────
       { group: "Boxer" },
+      { label: "Boxer I (1994–2006)" },
       { label: "Boxer III (2006–dosud)", powers: ["74 kW – 2.2 HDi", "88 kW – 2.2 HDi", "96 kW – 2.2 HDi", "81 kW – 2.0 BlueHDi", "88 kW – 2.2 BlueHDi", "103 kW – 2.2 BlueHDi", "121 kW – 2.2 BlueHDi", "120 kW – 3.0 HDi"] },
     ],
   },
@@ -1213,6 +1245,118 @@ export const VEHICLE_CATALOG = [
       { group: "Movano" },
       { label: "Movano C 2.2 Diesel (2021–dosud)", powers: ["88 kW – 2.2 Diesel", "103 kW – 2.2 Diesel", "121 kW – 2.2 Diesel"] },
       { label: "Movano Electric (2021–dosud)", powers: ["90 kW – Electric", "205 kW – Electric"] },
+    ],
+  },
+
+  {
+    brand:     "Mazda",
+    active:    true,
+    expertise: "Mazda osobní vozy hlavních EU modelových řad (Mazda2 Hybrid, Mazda3, CX-30, CX-5, CX-60) — benzínové e-SKYACTIV jednotky, Mazda M Hybrid a plug-in hybridy od roku 2019 do současnosti, EU spec",
+    models: [
+      // ── Mazda2 Hybrid ────────────────────────────────────────────────────────
+      { group: "Mazda2 Hybrid" },
+      { label: "Mazda2 Hybrid (2022–dosud)", powers: ["85 kW – 1.5 Hybrid"] },
+
+      // ── Mazda3 ───────────────────────────────────────────────────────────────
+      { group: "Mazda3" },
+      { label: "Mazda3 BP (2019–dosud)", powers: ["103 kW – 2.5 e-SKYACTIV G140", "137 kW – 2.0 e-SKYACTIV X186"] },
+
+      // ── CX-30 ────────────────────────────────────────────────────────────────
+      { group: "CX-30" },
+      { label: "CX-30 DM (2019–dosud)", powers: ["103 kW – 2.5 e-SKYACTIV G140", "137 kW – 2.0 e-SKYACTIV X186"] },
+
+      // ── CX-5 ─────────────────────────────────────────────────────────────────
+      { group: "CX-5" },
+      { label: "CX-5 KF FL (2022–dosud)", powers: ["121 kW – 2.0 e-SKYACTIV G"] },
+
+      // ── CX-60 ────────────────────────────────────────────────────────────────
+      { group: "CX-60" },
+      { label: "CX-60 (2022–dosud)", powers: ["241 kW – 2.5 e-SKYACTIV PHEV"] },
+    ],
+  },
+
+  {
+    brand:     "Cupra",
+    active:    true,
+    expertise: "Cupra osobní vozy hlavních EU modelových řad (Ateca, Leon, Leon Sportstourer, Formentor, Born, Tavascan, Terramar) — motory TSI, eTSI, e-HYBRID a elektrické pohony od roku 2018 do současnosti, EU spec",
+    models: [
+      // ── Ateca ────────────────────────────────────────────────────────────────
+      { group: "Ateca" },
+      { label: "Ateca (2018–dosud)", powers: ["221 kW – 2.0 TSI VZ"] },
+
+      // ── Leon ────────────────────────────────────────────────────────────────
+      { group: "Leon" },
+      { label: "Leon / Leon Sportstourer (2020–dosud)", powers: ["110 kW – 1.5 TSI", "150 kW – 1.5 e-HYBRID", "200 kW – 1.5 e-HYBRID VZ", "221 kW – 2.0 TSI VZ"] },
+
+      // ── Formentor ───────────────────────────────────────────────────────────
+      { group: "Formentor" },
+      { label: "Formentor (2020–dosud)", powers: ["110 kW – 1.5 TSI", "150 kW – 1.5 e-HYBRID", "195 kW – 2.0 TSI 4Drive VZ", "200 kW – 1.5 e-HYBRID VZ", "245 kW – 2.0 TSI 4Drive VZ"] },
+
+      // ── Born ────────────────────────────────────────────────────────────────
+      { group: "Born" },
+      { label: "Born (2022–dosud)", powers: ["170 kW – Electric e-Boost", "240 kW – Electric VZ"] },
+
+      // ── Tavascan ────────────────────────────────────────────────────────────
+      { group: "Tavascan" },
+      { label: "Tavascan (2024–dosud)", powers: ["210 kW – Electric RWD", "250 kW – Electric AWD VZ"] },
+
+      // ── Terramar ────────────────────────────────────────────────────────────
+      { group: "Terramar" },
+      { label: "Terramar (2025–dosud)", powers: ["110 kW – 1.5 eTSI", "150 kW – 1.5 e-HYBRID", "150 kW – 2.0 TSI 4Drive", "195 kW – 2.0 TSI 4Drive VZ", "200 kW – 1.5 e-HYBRID VZ"] },
+    ],
+  },
+
+  {
+    brand:     "Volvo",
+    active:    true,
+    expertise: "Volvo elektrifikované osobní vozy hlavních EU modelových řad (EX30, EX40, EC40, XC60, XC90) — mild hybrid, plug-in hybrid a elektrické pohony od roku 2021 do současnosti, EU spec",
+    models: [
+      // ── EX30 ────────────────────────────────────────────────────────────────
+      { group: "EX30" },
+      { label: "EX30 (2024–dosud)", powers: ["200 kW – Single Motor", "315 kW – Twin Motor Performance"] },
+
+      // ── EX40 ────────────────────────────────────────────────────────────────
+      { group: "EX40" },
+      { label: "XC40 Recharge / EX40 (2021–dosud)", powers: ["175 kW – Single Motor", "185 kW – Single Motor Extended Range", "300 kW – Twin Motor", "325 kW – Twin Motor Performance"] },
+
+      // ── EC40 ────────────────────────────────────────────────────────────────
+      { group: "EC40" },
+      { label: "C40 Recharge / EC40 (2022–dosud)", powers: ["175 kW – Single Motor", "185 kW – Single Motor Extended Range", "300 kW – Twin Motor", "325 kW – Twin Motor Performance"] },
+
+      // ── XC60 ────────────────────────────────────────────────────────────────
+      { group: "XC60" },
+      { label: "XC60 (2025–dosud)", powers: ["184 kW – B5 AWD Mild Hybrid", "247 kW – T6 AWD Plug-in Hybrid", "299 kW – T8 AWD Plug-in Hybrid"] },
+
+      // ── XC90 ────────────────────────────────────────────────────────────────
+      { group: "XC90" },
+      { label: "XC90 (2025–dosud)", powers: ["184 kW – B5 AWD Mild Hybrid"] },
+    ],
+  },
+
+  {
+    brand:     "Suzuki",
+    active:    true,
+    expertise: "Suzuki osobní vozy hlavních EU modelových řad (Swift, Ignis, Vitara, S-Cross, e Vitara) — motory DualJet, BoosterJet hybridy a elektrické pohony od roku 2020 do současnosti, EU spec",
+    models: [
+      // ── Swift ───────────────────────────────────────────────────────────────
+      { group: "Swift" },
+      { label: "Swift VI Hybrid (2024–dosud)", powers: ["61 kW – 1.2 Mild Hybrid"] },
+
+      // ── Ignis ───────────────────────────────────────────────────────────────
+      { group: "Ignis" },
+      { label: "Ignis Hybrid (2020–2024)", powers: ["61 kW – 1.2 DualJet Hybrid"] },
+
+      // ── Vitara ──────────────────────────────────────────────────────────────
+      { group: "Vitara" },
+      { label: "Vitara Hybrid (2024–dosud)", powers: ["85 kW – 1.5 Full Hybrid", "95 kW – 1.4 BoosterJet Mild Hybrid"] },
+
+      // ── S-Cross ─────────────────────────────────────────────────────────────
+      { group: "S-Cross" },
+      { label: "S-Cross Hybrid (2024–dosud)", powers: ["85 kW – 1.5 Full Hybrid", "95 kW – 1.4 BoosterJet Mild Hybrid"] },
+
+      // ── e Vitara ────────────────────────────────────────────────────────────
+      { group: "e Vitara" },
+      { label: "e Vitara (2025–dosud)", powers: ["106 kW – Electric 49 kWh FWD", "128 kW – Electric 61 kWh FWD", "135 kW – Electric 61 kWh ALLGRIP-e"] },
     ],
   },
 

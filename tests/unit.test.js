@@ -832,6 +832,21 @@ describe('obd-codes', () => {
     const codes = getObdCodes('Opel', 'Astra L (2021–dosud)', '96 kW - 1.5 Diesel')
     deepStrictEqual(codes.brand, BRAND_OBD_CODES.Peugeot)
   })
+
+  test('Cupra použije VAG canonical OBD lookup', () => {
+    const codes = getObdCodes('Cupra', 'Formentor (2020–dosud)', '150 kW - 1.5 e-HYBRID')
+    deepStrictEqual(codes.brand, BRAND_OBD_CODES.Volkswagen)
+  })
+
+  test('Volvo použije vlastní brand-specific OBD lookup', () => {
+    const codes = getObdCodes('Volvo', 'XC60 (2025–dosud)', '299 kW - T8 AWD Plug-in Hybrid')
+    deepStrictEqual(codes.brand, BRAND_OBD_CODES.Volvo)
+  })
+
+  test('Suzuki použije vlastní brand-specific OBD lookup', () => {
+    const codes = getObdCodes('Suzuki', 'Vitara Hybrid (2024–dosud)', '95 kW - 1.4 BoosterJet Mild Hybrid')
+    deepStrictEqual(codes.brand, BRAND_OBD_CODES.Suzuki)
+  })
 })
 
 describe('helpers — vehicle catalog', () => {
@@ -868,6 +883,10 @@ describe('helpers — vehicle catalog', () => {
     deepStrictEqual(usBrands, sortBrands(usBrands))
     ok(euBrands.includes('SEAT'))
     ok(euBrands.includes('Opel'))
+    ok(euBrands.includes('Mazda'))
+    ok(euBrands.includes('Cupra'))
+    ok(euBrands.includes('Volvo'))
+    ok(euBrands.includes('Suzuki'))
     ok(euBrands.includes('Ford'))
     ok(usBrands.includes('Ford (US)'))
     ok(usBrands.includes('Hyundai (US)'))
@@ -882,6 +901,20 @@ describe('helpers — vehicle catalog', () => {
     const hasGroup = models.some(m => m.group && m.group.toLowerCase().includes('focus'))
     const hasLabel = models.some(m => m.label && m.label.toLowerCase().includes('focus'))
     ok(hasGroup || hasLabel, 'Ford by měl obsahovat Focus')
+  })
+
+  test('Ford katalog obsahuje starší ověřené generace pro remap seedů', () => {
+    const entry = getBrandEntry('Ford')
+    ok(entry.expertise.includes('Escort'))
+    ok(entry.expertise.includes('1995'))
+
+    const labels = getBrandModels('Ford').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Fiesta MK4 / MK5 (1995–2002)'))
+    ok(labels.includes('Focus MK1 (1998–2005)'))
+    ok(labels.includes('Escort MkVII / Classic (1995–2000)'))
+    ok(labels.includes('Mondeo II (1996–2000)'))
+    ok(labels.includes('Mondeo MK III (2000–2007)'))
+    ok(labels.includes('Ka I (1996–2008)'))
   })
 
   test('Škoda katalog obsahuje Elroq i v expertise', () => {
@@ -993,6 +1026,123 @@ describe('helpers — vehicle catalog', () => {
     ok(movanoElectric.powers.includes('205 kW – Electric'))
   })
 
+  test('Mazda katalog obsahuje ověřené současné EU modely a výkonové větve', () => {
+    const entry = getBrandEntry('Mazda')
+    ok(entry)
+    ok(entry.expertise.includes('CX-60'))
+
+    const models = getBrandModels('Mazda')
+    const mazda2Hybrid = models.find(m => m.label === 'Mazda2 Hybrid (2022–dosud)')
+    ok(mazda2Hybrid)
+    ok(mazda2Hybrid.powers.includes('85 kW – 1.5 Hybrid'))
+
+    const mazda3 = models.find(m => m.label === 'Mazda3 BP (2019–dosud)')
+    ok(mazda3)
+    ok(mazda3.powers.includes('103 kW – 2.5 e-SKYACTIV G140'))
+    ok(mazda3.powers.includes('137 kW – 2.0 e-SKYACTIV X186'))
+
+    const cx5 = models.find(m => m.label === 'CX-5 KF FL (2022–dosud)')
+    ok(cx5)
+    ok(cx5.powers.includes('121 kW – 2.0 e-SKYACTIV G'))
+
+    const cx60 = models.find(m => m.label === 'CX-60 (2022–dosud)')
+    ok(cx60)
+    ok(cx60.powers.includes('241 kW – 2.5 e-SKYACTIV PHEV'))
+  })
+
+  test('Cupra katalog obsahuje ověřené TSI, e-HYBRID i BEV modely', () => {
+    const entry = getBrandEntry('Cupra')
+    ok(entry)
+    ok(entry.expertise.includes('Terramar'))
+
+    const models = getBrandModels('Cupra')
+    const ateca = models.find(m => m.label === 'Ateca (2018–dosud)')
+    ok(ateca)
+    ok(ateca.powers.includes('221 kW – 2.0 TSI VZ'))
+
+    const leon = models.find(m => m.label === 'Leon / Leon Sportstourer (2020–dosud)')
+    ok(leon)
+    ok(leon.powers.includes('150 kW – 1.5 e-HYBRID'))
+    ok(leon.powers.includes('221 kW – 2.0 TSI VZ'))
+
+    const formentor = models.find(m => m.label === 'Formentor (2020–dosud)')
+    ok(formentor)
+    ok(formentor.powers.includes('200 kW – 1.5 e-HYBRID VZ'))
+    ok(formentor.powers.includes('245 kW – 2.0 TSI 4Drive VZ'))
+
+    const born = models.find(m => m.label === 'Born (2022–dosud)')
+    ok(born)
+    ok(born.powers.includes('240 kW – Electric VZ'))
+
+    const tavascan = models.find(m => m.label === 'Tavascan (2024–dosud)')
+    ok(tavascan)
+    ok(tavascan.powers.includes('250 kW – Electric AWD VZ'))
+
+    const terramar = models.find(m => m.label === 'Terramar (2025–dosud)')
+    ok(terramar)
+    ok(terramar.powers.includes('195 kW – 2.0 TSI 4Drive VZ'))
+    ok(terramar.powers.includes('200 kW – 1.5 e-HYBRID VZ'))
+  })
+
+  test('Volvo katalog obsahuje ověřenou současnou elektrifikovanou EU nabídku', () => {
+    const entry = getBrandEntry('Volvo')
+    ok(entry)
+    ok(entry.expertise.includes('EX40'))
+
+    const models = getBrandModels('Volvo')
+    const ex30 = models.find(m => m.label === 'EX30 (2024–dosud)')
+    ok(ex30)
+    ok(ex30.powers.includes('200 kW – Single Motor'))
+    ok(ex30.powers.includes('315 kW – Twin Motor Performance'))
+
+    const ex40 = models.find(m => m.label === 'XC40 Recharge / EX40 (2021–dosud)')
+    ok(ex40)
+    ok(ex40.powers.includes('185 kW – Single Motor Extended Range'))
+    ok(ex40.powers.includes('325 kW – Twin Motor Performance'))
+
+    const ec40 = models.find(m => m.label === 'C40 Recharge / EC40 (2022–dosud)')
+    ok(ec40)
+    ok(ec40.powers.includes('300 kW – Twin Motor'))
+
+    const xc60 = models.find(m => m.label === 'XC60 (2025–dosud)')
+    ok(xc60)
+    ok(xc60.powers.includes('184 kW – B5 AWD Mild Hybrid'))
+    ok(xc60.powers.includes('299 kW – T8 AWD Plug-in Hybrid'))
+
+    const xc90 = models.find(m => m.label === 'XC90 (2025–dosud)')
+    ok(xc90)
+    ok(xc90.powers.includes('184 kW – B5 AWD Mild Hybrid'))
+  })
+
+  test('Suzuki katalog obsahuje ověřené hybridní a elektrické EU modely', () => {
+    const entry = getBrandEntry('Suzuki')
+    ok(entry)
+    ok(entry.expertise.includes('e Vitara'))
+
+    const models = getBrandModels('Suzuki')
+    const swift = models.find(m => m.label === 'Swift VI Hybrid (2024–dosud)')
+    ok(swift)
+    ok(swift.powers.includes('61 kW – 1.2 Mild Hybrid'))
+
+    const ignis = models.find(m => m.label === 'Ignis Hybrid (2020–2024)')
+    ok(ignis)
+    ok(ignis.powers.includes('61 kW – 1.2 DualJet Hybrid'))
+
+    const vitara = models.find(m => m.label === 'Vitara Hybrid (2024–dosud)')
+    ok(vitara)
+    ok(vitara.powers.includes('85 kW – 1.5 Full Hybrid'))
+    ok(vitara.powers.includes('95 kW – 1.4 BoosterJet Mild Hybrid'))
+
+    const sCross = models.find(m => m.label === 'S-Cross Hybrid (2024–dosud)')
+    ok(sCross)
+    ok(sCross.powers.includes('95 kW – 1.4 BoosterJet Mild Hybrid'))
+
+    const eVitara = models.find(m => m.label === 'e Vitara (2025–dosud)')
+    ok(eVitara)
+    ok(eVitara.powers.includes('106 kW – Electric 49 kWh FWD'))
+    ok(eVitara.powers.includes('135 kW – Electric 61 kWh ALLGRIP-e'))
+  })
+
   test('Volkswagen Golf V katalog obsahuje 103 kW - 1.4 TSI pro BMY thready', () => {
     const golfV = getBrandModels('Volkswagen').find(m => m.label === 'Golf V (2006–2008)')
     ok(golfV)
@@ -1049,6 +1199,29 @@ describe('helpers — vehicle catalog', () => {
     const tacoma = models.find(m => m.label === 'Tacoma (2016–dosud)')
     ok(tacoma)
     strictEqual(Array.isArray(tacoma.powers), false)
+  })
+
+  test('Peugeot katalog pokrývá chybějící modelové řady z plánovaných Peugeot fór', () => {
+    const entry = getBrandEntry('Peugeot')
+    ok(entry)
+    ok(entry.expertise.includes('107'))
+    ok(entry.expertise.includes('Traveller'))
+
+    const labels = getBrandModels('Peugeot').map(m => m.label).filter(Boolean)
+    ok(labels.includes('107'))
+    ok(labels.includes('206 / 206+'))
+    ok(labels.includes('301'))
+    ok(labels.includes('307'))
+    ok(labels.includes('405'))
+    ok(labels.includes('4007'))
+    ok(labels.includes('4008'))
+    ok(labels.includes('607'))
+    ok(labels.includes('807'))
+    ok(labels.includes('RCZ'))
+    ok(labels.includes('Bipper / Bipper Tepee'))
+    ok(labels.includes('Expert / Traveller II (2007–2016)'))
+    ok(labels.includes('Traveller (2016–dosud)'))
+    ok(labels.includes('Boxer I (1994–2006)'))
   })
 
   test('getBrandModels vrátí prázdné pole pro neznámou značku', () => {
