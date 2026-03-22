@@ -64,6 +64,7 @@ export function normalizeDiagnosisResult(parsed, tr, similarCount = 0) {
       příznaky_shoda: [],
       obd_kódy: [],
       díly: [],
+      řešení: [],
       postup: "",
       naléhavost: "nízká",
       poznámka: tr("diag.additionalCauseNote"),
@@ -74,6 +75,14 @@ export function normalizeDiagnosisResult(parsed, tr, similarCount = 0) {
 
   for (const fault of faults) {
     fault.početShod = fault.zdroj === "databáze" ? similarCount : 0;
+
+    // Sanitize řešení — must be array of short strings
+    if (!Array.isArray(fault.řešení)) fault.řešení = [];
+    fault.řešení = fault.řešení
+      .filter((r) => typeof r === "string" && r.trim().length > 0)
+      .map((r) => r.trim().slice(0, 60))
+      .slice(0, 4);
+    fault.řešení = [...new Set(fault.řešení)];
   }
 
   return { ...parsed, závady: faults };

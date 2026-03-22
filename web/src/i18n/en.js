@@ -72,6 +72,10 @@ export const strings = {
   'app.closeCaseHelp':    'Describe the repair performed. This information will be saved to the service database and will help with future diagnoses.',
   'app.repairLabel':      'REPAIR PERFORMED *',
   'app.repairPlaceholder':'e.g. Replaced EGR valve + EGR cooler. After intake cleaning and DPF regeneration the vehicle runs without issues. Code P0401 cleared, did not return.',
+  'app.closeCaseHelpSmart':'Select what was done. This information will be saved to the service database.',
+  'app.closeSelectResolution':'WHAT WAS DONE *',
+  'app.closeOther':       'Other:',
+  'app.closeCustomPlaceholder':'What was the actual cause / what was done?',
   'app.cancel':           'Cancel',
   'app.confirm':          '✓ Confirm',
 

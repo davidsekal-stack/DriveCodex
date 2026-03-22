@@ -72,6 +72,10 @@ export const strings = {
   'app.closeCaseHelp':    'Popište provedenou opravu. Tato informace bude uložena do databáze servisu a pomůže při budoucích diagnostikách.',
   'app.repairLabel':      'PROVEDENÁ OPRAVA *',
   'app.repairPlaceholder':'např. Vyměněn EGR ventil + EGR chladič. Po vyčištění sání a regeneraci DPF vozidlo jede bez závad. Kód P0401 vymazán, nevrátil se.',
+  'app.closeCaseHelpSmart':'Vyberte co bylo provedeno. Tato informace bude uložena do databáze servisu.',
+  'app.closeSelectResolution':'CO BYLO PROVEDENO *',
+  'app.closeOther':       'Jiné:',
+  'app.closeCustomPlaceholder':'Co bylo skutečnou příčinou / co bylo provedeno?',
   'app.cancel':           'Zrušit',
   'app.confirm':          '✓ Potvrdit',
 

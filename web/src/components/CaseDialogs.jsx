@@ -7,6 +7,7 @@ export default function CaseDialogs({
   closeError,
   closeModal,
   deleteId,
+  faults,
   mobile,
   onCancelCloseCase,
   onCancelDeleteCase,
@@ -22,6 +23,7 @@ export default function CaseDialogs({
       {closeModal && (
         <CloseCaseModal
           closeError={closeError}
+          faults={faults}
           mobile={mobile}
           onCancel={onCancelCloseCase}
           onChangeResolution={onChangeResolution}

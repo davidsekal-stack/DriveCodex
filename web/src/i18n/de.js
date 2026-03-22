@@ -72,6 +72,10 @@ export const strings = {
   'app.closeCaseHelp':    'Beschreiben Sie die durchgeführte Reparatur. Diese Information wird in der Servicedatenbank gespeichert und hilft bei zukünftigen Diagnosen.',
   'app.repairLabel':      'DURCHGEFÜHRTE REPARATUR *',
   'app.repairPlaceholder':'z.B. EGR-Ventil + EGR-Kühler ersetzt. Nach Ansaugreinigung und DPF-Regeneration läuft das Fahrzeug fehlerfrei. Code P0401 gelöscht, nicht zurückgekehrt.',
+  'app.closeCaseHelpSmart':'Wählen Sie aus, was durchgeführt wurde. Diese Information wird in der Servicedatenbank gespeichert.',
+  'app.closeSelectResolution':'WAS WURDE DURCHGEFÜHRT *',
+  'app.closeOther':       'Andere:',
+  'app.closeCustomPlaceholder':'Was war die tatsächliche Ursache / was wurde gemacht?',
   'app.cancel':           'Abbrechen',
   'app.confirm':          '✓ Bestätigen',
 

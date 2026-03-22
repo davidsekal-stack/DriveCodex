@@ -113,6 +113,10 @@ function App() {
 
   const diagCount   = activeCase?.messages.filter((m) => m.type === "diagnosis").length ?? 0;
 
+  // Extract faults from the latest diagnosis for smart close modal
+  const latestDiag = activeCase?.messages?.filter((m) => m.type === "diagnosis").at(-1);
+  const diagFaults = latestDiag?.result?.závady ?? [];
+
   const handleLogout = useCallback(async () => {
     await signOut();
     setSession(null);
@@ -224,6 +228,7 @@ function App() {
         closeError={closeError}
         closeModal={closeModal}
         deleteId={deleteId}
+        faults={diagFaults}
         mobile={mobile}
         onCancelCloseCase={cancelCloseModal}
         onCancelDeleteCase={cancelDeleteCase}
