@@ -184,9 +184,15 @@ export function normalizeResolutionText(value) {
 
 export function normalizeSeedPayload(seed, fallbackUserId = DEFAULT_USER_ID, forcedUserId = "") {
   const resolvedUserId = forcedUserId || (seed?.user_id ?? fallbackUserId).toString().trim() || fallbackUserId;
+  const threadUrl = typeof seed?.thread_url === "string" && seed.thread_url.trim()
+    ? seed.thread_url.trim()
+    : typeof seed?.metadata?.thread_url === "string" && seed.metadata.thread_url.trim()
+      ? seed.metadata.thread_url.trim()
+      : null;
   return {
     local_id: (seed?.local_id ?? "").toString().trim(),
     user_id: resolvedUserId,
+    thread_url: threadUrl,
     vehicle_brand: seed?.vehicle_brand ?? null,
     vehicle_model: seed?.vehicle_model ?? null,
     mileage: Number.isFinite(seed?.mileage) ? Math.trunc(seed.mileage) : null,

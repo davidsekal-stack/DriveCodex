@@ -31,56 +31,27 @@ import {
 } from "./forum-seed.mjs";
 
 const DEFAULT_INPUTS = [
-  "https://www.audiclub.eu/forum-kategorie/a1-8x-16",
-  "https://www.audiclub.eu/forum-kategorie/a1-gb-70",
-  "https://www.audiclub.eu/forum-kategorie/a3-8p-34",
-  "https://www.audiclub.eu/forum-kategorie/a3-8v-35",
-  "https://www.audiclub.eu/forum-kategorie/a3-8y-84",
-  "https://www.audiclub.eu/forum-kategorie/a4-b7-27",
-  "https://www.audiclub.eu/forum-kategorie/a4-b8-28",
-  "https://www.audiclub.eu/forum-kategorie/a4-b9-67",
-  "https://www.audiclub.eu/forum-kategorie/a5-8t-20",
-  "https://www.audiclub.eu/forum-kategorie/a5-f5-73",
-  "https://www.audiclub.eu/forum-kategorie/a6-c6-30",
-  "https://www.audiclub.eu/forum-kategorie/a6-c7-31",
-  "https://www.audiclub.eu/forum-kategorie/a6-c8-74",
-  "https://www.audiclub.eu/forum-kategorie/a7-4g8-50",
-  "https://www.audiclub.eu/forum-kategorie/a7-4k8-68",
-  "https://www.audiclub.eu/forum-kategorie/e-tron-80",
-  "https://www.audiclub.eu/forum-kategorie/e-tron-gt-86",
-  "https://www.audiclub.eu/forum-kategorie/tt-8j-58",
-  "https://www.audiclub.eu/forum-kategorie/tt-fv-8s-77",
-  "https://www.audiclub.eu/forum-kategorie/q2-ga-83",
-  "https://www.audiclub.eu/forum-kategorie/q3-8u-25",
-  "https://www.audiclub.eu/forum-kategorie/q3-f3-71",
-  "https://www.audiclub.eu/forum-kategorie/q4-85",
-  "https://www.audiclub.eu/forum-kategorie/q5-8r-13",
-  "https://www.audiclub.eu/forum-kategorie/q5-fy-72",
-  "https://www.audiclub.eu/forum-kategorie/q7-4l-14",
-  "https://www.audiclub.eu/forum-kategorie/q7-4m-78",
-  "https://www.audiclub.eu/forum-kategorie/q8-4m-69",
-  "https://www.audiclub.eu/forum-kategorie/s1-65",
-  "https://www.audiclub.eu/forum-kategorie/s3-36",
-  "https://www.audiclub.eu/forum-kategorie/s4-37",
-  "https://www.audiclub.eu/forum-kategorie/s5-40",
-  "https://www.audiclub.eu/forum-kategorie/s6-38",
-  "https://www.audiclub.eu/forum-kategorie/s7-49",
-  "https://www.audiclub.eu/forum-kategorie/sq2-81",
-  "https://www.audiclub.eu/forum-kategorie/sq5-66",
-  "https://www.audiclub.eu/forum-kategorie/sq7-76",
-  "https://www.audiclub.eu/forum-kategorie/sq8-82",
-  "https://www.audiclub.eu/forum-kategorie/tts-60",
-  "https://www.audiclub.eu/forum-kategorie/q3-rs-61",
-  "https://www.audiclub.eu/forum-kategorie/rs-q8-87",
-  "https://www.audiclub.eu/forum-kategorie/rs3-42",
-  "https://www.audiclub.eu/forum-kategorie/rs4-43",
-  "https://www.audiclub.eu/forum-kategorie/rs5-41",
-  "https://www.audiclub.eu/forum-kategorie/rs6-44",
-  "https://www.audiclub.eu/forum-kategorie/rs7-51",
-  "https://www.audiclub.eu/forum-kategorie/tt-rs-59",
+  "https://www.fordclub.eu/forum-kategorie/transit-obecne-22",
+  "https://www.fordclub.eu/forum-kategorie/technicky-koutek-6",
+  "https://www.fordclub.eu/forum-kategorie/mondeo-mk-iv-45",
+  "https://www.fordclub.eu/forum-kategorie/mondeo-mk-v-46",
+  "https://www.fordclub.eu/forum-kategorie/transit-tourneo-courier-88",
+  "https://www.fordclub.eu/forum-kategorie/transit-tourneo-custom-78",
+  "https://www.fordclub.eu/forum-kategorie/transit-connect-64",
+  "https://www.fordclub.eu/forum-kategorie/transit-vii-v347-v348-68",
+  "https://www.fordclub.eu/forum-kategorie/transit-viii-69",
+  "https://www.fordclub.eu/forum-kategorie/fiesta-vii-52",
+  "https://www.fordclub.eu/forum-kategorie/ka-ii-63",
+  "https://www.fordclub.eu/forum-kategorie/c-max-ii-c344-60",
+  "https://www.fordclub.eu/forum-kategorie/galaxy-iii-59",
+  "https://www.fordclub.eu/forum-kategorie/galaxy-iv-86",
+  "https://www.fordclub.eu/forum-kategorie/ecosport-ii-bk-85",
+  "https://www.fordclub.eu/forum-kategorie/kuga-28",
+  "https://www.fordclub.eu/forum-kategorie/s-max-21",
+  "https://www.fordclub.eu/forum-kategorie/tourneo-26",
 ];
 
-const DEFAULT_FORUM = "audiclub_eu";
+const DEFAULT_FORUM = "fordclub_eu";
 const DEFAULT_USER_ID = "ai_importer";
 const DEFAULT_MODEL = "deepseek-chat";
 const DEFAULT_MIN_POSTS = 2;
@@ -107,140 +78,110 @@ const TOPIC_BLACKLIST = [
   /\bclub\b/i,
   /\bjokes?\b/i,
   /\bpokec\b/i,
-  /\btuning\b/i,
-  /\bwebsite\b/i,
-  /\bimprovement\b/i,
-  /\bcrash\s+test\b/i,
-  /\bshop\b/i,
 ];
 
-const TITLE_NOISE_PATTERNS = [
-  /\bfoto\b/i,
-  /\bč[ií]slo\s+d[ií]lu\b/i,
-  /\butahovac[ií]\s+momenty\b/i,
-  /\bled\s+[žz]iarovk/i,
-  /\baku\s+bater/i,
-  /\bdiagnostika\b.*\bkraj/i,
-  /\bv[ýy]m[eě]na\s+volantu\b/i,
-  /\bčeln[eé]\s+sklo\b/i,
-  /\btest\s+tlmi[čc]ov\b/i,
+const TECHNICAL_CORNER_GENERIC_PATTERNS = [
+  /\bprogramy?\s+a\s+manu[aá]ly?\b/i,
+  /\bmanu[aá]l\b.*\bodkazy\b/i,
+  /\baktualizace\s+navigac[ií]\b/i,
+  /\bdenso-?mapy\b/i,
+  /\bautor[aá]dio\b.*\bz[aá]m[eě]ny\b/i,
+  /\bautor[aá]dio\+bluetooth\b/i,
+  /\bmyt[ií],?\s*čištěn[ií]\b/i,
+  /\bhistorie\s+auta\s+podle\s+vin\b/i,
+  /\bjak[ýy]\s+motorov[ýy]\s+olej\b/i,
+  /\bv[eě]čn[eé]\s+dotazy\s+jak[ýy]\s+olej\b/i,
+  /\bnab[ií]jen[ií]\s+autobaterie\b/i,
+  /\bkl[ií]če\s+s\s+imobiliz[eé]rem,?\s*kopie,?\s*k[oó]dov[aá]n[ií]\b/i,
+  /\bztracen[eé]\s+kl[ií]če\b/i,
+  /\bdiagnostika\b(?!.*\b(p\d{4}|u\d{4}|b\d{4}|c\d{4}|chyba|error|fault|z[aá]vada)\b)/i,
+  /\b(?:stk|sme)\b/i,
+  /\btažn[eé]\s+za[řr][ií]zen[ií]\b/i,
 ];
 
 const TOPIC_SIGNAL_PATTERNS = [
   /\b[pbcu]\d{4}\b/i,
-  /\b(nejde|nestart|zhas(i|\u00ed|n)|skub|cuk|klep|hluk|hu[c\u010d]i|p[i\u00ed]sk|nouz|probl[e\u00e9]m|z[a\u00e1]vada|chyba|kontrolka|olej|tlak|netop[i\u00ed]|sahara|termostat|ventil[a\u00e1]tor|spojka|brzd|airbag|abs|esp|emise|fap|dpf|egr|turbo|[u\u00fa]nik|cidlo|\u010didlo|senzor|elektrika|vstrik|vst\u0159ik|p\u0159evodovka|prevodovka|servo|altern[a\u00e1]tor|baterie|klima|vibrac|kou[r\u0159]|smrd[i\u00ed])\b/i,
-  /\b(problem|fault|issue|error|warning|leak|noise|knock|rattle|whine|squeak|vibration|misfire|jerk|judder|limp|overheat|overheating|won['?]t start|doesn['?]t start|stall|stalls|smoke|smell|oil|coolant|brake|airbag|abs|esp|fap|dpf|egr|turbo|sensor|injector|battery|alternator|gearbox|transmission|clutch|steering|ac|climate|thermostat|fan)\b/i,
-  /\b(tfsi|fsi|tdi|quattro|s\s*-?\s*tronic|tiptronic|multitronic|haldex|adblue)\b/i,
+  /\b(nejde|nestart|zhas(i|í|n)|skub|cuk|klep|hluk|hu[cč]i|p[ií]sk|nouz|probl[eé]m|z[aá]vada|chyba|kontrolka|olej|tlak|netop[ií]|sahara|ventil[aá]tor|spojka|brzd|airbag|abs|esp|emise|dpf|egr|turbo|[uú]nik|cidlo|čidlo|senzor|elektrika|vstrik|vstřik|převodovka|prevodovka|servo|altern[aá]tor|baterie|klima|vibrac|kou[rř]|smrd[ií])\b/i,
+  /\b(problem|fault|issue|error|warning|leak|noise|knock|rattle|whine|squeak|vibration|misfire|jerk|judder|limp|overheat|overheating|won['’]t start|doesn['’]t start|stall|stalls|smoke|smell|oil|coolant|brake|airbag|abs|esp|dpf|egr|turbo|sensor|injector|battery|alternator|gearbox|transmission|clutch|steering|ac|climate)\b/i,
+  /\b(ecoboost|ecoblue|tdci|duratec|powershift|adblue)\b/i,
   /\b\d{2,3}\s*kw\b/i,
 ];
 
 const MODEL_ALIAS_BY_LABEL = new Map([
-  ["A1 8X (2010\u20132018)", ["A1 8X", "A1", "S1"]],
-  ["A1 GB (2018\u2013dosud)", ["A1 GB", "A1"]],
-  ["A3 8P (2006\u20132012)", ["A3 8P", "A3", "S3", "RS3"]],
-  ["A3 8V (2012\u20132020)", ["A3 8V", "A3", "S3", "RS3"]],
-  ["A3 8Y (2020\u2013dosud)", ["A3 8Y", "A3", "S3", "RS3"]],
-  ["A4 B7 (2006\u20132008)", ["A4 B7", "A4", "S4", "RS4"]],
-  ["A4 B8 (2008\u20132015)", ["A4 B8", "A4", "S4", "RS4"]],
-  ["A4 B9 (2015\u2013dosud)", ["A4 B9", "A4", "S4", "RS4"]],
-  ["A5 8T (2007\u20132016)", ["A5 8T", "A5", "S5", "RS5"]],
-  ["A5 F5 (2016\u2013dosud)", ["A5 F5", "A5", "S5", "RS5"]],
-  ["A6 C6 (2006\u20132011)", ["A6 C6", "A6", "S6", "RS6"]],
-  ["A6 C7 (2011\u20132018)", ["A6 C7", "A6", "S6", "RS6"]],
-  ["A6 C8 (2018\u2013dosud)", ["A6 C8", "A6", "S6", "RS6"]],
-  ["A7 4G (2010\u20132018)", ["A7 4G", "A7 4G8", "A7", "S7", "RS7"]],
-  ["A7 4K (2018\u2013dosud)", ["A7 4K", "A7 4K8", "A7", "S7", "RS7"]],
-  ["Q2 (2016\u2013dosud)", ["Q2", "Q2 GA", "SQ2"]],
-  ["Q3 8U (2011\u20132018)", ["Q3 8U", "Q3", "RS Q3", "Q3 RS"]],
-  ["Q3 F3 (2018\u2013dosud)", ["Q3 F3", "Q3", "RS Q3", "Q3 RS"]],
-  ["Q5 8R (2008\u20132017)", ["Q5 8R", "Q5", "SQ5"]],
-  ["Q5 FY (2017\u2013dosud)", ["Q5 FY", "Q5", "SQ5"]],
-  ["Q7 4L (2006\u20132015)", ["Q7 4L", "Q7"]],
-  ["Q7 4M (2015\u2013dosud)", ["Q7 4M", "Q7", "SQ7"]],
-  ["Q8 (2018\u2013dosud)", ["Q8", "Q8 4M", "SQ8", "RS Q8"]],
-  ["TT 8J (2006\u20132014)", ["TT 8J", "TT", "TTS", "TT RS"]],
-  ["TT 8S (2014\u2013dosud)", ["TT 8S", "TT FV", "TT FV/8S", "TT", "TTS", "TT RS"]],
-  ["e-tron 55 (2019\u20132023)", ["e-tron 55", "e-tron", "etron"]],
-  ["Q4 e-tron (2021\u2013dosud)", ["Q4 e-tron", "Q4 etron", "Q4"]],
-  ["Q8 e-tron (2023\u2013dosud)", ["Q8 e-tron", "Q8 etron", "e-tron", "etron"]],
-  ["e-tron GT (2021\u2013dosud)", ["e-tron GT", "etron GT", "GT e-tron"]],
-]);
-
-const FORUM_HINTS = new Map([
-  ["a1-8x", { forum_type: "model", resolved_model: "A1 8X (2010\u20132018)", candidate_models: [] }],
-  ["a1-gb", { forum_type: "model", resolved_model: "A1 GB (2018\u2013dosud)", candidate_models: [] }],
-  ["a3-8p", { forum_type: "model", resolved_model: "A3 8P (2006\u20132012)", candidate_models: [] }],
-  ["a3-8v", { forum_type: "model", resolved_model: "A3 8V (2012\u20132020)", candidate_models: [] }],
-  ["a3-8y", { forum_type: "model", resolved_model: "A3 8Y (2020\u2013dosud)", candidate_models: [] }],
-  ["a4-b7", { forum_type: "model", resolved_model: "A4 B7 (2006\u20132008)", candidate_models: [] }],
-  ["a4-b8", { forum_type: "model", resolved_model: "A4 B8 (2008\u20132015)", candidate_models: [] }],
-  ["a4-b9", { forum_type: "model", resolved_model: "A4 B9 (2015\u2013dosud)", candidate_models: [] }],
-  ["a5-8t", { forum_type: "model", resolved_model: "A5 8T (2007\u20132016)", candidate_models: [] }],
-  ["a5-f5", { forum_type: "model", resolved_model: "A5 F5 (2016\u2013dosud)", candidate_models: [] }],
-  ["a6-c6", { forum_type: "model", resolved_model: "A6 C6 (2006\u20132011)", candidate_models: [] }],
-  ["a6-c7", { forum_type: "model", resolved_model: "A6 C7 (2011\u20132018)", candidate_models: [] }],
-  ["a6-c8", { forum_type: "model", resolved_model: "A6 C8 (2018\u2013dosud)", candidate_models: [] }],
-  ["a7-4g8", { forum_type: "model", resolved_model: "A7 4G (2010\u20132018)", candidate_models: [] }],
-  ["a7-4k8", { forum_type: "model", resolved_model: "A7 4K (2018\u2013dosud)", candidate_models: [] }],
-  ["e-tron", { forum_type: "shared", resolved_model: null, candidate_models: ["e-tron 55 (2019\u20132023)", "Q8 e-tron (2023\u2013dosud)"], note: "Forum spans the original e-tron SUV and renamed Q8 e-tron." }],
-  ["e-tron-gt", { forum_type: "model", resolved_model: "e-tron GT (2021\u2013dosud)", candidate_models: [] }],
-  ["tt-8j", { forum_type: "model", resolved_model: "TT 8J (2006\u20132014)", candidate_models: [] }],
-  ["tt-fv-8s", { forum_type: "model", resolved_model: "TT 8S (2014\u2013dosud)", candidate_models: [] }],
-  ["q2-ga", { forum_type: "model", resolved_model: "Q2 (2016\u2013dosud)", candidate_models: [] }],
-  ["q3-8u", { forum_type: "model", resolved_model: "Q3 8U (2011\u20132018)", candidate_models: [] }],
-  ["q3-f3", { forum_type: "model", resolved_model: "Q3 F3 (2018\u2013dosud)", candidate_models: [] }],
-  ["q4", { forum_type: "model", resolved_model: "Q4 e-tron (2021\u2013dosud)", candidate_models: [] }],
-  ["q5-8r", { forum_type: "model", resolved_model: "Q5 8R (2008\u20132017)", candidate_models: [] }],
-  ["q5-fy", { forum_type: "model", resolved_model: "Q5 FY (2017\u2013dosud)", candidate_models: [] }],
-  ["q7-4l", { forum_type: "model", resolved_model: "Q7 4L (2006\u20132015)", candidate_models: [] }],
-  ["q7-4m", { forum_type: "model", resolved_model: "Q7 4M (2015\u2013dosud)", candidate_models: [] }],
-  ["q8-4m", { forum_type: "model", resolved_model: "Q8 (2018\u2013dosud)", candidate_models: [] }],
-  ["s1", { forum_type: "shared", resolved_model: "A1 8X (2010\u20132018)", candidate_models: ["A1 8X (2010\u20132018)"], note: "S1 forum maps to the only supported A1 performance generation." }],
-  ["s3", { forum_type: "shared", resolved_model: null, candidate_models: ["A3 8P (2006\u20132012)", "A3 8V (2012\u20132020)", "A3 8Y (2020\u2013dosud)"], note: "S3 forum spans multiple A3 generations." }],
-  ["s4", { forum_type: "shared", resolved_model: null, candidate_models: ["A4 B7 (2006\u20132008)", "A4 B8 (2008\u20132015)", "A4 B9 (2015\u2013dosud)"], note: "S4 forum spans multiple A4 generations." }],
-  ["s5", { forum_type: "shared", resolved_model: null, candidate_models: ["A5 8T (2007\u20132016)", "A5 F5 (2016\u2013dosud)"], note: "S5 forum spans multiple A5 generations." }],
-  ["s6", { forum_type: "shared", resolved_model: null, candidate_models: ["A6 C6 (2006\u20132011)", "A6 C7 (2011\u20132018)", "A6 C8 (2018\u2013dosud)"], note: "S6 forum spans multiple A6 generations." }],
-  ["s7", { forum_type: "shared", resolved_model: null, candidate_models: ["A7 4G (2010\u20132018)", "A7 4K (2018\u2013dosud)"], note: "S7 forum spans multiple A7 generations." }],
-  ["sq2", { forum_type: "shared", resolved_model: "Q2 (2016\u2013dosud)", candidate_models: ["Q2 (2016\u2013dosud)"], note: "SQ2 forum maps to Q2." }],
-  ["sq5", { forum_type: "shared", resolved_model: null, candidate_models: ["Q5 8R (2008\u20132017)", "Q5 FY (2017\u2013dosud)"], note: "SQ5 forum spans both supported Q5 generations." }],
-  ["sq7", { forum_type: "shared", resolved_model: "Q7 4M (2015\u2013dosud)", candidate_models: ["Q7 4M (2015\u2013dosud)"], note: "SQ7 forum maps to the supported Q7 4M generation." }],
-  ["sq8", { forum_type: "shared", resolved_model: "Q8 (2018\u2013dosud)", candidate_models: ["Q8 (2018\u2013dosud)"], note: "SQ8 forum maps to Q8." }],
-  ["tts", { forum_type: "shared", resolved_model: null, candidate_models: ["TT 8J (2006\u20132014)", "TT 8S (2014\u2013dosud)"], note: "TTS forum spans both supported TT generations." }],
-  ["q3-rs", { forum_type: "shared", resolved_model: null, candidate_models: ["Q3 8U (2011\u20132018)", "Q3 F3 (2018\u2013dosud)"], note: "RS Q3 forum spans both supported Q3 generations." }],
-  ["rs-q8", { forum_type: "shared", resolved_model: "Q8 (2018\u2013dosud)", candidate_models: ["Q8 (2018\u2013dosud)"], note: "RS Q8 forum maps to Q8." }],
-  ["rs3", { forum_type: "shared", resolved_model: null, candidate_models: ["A3 8P (2006\u20132012)", "A3 8V (2012\u20132020)", "A3 8Y (2020\u2013dosud)"], note: "RS3 forum spans multiple A3 generations." }],
-  ["rs4", { forum_type: "shared", resolved_model: null, candidate_models: ["A4 B7 (2006\u20132008)", "A4 B8 (2008\u20132015)", "A4 B9 (2015\u2013dosud)"], note: "RS4 forum spans multiple A4 generations." }],
-  ["rs5", { forum_type: "shared", resolved_model: null, candidate_models: ["A5 8T (2007\u20132016)", "A5 F5 (2016\u2013dosud)"], note: "RS5 forum spans multiple A5 generations." }],
-  ["rs6", { forum_type: "shared", resolved_model: null, candidate_models: ["A6 C6 (2006\u20132011)", "A6 C7 (2011\u20132018)", "A6 C8 (2018\u2013dosud)"], note: "RS6 forum spans multiple A6 generations." }],
-  ["rs7", { forum_type: "shared", resolved_model: null, candidate_models: ["A7 4G (2010\u20132018)", "A7 4K (2018\u2013dosud)"], note: "RS7 forum spans multiple A7 generations." }],
-  ["tt-rs", { forum_type: "shared", resolved_model: null, candidate_models: ["TT 8J (2006\u20132014)", "TT 8S (2014\u2013dosud)"], note: "TT RS forum spans both supported TT generations." }],
+  ["Fiesta MK6 (2006–2008)", ["Fiesta MK6", "Fiesta VI"]],
+  ["Fiesta MK7 (2008–2017)", ["Fiesta MK7", "Fiesta VII"]],
+  ["Fiesta MK8 (2017–2023)", ["Fiesta MK8", "Fiesta VIII"]],
+  ["Mondeo MK4 (2007–2014)", ["Mondeo MK4", "Mondeo MK IV", "Mondeo IV"]],
+  ["Mondeo MK5 (2014–2022)", ["Mondeo MK5", "Mondeo MK V", "Mondeo V"]],
+  ["Kuga I (2008–2012)", ["Kuga I"]],
+  ["Kuga II (2013–2019)", ["Kuga II"]],
+  ["Kuga III (2020–dosud)", ["Kuga III"]],
+  ["EcoSport (2014–2022)", ["EcoSport", "EcoSport II", "EcoSport II BK"]],
+  ["Galaxy MK3 (2006–2015)", ["Galaxy MK3", "Galaxy III"]],
+  ["Galaxy MK4 (2015–2023)", ["Galaxy MK4", "Galaxy IV"]],
+  ["S-MAX I (2006–2015)", ["S-MAX I", "S MAX I"]],
+  ["S-MAX II (2015–2023)", ["S-MAX II", "S MAX II"]],
+  ["Ka II (2008–2016)", ["Ka II", "KA II"]],
+  ["Ka+ (2016–2021)", ["Ka+", "KA+"]],
+  ["C-MAX II (2010–2019)", ["C-MAX II", "C MAX II"]],
+  ["Grand C-MAX (2010–2019)", ["Grand C-MAX", "Grand C MAX"]],
+  ["Transit MK7 2.2 TDCi (2006–2011)", ["Transit VII 2.2 TDCi", "Transit V347 2.2 TDCi", "Transit V348 2.2 TDCi"]],
+  ["Transit MK7 2.4 TDCi (2006–2011)", ["Transit VII 2.4 TDCi", "Transit V347 2.4 TDCi", "Transit V348 2.4 TDCi"]],
+  ["Transit MK7 3.2 TDCi (2006–2011)", ["Transit VII 3.2 TDCi"]],
+  ["Transit MK7 2.3 Duratec (2006–2011)", ["Transit VII 2.3 Duratec"]],
+  ["Transit MK7 FL 2.2 TDCi (2011–2014)", ["Transit VII FL 2.2 TDCi", "Transit 2011 2.2 TDCi"]],
+  ["Transit MK8 2.2 TDCi (2014–2016)", ["Transit VIII 2.2 TDCi", "Transit 2014 2.2 TDCi"]],
+  ["Transit MK8 2.0 EcoBlue (2016–současnost)", ["Transit VIII 2.0 EcoBlue", "Transit 2.0 EcoBlue"]],
+  ["Transit Custom I 2.2 TDCi (2012–2016)", ["Transit Custom I 2.2 TDCi", "Transit / Tourneo Custom 2.2 TDCi"]],
+  ["Transit Custom I FL 2.0 EcoBlue (2016–2023)", ["Transit Custom I FL 2.0 EcoBlue", "Transit Custom 2.0 EcoBlue", "Transit / Tourneo Custom 2.0 EcoBlue"]],
+  ["Transit Custom I 1.0 EcoBoost PHEV (2019–2023)", ["Transit Custom PHEV", "Transit Custom 1.0 EcoBoost PHEV"]],
+  ["Transit Custom II 2.0 EcoBlue (2023–současnost)", ["Transit Custom II 2.0 EcoBlue", "Transit Custom 2023 2.0 EcoBlue"]],
+  ["Transit Custom II 2.5 Duratec PHEV (2023–současnost)", ["Transit Custom II 2.5 Duratec PHEV", "Transit Custom 2023 PHEV"]],
+  ["Transit Connect I 1.8 TDCi (2006–2013)", ["Transit Connect I 1.8 TDCi"]],
+  ["Transit Connect II 1.6 TDCi (2013–2015)", ["Transit Connect II 1.6 TDCi"]],
+  ["Transit Connect II 1.0 EcoBoost (2013–2018)", ["Transit Connect II 1.0 EcoBoost"]],
+  ["Transit Connect II 1.5 TDCi (2015–2018)", ["Transit Connect II 1.5 TDCi"]],
+  ["Transit Connect II FL 1.5 EcoBlue (2018–2024)", ["Transit Connect II FL 1.5 EcoBlue", "Transit Connect 1.5 EcoBlue"]],
+  ["Transit Connect III 2.0 EcoBlue (2024–současnost)", ["Transit Connect III 2.0 EcoBlue"]],
+  ["Transit Connect III 1.5 EcoBoost PHEV (2024–současnost)", ["Transit Connect III 1.5 EcoBoost PHEV"]],
+  ["Transit Courier I 1.5/1.6 TDCi (2014–2023)", ["Transit Courier I diesel", "Transit / Tourneo Courier diesel"]],
+  ["Transit Courier I 1.0 EcoBoost (2014–2023)", ["Transit Courier I 1.0 EcoBoost", "Transit / Tourneo Courier 1.0 EcoBoost"]],
+  ["Transit Courier II 1.0 EcoBoost (2023–současnost)", ["Transit Courier II 1.0 EcoBoost", "Transit Courier 2023 1.0 EcoBoost"]],
+  ["Transit Courier II 1.5 EcoBlue (2023–současnost)", ["Transit Courier II 1.5 EcoBlue", "Transit Courier 2023 1.5 EcoBlue"]],
+  ["Tourneo Custom I 2.2 TDCi (2012–2016)", ["Tourneo Custom I 2.2 TDCi", "Transit / Tourneo Custom 2.2 TDCi"]],
+  ["Tourneo Custom I FL 2.0 EcoBlue (2016–2023)", ["Tourneo Custom I FL 2.0 EcoBlue", "Tourneo Custom 2.0 EcoBlue", "Transit / Tourneo Custom 2.0 EcoBlue"]],
+  ["Tourneo Custom II 2.0 EcoBlue (2023–současnost)", ["Tourneo Custom II 2.0 EcoBlue", "Tourneo Custom 2023 2.0 EcoBlue"]],
+  ["Tourneo Custom II 2.5 Duratec PHEV (2023–současnost)", ["Tourneo Custom II 2.5 Duratec PHEV", "Tourneo Custom 2023 PHEV"]],
+  ["Tourneo Courier I 1.5/1.6 TDCi (2014–2023)", ["Tourneo Courier I diesel", "Transit / Tourneo Courier diesel"]],
+  ["Tourneo Courier I 1.0 EcoBoost (2014–2023)", ["Tourneo Courier I 1.0 EcoBoost", "Transit / Tourneo Courier 1.0 EcoBoost"]],
+  ["Tourneo Courier II 1.0 EcoBoost (2023–současnost)", ["Tourneo Courier II 1.0 EcoBoost", "Tourneo Courier 2023 1.0 EcoBoost"]],
+  ["Tourneo Courier II 1.5 EcoBlue (2023–současnost)", ["Tourneo Courier II 1.5 EcoBlue", "Tourneo Courier 2023 1.5 EcoBlue"]],
 ]);
 
 const { catalog: EU_CATALOG } = selectCatalogForMarket("eu");
-const AUDI_ENTRY = EU_CATALOG.find(entry => normalizeText(entry.brand) === "audi");
+const FORD_ENTRY = EU_CATALOG.find(entry => normalizeText(entry.brand) === "ford");
 
-if (!AUDI_ENTRY) {
-  throw new Error("Audi brand entry was not found in web/src/constants/catalog.js");
+if (!FORD_ENTRY) {
+  throw new Error("Ford brand entry was not found in web/src/constants/catalog.js");
 }
 
 function usage(exitCode = 1) {
   const msg = `
 Usage:
-  node scripts/forum-seed-audi.mjs <out_dir> [options]
-  node scripts/forum-seed-audi.mjs <https://www.audiclub.eu/forum-kategorie/...> <out_dir> [options]
-  node scripts/forum-seed-audi.mjs <https://www.audiclub.eu/forum-tema/...> <out_dir> [options]
+  node scripts/forum-seed-ford.mjs <out_dir> [options]
+  node scripts/forum-seed-ford.mjs <https://www.fordclub.eu/forum-kategorie/...> <out_dir> [options]
+  node scripts/forum-seed-ford.mjs <https://www.fordclub.eu/forum-tema/...> <out_dir> [options]
 
 Options:
   --discover-only  Only gather forum inventory and filtered thread titles
   --keep-review    Store borderline but promising cases into to_review/
-  --signals-only   Process only signal-strong titles during the first crawl pass
   --min-posts N    Ignore topic titles with fewer than N posts on the listing page
 `.trim();
   console.log(msg);
   process.exit(exitCode);
 }
 
-function computeAudiReviewId({ forum, sourceUrl, threadTitle, stage }) {
+function computeFordReviewId({ forum, sourceUrl, threadTitle, stage }) {
   const input = JSON.stringify({
     forum: forum ?? "",
     source_url: sourceUrl ?? "",
@@ -268,7 +209,6 @@ function parseArgs(argv) {
     cookie: "",
     keepReview: false,
     discoverOnly: false,
-    signalsOnly: false,
     dry: false,
   };
 
@@ -279,7 +219,6 @@ function parseArgs(argv) {
     if (value === "--dry") { args.dry = true; continue; }
     if (value === "--keep-review") { args.keepReview = true; continue; }
     if (value === "--discover-only") { args.discoverOnly = true; continue; }
-    if (value === "--signals-only") { args.signalsOnly = true; continue; }
     if (value === "--forum") { args.forum = argv[++i] ?? ""; continue; }
     if (value === "--user-id") { args.userId = argv[++i] ?? ""; continue; }
     if (value === "--source-url") { args.sourceUrl = argv[++i] ?? ""; continue; }
@@ -317,7 +256,7 @@ function logProgress(message) {
 
 function defaultHeaders() {
   return {
-    "User-Agent": "Mozilla/5.0 (compatible; GearBrainAudiSeed/1.0; +https://example.invalid)",
+    "User-Agent": "Mozilla/5.0 (compatible; GearBrainFordSeed/1.0; +https://example.invalid)",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
   };
 }
@@ -497,40 +436,26 @@ function getFordPageOrderFromUrl(url) {
 function normalizeFordForumMatchText(value) {
   let text = (value ?? "").toString();
   const replacements = [
-    [/\ba1\s*8x\b/gi, "A1 8X"],
-    [/\ba1\s*gb\b/gi, "A1 GB"],
-    [/\ba3\s*8p\b/gi, "A3 8P"],
-    [/\ba3\s*8v\b/gi, "A3 8V"],
-    [/\ba3\s*8y\b/gi, "A3 8Y"],
-    [/\ba4\s*b7\b/gi, "A4 B7"],
-    [/\ba4\s*b8\b/gi, "A4 B8"],
-    [/\ba4\s*b9\b/gi, "A4 B9"],
-    [/\ba5\s*8t\b/gi, "A5 8T"],
-    [/\ba5\s*f5\b/gi, "A5 F5"],
-    [/\ba6\s*c6\b/gi, "A6 C6"],
-    [/\ba6\s*c7\b/gi, "A6 C7"],
-    [/\ba6\s*c8\b/gi, "A6 C8"],
-    [/\ba7\s*4g8\b/gi, "A7 4G"],
-    [/\ba7\s*4k8\b/gi, "A7 4K"],
-    [/\btt\s*8j\b/gi, "TT 8J"],
-    [/\btt\s*(fv\s*\/\s*8s|fv\s*8s|fv|8s)\b/gi, "TT 8S"],
-    [/\bq2\s*ga\b/gi, "Q2"],
-    [/\bq3\s*8u\b/gi, "Q3 8U"],
-    [/\bq3\s*f3\b/gi, "Q3 F3"],
-    [/\bq5\s*8r\b/gi, "Q5 8R"],
-    [/\bq5\s*fy\b/gi, "Q5 FY"],
-    [/\bq7\s*4l\b/gi, "Q7 4L"],
-    [/\bq7\s*4m\b/gi, "Q7 4M"],
-    [/\bq8\s*4m\b/gi, "Q8"],
-    [/\bq4\s*e[-\s]?tron\b/gi, "Q4 e-tron"],
-    [/\bq8\s*e[-\s]?tron\b/gi, "Q8 e-tron"],
-    [/\be[-\s]?tron\s*gt\b/gi, "e-tron GT"],
-    [/\be[-\s]?tron\b/gi, "e-tron"],
-    [/\bq3\s*rs\b/gi, "RS Q3"],
-    [/\brs\s*q3\b/gi, "RS Q3"],
-    [/\brs\s*q8\b/gi, "RS Q8"],
-    [/\btt\s*rs\b/gi, "TT RS"],
-    [/\bs\s*-?\s*tronic\b/gi, "s tronic"],
+    [/\bmondeo\s+mk\s*iv\b/gi, "Mondeo MK4"],
+    [/\bmondeo\s+iv\b/gi, "Mondeo MK4"],
+    [/\bmondeo\s+mk\s*v\b/gi, "Mondeo MK5"],
+    [/\bmondeo\s+v\b/gi, "Mondeo MK5"],
+    [/\bfiesta\s+vii\b/gi, "Fiesta MK7"],
+    [/\bfiesta\s+viii\b/gi, "Fiesta MK8"],
+    [/\bgalaxy\s+iii\b/gi, "Galaxy MK3"],
+    [/\bgalaxy\s+iv\b/gi, "Galaxy MK4"],
+    [/\bc[\s-]*max\s+ii\b/gi, "C-MAX II"],
+    [/\bs[\s-]*max\s+i\b/gi, "S-MAX I"],
+    [/\bs[\s-]*max\s+ii\b/gi, "S-MAX II"],
+    [/\bka\s+ii\b/gi, "Ka II"],
+    [/\btransit\s+vii\b/gi, "Transit MK7"],
+    [/\btransit\s+viii\b/gi, "Transit MK8"],
+    [/\bv347\b/gi, "Transit MK7"],
+    [/\bv348\b/gi, "Transit MK7"],
+    [/\becosport\s+ii\s+bk\b/gi, "EcoSport"],
+    [/\becosport\s+ii\b/gi, "EcoSport"],
+    [/\btransit\s*\/\s*tourneo\s+courier\b/gi, "Transit Tourneo Courier"],
+    [/\btransit\s*\/\s*tourneo\s+custom\b/gi, "Transit Tourneo Custom"],
   ];
   for (const [pattern, replacement] of replacements) text = text.replace(pattern, replacement);
   return normalizeText(text);
@@ -586,41 +511,17 @@ function restrictFordFamilyCandidates(models, rawText) {
   const normalized = normalizeFordForumMatchText(rawText);
   if (!normalized) return models;
 
-  function keep(labelPattern) {
-    const filtered = models.filter(model => labelPattern.test(normalizeFordForumMatchText(model.label)));
+  const wantsTourneo = /\btourneo\b/.test(normalized);
+  const wantsTransit = /\btransit\b/.test(normalized);
+
+  if (wantsTourneo && !wantsTransit) {
+    const filtered = models.filter(model => /\btourneo\b/i.test(model.label));
     return filtered.length > 0 ? filtered : models;
   }
 
-  if (/\be tron gt\b/.test(normalized)) return keep(/\be tron gt\b/);
-  if (/\bq8 e tron\b/.test(normalized) || /\bsq8 e tron\b/.test(normalized)) return keep(/\bq8 e tron\b/);
-  if (/\bq4 e tron\b/.test(normalized)) return keep(/\bq4 e tron\b/);
-  if (
-    /\be tron\b/.test(normalized)
-    && /\b55\b/.test(normalized)
-    && !/\bq[48] e tron\b/.test(normalized)
-    && !/\bgt\b/.test(normalized)
-  ) {
-    return keep(/\be tron 55\b/);
-  }
-
-  const familyHints = [
-    [/\b(s1)\b/, /\ba1\b/],
-    [/\b(s3|rs3)\b/, /\ba3\b/],
-    [/\b(s4|rs4)\b/, /\ba4\b/],
-    [/\b(s5|rs5)\b/, /\ba5\b/],
-    [/\b(s6|rs6)\b/, /\ba6\b/],
-    [/\b(s7|rs7)\b/, /\ba7\b/],
-    [/\b(sq2)\b/, /\bq2\b/],
-    [/\b(q3 rs|rs q3)\b/, /\bq3\b/],
-    [/\b(sq5)\b/, /\bq5\b/],
-    [/\b(sq7)\b/, /\bq7\b/],
-    [/\b(rs q8|sq8)\b/, /\bq8\b/],
-    [/\b(tt rs|tts)\b/, /\btt\b/],
-  ];
-
-  for (const [pattern, labelPattern] of familyHints) {
-    if (!pattern.test(normalized)) continue;
-    return keep(labelPattern);
+  if (wantsTransit && !wantsTourneo) {
+    const filtered = models.filter(model => /\btransit\b/i.test(model.label));
+    return filtered.length > 0 ? filtered : models;
   }
 
   return models;
@@ -630,7 +531,7 @@ function pickFordModelLabelByExplicitAlias(rawText) {
   const normalized = normalizeFordForumMatchText(rawText);
   if (!normalized?.trim()) return null;
 
-  const models = (AUDI_ENTRY.models ?? []).filter(model => model?.label);
+  const models = (FORD_ENTRY.models ?? []).filter(model => model?.label);
   const matches = [];
 
   for (const model of models) {
@@ -670,7 +571,7 @@ function pickFordModelLabel(rawText) {
   if (explicitAliasLabel) return explicitAliasLabel;
 
   const models = restrictFordFamilyCandidates(
-    (AUDI_ENTRY.models ?? []).filter(model => model?.label),
+    (FORD_ENTRY.models ?? []).filter(model => model?.label),
     normalized
   );
   const best = bestByScore(models, model => scoreModelLabel(model.label, normalized));
@@ -686,64 +587,14 @@ function pickFordModelLabel(rawText) {
   return best.it.label;
 }
 
-function resolveFamilyModelFromYears(candidateLabels, explicitYears, combined) {
-  if (!Array.isArray(candidateLabels) || candidateLabels.length === 0) return null;
-  if (!Array.isArray(explicitYears) || explicitYears.length === 0) return null;
-
-  const matches = candidateLabels.filter(label => {
-    const range = parseFordLabelYearRange(label);
-    return range && explicitYears.some(year => year >= range.start && year <= range.end);
-  });
-
-  if (matches.length === 1) return matches[0];
-  if (matches.length > 1) {
-    const best = bestByScore(matches, label => scoreModelLabel(label, combined));
-    return best && best.score >= 0.15 ? best.it : null;
-  }
-  return null;
-}
-
-function getCategorySlug(forumUrl) {
-  try {
-    const parsed = new URL(forumUrl);
-    const segment = parsed.pathname.split("/").filter(Boolean).pop() ?? "";
-    return segment.replace(/-\d+$/g, "").toLowerCase();
-  } catch {
-    return "";
-  }
-}
-
-function resolveFordVehicleModel({ modelRaw = "", threadTitle = "", parentForumTitle = "", subforumUrl = "" }) {
-  const forumHint = FORUM_HINTS.get(getCategorySlug(subforumUrl)) ?? null;
+function resolveFordVehicleModel({ modelRaw = "", threadTitle = "", parentForumTitle = "" }) {
   const combined = normalizeFordForumMatchText([modelRaw, threadTitle, parentForumTitle].filter(Boolean).join(" | "));
   const explicitYears = extractExplicitYears(combined);
   const familyContext = normalizeFordForumMatchText([modelRaw, threadTitle].filter(Boolean).join(" | ")) || combined;
   const models = restrictFordFamilyCandidates(
-    (AUDI_ENTRY.models ?? []).filter(model => model?.label),
+    (FORD_ENTRY.models ?? []).filter(model => model?.label),
     familyContext
   );
-
-  if (forumHint?.resolved_model && forumHint.forum_type === "model") return forumHint.resolved_model;
-
-  if (forumHint?.forum_type === "model_family") {
-    const yearMatch = resolveFamilyModelFromYears(forumHint.candidate_models, explicitYears, combined);
-    if (yearMatch) return yearMatch;
-    return null;
-  }
-
-  if (forumHint?.forum_type === "shared") {
-    if (forumHint.resolved_model && forumHint.candidate_models.length <= 1) return forumHint.resolved_model;
-    if (forumHint.candidate_models.length > 1) {
-      const yearMatch = resolveFamilyModelFromYears(forumHint.candidate_models, explicitYears, combined);
-      if (yearMatch) return yearMatch;
-      const filtered = restrictFordFamilyCandidates(
-        forumHint.candidate_models.map(label => ({ label })),
-        combined
-      );
-      if (filtered.length === 1) return filtered[0].label;
-      return null;
-    }
-  }
 
   if (explicitYears.length > 0) {
     const yearCandidates = models.filter(model => {
@@ -781,7 +632,7 @@ function resolveFordVehicleModel({ modelRaw = "", threadTitle = "", parentForumT
 function listFordCatalogMatches(rawText, limit = 8) {
   const normalized = normalizeFordForumMatchText(rawText);
   if (!normalized) return [];
-  return (AUDI_ENTRY.models ?? [])
+  return (FORD_ENTRY.models ?? [])
     .filter(model => model?.label)
     .map(model => ({ label: model.label, score: scoreModelLabel(model.label, normalized) }))
     .filter(item => item.score >= 0.16)
@@ -793,30 +644,45 @@ function listFordCatalogMatches(rawText, limit = 8) {
 function normalizeFordForumTitle(title) {
   return (title ?? "")
     .toString()
-    .replace(/\s*-\s*F[oó]rum\s*-\s*Audi klub\s*$/i, "")
+    .replace(/\s*-\s*F[oó]rum\s*-\s*Ford klub\s*$/i, "")
     .trim();
 }
 
 function inferFordForumInventory({ forumUrl, forumTitle }) {
   const cleanTitle = normalizeFordForumTitle(forumTitle);
-  const hint = FORUM_HINTS.get(getCategorySlug(forumUrl)) ?? null;
   const candidates = listFordCatalogMatches(cleanTitle, 12);
-  const resolvedModel = hint?.resolved_model ?? resolveFordVehicleModel({
+  const resolvedModel = resolveFordVehicleModel({
     modelRaw: cleanTitle,
     threadTitle: cleanTitle,
     parentForumTitle: cleanTitle,
-    subforumUrl: forumUrl,
   });
+
+  let forumType = "model";
+  let note = "";
+  if (/technick[ýy]\s+koutek/i.test(cleanTitle)) {
+    forumType = "general";
+    note = "Shared technical forum across multiple Ford models.";
+  } else if (/transit\b.*obecn[ěe]/i.test(cleanTitle) || /^tourneo$/i.test(cleanTitle)) {
+    forumType = "shared";
+    note = "Shared forum, not one exact catalog model.";
+  } else if (/transit\s*\/\s*tourneo/i.test(cleanTitle)) {
+    forumType = "shared";
+    note = "Forum covers both Transit and Tourneo variants.";
+  }
 
   return {
     forum_url: forumUrl,
     forum_title: forumTitle,
     normalized_title: cleanTitle,
-    forum_type: hint?.forum_type ?? "model",
+    forum_type: forumType,
     resolved_model: resolvedModel,
-    candidate_models: hint?.candidate_models ?? candidates,
-    note: hint?.note ?? "",
+    candidate_models: candidates,
+    note,
   };
+}
+
+function isFordTechnicalCornerListing(listingUrl) {
+  return /\/forum-kategorie\/technicky-koutek-6\b/i.test((listingUrl ?? "").toString());
 }
 
 function classifyFordTopicEntry({ title, postCount, minPosts = DEFAULT_MIN_POSTS, listingUrl = "" }) {
@@ -827,8 +693,8 @@ function classifyFordTopicEntry({ title, postCount, minPosts = DEFAULT_MIN_POSTS
   if (TOPIC_BLACKLIST.some(pattern => pattern.test(raw))) {
     return { keep: false, reason: "Clearly non-diagnostic topic", signal: false };
   }
-  if (TITLE_NOISE_PATTERNS.some(pattern => pattern.test(raw))) {
-    return { keep: false, reason: "Low-value title noise", signal: false };
+  if (isFordTechnicalCornerListing(listingUrl) && TECHNICAL_CORNER_GENERIC_PATTERNS.some(pattern => pattern.test(raw))) {
+    return { keep: false, reason: "Generic technical-corner topic", signal: false };
   }
   return {
     keep: true,
@@ -1103,7 +969,7 @@ async function processThreadFactory({ args, apiKey, outReady, outReview, discard
         return false;
       }
 
-      const reviewId = computeAudiReviewId({
+      const reviewId = computeFordReviewId({
         forum: args.forum,
         sourceUrl,
         threadTitle: normalizedThreadTitle,
@@ -1127,7 +993,7 @@ async function processThreadFactory({ args, apiKey, outReady, outReview, discard
       "- The confirming user does NOT need to be the original thread author.",
       "- A thread may contain multiple independent resolved cases from different users. That is allowed.",
       "- Ignore unresolved side discussions, guesses, or advice-only replies if at least one valid case exists.",
-      "- Forum context (model forum title) may contain the Audi model or generation. You may use that context, but only when explicit.",
+      "- Forum context (model forum title) may contain the Ford model or generation. You may use that context, but only when explicit.",
       "",
       "JSON schema:",
       '{"should_seed":false,"is_relevant":false,"has_explicit_fault":false,"has_confirmed_resolution":false,"same_user_confirms_resolution":false,"has_required_fields":false,"reason":"","evidence_post_numbers":[]}',
@@ -1165,7 +1031,7 @@ async function processThreadFactory({ args, apiKey, outReady, outReview, discard
       "- The case author does NOT need to be the original thread author.",
       "- A thread may contain multiple independent resolved cases from different users. Return all qualifying cases.",
       "- Ignore advice-only replies, guesses, or cases where another user suggests a fix but the reporting user never confirms it.",
-      "- Use forum context if it explicitly identifies the Audi model or generation.",
+      "- Use forum context if it explicitly identifies the Ford model or generation.",
       "- If any required field is ambiguous for one case, omit that case but continue extracting other clear cases.",
       "- If there are no clear cases, return [].",
       "- Translate symptoms, description, and resolution to English.",
@@ -1173,7 +1039,7 @@ async function processThreadFactory({ args, apiKey, outReady, outReview, discard
       "- Normalize OBD codes to uppercase format like P0401. If none are present, use [].",
       "",
       "Output schema:",
-      '[{"case_author":"","fault_post_numbers":[],"resolution_post_numbers":[],"brand_raw":"Audi","model_raw":"","engine_raw":"","engine_code_raw":"","mileage":null,"symptoms":[],"obd_codes":[],"description":"","resolution":"","closed_at":""}]',
+      '[{"case_author":"","fault_post_numbers":[],"resolution_post_numbers":[],"brand_raw":"Ford","model_raw":"","engine_raw":"","engine_code_raw":"","mileage":null,"symptoms":[],"obd_codes":[],"description":"","resolution":"","closed_at":""}]',
       "",
       `- Classifier evidence post numbers: ${classifier.evidence_post_numbers.join(", ")}`,
       "",
@@ -1223,16 +1089,15 @@ async function processThreadFactory({ args, apiKey, outReady, outReview, discard
         continue;
       }
 
-      const vehicle_brand = "Audi";
+      const vehicle_brand = "Ford";
       const vehicle_model = resolveFordVehicleModel({
         modelRaw: normalizedItem?.model_raw ?? "",
         threadTitle: normalizedThreadTitle,
         parentForumTitle,
-        subforumUrl,
       }) ?? null;
       const engine_power = vehicle_model
         ? pickEnginePower(
-            AUDI_ENTRY,
+            FORD_ENTRY,
             vehicle_model,
             [
               normalizedItem?.engine_raw ?? "",
@@ -1352,7 +1217,7 @@ async function main() {
     if (!isFordCategoryUrl(input)) {
       await appendJsonLine(discardedPath, {
         stage: "input",
-        reason: "Unsupported Audi input URL. Expected forum category or forum topic URL.",
+        reason: "Unsupported Ford input URL. Expected forum category or forum topic URL.",
         thread_url: input,
         created_at: new Date().toISOString(),
       });
@@ -1402,7 +1267,6 @@ async function main() {
 
     const toProcess = keptThreads
       .filter(thread => !doneSet.has(thread.url))
-      .filter(thread => !args.signalsOnly || thread.signal)
       .slice(0, args.maxThreads);
 
     logProgress(`Discovered ${uniqueThreads.length} thread(s), kept ${keptThreads.length}, processing ${toProcess.length}.`);
@@ -1466,10 +1330,10 @@ if (isDirectRun) {
 }
 
 export {
-  classifyFordTopicEntry as classifyAudiTopicEntry,
+  classifyFordTopicEntry,
   extractRelNextUrl,
-  extractFordTopicEntriesFromForumPage as extractAudiTopicEntriesFromForumPage,
-  inferFordForumInventory as inferAudiForumInventory,
+  extractFordTopicEntriesFromForumPage,
+  inferFordForumInventory,
   parseArgs,
-  resolveFordVehicleModel as resolveAudiVehicleModel,
+  resolveFordVehicleModel,
 };

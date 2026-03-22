@@ -55,6 +55,7 @@ function rowToCase(row: any) {
   return {
     id:             row.id,
     localId:        row.local_id,
+    threadUrl:      row.thread_url ?? null,
     name:           `[Cloud] ${row.vehicle_brand ? row.vehicle_brand + ' ' : ''}${row.vehicle_model || 'Neznámý model'} | ${row.resolution.slice(0, 40)}`,
     status:         'uzavřený',
     createdAt:      row.created_at,

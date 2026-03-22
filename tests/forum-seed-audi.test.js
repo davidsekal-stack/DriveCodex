@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 
 import {
   classifyAudiTopicEntry,
@@ -163,6 +164,16 @@ test("resolveAudiVehicleModel distinguishes e-tron SUV generations conservativel
     subforumUrl: "https://www.audiclub.eu/forum-kategorie/e-tron-80",
   });
   assert.equal(ambiguous, null);
+});
+
+test("Audi crawler source does not keep Peugeot-specific record assembly or prompts", () => {
+  const source = fs.readFileSync(new URL("../scripts/forum-seed-audi.mjs", import.meta.url), "utf8");
+  assert.match(source, /const vehicle_brand = "Audi";/);
+  assert.match(source, /pickEnginePower\(\s*AUDI_ENTRY,/);
+  assert.doesNotMatch(source, /PEUGEOT_ENTRY/);
+  assert.doesNotMatch(source, /brand_raw":"Peugeot"/);
+  assert.doesNotMatch(source, /Peugeot klub/);
+  assert.doesNotMatch(source, /Unsupported Peugeot input URL/);
 });
 
 console.log(`\nResults: ${passed} passed, ${failed} failed`);

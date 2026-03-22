@@ -1017,6 +1017,7 @@ async function processThreadFactory({ args, apiKey, outReady, outReview, discard
       const record = {
         local_id,
         user_id: args.userId,
+        thread_url: sourceUrl || null,
         vehicle_brand,
         vehicle_model,
         mileage: typeof normalizedItem?.mileage === "number" ? Math.trunc(normalizedItem.mileage) : null,

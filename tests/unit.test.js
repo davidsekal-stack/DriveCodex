@@ -894,6 +894,15 @@ describe('helpers — vehicle catalog', () => {
     ok(!euBrands.includes('Ford (US)'))
   })
 
+  test('getBrandEntry a getBrandModels fungují i pro US-only dropdown značky', () => {
+    const entry = getBrandEntry('Ford (US)')
+    ok(entry)
+    strictEqual(entry.brand, 'Ford (US)')
+
+    const models = getBrandModels('Ford (US)')
+    ok(models.length > 0)
+  })
+
   test('getBrandModels vrátí modely pro Ford', () => {
     const models = getBrandModels('Ford')
     ok(models.length > 0, 'Ford by měl mít modely')
@@ -1222,6 +1231,96 @@ describe('helpers — vehicle catalog', () => {
     ok(labels.includes('Expert / Traveller II (2007–2016)'))
     ok(labels.includes('Traveller (2016–dosud)'))
     ok(labels.includes('Boxer I (1994–2006)'))
+  })
+
+  test('Renault katalog pokrývá post-2000 modely připravené pro Renault Club crawler', () => {
+    const entry = getBrandEntry('Renault')
+    ok(entry)
+    ok(entry.expertise.includes('po roce 2000'))
+    ok(entry.expertise.includes('Talisman'))
+
+    const labels = getBrandModels('Renault').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Twingo II (2007–2014)'))
+    ok(labels.includes('Thalia II (2008–2013)'))
+    ok(labels.includes('Megane II (2002–2009)'))
+    ok(labels.includes('Scenic II (2003–2009)'))
+    ok(labels.includes('Laguna II (2001–2007)'))
+    ok(labels.includes('Laguna III (2007–2015)'))
+    ok(labels.includes('Espace IV (2002–2014)'))
+    ok(labels.includes('Koleos I (2008–2016)'))
+    ok(labels.includes('Fluence (2009–2016)'))
+    ok(labels.includes('Latitude (2011–2015)'))
+    ok(labels.includes('Modus / Grand Modus (2004–2012)'))
+    ok(labels.includes('Talisman (2015–2022)'))
+    ok(labels.includes('Twizy (2011–dosud)'))
+    ok(labels.includes('Vel Satis (2001–2009)'))
+    ok(labels.includes('Wind (2010–2013)'))
+    ok(labels.includes('Renault 5 E-Tech Electric (2024–dosud)'))
+    ok(labels.includes('Alaskan (2017–2021)'))
+  })
+
+  test('BMW katalog pokrývá post-2000 modely potřebné pro BMW Club crawler', () => {
+    const entry = getBrandEntry('BMW')
+    ok(entry)
+    ok(entry.expertise.includes('Z4'))
+    ok(entry.expertise.includes('od roku 2002'))
+
+    const labels = getBrandModels('BMW').map(m => m.label).filter(Boolean)
+    ok(labels.includes('6 E63/E64 (2003–2010)'))
+    ok(labels.includes('6 F06/F12/F13 (2011–2018)'))
+    ok(labels.includes('8 G14/G15/G16 (2018–dosud)'))
+    ok(labels.includes('Z4 E85/E86 (2002–2008)'))
+    ok(labels.includes('Z4 E89 (2009–2016)'))
+    ok(labels.includes('Z4 G29 (2019–dosud)'))
+    ok(labels.includes('X7 G07 (2018–dosud)'))
+  })
+
+  test('SEAT katalog pokrývá post-2000 modely potřebné pro SEAT Club crawler', () => {
+    const entry = getBrandEntry('SEAT')
+    ok(entry)
+    ok(entry.expertise.includes('Cordoba'))
+    ok(entry.expertise.includes('2002'))
+
+    const labels = getBrandModels('SEAT').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Ibiza III 6L (2002–2008)'))
+    ok(labels.includes('Leon II 1P (2005–2012)'))
+    ok(labels.includes('Cordoba II (2002–2009)'))
+    ok(labels.includes('Toledo III 5P (2004–2009)'))
+  })
+
+  test('Citroen katalog pokrývá post-2000 modely potřebné pro Citroen Club crawler', () => {
+    const entry = getBrandEntry('Citroën')
+    ok(entry)
+    ok(entry.expertise.includes('C2'))
+    ok(entry.expertise.includes('DS'))
+
+    const labels = getBrandModels('Citroën').map(m => m.label).filter(Boolean)
+    ok(labels.includes('C2 (2003–2009)'))
+    ok(labels.includes('C3 I (2002–2009)'))
+    ok(labels.includes('C4 I (2004–2010)'))
+    ok(labels.includes('C4 Picasso / Grand C4 Picasso I (2006–2013)'))
+    ok(labels.includes('C8 (2002–2014)'))
+    ok(labels.includes('C-Crosser (2007–2012)'))
+    ok(labels.includes('Nemo / Nemo Multispace (2008–2017)'))
+    ok(labels.includes('Jumpy II (2007–2016)'))
+    ok(labels.includes('DS3 (2010–2019)'))
+  })
+
+  test('Opel katalog pokrývá post-2000 modely potřebné pro Opel forum crawler', () => {
+    const entry = getBrandEntry('Opel')
+    ok(entry)
+    ok(entry.expertise.includes('Vectra'))
+    ok(entry.expertise.includes('od roku 2000'))
+
+    const labels = getBrandModels('Opel').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Corsa C (2000–2006)'))
+    ok(labels.includes('Astra H (2004–2010)'))
+    ok(labels.includes('Vectra C (2002–2008)'))
+    ok(labels.includes('Meriva A (2003–2010)'))
+    ok(labels.includes('Combo C (2001–2011)'))
+    ok(labels.includes('Vivaro A (2001–2014)'))
+    ok(labels.includes('Zafira Tourer / Zafira C (2011–2019)'))
+    ok(labels.includes('Movano B 2.3 CDTI (2010–2021)'))
   })
 
   test('getBrandModels vrátí prázdné pole pro neznámou značku', () => {

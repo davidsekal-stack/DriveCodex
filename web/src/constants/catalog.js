@@ -307,7 +307,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "SEAT",
     active:    true,
-    expertise: "SEAT osobní vozidla hlavních EU modelových řad (Mii, Ibiza, Leon, Toledo, Altea, Exeo, Arona, Ateca, Tarraco, Alhambra) — motory MPI, TSI, TDI, TGI/CNG, EcoFuel, e-HYBRID a elektrické pohony od roku 2008 do současnosti, EU spec",
+    expertise: "SEAT osobní vozidla hlavních EU modelových řad (Mii, Ibiza, Leon, Cordoba, Toledo, Altea, Exeo, Arona, Ateca, Tarraco, Alhambra) — motory MPI, FSI, TSI, TDI, TGI/CNG, EcoFuel, e-HYBRID a elektrické pohony od roku 2002 do současnosti, EU spec",
     models: [
       // ── Mii ───────────────────────────────────────────────────────────────────
       { group: "Mii" },
@@ -315,13 +315,20 @@ export const VEHICLE_CATALOG = [
 
       // ── Ibiza ─────────────────────────────────────────────────────────────────
       { group: "Ibiza" },
+      { label: "Ibiza III 6L (2002–2008)", powers: ["47 kW – 1.2", "55 kW – 1.4 16V", "74 kW – 1.4 16V", "96 kW – 1.8T Cupra", "118 kW – 1.8T Cupra R", "47 kW – 1.4 TDI", "59 kW – 1.4 TDI", "74 kW – 1.9 TDI", "96 kW – 1.9 TDI"] },
       { label: "Ibiza IV (2008–2017)", powers: ["44 kW – 1.2 12V", "51 kW – 1.2 12V", "63 kW – 1.4 16V", "60 kW – 1.6 BiFuel", "63 kW – 1.2 TSI", "77 kW – 1.2 TSI", "110 kW – 1.4 TSI", "132 kW – 1.4 TSI Cupra", "55 kW – 1.2 TDI", "66 kW – 1.6 TDI", "77 kW – 1.6 TDI", "105 kW – 2.0 TDI"] },
       { label: "Ibiza V (2017–dosud)", powers: ["59 kW – 1.0 MPI", "70 kW – 1.0 TSI", "81 kW – 1.0 TSI", "85 kW – 1.0 TSI", "110 kW – 1.5 TSI", "59 kW – 1.6 TDI", "85 kW – 1.6 TDI"] },
 
       // ── Leon ──────────────────────────────────────────────────────────────────
       { group: "Leon" },
+      { label: "Leon II 1P (2005–2012)", powers: ["63 kW – 1.4", "75 kW – 1.6", "77 kW – 1.2 TSI", "92 kW – 1.4 TSI", "118 kW – 1.8 TSI", "155 kW – 2.0 TSI Cupra", "177 kW – 2.0 TSI Cupra R", "66 kW – 1.6 TDI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI"] },
       { label: "Leon III (2012–2020)", powers: ["63 kW – 1.2 TSI", "77 kW – 1.2 TSI", "85 kW – 1.0 TSI", "90 kW – 1.4 TSI", "96 kW – 1.5 TSI", "96 kW – 1.5 TGI", "103 kW – 1.4 TSI", "110 kW – 1.5 TSI", "132 kW – 1.8 TSI", "66 kW – 1.6 TDI", "77 kW – 1.6 TDI", "85 kW – 1.6 TDI", "110 kW – 2.0 TDI", "135 kW – 2.0 TDI"] },
       { label: "Leon IV (2020–dosud)", powers: ["85 kW – 1.5 TSI", "85 kW – 1.5 eTSI mHEV", "110 kW – 1.5 TSI", "110 kW – 1.5 eTSI mHEV", "150 kW – 1.5 e-HYBRID", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI"] },
+
+      // ── Cordoba / Toledo ───────────────────────────────────────────────────────
+      { group: "Cordoba / Toledo" },
+      { label: "Cordoba II (2002–2009)", powers: ["47 kW – 1.2", "55 kW – 1.4 16V", "74 kW – 1.4 16V", "74 kW – 2.0", "47 kW – 1.4 TDI", "74 kW – 1.9 TDI", "96 kW – 1.9 TDI"] },
+      { label: "Toledo III 5P (2004–2009)", powers: ["75 kW – 1.6 FSI", "77 kW – 1.2 TSI", "92 kW – 1.4 TSI", "110 kW – 1.8 TSI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI"] },
 
       // ── Toledo ────────────────────────────────────────────────────────────────
       { group: "Toledo" },
@@ -540,10 +547,11 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Renault",
     active:    true,
-    expertise: "Renault osobní a užitková vozidla všech modelových řad (Twingo, Clio, Megane, Scenic, Captur, Kadjar, Arkana, Austral, Kangoo, Trafic, Master) — motory TCe, dCi, Blue dCi a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue od Euro 6)",
+    expertise: "Renault osobní a užitková vozidla hlavních modelových řad po roce 2000 (Twingo, Clio, Thalia, Megane, Scenic, Laguna, Espace, Captur, Kadjar, Arkana, Austral, Koleos, Fluence, Talisman, Kangoo, Trafic, Master) — motory TCe, dCi, Blue dCi a elektrické pohony, převážně EU spec",
     models: [
       // ── Twingo ────────────────────────────────────────────────────────────────
       { group: "Twingo" },
+      { label: "Twingo II (2007–2014)", powers: ["43 kW – 1.2", "56 kW – 1.2 16V", "74 kW – 1.2 TCe", "98 kW – 1.6 RS", "47 kW – 1.5 dCi"] },
       { label: "Twingo III (2014–dosud)", powers: ["52 kW – 1.0 SCe", "54 kW – 1.0 SCe", "66 kW – 0.9 TCe", "68 kW – 0.9 TCe", "60 kW – Electric"] },
 
       // ── Clio ──────────────────────────────────────────────────────────────────
@@ -552,21 +560,39 @@ export const VEHICLE_CATALOG = [
       { label: "Clio IV (2012–2019)", powers: ["54 kW – 1.2", "66 kW – 0.9 TCe", "87 kW – 1.2 TCe", "118 kW – 1.6 Turbo RS", "162 kW – 1.6 Turbo RS Trophy", "55 kW – 1.5 dCi", "66 kW – 1.5 dCi"] },
       { label: "Clio V (2019–dosud)", powers: ["49 kW – 1.0 SCe", "67 kW – 1.0 TCe", "74 kW – 1.0 TCe", "103 kW – 1.3 TCe", "104 kW – 1.6 E-Tech Hybrid", "63 kW – 1.5 Blue dCi", "85 kW – 1.5 Blue dCi"] },
 
+      // ── Thalia ────────────────────────────────────────────────────────────────
+      { group: "Thalia" },
+      { label: "Thalia II (2008–2013)", powers: ["55 kW – 1.2 16V", "74 kW – 1.2 TCe", "55 kW – 1.5 dCi"] },
+
       // ── Megane ────────────────────────────────────────────────────────────────
       { group: "Megane" },
+      { label: "Megane II (2002–2009)", powers: ["72 kW – 1.4 16V", "82 kW – 1.6 16V", "100 kW – 2.0 16V", "165 kW – 2.0 Turbo RS", "63 kW – 1.5 dCi", "88 kW – 1.9 dCi"] },
       { label: "Megane III (2008–2016)", powers: ["74 kW – 1.2 TCe", "85 kW – 1.2 TCe", "97 kW – 1.2 TCe", "81 kW – 1.6", "96 kW – 2.0", "184 kW – 2.0 TCe RS", "201 kW – 2.0 TCe RS Trophy", "66 kW – 1.5 dCi", "81 kW – 1.5 dCi", "95 kW – 1.6 dCi", "110 kW – 1.6 dCi", "96 kW – 2.0 dCi"] },
       { label: "Megane IV (2016–2022)", powers: ["74 kW – 1.0 TCe", "85 kW – 1.0 TCe", "103 kW – 1.3 TCe", "117 kW – 1.3 TCe", "205 kW – 1.8 TCe RS", "221 kW – 1.8 TCe RS Trophy", "85 kW – 1.5 Blue dCi", "110 kW – 1.5 Blue dCi", "118 kW – 1.7 Blue dCi"] },
       { label: "Megane E-Tech Electric (2022–dosud)", powers: ["96 kW – Electric 40", "131 kW – Electric 60", "160 kW – Electric 60"] },
 
       // ── Scenic ────────────────────────────────────────────────────────────────
       { group: "Scenic" },
+      { label: "Scenic II (2003–2009)", powers: ["82 kW – 1.6 16V", "98 kW – 2.0 16V", "60 kW – 1.5 dCi", "88 kW – 1.9 dCi", "110 kW – 2.0 dCi"] },
       { label: "Scenic III (2009–2016)", powers: ["85 kW – 1.2 TCe", "97 kW – 1.2 TCe", "81 kW – 1.6", "96 kW – 2.0", "66 kW – 1.5 dCi", "81 kW – 1.5 dCi", "95 kW – 1.6 dCi", "118 kW – 1.6 dCi", "96 kW – 2.0 dCi", "110 kW – 2.0 dCi"] },
       { label: "Scenic IV (2016–2022)", powers: ["85 kW – 1.2 TCe", "103 kW – 1.3 TCe", "117 kW – 1.3 TCe", "85 kW – 1.5 Blue dCi", "110 kW – 1.5 Blue dCi", "88 kW – 1.7 Blue dCi", "110 kW – 1.7 Blue dCi"] },
+
+      // ── Laguna ────────────────────────────────────────────────────────────────
+      { group: "Laguna" },
+      { label: "Laguna II (2001–2007)", powers: ["79 kW – 1.6 16V", "99 kW – 2.0 16V", "120 kW – 2.0 Turbo", "79 kW – 1.9 dCi", "110 kW – 2.2 dCi", "130 kW – 3.0 dCi"] },
+      { label: "Laguna III (2007–2015)", powers: ["81 kW – 1.6 16V", "125 kW – 2.0 Turbo", "81 kW – 1.5 dCi", "96 kW – 2.0 dCi", "127 kW – 2.0 dCi"] },
 
       // ── Captur ────────────────────────────────────────────────────────────────
       { group: "Captur" },
       { label: "Captur I (2013–2019)", powers: ["66 kW – 0.9 TCe", "87 kW – 1.2 TCe", "66 kW – 1.5 dCi", "81 kW – 1.5 dCi"] },
       { label: "Captur II (2019–dosud)", powers: ["74 kW – 1.0 TCe", "103 kW – 1.3 TCe", "117 kW – 1.3 TCe", "116 kW – 1.6 E-Tech Hybrid", "118 kW – 1.6 E-Tech PHEV", "85 kW – 1.5 Blue dCi"] },
+
+      // ── Modus / Fluence / Latitude / Talisman ───────────────────────────────
+      { group: "Modus / Fluence / Latitude / Talisman" },
+      { label: "Modus / Grand Modus (2004–2012)", powers: ["55 kW – 1.2", "74 kW – 1.2 TCe", "65 kW – 1.4 16V", "78 kW – 1.5 dCi"] },
+      { label: "Fluence (2009–2016)", powers: ["81 kW – 1.6 16V", "103 kW – 2.0 16V", "81 kW – 1.5 dCi", "70 kW – Electric"] },
+      { label: "Latitude (2011–2015)", powers: ["103 kW – 2.0 16V", "125 kW – 2.0 Turbo", "110 kW – 2.0 dCi", "177 kW – 3.0 V6 dCi"] },
+      { label: "Talisman (2015–2022)", powers: ["110 kW – 1.6 TCe", "147 kW – 1.6 TCe", "96 kW – 1.5 dCi", "118 kW – 1.6 dCi", "118 kW – 2.0 Blue dCi"] },
 
       // ── Kadjar / Austral / Arkana ─────────────────────────────────────────────
       { group: "Kadjar / Austral / Arkana" },
@@ -576,7 +602,14 @@ export const VEHICLE_CATALOG = [
 
       // ── Koleos ────────────────────────────────────────────────────────────────
       { group: "Koleos" },
+      { label: "Koleos I (2008–2016)", powers: ["126 kW – 2.5 16V", "110 kW – 2.0 dCi", "127 kW – 2.0 dCi"] },
       { label: "Koleos II (2017–dosud)", powers: ["96 kW – 1.3 TCe", "117 kW – 1.3 TCe", "96 kW – 1.7 Blue dCi", "110 kW – 2.0 Blue dCi", "140 kW – 2.0 Blue dCi"] },
+
+      // ── Renault 5 / Twizy / Wind ────────────────────────────────────────────
+      { group: "Renault 5 / Twizy / Wind" },
+      { label: "Renault 5 E-Tech Electric (2024–dosud)", powers: ["90 kW – Electric", "110 kW – Electric"] },
+      { label: "Twizy (2011–dosud)", powers: ["4 kW – Electric 45", "13 kW – Electric 80"] },
+      { label: "Wind (2010–2013)", powers: ["74 kW – 1.2 TCe", "98 kW – 1.6 16V"] },
 
       // ── Kangoo ────────────────────────────────────────────────────────────────
       { group: "Kangoo" },
@@ -597,8 +630,14 @@ export const VEHICLE_CATALOG = [
 
       // ── Espace ───────────────────────────────────────────────────────────────
       { group: "Espace" },
+      { label: "Espace IV (2002–2014)", powers: ["100 kW – 2.0 Turbo", "120 kW – 2.0 Turbo", "110 kW – 2.2 dCi", "127 kW – 2.0 dCi", "130 kW – 3.0 dCi"] },
       { label: "Espace V (2015–2023)", powers: ["97 kW – 1.2 TCe", "118 kW – 1.3 TCe", "96 kW – 1.6 dCi", "118 kW – 1.6 dCi", "110 kW – 2.0 Blue dCi", "140 kW – 2.0 Blue dCi"] },
       { label: "Espace VI (2023–dosud)", powers: ["130 kW – 1.2 E-Tech Hybrid", "147 kW – 1.2 E-Tech Hybrid"] },
+
+      // ── Vel Satis / Alaskan ─────────────────────────────────────────────────
+      { group: "Vel Satis / Alaskan" },
+      { label: "Vel Satis (2001–2009)", powers: ["120 kW – 2.0 Turbo", "177 kW – 3.5 V6", "110 kW – 2.2 dCi", "130 kW – 3.0 dCi"] },
+      { label: "Alaskan (2017–2021)", powers: ["120 kW – 2.3 dCi", "140 kW – 2.3 dCi"] },
     ],
   },
 
@@ -720,7 +759,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "BMW",
     active:    true,
-    expertise: "BMW osobní vozy a SUV všech modelových řad (1, 3, 5, X1, X3, X5) — motory N47/B47 diesel, N20/B48 benzín, N55/B58 R6, S-série M Performance, hybridní a elektrické pohony od roku 2006, EU spec",
+    expertise: "BMW osobní vozy a SUV hlavních post-2000 modelových řad (1, 2, 3, 4, 5, 6, 7, 8, Z4, X1–X7) — motory N47/B47 diesel, N20/B48 benzín, N55/B58 R6, M Performance/M, plug-in hybridní a elektrické pohony od roku 2002, EU spec",
     models: [
       // ── Řada 1 ───────────────────────────────────────────────────────────────
       { group: "Řada 1" },
@@ -751,6 +790,15 @@ export const VEHICLE_CATALOG = [
       { label: "5 E60 (2003–2010)", powers: ["125 kW – 2.0 N43", "160 kW – 2.5 N52", "190 kW – 3.0 N52", "225 kW – 3.0T N54", "270 kW – 4.8 N62", "120 kW – 2.0d M47", "130 kW – 2.0d N47", "145 kW – 3.0d M57", "170 kW – 3.0d M57", "200 kW – 3.0d M57 bi-turbo"] },
       { label: "5 F10 (2010–2017)", powers: ["135 kW – 2.0T N20", "185 kW – 2.0T B48", "225 kW – 3.0T N55", "250 kW – 3.0T B58", "300 kW – 4.4T N63", "105 kW – 2.0d N47", "140 kW – 2.0d B47", "190 kW – 3.0d N57", "195 kW – 3.0d B57", "230 kW – 3.0d N57 bi-turbo"] },
       { label: "5 G30 (2017–dosud)", powers: ["135 kW – 2.0T B48", "185 kW – 2.0T B48", "250 kW – 3.0T B58", "340 kW – 4.4T N63 M550i", "110 kW – 2.0d B47", "140 kW – 2.0d B47", "195 kW – 3.0d B57", "210 kW – 3.0d B57", "235 kW – 3.0d B57 540d"] },
+
+      // ── Řada 6 / 8 / Z4 ──────────────────────────────────────────────────────
+      { group: "Řada 6 / 8 / Z4" },
+      { label: "6 E63/E64 (2003–2010)", powers: ["190 kW – 3.0 N52 630i", "270 kW – 4.8 N62 650i", "373 kW – 5.0 S85 M6", "210 kW – 3.0d M57 635d"] },
+      { label: "6 F06/F12/F13 (2011–2018)", powers: ["235 kW – 3.0T N55 640i", "330 kW – 4.4T N63 650i", "412 kW – 4.4T S63 M6", "230 kW – 3.0d N57 640d"] },
+      { label: "8 G14/G15/G16 (2018–dosud)", powers: ["245 kW – 3.0T B58 840i", "390 kW – 4.4T N63 M850i", "460 kW – 4.4T S63 M8 Competition", "235 kW – 3.0d B57 840d"] },
+      { label: "Z4 E85/E86 (2002–2008)", powers: ["110 kW – 2.0 N46", "130 kW – 2.2 M54", "160 kW – 2.5 N52", "195 kW – 3.0 N52", "252 kW – 3.2 S54 M"] },
+      { label: "Z4 E89 (2009–2016)", powers: ["115 kW – 2.0 N20 sDrive18i", "135 kW – 2.0 N20 sDrive20i", "180 kW – 2.0 N20 sDrive28i", "250 kW – 3.0T N54/N55 sDrive35i", "250 kW – 3.0T N54 sDrive35is"] },
+      { label: "Z4 G29 (2019–dosud)", powers: ["145 kW – 2.0T B48 sDrive20i", "190 kW – 2.0T B48 sDrive30i", "250 kW – 3.0T B58 M40i"] },
 
       // ── Řada 7 ───────────────────────────────────────────────────────────────
       { group: "Řada 7" },
@@ -790,6 +838,10 @@ export const VEHICLE_CATALOG = [
       { label: "X6 E71 (2008–2014)", powers: ["225 kW – 3.0T N55 xDrive35i", "300 kW – 4.4T N63 xDrive50i", "180 kW – 3.0d N57 xDrive30d", "225 kW – 3.0d N57 xDrive40d", "280 kW – 3.0d N57 M50d"] },
       { label: "X6 F16 (2014–2019)", powers: ["225 kW – 3.0T N55 xDrive35i", "330 kW – 4.4T N63 xDrive50i", "170 kW – 2.0d B47 xDrive20d", "190 kW – 3.0d N57 xDrive30d", "230 kW – 3.0d N57 xDrive40d", "280 kW – 3.0d N57 M50d"] },
       { label: "X6 G06 (2019–dosud)", powers: ["250 kW – 3.0T B58 xDrive40i", "390 kW – 4.4T S68 M60i", "460 kW – 4.4T S68 X6 M Competition", "195 kW – 3.0d B57 xDrive30d", "250 kW – 3.0d B57 xDrive40d", "294 kW – 3.0d B57 M50d"] },
+
+      // ── X7 ───────────────────────────────────────────────────────────────────
+      { group: "X7" },
+      { label: "X7 G07 (2018–dosud)", powers: ["250 kW – 3.0T B58 xDrive40i", "390 kW – 4.4T N63 M50i", "280 kW – 3.0d B57 xDrive40d", "250 kW – 3.0d B57 xDrive40d", "260 kW – 3.0d B57 M50d"] },
 
       // ── Elektro ──────────────────────────────────────────────────────────────
       { group: "Elektro" },
@@ -1040,17 +1092,26 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Citroën",
     active:    true,
-    expertise: "Citroën osobní a užitková vozidla všech modelových řad (C1, C3, C3 Aircross, C4, C4 Cactus, C5 Aircross, Berlingo, Jumpy, Jumper) — motory PureTech, VTi, THP, HDi, BlueHDi a elektrické pohony od roku 2005 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR)",
+    expertise: "Citroën osobní a užitková vozidla hlavních post-2000 modelových řad (C2, C3, C3 Picasso, C3 Aircross, C4, C4 Picasso, C4 Cactus, C5, C5 Aircross, C6, C8, Berlingo, Nemo, Jumpy, Jumper, DS) — motory PureTech, VTi, THP, HDi, BlueHDi a elektrické pohony od roku 2002 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR)",
     models: [
       // ── C1 ─────────────────────────────────────────────────────────────────────
       { group: "C1" },
       { label: "C1 I (2005–2014)", powers: ["50 kW – 1.0 VVT-i", "51 kW – 1.4 HDi"] },
       { label: "C1 II (2014–2022)", powers: ["51 kW – 1.0 VTi", "53 kW – 1.0 VTi", "60 kW – 1.2 PureTech"] },
 
+      // ── C2 ─────────────────────────────────────────────────────────────────────
+      { group: "C2" },
+      { label: "C2 (2003–2009)", powers: ["44 kW – 1.1i", "54 kW – 1.4i", "66 kW – 1.6i 16V", "92 kW – 1.6 VTS", "50 kW – 1.4 HDi", "66 kW – 1.6 HDi"] },
+
       // ── C3 ─────────────────────────────────────────────────────────────────────
       { group: "C3" },
+      { label: "C3 I (2002–2009)", powers: ["44 kW – 1.1i", "54 kW – 1.4i", "65 kW – 1.4 16V", "80 kW – 1.6 16V", "50 kW – 1.4 HDi", "66 kW – 1.4 HDi", "80 kW – 1.6 HDi"] },
       { label: "C3 II (2009–2016)", powers: ["54 kW – 1.0 VTi", "60 kW – 1.2 VTi", "70 kW – 1.4 VTi", "88 kW – 1.6 VTi", "68 kW – 1.4 HDi", "50 kW – 1.4 HDi", "66 kW – 1.6 HDi", "82 kW – 1.6 HDi", "55 kW – 1.4 e-HDi"] },
       { label: "C3 III (2016–současnost)", powers: ["60 kW – 1.2 PureTech", "68 kW – 1.2 PureTech", "81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "55 kW – 1.5 BlueHDi", "75 kW – 1.5 BlueHDi", "100 kW – ë-C3 Electric"] },
+
+      // ── C3 Picasso ─────────────────────────────────────────────────────────────
+      { group: "C3 Picasso" },
+      { label: "C3 Picasso (2009–2017)", powers: ["70 kW – 1.4 VTi", "88 kW – 1.6 VTi", "68 kW – 1.6 HDi", "84 kW – 1.6 HDi", "85 kW – 1.6 e-HDi"] },
 
       // ── C3 Aircross ────────────────────────────────────────────────────────────
       { group: "C3 Aircross" },
@@ -1058,8 +1119,14 @@ export const VEHICLE_CATALOG = [
 
       // ── C4 ─────────────────────────────────────────────────────────────────────
       { group: "C4" },
+      { label: "C4 I (2004–2010)", powers: ["65 kW – 1.4i 16V", "80 kW – 1.6i 16V", "105 kW – 2.0i 16V", "66 kW – 1.6 HDi", "80 kW – 2.0 HDi", "100 kW – 2.0 HDi"] },
       { label: "C4 II (2010–2018)", powers: ["70 kW – 1.4 VTi", "88 kW – 1.6 VTi", "110 kW – 1.6 THP", "115 kW – 1.6 THP", "68 kW – 1.6 HDi", "82 kW – 1.6 HDi", "84 kW – 1.6 BlueHDi", "73 kW – 1.6 e-HDi", "100 kW – 2.0 HDi", "110 kW – 2.0 BlueHDi"] },
       { label: "C4 III / ë-C4 (2020–současnost)", powers: ["75 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "114 kW – 1.2 PureTech", "96 kW – 1.5 BlueHDi", "100 kW – ë-C4 Electric", "115 kW – ë-C4 Electric"] },
+
+      // ── C4 Picasso / SpaceTourer ──────────────────────────────────────────────
+      { group: "C4 Picasso / SpaceTourer" },
+      { label: "C4 Picasso / Grand C4 Picasso I (2006–2013)", powers: ["88 kW – 1.6 VTi", "103 kW – 1.8i 16V", "105 kW – 2.0i 16V", "80 kW – 1.6 HDi", "100 kW – 2.0 HDi", "110 kW – 2.0 HDi"] },
+      { label: "C4 Picasso / Grand C4 Picasso II / SpaceTourer (2013–2022)", powers: ["88 kW – 1.6 VTi", "121 kW – 1.6 THP", "96 kW – 1.2 PureTech", "73 kW – 1.6 e-HDi", "88 kW – 1.6 BlueHDi", "110 kW – 2.0 BlueHDi"] },
 
       // ── C4 Cactus ──────────────────────────────────────────────────────────────
       { group: "C4 Cactus" },
@@ -1068,6 +1135,12 @@ export const VEHICLE_CATALOG = [
       // ── C5 Aircross ────────────────────────────────────────────────────────────
       { group: "C5 Aircross" },
       { label: "C5 Aircross (2018–současnost)", powers: ["96 kW – 1.2 PureTech", "114 kW – 1.2 PureTech", "132 kW – 1.6 PureTech", "165 kW – 1.6 PHEV Hybrid", "225 kW – 1.6 PHEV Hybrid4", "96 kW – 1.5 BlueHDi", "118 kW – 2.0 BlueHDi", "130 kW – 2.0 BlueHDi"] },
+
+      // ── C6 / C8 / C-Crosser ───────────────────────────────────────────────────
+      { group: "C6 / C8 / C-Crosser" },
+      { label: "C6 (2005–2012)", powers: ["155 kW – 3.0 V6 petrol", "150 kW – 2.7 V6 HDi", "177 kW – 3.0 V6 HDi"] },
+      { label: "C8 (2002–2014)", powers: ["100 kW – 2.0 16V", "103 kW – 2.0 Turbo", "118 kW – 3.0 V6", "79 kW – 2.0 HDi", "94 kW – 2.2 HDi", "125 kW – 2.2 HDi", "150 kW – 2.2 HDi"] },
+      { label: "C-Crosser (2007–2012)", powers: ["108 kW – 2.4i 16V", "115 kW – 2.2 HDi", "130 kW – 2.2 HDi"] },
 
       // ── C5 III ───────────────────────────────────────────────────────────────
       { group: "C5 III" },
@@ -1082,14 +1155,25 @@ export const VEHICLE_CATALOG = [
       { label: "Berlingo II (2008–2018)", powers: ["54 kW – 1.4 (TU3)", "72 kW – 1.6 VTi", "88 kW – 1.6 VTi", "50 kW – 1.6 HDi", "55 kW – 1.6 HDi", "66 kW – 1.6 HDi", "68 kW – 1.6 HDi", "82 kW – 1.6 BlueHDi", "73 kW – 1.5 BlueHDi", "75 kW – 1.5 BlueHDi"] },
       { label: "Berlingo III (2018–současnost)", powers: ["81 kW – 1.2 PureTech", "96 kW – 1.2 PureTech", "55 kW – 1.5 BlueHDi", "75 kW – 1.5 BlueHDi", "96 kW – 1.5 BlueHDi", "100 kW – ë-Berlingo Electric"] },
 
+      // ── Nemo ───────────────────────────────────────────────────────────────────
+      { group: "Nemo" },
+      { label: "Nemo / Nemo Multispace (2008–2017)", powers: ["54 kW – 1.4i", "54 kW – 1.4i Natural Power", "50 kW – 1.3 HDi", "55 kW – 1.3 HDi"] },
+
       // ── Jumpy (Dispatch) ───────────────────────────────────────────────────────
       { group: "Jumpy" },
+      { label: "Jumpy II (2007–2016)", powers: ["66 kW – 1.6 HDi", "88 kW – 2.0 HDi", "100 kW – 2.0 HDi", "120 kW – 2.0 HDi"] },
       { label: "Jumpy III (2016–současnost)", powers: ["75 kW – 1.5 BlueHDi", "88 kW – 1.5 BlueHDi", "110 kW – 2.0 BlueHDi", "130 kW – 2.0 BlueHDi", "100 kW – ë-Jumpy Electric"] },
 
       // ── Jumper (Relay) ─────────────────────────────────────────────────────────
       { group: "Jumper" },
       { label: "Jumper III 2.2 HDi (2006–2016)", powers: ["74 kW – 2.2 HDi", "88 kW – 2.2 HDi", "96 kW – 2.2 HDi", "110 kW – 2.2 HDi", "120 kW – 3.0 HDi"] },
       { label: "Jumper III 2.0/2.2 BlueHDi (2016–současnost)", powers: ["81 kW – 2.0 BlueHDi", "88 kW – 2.2 BlueHDi", "103 kW – 2.2 BlueHDi", "121 kW – 2.2 BlueHDi", "100 kW – ë-Jumper Electric"] },
+
+      // ── DS (Citroën era) ──────────────────────────────────────────────────────
+      { group: "DS (Citroën era)" },
+      { label: "DS3 (2010–2019)", powers: ["60 kW – 1.2 VTi", "70 kW – 1.6 VTi", "88 kW – 1.6 VTi", "115 kW – 1.6 THP", "152 kW – 1.6 THP Racing", "68 kW – 1.6 HDi", "82 kW – 1.6 e-HDi"] },
+      { label: "DS4 (2011–2018)", powers: ["88 kW – 1.6 VTi", "115 kW – 1.6 THP", "147 kW – 1.6 THP", "82 kW – 1.6 e-HDi", "88 kW – 1.6 BlueHDi", "120 kW – 2.0 BlueHDi"] },
+      { label: "DS5 (2011–2018)", powers: ["115 kW – 1.6 THP", "147 kW – 1.6 THP", "120 kW – 2.0 HDi", "133 kW – 2.0 BlueHDi", "147 kW – 2.0 Hybrid4"] },
     ],
   },
 
@@ -1203,17 +1287,35 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Opel",
     active:    true,
-    expertise: "Opel osobní a lehká užitková vozidla hlavních EU modelových řad (Corsa, Astra, Mokka, Crossland, Grandland, Combo, Vivaro, Zafira, Movano) — motory Turbo, Diesel, Hybrid a elektrické pohony od roku 2015 do současnosti, EU spec (Euro 6/6d, DPF, SCR, 48V hybridy)",
+    expertise: "Opel osobní a lehká užitková vozidla hlavních post-2000 EU modelových řad (Corsa, Astra, Vectra, Signum, Insignia, Meriva, Antara, Mokka, Crossland, Grandland, Combo, Vivaro, Zafira, Movano, ADAM, KARL, Cascada) — motory Ecotec, Turbo, CDTI, Hybrid a elektrické pohony od roku 2000 do současnosti, EU spec (Euro 4–6d, DPF, SCR, 48V hybridy)",
     models: [
       // ── Corsa ─────────────────────────────────────────────────────────────────
       { group: "Corsa" },
+      { label: "Corsa C (2000–2006)", powers: ["44 kW – 1.0 12V", "55 kW – 1.2 16V", "66 kW – 1.4 16V", "92 kW – 1.8 GSi", "48 kW – 1.3 CDTI", "51 kW – 1.7 DI", "74 kW – 1.7 CDTI"] },
+      { label: "Corsa D (2006–2014)", powers: ["44 kW – 1.0", "59 kW – 1.2", "66 kW – 1.4", "110 kW – 1.6 Turbo OPC", "55 kW – 1.3 CDTI", "70 kW – 1.3 CDTI", "96 kW – 1.7 CDTI"] },
+      { label: "Corsa E (2014–2019)", powers: ["51 kW – 1.2", "66 kW – 1.4", "74 kW – 1.0 Turbo", "85 kW – 1.0 Turbo", "152 kW – 1.6 Turbo OPC", "55 kW – 1.3 CDTI", "70 kW – 1.3 CDTI", "70 kW – 1.4 LPG"] },
       { label: "Corsa F (2019–dosud)", powers: ["55 kW – 1.2", "74 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "74 kW – 1.2 Hybrid", "100 kW – 1.2 Hybrid", "100 kW – Electric", "115 kW – Electric"] },
 
       // ── Astra ─────────────────────────────────────────────────────────────────
       { group: "Astra" },
+      { label: "Astra H (2004–2010)", powers: ["66 kW – 1.4", "77 kW – 1.6 Twinport", "103 kW – 1.8", "147 kW – 2.0 Turbo OPC", "66 kW – 1.3 CDTI", "74 kW – 1.7 CDTI", "88 kW – 1.9 CDTI", "110 kW – 1.9 CDTI"] },
+      { label: "Astra J (2009–2015)", powers: ["74 kW – 1.4 Turbo", "103 kW – 1.4 Turbo", "85 kW – 1.6", "132 kW – 1.6 Turbo", "206 kW – 2.0 Turbo OPC", "70 kW – 1.3 CDTI", "81 kW – 1.7 CDTI", "96 kW – 2.0 CDTI", "121 kW – 2.0 CDTI"] },
       { label: "Astra K (2015–2021)", powers: ["77 kW – 1.0 Turbo", "110 kW – 1.4 Turbo", "147 kW – 1.6 Turbo", "100 kW – 1.6 CDTI"] },
       { label: "Astra L (2021–dosud)", powers: ["81 kW – 1.2 Turbo", "96 kW – 1.2 Turbo", "96 kW – 1.5 Diesel", "133 kW – 1.6 Plug-in Hybrid", "165 kW – 1.6 Plug-in Hybrid GSe", "115 kW – Electric"] },
 
+      // ── Insignia / Signum / Vectra ───────────────────────────────────────────
+      { group: "Insignia / Signum / Vectra" },
+      { label: "Vectra C (2002–2008)", powers: ["74 kW – 1.6", "90 kW – 1.8", "103 kW – 2.2", "147 kW – 2.0 Turbo", "129 kW – 2.8 V6 Turbo", "74 kW – 1.9 CDTI", "88 kW – 1.9 CDTI", "110 kW – 3.0 V6 CDTI"] },
+      { label: "Signum (2003–2008)", powers: ["90 kW – 1.8", "114 kW – 2.2 Direct", "129 kW – 2.8 V6 Turbo", "110 kW – 3.0 V6 CDTI", "88 kW – 1.9 CDTI", "110 kW – 1.9 CDTI"] },
+      { label: "Insignia A (2008–2017)", powers: ["103 kW – 1.8", "103 kW – 1.6 Turbo", "125 kW – 1.6 Turbo", "162 kW – 2.0 Turbo", "191 kW – 2.8 V6 Turbo OPC", "81 kW – 2.0 CDTI", "96 kW – 2.0 CDTI", "118 kW – 2.0 CDTI", "143 kW – 2.0 BiTurbo CDTI"] },
+      { label: "Insignia B (2017–2022)", powers: ["103 kW – 1.5 Turbo", "147 kW – 2.0 Turbo", "121 kW – 1.6 Diesel", "125 kW – 2.0 Diesel", "154 kW – 2.0 BiTurbo Diesel"] },
+
+      // ── Meriva / Mokka / Antara ──────────────────────────────────────────────
+      { group: "Meriva / Mokka / Antara" },
+      { label: "Meriva A (2003–2010)", powers: ["55 kW – 1.4", "66 kW – 1.6", "92 kW – 1.8", "74 kW – 1.7 CDTI"] },
+      { label: "Meriva B (2010–2017)", powers: ["74 kW – 1.4 Turbo", "88 kW – 1.4 Turbo", "103 kW – 1.4 Turbo", "70 kW – 1.3 CDTI", "81 kW – 1.7 CDTI", "96 kW – 1.7 CDTI"] },
+      { label: "Antara (2006–2015)", powers: ["103 kW – 2.4", "123 kW – 3.2 V6", "110 kW – 2.0 CDTI", "120 kW – 2.2 CDTI", "135 kW – 2.2 CDTI"] },
+      { label: "Mokka A (2012–2016)", powers: ["85 kW – 1.6", "103 kW – 1.4 Turbo", "100 kW – 1.7 CDTI"] },
       // ── Mokka ────────────────────────────────────────────────────────────────
       { group: "Mokka" },
       { label: "Mokka X (2016–2020)", powers: ["88 kW – 1.4 Turbo", "103 kW – 1.4 Turbo", "100 kW – 1.6 Diesel"] },
@@ -1231,18 +1333,31 @@ export const VEHICLE_CATALOG = [
 
       // ── Combo ────────────────────────────────────────────────────────────────
       { group: "Combo" },
+      { label: "Combo C (2001–2011)", powers: ["66 kW – 1.4", "74 kW – 1.6", "47 kW – 1.3 CDTI", "55 kW – 1.3 CDTI", "74 kW – 1.7 CDTI"] },
+      { label: "Combo D (2011–2018)", powers: ["70 kW – 1.4 Turbo", "88 kW – 1.4 Turbo", "66 kW – 1.3 CDTI", "77 kW – 1.6 CDTI", "88 kW – 1.6 CDTI"] },
       { label: "Combo E (2018–dosud)", powers: ["56 kW – 1.5 Diesel", "75 kW – 1.5 Diesel", "96 kW – 1.2 Turbo", "96 kW – 1.5 Diesel", "100 kW – Electric"] },
 
       // ── Vivaro ───────────────────────────────────────────────────────────────
       { group: "Vivaro" },
+      { label: "Vivaro A (2001–2014)", powers: ["66 kW – 1.9 DTI", "74 kW – 1.9 DTI", "84 kW – 2.0 CDTI", "107 kW – 2.5 CDTI"] },
+      { label: "Vivaro B (2014–2019)", powers: ["66 kW – 1.6 CDTI", "88 kW – 1.6 CDTI", "103 kW – 1.6 CDTI", "107 kW – 1.6 BiTurbo CDTI"] },
       { label: "Vivaro C (2019–dosud)", powers: ["75 kW – 1.5 Diesel", "88 kW – 1.5 Diesel", "90 kW – 2.0 Diesel", "110 kW – 2.0 Diesel", "130 kW – 2.0 Diesel", "132 kW – 2.2 Diesel", "100 kW – Electric"] },
 
       // ── Zafira ───────────────────────────────────────────────────────────────
       { group: "Zafira" },
+      { label: "Zafira B (2005–2014)", powers: ["77 kW – 1.6", "103 kW – 1.8", "147 kW – 2.0 Turbo OPC", "74 kW – 1.7 CDTI", "88 kW – 1.9 CDTI", "110 kW – 1.9 CDTI"] },
+      { label: "Zafira Tourer / Zafira C (2011–2019)", powers: ["88 kW – 1.4 Turbo", "103 kW – 1.4 Turbo", "125 kW – 1.6 Turbo", "81 kW – 1.6 CDTI", "100 kW – 2.0 CDTI", "121 kW – 2.0 BiTurbo CDTI"] },
       { label: "Zafira Life / Zafira Electric (2019–dosud)", powers: ["132 kW – 2.2 Diesel", "100 kW – Electric 50", "100 kW – Electric 75"] },
+
+      // ── ADAM / KARL / Cascada ───────────────────────────────────────────────
+      { group: "ADAM / KARL / Cascada" },
+      { label: "ADAM (2013–2019)", powers: ["51 kW – 1.2", "64 kW – 1.4", "74 kW – 1.0 Turbo", "85 kW – 1.0 Turbo", "110 kW – 1.4 Turbo S"] },
+      { label: "KARL (2015–2019)", powers: ["55 kW – 1.0", "73 kW – 1.0 ecoFLEX"] },
+      { label: "Cascada (2013–2019)", powers: ["88 kW – 1.4 Turbo", "103 kW – 1.6 SIDI Turbo", "125 kW – 1.6 SIDI Turbo", "143 kW – 2.0 CDTI", "125 kW – 2.0 BiTurbo CDTI"] },
 
       // ── Movano ───────────────────────────────────────────────────────────────
       { group: "Movano" },
+      { label: "Movano B 2.3 CDTI (2010–2021)", powers: ["74 kW – 2.3 CDTI", "92 kW – 2.3 CDTI", "100 kW – 2.3 CDTI", "107 kW – 2.3 CDTI", "125 kW – 2.3 CDTI"] },
       { label: "Movano C 2.2 Diesel (2021–dosud)", powers: ["88 kW – 2.2 Diesel", "103 kW – 2.2 Diesel", "121 kW – 2.2 Diesel"] },
       { label: "Movano Electric (2021–dosud)", powers: ["90 kW – Electric", "205 kW – Electric"] },
     ],

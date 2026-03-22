@@ -8,7 +8,7 @@
  * všechny záznamy v DB jsou v angličtině bez ohledu na jazyk zadání.
  *
  * POST /functions/v1/push-case
- * Body: { local_id, user_id, vehicle_brand?, vehicle_model,
+ * Body: { local_id, user_id, thread_url?, vehicle_brand?, vehicle_model,
  *         mileage?, engine_power?, symptoms, obd_codes, description?, resolution, closed_at? }
  * user_id accepts either a real UUID or the seed importer alias `ai_importer`,
  * which is resolved server-side via IMPORTER_USER_ID.
@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
   try {
     const {
       local_id, user_id,
+      thread_url,
       vehicle_brand, vehicle_model,
       mileage, engine_power,
       symptoms, obd_codes, description, resolution, closed_at,
@@ -113,6 +114,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
     const row = {
       local_id:        local_id        ?? null,
       user_id:         resolvedUserId.userId,
+      thread_url:      typeof thread_url === 'string' && thread_url.trim() ? thread_url.trim() : null,
       vehicle_brand:   vehicle_brand   ?? null,
       vehicle_model,
       mileage:         mileage         ?? null,

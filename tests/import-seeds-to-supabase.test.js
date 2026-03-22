@@ -56,6 +56,7 @@ test("normalizeSeedPayload keeps importer alias and arrays", () => {
   const payload = normalizeSeedPayload({
     local_id: "seed_123",
     user_id: "ai_importer",
+    thread_url: "https://example.com/thread-123",
     vehicle_brand: "Volkswagen",
     vehicle_model: "Golf VI (2008–2012)",
     symptoms: ["Noise"],
@@ -65,6 +66,7 @@ test("normalizeSeedPayload keeps importer alias and arrays", () => {
   });
 
   assert.equal(payload.user_id, "ai_importer");
+  assert.equal(payload.thread_url, "https://example.com/thread-123");
   assert.deepEqual(payload.symptoms, ["Noise"]);
   assert.deepEqual(payload.obd_codes, ["P0401"]);
 });
@@ -77,6 +79,19 @@ test("normalizeSeedPayload allows forcing a concrete user id", () => {
   );
 
   assert.equal(payload.user_id, "11111111-1111-4111-8111-111111111111");
+});
+
+test("normalizeSeedPayload reads thread_url from metadata when top-level url is missing", () => {
+  const payload = normalizeSeedPayload({
+    local_id: "seed_meta",
+    vehicle_model: "Scenic II",
+    resolution: "Fixed contact in fuse box",
+    metadata: {
+      thread_url: "https://example.com/from-metadata",
+    },
+  });
+
+  assert.equal(payload.thread_url, "https://example.com/from-metadata");
 });
 
 test("normalizeResolutionText trims long resolutions to database limit", () => {
