@@ -1,70 +1,64 @@
-# GearBrain – AI Diagnostika Ford Transit EU
+# GearBrain — AI Vehicle Diagnostics
 
-Webová aplikace pro AI diagnostiku poruch Ford Transit. Kombinuje symptomy, OBD kódy a popis mechanika s AI analýzou (Claude) a databází ověřených oprav (RAG).
+Web app for AI-powered automotive fault diagnosis. Combines symptoms, OBD codes, and mechanic notes with LLM analysis and a database of verified repairs (RAG).
 
-## Požadavky
+Supports 30+ vehicle brands (EU + US market), 3 languages (CS/EN/DE).
 
-- [Node.js](https://nodejs.org) verze 18+
-- Supabase projekt (viz [SUPABASE_SETUP.md](SUPABASE_SETUP.md))
-
-## Spuštění (vývoj)
+## Quick Start
 
 ```bash
 cd web
 npm install
-npm run dev
+npm run dev       # → http://localhost:5173
 ```
 
-Aplikace poběží na `http://localhost:5173`.
-
-## Build
+## Build & Deploy
 
 ```bash
 cd web
-npm run build
+npm run build     # → web/dist/
 ```
 
-Výstup: `web/dist/` — statické soubory připravené k nasazení.
+- Push to `main` → Vercel auto-deploy (production)
+- Edge functions: `npx supabase functions deploy <name> --no-verify-jwt --project-ref nmvjthfezyjcwuzphiuu`
 
-## Deployment
-
-Aplikace je nasazena na **Vercel** s automatickým deploy z GitHub:
-- Push do `main` → production deploy
-- Push do feature branch → preview deploy
-
-## Testy
+## Tests
 
 ```bash
-npm test
+npm test                # unit + i18n + validation + catalog
+npm run test:unit       # unit tests only
+npm run test:integration  # Supabase integration (needs env vars)
 ```
 
-## Struktura projektu
+## Project Structure
 
 ```
 gearbrain/
-├── web/                    ← Webová aplikace (React + Vite)
+├── web/                         React SPA (Vite)
 │   ├── src/
-│   │   ├── App.jsx         ← Hlavní komponenta
-│   │   ├── components/     ← UI komponenty
-│   │   ├── hooks/          ← React hooks
-│   │   ├── lib/            ← AI, validace, storage, utils
-│   │   ├── i18n/           ← Lokalizace (CS/EN/DE)
-│   │   └── constants/      ← Katalog vozidel, symptomy
-│   ├── index.html
-│   ├── vite.config.js
+│   │   ├── App.jsx              View routing, theme, sidebar
+│   │   ├── components/          23 UI components
+│   │   ├── hooks/               9 custom hooks (business logic)
+│   │   ├── lib/                 22 modules (AI, RAG, storage, validation)
+│   │   ├── i18n/                Localization (CS/EN/DE)
+│   │   └── constants/           Vehicle catalogs, OBD codes, symptoms
 │   └── package.json
-├── supabase/               ← Edge Functions + DB migrace
+├── supabase/
 │   ├── functions/
-│   │   ├── anthropic-proxy/ ← Claude API proxy
-│   │   ├── push-case/       ← Uložení případu do RAG
-│   │   └── search-cases/    ← Vyhledání podobných případů
-│   └── migrations/
-├── tests/                  ← Unit testy
-└── package.json            ← Root (testy)
+│   │   ├── deepseek-proxy/      AI API proxy + rate limiting
+│   │   ├── push-case/           Save closed case to RAG (pending review)
+│   │   ├── search-cases/        RAG scoring + retrieval
+│   │   ├── review-cases/        Admin approve/reject
+│   │   └── send-feedback/       User feedback
+│   └── migrations/              SQL migrations (002–009)
+├── tests/                       Unit + integration tests
+├── CLAUDE.md                    Claude Code instructions
+├── HANDOVER.md                  Architecture & data flow docs
+└── package.json
 ```
 
-## Dokumentace
+## Documentation
 
-- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) — nastavení Supabase projektu
-- [SUPABASE_EDGE_FUNCTION.md](SUPABASE_EDGE_FUNCTION.md) — Edge Functions
-- [SUPABASE_GATEKEEPER.md](SUPABASE_GATEKEEPER.md) — RLS a bezpečnost
+- [HANDOVER.md](HANDOVER.md) — architecture, data flow, deployment, known issues
+- [SUPABASE_SETUP.md](SUPABASE_SETUP.md) — Supabase project setup
+- [SUPABASE_GATEKEEPER.md](SUPABASE_GATEKEEPER.md) — RLS & security
