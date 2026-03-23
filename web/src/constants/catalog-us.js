@@ -62,7 +62,26 @@ export const VEHICLE_CATALOG_US = [
       // ── Corvette ──────────────────────────────────────────────────────────
       { group: "Corvette" },
       { label: "Corvette C7 Stingray (2014–2019)", powers: ["455 hp – 6.2L LT1 V8", "460 hp – 6.2L LT1 V8 (Z51)", "650 hp – 6.2L LT4 Supercharged Z06", "755 hp – 6.2L Supercharged ZR1"] },
-      { label: "Corvette C8 Stingray (2020–)", powers: ["490 hp – 6.2L LT2 V8", "495 hp – 6.2L LT2 V8 (Z51)", "670 hp – 5.5L LT6 NA V8 Z06", "655 hp – 6.6L Twin Turbo E-Ray Hybrid"] },
+      { label: "Corvette C8 Stingray (2020–present)", powers: ["490 hp – 6.2L LT2 V8", "495 hp – 6.2L LT2 V8 (Z51)", "670 hp – 5.5L LT6 NA V8 Z06", "655 hp – 6.2L LT2 V8 + Electric E-Ray Hybrid"] },
+
+      // ── Bolt EV / Bolt EUV ───────────────────────────────────────────────
+      { group: "Bolt EV / EUV" },
+      { label: "Bolt EV (2017–2023)", powers: ["200 hp – Electric 60/65 kWh"] },
+      { label: "Bolt EUV (2022–2023)", powers: ["200 hp – Electric 65 kWh"] },
+
+      // ── Blazer ───────────────────────────────────────────────────────────
+      { group: "Blazer" },
+      { label: "Blazer (2019–present)", powers: ["228 hp – 2.0L Turbo I4", "308 hp – 3.6L V6"] },
+      { label: "Blazer EV (2024–present)", powers: ["287 hp – Electric RWD", "557 hp – Electric SS AWD"] },
+
+      // ── Trax ─────────────────────────────────────────────────────────────
+      { group: "Trax" },
+      { label: "Trax (2015–2022)", powers: ["138 hp – 1.4L Turbo Ecotec I4"] },
+      { label: "Trax (2024–present)", powers: ["137 hp – 1.2L Turbo I3"] },
+
+      // ── Equinox EV ───────────────────────────────────────────────────────
+      { group: "Equinox EV" },
+      { label: "Equinox EV (2024–present)", powers: ["213 hp – Electric RWD eAWD", "288 hp – Electric AWD", "303 hp – Electric RS AWD"] },
     ],
   },
 
@@ -103,7 +122,12 @@ export const VEHICLE_CATALOG_US = [
       { group: "Yukon / Yukon XL" },
       { label: "Yukon/Yukon XL (2007–2014)", powers: ["315 hp – 5.3L EcoTec V8", "403 hp – 6.2L V8"] },
       { label: "Yukon/Yukon XL (2015–2020)", powers: ["355 hp – 5.3L EcoTec3 V8"] },
-      { label: "Yukon/Yukon XL (2021–)", powers: ["355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
+      { label: "Yukon/Yukon XL (2021–present)", powers: ["355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
+
+      // ── Hummer EV ────────────────────────────────────────────────────────
+      { group: "Hummer EV" },
+      { label: "Hummer EV Pickup (2022–present)", powers: ["625 hp – Dual Motor Electric", "830 hp – Tri-Motor Electric Edition 1"] },
+      { label: "Hummer EV SUV (2024–present)", powers: ["625 hp – Dual Motor Electric", "830 hp – Tri-Motor Electric"] },
     ],
   },
 
@@ -116,9 +140,9 @@ export const VEHICLE_CATALOG_US = [
       // ── Ram 1500 ──────────────────────────────────────────────────────────
       { group: "Ram 1500" },
       { label: "Ram 1500 (2009–2018)", powers: ["305 hp – 3.6L Pentastar V6", "395 hp – 5.7L HEMI V8", "240 hp – 3.0L EcoDiesel V6"] },
-      { label: "Ram 1500 Classic (2019–)", powers: ["305 hp – 3.6L Pentastar V6", "395 hp – 5.7L HEMI V8"] },
-      { label: "Ram 1500 (2019–)", powers: ["305 hp – 3.6L Pentastar eTorque V6", "395 hp – 5.7L HEMI eTorque V8", "260 hp – 3.0L EcoDiesel V6", "420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
-      { label: "Ram 1500 TRX (2021–)", powers: ["702 hp – 6.2L Supercharged HEMI V8"] },
+      { label: "Ram 1500 Classic (2019–present)", powers: ["305 hp – 3.6L Pentastar V6", "395 hp – 5.7L HEMI V8"] },
+      { label: "Ram 1500 (2019–present)", powers: ["305 hp – 3.6L Pentastar eTorque V6", "395 hp – 5.7L HEMI eTorque V8", "260 hp – 3.0L EcoDiesel V6", "420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
+      { label: "Ram 1500 TRX (2021–2024)", powers: ["702 hp – 6.2L Supercharged HEMI V8"] },
 
       // ── Ram 2500 ──────────────────────────────────────────────────────────
       { group: "Ram 2500" },
@@ -168,7 +192,12 @@ export const VEHICLE_CATALOG_US = [
 
       // ── Gladiator ─────────────────────────────────────────────────────────
       { group: "Gladiator" },
-      { label: "Gladiator (2020–)", powers: ["285 hp – 3.6L Pentastar V6", "260 hp – 3.0L EcoDiesel V6"] },
+      { label: "Gladiator (2020–present)", powers: ["285 hp – 3.6L Pentastar V6", "260 hp – 3.0L EcoDiesel V6"] },
+
+      // ── Wagoneer / Grand Wagoneer ───────────────────────────────────────
+      { group: "Wagoneer / Grand Wagoneer" },
+      { label: "Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
+      { label: "Grand Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
     ],
   },
 
@@ -191,7 +220,11 @@ export const VEHICLE_CATALOG_US = [
       // ── Durango ───────────────────────────────────────────────────────────
       { group: "Durango" },
       { label: "Durango (2011–2020)", powers: ["293 hp – 3.6L Pentastar V6", "360 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8"] },
-      { label: "Durango (2021–)", powers: ["293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8", "710 hp – 6.2L Supercharged Hellcat V8"] },
+      { label: "Durango (2021–present)", powers: ["293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8", "710 hp – 6.2L Supercharged Hellcat V8"] },
+
+      // ── Hornet ───────────────────────────────────────────────────────────
+      { group: "Hornet" },
+      { label: "Hornet (2023–present)", powers: ["268 hp – 2.0L Hurricane I4 Turbo", "288 hp – 1.3L Turbo PHEV R/T"] },
     ],
   },
 
@@ -244,7 +277,11 @@ export const VEHICLE_CATALOG_US = [
 
       // ── Passport ──────────────────────────────────────────────────────────
       { group: "Passport" },
-      { label: "Passport (2019–)", powers: ["280 hp – 3.5L i-VTEC V6"] },
+      { label: "Passport (2019–present)", powers: ["280 hp – 3.5L i-VTEC V6"] },
+
+      // ── Prologue ─────────────────────────────────────────────────────────
+      { group: "Prologue" },
+      { label: "Prologue (2024–present)", powers: ["287 hp – Electric RWD", "288 hp – Electric AWD"] },
     ],
   },
 
@@ -293,7 +330,11 @@ export const VEHICLE_CATALOG_US = [
       // ── Impreza ───────────────────────────────────────────────────────────
       { group: "Impreza" },
       { label: "Impreza (2017–2023)", powers: ["152 hp – 2.0L DOHC Boxer H4"] },
-      { label: "Impreza (2024–)", powers: ["182 hp – 2.5L DOHC Boxer H4"] },
+      { label: "Impreza (2024–present)", powers: ["182 hp – 2.5L DOHC Boxer H4"] },
+
+      // ── Solterra ─────────────────────────────────────────────────────────
+      { group: "Solterra" },
+      { label: "Solterra (2023–present)", powers: ["201 hp – Electric FWD", "214 hp – Electric AWD"] },
     ],
   },
 
@@ -325,6 +366,18 @@ export const VEHICLE_CATALOG_US = [
       // ── CX-9 ──────────────────────────────────────────────────────────────
       { group: "CX-9" },
       { label: "CX-9 (2016–2023)", powers: ["227 hp – 2.5L Turbo SkyActiv-G I4", "250 hp – 2.5L Turbo SkyActiv-G (93 oct)"] },
+
+      // ── CX-30 ────────────────────────────────────────────────────────────
+      { group: "CX-30" },
+      { label: "CX-30 (2020–present)", powers: ["155 hp – 2.0L SkyActiv-G I4", "186 hp – 2.5L SkyActiv-G I4", "227 hp – 2.5L Turbo SkyActiv-G I4", "256 hp – 2.5L Turbo SkyActiv-G (93 oct)"] },
+
+      // ── CX-70 ────────────────────────────────────────────────────────────
+      { group: "CX-70" },
+      { label: "CX-70 (2025–present)", powers: ["280 hp – 3.3L SkyActiv-G I6 Turbo", "323 hp – 3.3L SkyActiv-G I6 Turbo (93 oct)", "280 hp – 2.5L PHEV I4"] },
+
+      // ── CX-90 ────────────────────────────────────────────────────────────
+      { group: "CX-90" },
+      { label: "CX-90 (2024–present)", powers: ["280 hp – 3.3L SkyActiv-G I6 Turbo", "323 hp – 3.3L SkyActiv-G I6 Turbo (93 oct)", "280 hp – 2.5L PHEV I4"] },
 
       // ── MX-5 Miata ────────────────────────────────────────────────────────
       { group: "MX-5 Miata" },
@@ -364,7 +417,11 @@ export const VEHICLE_CATALOG_US = [
 
       // ── CT5 ───────────────────────────────────────────────────────────────
       { group: "CT5" },
-      { label: "CT5 (2020–)", powers: ["237 hp – 2.0L Turbo I4", "335 hp – 3.0L Twin Turbo V6 V-Series", "668 hp – 6.2L Supercharged Blackwing V8"] },
+      { label: "CT5 (2020–present)", powers: ["237 hp – 2.0L Turbo I4", "335 hp – 3.0L Twin Turbo V6 V-Series", "668 hp – 6.2L Supercharged Blackwing V8"] },
+
+      // ── LYRIQ ────────────────────────────────────────────────────────────
+      { group: "LYRIQ" },
+      { label: "LYRIQ (2023–present)", powers: ["340 hp – Electric RWD", "500 hp – Electric AWD"] },
     ],
   },
 
@@ -423,8 +480,7 @@ export const VEHICLE_CATALOG_US = [
     models: [
       // ── Encore ────────────────────────────────────────────────────────────
       { group: "Encore" },
-      { label: "Encore (2013–2019)", powers: ["138 hp – 1.4L Turbo I4 Ecotec", "153 hp – 1.4L Turbo Sport I4"] },
-      { label: "Encore (2020–)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3 AWD"] },
+      { label: "Encore (2013–2022)", powers: ["138 hp – 1.4L Turbo I4 Ecotec", "153 hp – 1.4L Turbo Sport I4"] },
 
       // ── Encore GX ─────────────────────────────────────────────────────────
       { group: "Encore GX" },
@@ -577,6 +633,359 @@ export const VEHICLE_CATALOG_US = [
       { group: "G90" },
       { label: "G90 (2017–2022)", powers: ["311 hp – 3.3L Twin Turbo V6", "420 hp – 5.0L V8 Tau"] },
       { label: "G90 (2023–)", powers: ["375 hp – 3.5L Twin Turbo V6"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Ford (US)",
+    active:    true,
+    expertise: "Ford US market — F-150, Super Duty, Explorer, Escape, Bronco, Bronco Sport, Edge, Maverick, Expedition, Mustang US, Transit US, EcoSport US — EcoBoost turbo engines, 5.0L Coyote V8, PowerBoost Hybrid, PowerStroke Diesel, 10R80 10-speed auto, 2006–present US spec",
+    models: [
+      // ── F-150 ────────────────────────────────────────────────────────────
+      { group: "F-150" },
+      { label: "F-150 12th gen (2009–2014)", powers: ["292 hp – 3.5L V6", "302 hp – 3.7L V6", "360 hp – 3.5L EcoBoost V6", "365 hp – 5.0L Coyote V8", "411 hp – 6.2L Boss V8"] },
+      { label: "F-150 13th gen (2015–2020)", powers: ["282 hp – 3.3L V6", "275 hp – 2.7L EcoBoost V6", "325 hp – 2.7L EcoBoost V6 (2018+)", "365 hp – 3.5L EcoBoost V6", "375 hp – 3.5L EcoBoost V6 (2017+)", "385 hp – 5.0L Coyote V8", "395 hp – 5.0L Coyote V8 (2018+)", "450 hp – 3.5L EcoBoost HO Raptor V6", "250 hp – 3.0L Power Stroke Diesel V6"] },
+      { label: "F-150 14th gen (2021–present)", powers: ["290 hp – 3.3L V6", "325 hp – 2.7L EcoBoost V6", "400 hp – 3.5L EcoBoost V6", "400 hp – 5.0L Coyote V8", "430 hp – 3.5L PowerBoost Hybrid V6", "450 hp – 3.5L EcoBoost HO Raptor V6", "700 hp – 5.2L Supercharged Raptor R V8"] },
+      { label: "F-150 Lightning (2022–present)", powers: ["452 hp – Dual Motor Electric Standard", "580 hp – Dual Motor Electric Extended"] },
+
+      // ── F-250/F-350 Super Duty ───────────────────────────────────────────
+      { group: "Super Duty" },
+      { label: "Super Duty (2011–2016)", powers: ["385 hp – 6.2L V8", "400 hp – 6.7L Power Stroke Diesel V8", "440 hp – 6.7L Power Stroke Diesel V8 (2015+)"] },
+      { label: "Super Duty (2017–2022)", powers: ["385 hp – 6.2L V8", "430 hp – 6.7L Power Stroke Diesel V8", "475 hp – 7.3L Godzilla V8 (2020+)"] },
+      { label: "Super Duty (2023–present)", powers: ["405 hp – 6.8L V8", "475 hp – 7.3L Godzilla V8", "500 hp – 6.7L Power Stroke Diesel V8"] },
+
+      // ── Explorer ─────────────────────────────────────────────────────────
+      { group: "Explorer" },
+      { label: "Explorer 5th gen (2011–2019)", powers: ["240 hp – 2.0L EcoBoost I4", "280 hp – 3.5L Ti-VCT V6", "365 hp – 3.5L EcoBoost V6 Sport"] },
+      { label: "Explorer 6th gen (2020–present)", powers: ["300 hp – 2.3L EcoBoost I4", "400 hp – 3.0L EcoBoost V6 ST", "318 hp – 3.3L Hybrid V6"] },
+
+      // ── Escape ───────────────────────────────────────────────────────────
+      { group: "Escape" },
+      { label: "Escape 3rd gen (2013–2019)", powers: ["168 hp – 2.5L Duratec I4", "178 hp – 1.5L EcoBoost I4", "231 hp – 2.0L EcoBoost I4", "245 hp – 2.0L EcoBoost I4 (2017+)"] },
+      { label: "Escape 4th gen (2020–present)", powers: ["181 hp – 1.5L EcoBoost I4", "250 hp – 2.0L EcoBoost I4", "200 hp – 2.5L Hybrid", "221 hp – 2.5L PHEV"] },
+
+      // ── Bronco ───────────────────────────────────────────────────────────
+      { group: "Bronco" },
+      { label: "Bronco (2021–present)", powers: ["275 hp – 2.3L EcoBoost I4", "315 hp – 2.7L EcoBoost V6", "405 hp – 3.0L EcoBoost V6 Raptor"] },
+
+      // ── Bronco Sport ─────────────────────────────────────────────────────
+      { group: "Bronco Sport" },
+      { label: "Bronco Sport (2021–present)", powers: ["181 hp – 1.5L EcoBoost I3", "245 hp – 2.0L EcoBoost I4"] },
+
+      // ── Edge ─────────────────────────────────────────────────────────────
+      { group: "Edge" },
+      { label: "Edge (2015–2024)", powers: ["245 hp – 2.0L EcoBoost I4", "250 hp – 2.0L EcoBoost I4 (2019+)", "280 hp – 2.7L EcoBoost V6", "335 hp – 2.7L EcoBoost V6 ST"] },
+
+      // ── Maverick ─────────────────────────────────────────────────────────
+      { group: "Maverick" },
+      { label: "Maverick (2022–present)", powers: ["191 hp – 2.0L EcoBoost I4", "250 hp – 2.5L Hybrid", "227 hp – 2.5L PHEV"] },
+
+      // ── Expedition ───────────────────────────────────────────────────────
+      { group: "Expedition" },
+      { label: "Expedition (2007–2017)", powers: ["310 hp – 5.4L V8 Triton"] },
+      { label: "Expedition (2018–present)", powers: ["375 hp – 3.5L EcoBoost V6", "400 hp – 3.5L EcoBoost V6 (2022+)", "440 hp – 3.5L EcoBoost HO V6 Timberline"] },
+
+      // ── Ranger (US) ──────────────────────────────────────────────────────
+      { group: "Ranger (US)" },
+      { label: "Ranger (2019–2023)", powers: ["270 hp – 2.3L EcoBoost I4"] },
+      { label: "Ranger (2024–present)", powers: ["270 hp – 2.3L EcoBoost I4", "315 hp – 2.7L EcoBoost V6 Raptor"] },
+
+      // ── Mustang (US) ─────────────────────────────────────────────────────
+      { group: "Mustang (US)" },
+      { label: "Mustang S197 (2010–2014)", powers: ["305 hp – 3.7L V6", "412 hp – 5.0L Coyote V8 GT", "444 hp – 5.0L Coyote V8 Boss 302", "550 hp – 5.4L Supercharged Shelby GT500 V8", "662 hp – 5.8L Supercharged Shelby GT500 V8"] },
+      { label: "Mustang S550 (2015–2023)", powers: ["310 hp – 2.3L EcoBoost I4", "460 hp – 5.0L Coyote V8 GT", "480 hp – 5.0L Coyote V8 Mach 1", "526 hp – 5.2L Voodoo V8 Shelby GT350", "760 hp – 5.2L Supercharged Shelby GT500 V8"] },
+      { label: "Mustang S650 (2024–present)", powers: ["315 hp – 2.3L EcoBoost I4", "480 hp – 5.0L Coyote V8 GT", "500 hp – 5.0L Coyote V8 Dark Horse"] },
+
+      // ── Transit (US) ─────────────────────────────────────────────────────
+      { group: "Transit (US)" },
+      { label: "Transit (2015–present)", powers: ["275 hp – 3.5L V6 PFDI", "310 hp – 3.5L EcoBoost V6", "266 hp – 2.0L EcoBoost I4 (AWD)", "174 hp – E-Transit Electric"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Toyota (US)",
+    active:    true,
+    expertise: "Toyota US market — Camry, Corolla, RAV4, Highlander, 4Runner, Tacoma, Tundra, Sienna, Venza, GR86, Supra, Sequoia, Land Cruiser — VVT-i, D-4S Direct Injection, Hybrid Synergy Drive, i-FORCE twin turbo V6, 2006–present US spec",
+    models: [
+      // ── Camry ────────────────────────────────────────────────────────────
+      { group: "Camry" },
+      { label: "Camry (2007–2011)", powers: ["158 hp – 2.4L I4 2AZ-FE", "268 hp – 3.5L V6 2GR-FE"] },
+      { label: "Camry (2012–2017)", powers: ["178 hp – 2.5L I4 2AR-FE", "268 hp – 3.5L V6 2GR-FE", "200 hp – 2.5L Hybrid"] },
+      { label: "Camry (2018–2024)", powers: ["203 hp – 2.5L I4 A25A-FKS", "301 hp – 3.5L V6 2GR-FKS", "208 hp – 2.5L Hybrid"] },
+      { label: "Camry (2025–present)", powers: ["225 hp – 2.5L Hybrid i4"] },
+
+      // ── Corolla (US) ─────────────────────────────────────────────────────
+      { group: "Corolla (US)" },
+      { label: "Corolla (2009–2013)", powers: ["132 hp – 1.8L I4 2ZR-FE"] },
+      { label: "Corolla (2014–2019)", powers: ["132 hp – 1.8L I4 2ZR-FAE", "140 hp – 1.8L I4 Valvematic"] },
+      { label: "Corolla (2020–present)", powers: ["139 hp – 1.8L I4", "169 hp – 2.0L I4 (SE/XSE)", "196 hp – 2.0L Hybrid", "300 hp – 1.6L Turbo GR Corolla"] },
+
+      // ── RAV4 (US) ────────────────────────────────────────────────────────
+      { group: "RAV4 (US)" },
+      { label: "RAV4 (2006–2012)", powers: ["166 hp – 2.4L I4 2AZ-FE", "179 hp – 2.5L I4 (2009+)", "269 hp – 3.5L V6 2GR-FE"] },
+      { label: "RAV4 (2013–2018)", powers: ["176 hp – 2.5L I4 2AR-FE", "194 hp – 2.5L Hybrid"] },
+      { label: "RAV4 (2019–present)", powers: ["203 hp – 2.5L I4", "219 hp – 2.5L Hybrid", "302 hp – 2.5L Prime PHEV"] },
+
+      // ── Highlander ───────────────────────────────────────────────────────
+      { group: "Highlander" },
+      { label: "Highlander (2008–2013)", powers: ["187 hp – 2.7L I4 1AR-FE", "270 hp – 3.5L V6 2GR-FE", "280 hp – 3.5L Hybrid V6"] },
+      { label: "Highlander (2014–2019)", powers: ["185 hp – 2.7L I4 1AR-FE", "270 hp – 3.5L V6 2GR-FE", "280 hp – 3.5L Hybrid V6"] },
+      { label: "Highlander (2020–present)", powers: ["265 hp – 2.5L Hybrid I4", "295 hp – 2.4L Turbo I4 (2024+)"] },
+
+      // ── Tacoma ───────────────────────────────────────────────────────────
+      { group: "Tacoma" },
+      { label: "Tacoma (2005–2015)", powers: ["159 hp – 2.7L I4 2TR-FE", "236 hp – 4.0L V6 1GR-FE"] },
+      { label: "Tacoma (2016–2023)", powers: ["159 hp – 2.7L I4 2TR-FE", "278 hp – 3.5L V6 2GR-FKS"] },
+      { label: "Tacoma (2024–present)", powers: ["228 hp – 2.4L Turbo I4", "278 hp – 2.4L Turbo I4 (2024 TRD Pro)", "326 hp – 2.4L Turbo Hybrid I4 i-FORCE MAX"] },
+
+      // ── Tundra ───────────────────────────────────────────────────────────
+      { group: "Tundra" },
+      { label: "Tundra (2007–2021)", powers: ["270 hp – 4.0L V6 1GR-FE", "310 hp – 4.6L V8 1UR-FE", "381 hp – 5.7L V8 3UR-FE"] },
+      { label: "Tundra (2022–present)", powers: ["348 hp – 3.5L Twin Turbo V6 i-FORCE", "437 hp – 3.5L Twin Turbo Hybrid V6 i-FORCE MAX"] },
+
+      // ── 4Runner ──────────────────────────────────────────────────────────
+      { group: "4Runner" },
+      { label: "4Runner 5th gen (2010–2024)", powers: ["270 hp – 4.0L V6 1GR-FE"] },
+      { label: "4Runner 6th gen (2025–present)", powers: ["278 hp – 2.4L Turbo I4 i-FORCE", "326 hp – 2.4L Turbo Hybrid I4 i-FORCE MAX"] },
+
+      // ── Sequoia ──────────────────────────────────────────────────────────
+      { group: "Sequoia" },
+      { label: "Sequoia 2nd gen (2008–2022)", powers: ["310 hp – 4.6L V8 1UR-FE", "381 hp – 5.7L V8 3UR-FE"] },
+      { label: "Sequoia 3rd gen (2023–present)", powers: ["437 hp – 3.5L Twin Turbo Hybrid V6 i-FORCE MAX"] },
+
+      // ── Sienna ───────────────────────────────────────────────────────────
+      { group: "Sienna" },
+      { label: "Sienna (2011–2020)", powers: ["266 hp – 2.7L I4 1AR-FE (2011)", "266 hp – 3.5L V6 2GR-FE"] },
+      { label: "Sienna (2021–present)", powers: ["245 hp – 2.5L Hybrid I4"] },
+
+      // ── Venza ────────────────────────────────────────────────────────────
+      { group: "Venza" },
+      { label: "Venza (2009–2015)", powers: ["182 hp – 2.7L I4 1AR-FE", "268 hp – 3.5L V6 2GR-FE"] },
+      { label: "Venza (2021–present)", powers: ["219 hp – 2.5L Hybrid I4"] },
+
+      // ── GR86 ─────────────────────────────────────────────────────────────
+      { group: "GR86" },
+      { label: "86 / FR-S / GR86 1st gen (2013–2020)", powers: ["200 hp – 2.0L Boxer H4 FA20"] },
+      { label: "GR86 2nd gen (2022–present)", powers: ["228 hp – 2.4L Boxer H4 FA24"] },
+
+      // ── Supra (US) ───────────────────────────────────────────────────────
+      { group: "Supra (US)" },
+      { label: "Supra (2020–present)", powers: ["255 hp – 2.0L Turbo I4", "382 hp – 3.0L Turbo I6 B58"] },
+
+      // ── bZ4X (US) ────────────────────────────────────────────────────────
+      { group: "bZ4X (US)" },
+      { label: "bZ4X (2023–present)", powers: ["201 hp – Electric FWD", "214 hp – Electric AWD"] },
+
+      // ── Land Cruiser (US) ────────────────────────────────────────────────
+      { group: "Land Cruiser (US)" },
+      { label: "Land Cruiser (2008–2021)", powers: ["381 hp – 5.7L V8 3UR-FE"] },
+      { label: "Land Cruiser (2024–present)", powers: ["326 hp – 2.4L Turbo Hybrid I4 i-FORCE MAX"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Nissan (US)",
+    active:    true,
+    expertise: "Nissan US market — Altima, Rogue, Pathfinder, Frontier, Titan, Sentra, Kicks, Murano, Armada, Z — VQ/QR/MR engines, Xtronic CVT, e-POWER, ProPILOT Assist, 2007–present US spec",
+    models: [
+      // ── Altima ───────────────────────────────────────────────────────────
+      { group: "Altima" },
+      { label: "Altima (2013–2018)", powers: ["179 hp – 2.5L QR25DE I4", "270 hp – 3.5L VQ35DE V6"] },
+      { label: "Altima (2019–present)", powers: ["188 hp – 2.5L QR25DE I4", "248 hp – 2.0L VC-Turbo I4"] },
+
+      // ── Rogue ────────────────────────────────────────────────────────────
+      { group: "Rogue" },
+      { label: "Rogue (2014–2020)", powers: ["170 hp – 2.5L QR25DE I4", "176 hp – 2.0L Hybrid"] },
+      { label: "Rogue (2021–present)", powers: ["201 hp – 1.5L VC-Turbo I3"] },
+
+      // ── Pathfinder ───────────────────────────────────────────────────────
+      { group: "Pathfinder" },
+      { label: "Pathfinder (2013–2020)", powers: ["260 hp – 3.5L VQ35DE V6", "250 hp – 2.5L Supercharged Hybrid I4"] },
+      { label: "Pathfinder (2022–present)", powers: ["284 hp – 3.5L VQ35DD V6"] },
+
+      // ── Frontier ─────────────────────────────────────────────────────────
+      { group: "Frontier" },
+      { label: "Frontier (2005–2021)", powers: ["152 hp – 2.5L QR25DE I4", "261 hp – 4.0L VQ40DE V6"] },
+      { label: "Frontier (2022–present)", powers: ["310 hp – 3.8L VQ38DD V6"] },
+
+      // ── Titan ────────────────────────────────────────────────────────────
+      { group: "Titan" },
+      { label: "Titan (2017–present)", powers: ["400 hp – 5.6L Endurance V8 VK56VD"] },
+
+      // ── Sentra ───────────────────────────────────────────────────────────
+      { group: "Sentra" },
+      { label: "Sentra (2013–2019)", powers: ["124 hp – 1.6L I4", "130 hp – 1.8L MRA8DE I4", "188 hp – 1.6L DIG-T Nismo I4"] },
+      { label: "Sentra (2020–present)", powers: ["149 hp – 2.0L MR20DD I4"] },
+
+      // ── Kicks ────────────────────────────────────────────────────────────
+      { group: "Kicks" },
+      { label: "Kicks (2018–present)", powers: ["122 hp – 1.6L HR16DE I4"] },
+
+      // ── Murano ───────────────────────────────────────────────────────────
+      { group: "Murano" },
+      { label: "Murano (2009–2014)", powers: ["260 hp – 3.5L VQ35DE V6"] },
+      { label: "Murano (2015–present)", powers: ["260 hp – 3.5L VQ35DE V6"] },
+
+      // ── Armada ───────────────────────────────────────────────────────────
+      { group: "Armada" },
+      { label: "Armada (2017–present)", powers: ["400 hp – 5.6L Endurance V8 VK56VD"] },
+
+      // ── Z ────────────────────────────────────────────────────────────────
+      { group: "Z" },
+      { label: "370Z (2009–2020)", powers: ["332 hp – 3.7L VQ37VHR V6", "350 hp – 3.7L NISMO V6"] },
+      { label: "Z (2023–present)", powers: ["400 hp – 3.0L Twin Turbo VR30DDTT V6"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Hyundai (US)",
+    active:    true,
+    expertise: "Hyundai US market — Elantra, Sonata, Tucson, Santa Fe, Palisade, Venue, Kona, Santa Cruz, IONIQ 5/6 — Smartstream GDi/T-GDi/MPI, HEV/PHEV/EV powertrains, 8DCT/IVT/6AT transmissions, E-GMP platform, 2010–present US spec",
+    models: [
+      // ── Elantra ──────────────────────────────────────────────────────────
+      { group: "Elantra" },
+      { label: "Elantra (2011–2016)", powers: ["145 hp – 1.8L Nu MPI I4", "173 hp – 2.0L Nu GDi I4", "201 hp – 1.6L Gamma T-GDi Sport"] },
+      { label: "Elantra (2017–2020)", powers: ["147 hp – 2.0L Nu MPI I4", "201 hp – 1.6L Gamma T-GDi Sport"] },
+      { label: "Elantra (2021–present)", powers: ["147 hp – 2.0L Smartstream MPI I4", "201 hp – 1.6L Smartstream T-GDi N Line", "276 hp – 2.0L Smartstream T-GDi N", "139 hp – 1.6L Smartstream HEV"] },
+
+      // ── Sonata ───────────────────────────────────────────────────────────
+      { group: "Sonata" },
+      { label: "Sonata (2011–2014)", powers: ["198 hp – 2.4L Theta GDi I4", "274 hp – 2.0L Theta T-GDi I4", "199 hp – 2.4L Hybrid"] },
+      { label: "Sonata (2015–2019)", powers: ["185 hp – 2.4L Theta GDi I4", "245 hp – 2.0L Theta T-GDi I4", "193 hp – 2.0L Hybrid"] },
+      { label: "Sonata (2020–present)", powers: ["191 hp – 2.5L Smartstream GDi I4", "290 hp – 1.6L Smartstream T-GDi I4", "192 hp – 2.0L Smartstream HEV"] },
+
+      // ── Tucson (US) ──────────────────────────────────────────────────────
+      { group: "Tucson (US)" },
+      { label: "Tucson (2010–2015)", powers: ["165 hp – 2.0L GDi I4", "176 hp – 2.4L GDi I4"] },
+      { label: "Tucson (2016–2021)", powers: ["164 hp – 2.0L MPI I4", "175 hp – 1.6L T-GDi I4"] },
+      { label: "Tucson (2022–present)", powers: ["187 hp – 2.5L Smartstream GDi I4", "227 hp – 1.6L Smartstream T-GDi HEV", "261 hp – 1.6L Smartstream T-GDi PHEV"] },
+
+      // ── Santa Fe (US) ────────────────────────────────────────────────────
+      { group: "Santa Fe (US)" },
+      { label: "Santa Fe (2010–2018)", powers: ["190 hp – 2.4L GDi I4", "264 hp – 2.0L T-GDi I4", "290 hp – 3.3L V6 GDi"] },
+      { label: "Santa Fe (2019–2023)", powers: ["191 hp – 2.5L GDi I4", "281 hp – 2.5L T-GDi I4"] },
+      { label: "Santa Fe (2024–present)", powers: ["277 hp – 2.5L T-GDi I4", "232 hp – 1.6L T-GDi HEV", "268 hp – 1.6L T-GDi PHEV"] },
+
+      // ── Palisade ─────────────────────────────────────────────────────────
+      { group: "Palisade" },
+      { label: "Palisade (2020–present)", powers: ["291 hp – 3.8L Lambda V6 GDi", "277 hp – 2.5L T-GDi I4 (2026+)"] },
+
+      // ── Kona (US) ────────────────────────────────────────────────────────
+      { group: "Kona (US)" },
+      { label: "Kona (2018–2023)", powers: ["147 hp – 2.0L MPI I4", "175 hp – 1.6L T-GDi I4", "201 hp – Electric 64 kWh"] },
+      { label: "Kona (2024–present)", powers: ["190 hp – 2.0L MPI I4", "201 hp – Electric 64 kWh"] },
+
+      // ── Venue ────────────────────────────────────────────────────────────
+      { group: "Venue" },
+      { label: "Venue (2020–present)", powers: ["121 hp – 1.6L Smartstream MPI I4"] },
+
+      // ── Santa Cruz ───────────────────────────────────────────────────────
+      { group: "Santa Cruz" },
+      { label: "Santa Cruz (2022–present)", powers: ["191 hp – 2.5L Smartstream GDi I4", "281 hp – 2.5L Smartstream T-GDi I4"] },
+
+      // ── IONIQ 5 / IONIQ 6 (US) ──────────────────────────────────────────
+      { group: "IONIQ (US)" },
+      { label: "IONIQ 5 (2022–present)", powers: ["168 hp – Standard Range RWD", "225 hp – Long Range RWD", "320 hp – Long Range AWD", "601 hp – N AWD"] },
+      { label: "IONIQ 6 (2023–present)", powers: ["149 hp – Standard Range RWD", "225 hp – Long Range RWD", "320 hp – Long Range AWD"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Kia (US)",
+    active:    true,
+    expertise: "Kia US market — Forte, K5, Seltos, Sportage, Sorento, Telluride, Carnival, Soul, EV6, EV9 — Smartstream GDi/T-GDi, HEV/PHEV/EV powertrains, DCT/IVT/8AT transmissions, E-GMP platform, 2010–present US spec",
+    models: [
+      // ── Forte ────────────────────────────────────────────────────────────
+      { group: "Forte" },
+      { label: "Forte (2014–2018)", powers: ["164 hp – 2.0L Nu GDi I4", "201 hp – 1.6L Gamma T-GDi I4"] },
+      { label: "Forte (2019–present)", powers: ["147 hp – 2.0L Smartstream MPI I4", "201 hp – 1.6L Smartstream T-GDi GT"] },
+
+      // ── K5 (Optima) ──────────────────────────────────────────────────────
+      { group: "K5" },
+      { label: "Optima (2011–2020)", powers: ["185 hp – 2.4L Theta GDi I4", "245 hp – 2.0L Theta T-GDi I4", "193 hp – 2.0L Hybrid"] },
+      { label: "K5 (2021–present)", powers: ["180 hp – 1.6L Smartstream T-GDi I4", "290 hp – 2.5L Smartstream T-GDi GT"] },
+
+      // ── Seltos ───────────────────────────────────────────────────────────
+      { group: "Seltos" },
+      { label: "Seltos (2021–present)", powers: ["146 hp – 2.0L MPI I4", "175 hp – 1.6L T-GDi I4"] },
+
+      // ── Sportage (US) ────────────────────────────────────────────────────
+      { group: "Sportage (US)" },
+      { label: "Sportage (2011–2016)", powers: ["176 hp – 2.4L GDi I4", "260 hp – 2.0L T-GDi I4"] },
+      { label: "Sportage (2017–2022)", powers: ["181 hp – 2.4L GDi I4", "237 hp – 2.0L T-GDi I4"] },
+      { label: "Sportage (2023–present)", powers: ["187 hp – 2.5L GDi I4", "227 hp – 1.6L T-GDi HEV", "261 hp – 1.6L T-GDi PHEV"] },
+
+      // ── Sorento (US) ─────────────────────────────────────────────────────
+      { group: "Sorento (US)" },
+      { label: "Sorento (2011–2020)", powers: ["185 hp – 2.4L GDi I4", "290 hp – 3.3L V6 GDi"] },
+      { label: "Sorento (2021–present)", powers: ["191 hp – 2.5L GDi I4", "281 hp – 2.5L T-GDi I4", "227 hp – 1.6L T-GDi HEV", "261 hp – 1.6L T-GDi PHEV"] },
+
+      // ── Telluride ────────────────────────────────────────────────────────
+      { group: "Telluride" },
+      { label: "Telluride (2020–present)", powers: ["291 hp – 3.8L V6 GDi", "277 hp – 2.5L T-GDi I4 (2026+)"] },
+
+      // ── Carnival ─────────────────────────────────────────────────────────
+      { group: "Carnival" },
+      { label: "Carnival (2022–present)", powers: ["290 hp – 3.5L V6 GDi"] },
+
+      // ── Soul ─────────────────────────────────────────────────────────────
+      { group: "Soul" },
+      { label: "Soul (2014–2019)", powers: ["130 hp – 1.6L MPI I4", "164 hp – 2.0L GDi I4", "201 hp – 1.6L T-GDi I4", "109 hp – Electric 27 kWh"] },
+      { label: "Soul (2020–present)", powers: ["147 hp – 2.0L MPI I4", "201 hp – Electric 64 kWh"] },
+
+      // ── EV6 (US) ─────────────────────────────────────────────────────────
+      { group: "EV6 (US)" },
+      { label: "EV6 (2022–present)", powers: ["167 hp – Standard Range RWD", "225 hp – Long Range RWD", "320 hp – Long Range AWD", "576 hp – GT AWD"] },
+
+      // ── EV9 (US) ─────────────────────────────────────────────────────────
+      { group: "EV9 (US)" },
+      { label: "EV9 (2024–present)", powers: ["201 hp – Standard Range RWD", "379 hp – Long Range AWD", "379 hp – GT-Line AWD"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Volkswagen (US)",
+    active:    true,
+    expertise: "Volkswagen US market — Jetta, Tiguan, Atlas, Atlas Cross Sport, Taos, Golf GTI/R, ID.4 — TSI turbo engines, 8AT/6MT/DSG, 4MOTION AWD, MEB EV platform, 2011–present US spec",
+    models: [
+      // ── Jetta (US) ──────────────────────────────────────────────────────
+      { group: "Jetta (US)" },
+      { label: "Jetta (2011–2018)", powers: ["115 hp – 2.0L NA I4", "150 hp – 1.4L TSI I4", "170 hp – 1.8L TSI I4", "210 hp – 2.0L TSI GLI"] },
+      { label: "Jetta (2019–present)", powers: ["158 hp – 1.5L TSI I4", "228 hp – 2.0L TSI GLI"] },
+
+      // ── Tiguan (US) ──────────────────────────────────────────────────────
+      { group: "Tiguan (US)" },
+      { label: "Tiguan (2009–2017)", powers: ["200 hp – 2.0L TSI I4"] },
+      { label: "Tiguan (2018–present)", powers: ["184 hp – 2.0L TSI I4", "228 hp – 2.0L TSI R-Line (2024+)"] },
+
+      // ── Atlas ────────────────────────────────────────────────────────────
+      { group: "Atlas" },
+      { label: "Atlas (2018–present)", powers: ["235 hp – 2.0L TSI I4", "269 hp – 3.6L VR6", "276 hp – 2.0L TSI (2024+)"] },
+
+      // ── Atlas Cross Sport ────────────────────────────────────────────────
+      { group: "Atlas Cross Sport" },
+      { label: "Atlas Cross Sport (2020–present)", powers: ["235 hp – 2.0L TSI I4", "276 hp – 3.6L VR6", "276 hp – 2.0L TSI (2024+)"] },
+
+      // ── Taos ─────────────────────────────────────────────────────────────
+      { group: "Taos" },
+      { label: "Taos (2022–present)", powers: ["158 hp – 1.5L TSI I4"] },
+
+      // ── Golf GTI / Golf R (US) ──────────────────────────────────────────
+      { group: "Golf GTI / R (US)" },
+      { label: "Golf GTI (2015–2021)", powers: ["210 hp – 2.0L TSI EA888 I4", "228 hp – 2.0L TSI EA888 I4 (2018+)"] },
+      { label: "Golf GTI (2022–present)", powers: ["241 hp – 2.0L TSI EA888 I4"] },
+      { label: "Golf R (2015–2021)", powers: ["288 hp – 2.0L TSI EA888 I4", "292 hp – 2.0L TSI EA888 I4 (2018+)"] },
+      { label: "Golf R (2022–present)", powers: ["315 hp – 2.0L TSI EA888 I4"] },
+
+      // ── ID.4 (US) ────────────────────────────────────────────────────────
+      { group: "ID.4 (US)" },
+      { label: "ID.4 (2021–present)", powers: ["201 hp – Standard Range RWD", "275 hp – Pro S RWD", "295 hp – Pro S AWD", "335 hp – GTX AWD"] },
     ],
   },
 

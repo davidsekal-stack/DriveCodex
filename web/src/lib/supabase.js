@@ -1,9 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
+import { RUNTIME_CONFIG } from './runtime-config.js'
 
-const SUPABASE_URL      = 'https://nmvjthfezyjcwuzphiuu.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo'
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+export const supabase = createClient(RUNTIME_CONFIG.supabaseUrl, RUNTIME_CONFIG.supabaseAnonKey)
 
 // ── Auth helpers ────────────────────────────────────────────────────────────────
 

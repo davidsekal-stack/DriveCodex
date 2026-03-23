@@ -1,5 +1,8 @@
 import { translate } from '../i18n/translate.js'
 
+const MIN_RESOLUTION_LENGTH = 10
+const MAX_RESOLUTION_LENGTH = 400
+
 /**
  * Sdílená validační logika pro resolution text.
  * Validuje délku, opakování znaků a rozmanitost slov.
@@ -14,11 +17,11 @@ export function validateResolution(resolutionRaw, lang) {
   if (!resolution) {
     return { ok: false, reason: translate('validation.resolutionEmpty', null, lang) }
   }
-  if (resolution.length < 10) {
-    return { ok: false, reason: translate('validation.resolutionTooShort', { length: resolution.length, min: 10 }, lang) }
+  if (resolution.length < MIN_RESOLUTION_LENGTH) {
+    return { ok: false, reason: translate('validation.resolutionTooShort', { length: resolution.length, min: MIN_RESOLUTION_LENGTH }, lang) }
   }
-  if (resolution.length > 200) {
-    return { ok: false, reason: translate('validation.resolutionTooLong', { length: resolution.length, max: 200 }, lang) }
+  if (resolution.length > MAX_RESOLUTION_LENGTH) {
+    return { ok: false, reason: translate('validation.resolutionTooLong', { length: resolution.length, max: MAX_RESOLUTION_LENGTH }, lang) }
   }
   if (/(.)\1{6,}/.test(resolution)) {
     return { ok: false, reason: translate('validation.resolutionRepeating', null, lang) }

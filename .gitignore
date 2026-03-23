@@ -1,3 +1,8 @@
 node_modules/
 dist/
 .DS_Store
+seed_*/
+tmp_vw_*.html
+tmp_*
+skills/
+seed_import_supabase_*.jsonl

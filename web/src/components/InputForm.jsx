@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SYMPTOM_CATEGORIES, getObdCodes } from "../constants/index.js";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
+import { isWebBluetoothSupported, readObdCodes } from "../lib/obd-reader.js";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
@@ -21,6 +22,9 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
   const [obdCodes, setObdCodes] = useState([]);
   const [text,     setText]     = useState("");
   const [openCat,  setOpenCat]  = useState(SYMPTOM_CATEGORIES[0]?.catKey ?? "");
+  const [bleStatus, setBleStatus] = useState("idle"); // idle | connecting | error
+  const [bleError,  setBleError]  = useState(null);
+  const bleSupported = isWebBluetoothSupported();
 
   const toggleSymptom = (key) =>
     setSymptoms((prev) => prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]);
@@ -32,6 +36,21 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
     const parsed = obdInput.toUpperCase().split(/[\s,;]+/).filter((c) => OBD_REGEX.test(c));
     setObdCodes((prev) => [...new Set([...prev, ...parsed])]);
     setObdInput("");
+  };
+
+  const handleBleRead = async () => {
+    setBleStatus("connecting");
+    setBleError(null);
+    const { codes, error } = await readObdCodes();
+    if (error) {
+      setBleStatus("error");
+      setBleError(error);
+    } else if (codes.length > 0) {
+      setObdCodes((prev) => [...new Set([...prev, ...codes])]);
+      setBleStatus("idle");
+    } else {
+      setBleStatus("idle");
+    }
   };
 
   const handleSubmit = () => {
@@ -117,6 +136,23 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
               +
             </button>
           </div>
+
+          {/* BLE OBD Reader button */}
+          {bleSupported && (
+            <div style={{ marginBottom: 10 }}>
+              <button onClick={handleBleRead} disabled={bleStatus === "connecting"}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: bleStatus === "error" ? "rgba(220,38,38,0.08)" : t.bgMuted, border: `1px solid ${bleStatus === "error" ? "rgba(220,38,38,0.3)" : t.border}`, color: bleStatus === "connecting" ? t.textFaint : bleStatus === "error" ? "#dc2626" : t.accent, padding: "9px 14px", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: 600, cursor: bleStatus === "connecting" ? "wait" : "pointer", borderRadius: 2, transition: "all 0.15s", letterSpacing: "0.04em" }}>
+                {bleStatus === "connecting"
+                  ? <><span style={{ animation: "pulse 1.5s ease infinite", display: "inline-block" }}>📡</span> {tr('input.bleConnecting')}</>
+                  : <><span>📡</span> {tr('input.bleReadCodes')}</>}
+              </button>
+              {bleError && (
+                <div style={{ fontSize: "0.7rem", color: "#dc2626", marginTop: 4, padding: "4px 8px" }}>
+                  {bleError}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Obecné kódy */}
           <div style={sectionLabel()}>{tr('input.commonCodes')}</div>

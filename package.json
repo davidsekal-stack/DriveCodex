@@ -3,7 +3,11 @@
   "version": "2.0.0",
   "description": "GearBrain – AI Diagnostika Ford Transit EU (web)",
   "scripts": {
-    "test": "node tests/i18n.test.js && node tests/utils-i18n.test.js && node tests/validation-i18n.test.js && node tests/ai-i18n.test.js && node tests/unit.test.js",
+    "forum:seed": "node scripts/forum-seed.mjs",
+    "forum:seed:vw": "node scripts/forum-seed-vw.mjs",
+    "forum:seed:toyota": "node scripts/forum-seed-toyota.mjs",
+    "seed:import:supabase": "node scripts/import-seeds-to-supabase.mjs",
+    "test": "node tests/i18n.test.js && node tests/utils-i18n.test.js && node tests/validation-i18n.test.js && node tests/ai-i18n.test.js && node tests/unit.test.js && node tests/forum-seed.test.js && node tests/forum-seed-vw.test.js && node tests/forum-seed-toyota.test.js && node tests/import-seeds-to-supabase.test.js",
     "test:unit": "node tests/unit.test.js",
     "test:integration": "node tests/supabase-integration.test.js",
     "test:all": "npm test && npm run test:integration"

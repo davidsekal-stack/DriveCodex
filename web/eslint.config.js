@@ -27,6 +27,10 @@ export default [
         atob:      'readonly',
         btoa:      'readonly',
         crypto:    'readonly',
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
       },
     },
     settings: {
