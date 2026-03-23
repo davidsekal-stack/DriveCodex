@@ -59,19 +59,11 @@ export async function readObdCodes() {
 
   try {
     // ── 1. Request device ────────────────────────────────────────────────
+    // Use acceptAllDevices because cheap ELM327 clones advertise under
+    // unpredictable names ("MINI", "BT_OBD", "HC-05", "Android-Vlink", …).
+    // The user picks the right device from the browser's Bluetooth picker.
     device = await navigator.bluetooth.requestDevice({
-      filters: [
-        { namePrefix: "OBD" },
-        { namePrefix: "KONNWEI" },
-        { namePrefix: "KW" },
-        { namePrefix: "Vgate" },
-        { namePrefix: "iCar" },
-        { namePrefix: "ELM" },
-        { namePrefix: "V-LINK" },
-        { namePrefix: "OBDLink" },
-        { namePrefix: "OBDII" },
-        { namePrefix: "Car" },
-      ],
+      acceptAllDevices: true,
       optionalServices: KNOWN_SERVICES,
     });
 
