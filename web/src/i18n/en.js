@@ -137,6 +137,8 @@ export const strings = {
   'input.selectedCount':      '{count} sel.',
   'input.codesCount':         '{count} codes',
   'input.obdPlaceholder':     'P0401, P2263...',
+  'input.bleReadCodes':       'READ FROM OBD READER',
+  'input.bleConnecting':      'Connecting...',
   'input.commonCodes':        'COMMON OBD CODES',
   'input.engineCodes':        'ENGINE-SPECIFIC',
   'input.brandCodes':         '{brand} — SPECIFIC',

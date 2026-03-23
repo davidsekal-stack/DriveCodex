@@ -137,6 +137,8 @@ export const strings = {
   'input.selectedCount':      '{count} vyb.',
   'input.codesCount':         '{count} kódů',
   'input.obdPlaceholder':     'P0401, P2263...',
+  'input.bleReadCodes':       'NAČÍST Z OBD ČTEČKY',
+  'input.bleConnecting':      'Připojuji se...',
   'input.commonCodes':        'OBECNÉ OBD KÓDY',
   'input.engineCodes':        'DLE MOTORU',
   'input.brandCodes':         '{brand} — SPECIFICKÉ',
