@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "GearBrain Web (Vite)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["./.claude/dev.mjs"],
+      "port": 5180
+    },
+    {
+      "name": "GearBrain Preview (Vite)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["./.claude/preview.mjs"],
+      "port": 5180
+    }
+  ]
+}

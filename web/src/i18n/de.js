@@ -100,6 +100,18 @@ export const strings = {
   'app.feedbackSent':     'Gesendet, vielen Dank!',
   'app.feedbackError':    'Senden fehlgeschlagen',
 
+  // Admin review
+  'review.sidebarBtn':    '📋 Überprüfung',
+  'review.title':         'FALLÜBERPRÜFUNG',
+  'review.loading':       'Laden...',
+  'review.count':         '{count} Fälle zur Überprüfung',
+  'review.empty':         'Keine Fälle zur Überprüfung ✓',
+  'review.refresh':       'Aktualisieren',
+  'review.approveAll':    'Alle genehmigen',
+  'review.approve':       'Genehmigen',
+  'review.reject':        'Ablehnen',
+  'review.resolution':    'DURCHGEFÜHRTE REPARATUR',
+
   // Status
   'status.closed':        '✓ ABGESCHLOSSEN',
   'status.active':        '● AKTIV',

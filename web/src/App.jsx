@@ -14,9 +14,12 @@ import LoginPage                            from "./components/LoginPage.jsx";
 import ErrorBoundary                        from "./components/ErrorBoundary.jsx";
 import ConfirmModal                         from "./components/ConfirmModal.jsx";
 import ConsentGate, { hasConsent }           from "./components/ConsentBanner.jsx";
+import ReviewPanel                         from "./components/ReviewPanel.jsx";
 import useCases                             from "./hooks/useCases.js";
 import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
+
+const ADMIN_EMAILS = ["davidsekal1@seznam.cz"];
 
 const LANGS = [
   { code: "cs", label: "CS" },
@@ -97,6 +100,7 @@ function App() {
   const [identHistory, setIdentHistory] = useState([]);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState("idle"); // idle | sending | sent | error
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
 
   const {
     cases, activeCase, activeId, setActiveId,
@@ -124,10 +128,18 @@ function App() {
   }, []);
 
   // ── Load cases + global count after login ────────────────────────────────
+  const isAdmin = session && ADMIN_EMAILS.includes(session.user?.email);
+
   useEffect(() => {
     if (session) {
       loadCases().then(() => setCloudStatus("ok")).catch(() => setCloudStatus("error"));
       storage.getGlobalCaseCount().then(setGlobalCaseCount).catch(() => {});
+      // Fetch pending review count for admins
+      if (ADMIN_EMAILS.includes(session.user?.email)) {
+        storage.fetchReviewCases("pending")
+          .then((data) => setPendingReviewCount(data.cases?.length ?? 0))
+          .catch(() => {});
+      }
     }
   }, [session, loadCases]);
 
@@ -405,6 +417,17 @@ function App() {
               style={{ width: "100%", background: t.accent, color: "#fff", border: "none", cursor: "pointer", padding: "10px", fontSize: "0.78rem", letterSpacing: "0.1em", fontWeight: 700, fontFamily: "inherit", borderRadius: 2, clipPath: "polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%)" }}>
               {tr('app.newCase')}
             </button>
+            {isAdmin && (
+              <button onClick={() => { setView("review"); setActiveId(null); setSidebarOpen(false); }}
+                style={{ width: "100%", marginTop: 6, background: view === "review" ? t.bgSelected : "transparent", border: `1px solid ${t.border}`, cursor: "pointer", padding: "8px 10px", fontSize: "0.75rem", letterSpacing: "0.06em", fontWeight: 500, fontFamily: "inherit", borderRadius: 2, color: t.textMuted, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span>{tr('review.sidebarBtn')}</span>
+                {pendingReviewCount > 0 && (
+                  <span style={{ background: "#dc2626", color: "#fff", fontSize: "0.6rem", fontWeight: 700, padding: "1px 6px", borderRadius: 8, minWidth: 18, textAlign: "center" }}>
+                    {pendingReviewCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
 
           <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
@@ -486,6 +509,25 @@ function App() {
 
         {/* MAIN */}
         <main style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+
+          {/* Admin review */}
+          {view === "review" && isAdmin && (
+            <ReviewPanel
+              t={t}
+              lang={lang}
+              tr={tr}
+              fetchCases={() => storage.fetchReviewCases("pending")}
+              updateStatus={(idOrIds, status) => {
+                return storage.updateCaseStatus(idOrIds, status).then((res) => {
+                  // Refresh pending count
+                  storage.fetchReviewCases("pending")
+                    .then((data) => setPendingReviewCount(data.cases?.length ?? 0))
+                    .catch(() => {});
+                  return res;
+                });
+              }}
+            />
+          )}
 
           {/* Welcome */}
           {view === "welcome" && (

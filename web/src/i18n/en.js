@@ -100,6 +100,18 @@ export const strings = {
   'app.feedbackSent':     'Sent, thank you!',
   'app.feedbackError':    'Failed to send',
 
+  // Admin review
+  'review.sidebarBtn':    '📋 Review',
+  'review.title':         'CASE REVIEW',
+  'review.loading':       'Loading...',
+  'review.count':         '{count} cases pending review',
+  'review.empty':         'No cases to review ✓',
+  'review.refresh':       'Refresh',
+  'review.approveAll':    'Approve all',
+  'review.approve':       'Approve',
+  'review.reject':        'Reject',
+  'review.resolution':    'REPAIR PERFORMED',
+
   // Status
   'status.closed':        '✓ CLOSED',
   'status.active':        '● ACTIVE',

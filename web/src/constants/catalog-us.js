@@ -17,37 +17,37 @@ export const VEHICLE_CATALOG_US = [
       { group: "Silverado 1500" },
       { label: "Silverado 1500 (2007–2013)", powers: ["195 hp – 4.3L V6", "295 hp – 4.8L V8", "315 hp – 5.3L EcoTec V8", "367 hp – 6.0L V8", "403 hp – 6.2L V8"] },
       { label: "Silverado 1500 (2014–2018)", powers: ["285 hp – 4.3L EcoTec3 V6", "355 hp – 5.3L EcoTec3 V8", "420 hp – 6.2L EcoTec3 V8"] },
-      { label: "Silverado 1500 (2019–present)", powers: ["285 hp – 4.3L EcoTec3 V6", "310 hp – 2.7L Turbo I4", "355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
+      { label: "Silverado 1500 (2019–)", powers: ["285 hp – 4.3L EcoTec3 V6", "310 hp – 2.7L Turbo I4", "355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
 
       // ── Silverado HD ──────────────────────────────────────────────────────
       { group: "Silverado HD (2500/3500)" },
       { label: "Silverado HD (2011–2019)", powers: ["360 hp – 6.0L V8", "445 hp – 6.6L Duramax LML/L5P Diesel"] },
-      { label: "Silverado HD (2020–present)", powers: ["401 hp – 6.6L V8 Gasoline", "445 hp – 6.6L Duramax L5P Diesel", "470 hp – 6.6L Duramax L5P Diesel (2021+)"] },
+      { label: "Silverado HD (2020–)", powers: ["401 hp – 6.6L V8 Gasoline", "445 hp – 6.6L Duramax L5P Diesel", "470 hp – 6.6L Duramax L5P Diesel (2021+)"] },
 
       // ── Colorado ──────────────────────────────────────────────────────────
       { group: "Colorado" },
       { label: "Colorado (2015–2022)", powers: ["200 hp – 2.5L I4", "308 hp – 3.6L V6", "186 hp – 2.8L Duramax Diesel I4"] },
-      { label: "Colorado (2023–present)", powers: ["237 hp – 2.7L Turbo I4", "310 hp – 2.7L Turbo High-Output I4"] },
+      { label: "Colorado (2023–)", powers: ["237 hp – 2.7L Turbo I4", "310 hp – 2.7L Turbo High-Output I4"] },
 
       // ── Equinox ───────────────────────────────────────────────────────────
       { group: "Equinox" },
       { label: "Equinox (2010–2017)", powers: ["182 hp – 2.4L I4 DOHC", "301 hp – 3.6L V6"] },
-      { label: "Equinox (2018–present)", powers: ["170 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4", "137 hp – 1.6L Diesel (2018–20)"] },
+      { label: "Equinox (2018–)", powers: ["170 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4", "137 hp – 1.6L Diesel (2018–20)"] },
 
       // ── Traverse ─────────────────────────────────────────────────────────
       { group: "Traverse" },
       { label: "Traverse (2009–2017)", powers: ["281 hp – 3.6L V6 SIDI"] },
-      { label: "Traverse (2018–present)", powers: ["193 hp – 2.5L I4", "310 hp – 3.6L V6"] },
+      { label: "Traverse (2018–)", powers: ["193 hp – 2.5L I4", "310 hp – 3.6L V6"] },
 
       // ── Tahoe / Suburban ─────────────────────────────────────────────────
       { group: "Tahoe / Suburban" },
       { label: "Tahoe/Suburban (2007–2014)", powers: ["315 hp – 5.3L EcoTec V8", "403 hp – 6.2L V8"] },
       { label: "Tahoe/Suburban (2015–2020)", powers: ["355 hp – 5.3L EcoTec3 V8"] },
-      { label: "Tahoe/Suburban (2021–present)", powers: ["355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
+      { label: "Tahoe/Suburban (2021–)", powers: ["355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
 
       // ── Trailblazer ───────────────────────────────────────────────────────
       { group: "Trailblazer" },
-      { label: "Trailblazer (2021–present)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3"] },
+      { label: "Trailblazer (2021–)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3"] },
 
       // ── Malibu ────────────────────────────────────────────────────────────
       { group: "Malibu" },
@@ -62,7 +62,7 @@ export const VEHICLE_CATALOG_US = [
       // ── Corvette ──────────────────────────────────────────────────────────
       { group: "Corvette" },
       { label: "Corvette C7 Stingray (2014–2019)", powers: ["455 hp – 6.2L LT1 V8", "460 hp – 6.2L LT1 V8 (Z51)", "650 hp – 6.2L LT4 Supercharged Z06", "755 hp – 6.2L Supercharged ZR1"] },
-      { label: "Corvette C8 Stingray (2020–present)", powers: ["490 hp – 6.2L LT2 V8", "495 hp – 6.2L LT2 V8 (Z51)", "670 hp – 5.5L LT6 NA V8 Z06", "655 hp – 6.6L Twin Turbo E-Ray Hybrid"] },
+      { label: "Corvette C8 Stingray (2020–)", powers: ["490 hp – 6.2L LT2 V8", "495 hp – 6.2L LT2 V8 (Z51)", "670 hp – 5.5L LT6 NA V8 Z06", "655 hp – 6.6L Twin Turbo E-Ray Hybrid"] },
     ],
   },
 
@@ -76,34 +76,34 @@ export const VEHICLE_CATALOG_US = [
       { group: "Sierra 1500" },
       { label: "Sierra 1500 (2007–2013)", powers: ["195 hp – 4.3L V6", "295 hp – 4.8L V8", "315 hp – 5.3L EcoTec V8", "367 hp – 6.0L V8", "403 hp – 6.2L V8"] },
       { label: "Sierra 1500 (2014–2018)", powers: ["285 hp – 4.3L EcoTec3 V6", "355 hp – 5.3L EcoTec3 V8", "420 hp – 6.2L EcoTec3 V8"] },
-      { label: "Sierra 1500 (2019–present)", powers: ["285 hp – 4.3L EcoTec3 V6", "310 hp – 2.7L Turbo I4", "355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
+      { label: "Sierra 1500 (2019–)", powers: ["285 hp – 4.3L EcoTec3 V6", "310 hp – 2.7L Turbo I4", "355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
 
       // ── Sierra HD ─────────────────────────────────────────────────────────
       { group: "Sierra HD (2500/3500)" },
       { label: "Sierra HD (2011–2019)", powers: ["360 hp – 6.0L V8", "445 hp – 6.6L Duramax LML/L5P Diesel"] },
-      { label: "Sierra HD (2020–present)", powers: ["401 hp – 6.6L V8 Gasoline", "445 hp – 6.6L Duramax L5P Diesel", "470 hp – 6.6L Duramax L5P Diesel (2021+)"] },
+      { label: "Sierra HD (2020–)", powers: ["401 hp – 6.6L V8 Gasoline", "445 hp – 6.6L Duramax L5P Diesel", "470 hp – 6.6L Duramax L5P Diesel (2021+)"] },
 
       // ── Canyon ────────────────────────────────────────────────────────────
       { group: "Canyon" },
       { label: "Canyon (2015–2022)", powers: ["200 hp – 2.5L I4", "308 hp – 3.6L V6", "186 hp – 2.8L Duramax Diesel I4"] },
-      { label: "Canyon (2023–present)", powers: ["237 hp – 2.7L Turbo I4", "310 hp – 2.7L Turbo High-Output I4"] },
+      { label: "Canyon (2023–)", powers: ["237 hp – 2.7L Turbo I4", "310 hp – 2.7L Turbo High-Output I4"] },
 
       // ── Terrain ───────────────────────────────────────────────────────────
       { group: "Terrain" },
       { label: "Terrain (2010–2017)", powers: ["182 hp – 2.4L I4 DOHC", "301 hp – 3.6L V6"] },
-      { label: "Terrain (2018–present)", powers: ["170 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4"] },
+      { label: "Terrain (2018–)", powers: ["170 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4"] },
 
       // ── Acadia ────────────────────────────────────────────────────────────
       { group: "Acadia" },
       { label: "Acadia (2007–2016)", powers: ["281 hp – 3.6L V6 SIDI"] },
       { label: "Acadia (2017–2023)", powers: ["193 hp – 2.5L I4", "310 hp – 3.6L V6"] },
-      { label: "Acadia (2024–present)", powers: ["228 hp – 2.0L Turbo I4", "328 hp – 2.5L Turbo I4"] },
+      { label: "Acadia (2024–)", powers: ["228 hp – 2.0L Turbo I4", "328 hp – 2.5L Turbo I4"] },
 
       // ── Yukon / Yukon XL ─────────────────────────────────────────────────
       { group: "Yukon / Yukon XL" },
       { label: "Yukon/Yukon XL (2007–2014)", powers: ["315 hp – 5.3L EcoTec V8", "403 hp – 6.2L V8"] },
       { label: "Yukon/Yukon XL (2015–2020)", powers: ["355 hp – 5.3L EcoTec3 V8"] },
-      { label: "Yukon/Yukon XL (2021–present)", powers: ["355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
+      { label: "Yukon/Yukon XL (2021–)", powers: ["355 hp – 5.3L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "420 hp – 6.2L EcoTec3 V8"] },
     ],
   },
 
@@ -116,24 +116,24 @@ export const VEHICLE_CATALOG_US = [
       // ── Ram 1500 ──────────────────────────────────────────────────────────
       { group: "Ram 1500" },
       { label: "Ram 1500 (2009–2018)", powers: ["305 hp – 3.6L Pentastar V6", "395 hp – 5.7L HEMI V8", "240 hp – 3.0L EcoDiesel V6"] },
-      { label: "Ram 1500 Classic (2019–present)", powers: ["305 hp – 3.6L Pentastar V6", "395 hp – 5.7L HEMI V8"] },
-      { label: "Ram 1500 (2019–present)", powers: ["305 hp – 3.6L Pentastar eTorque V6", "395 hp – 5.7L HEMI eTorque V8", "260 hp – 3.0L EcoDiesel V6", "420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
-      { label: "Ram 1500 TRX (2021–present)", powers: ["702 hp – 6.2L Supercharged HEMI V8"] },
+      { label: "Ram 1500 Classic (2019–)", powers: ["305 hp – 3.6L Pentastar V6", "395 hp – 5.7L HEMI V8"] },
+      { label: "Ram 1500 (2019–)", powers: ["305 hp – 3.6L Pentastar eTorque V6", "395 hp – 5.7L HEMI eTorque V8", "260 hp – 3.0L EcoDiesel V6", "420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
+      { label: "Ram 1500 TRX (2021–)", powers: ["702 hp – 6.2L Supercharged HEMI V8"] },
 
       // ── Ram 2500 ──────────────────────────────────────────────────────────
       { group: "Ram 2500" },
       { label: "Ram 2500 (2010–2018)", powers: ["383 hp – 5.7L HEMI V8", "410 hp – 6.4L HEMI V8", "370 hp – 6.7L Cummins Diesel I6"] },
-      { label: "Ram 2500 (2019–present)", powers: ["410 hp – 6.4L HEMI V8", "370 hp – 6.7L Cummins Diesel I6", "400 hp – 6.7L Cummins HO Diesel I6"] },
+      { label: "Ram 2500 (2019–)", powers: ["410 hp – 6.4L HEMI V8", "370 hp – 6.7L Cummins Diesel I6", "400 hp – 6.7L Cummins HO Diesel I6"] },
 
       // ── Ram 3500 ──────────────────────────────────────────────────────────
       { group: "Ram 3500" },
       { label: "Ram 3500 (2013–2018)", powers: ["383 hp – 5.7L HEMI V8", "410 hp – 6.4L HEMI V8", "350 hp – 6.7L Cummins Diesel I6", "385 hp – 6.7L Cummins HO Diesel I6"] },
-      { label: "Ram 3500 (2019–present)", powers: ["410 hp – 6.4L HEMI V8", "370 hp – 6.7L Cummins Diesel I6", "400 hp – 6.7L Cummins HO Diesel I6"] },
+      { label: "Ram 3500 (2019–)", powers: ["410 hp – 6.4L HEMI V8", "370 hp – 6.7L Cummins Diesel I6", "400 hp – 6.7L Cummins HO Diesel I6"] },
 
       // ── ProMaster ─────────────────────────────────────────────────────────
       { group: "ProMaster" },
-      { label: "ProMaster (2014–present)", powers: ["280 hp – 3.6L Pentastar V6", "140 hp – 3.0L VM Diesel I4"] },
-      { label: "ProMaster City (2015–present)", powers: ["178 hp – 2.4L I4 Tigershark"] },
+      { label: "ProMaster (2014–)", powers: ["280 hp – 3.6L Pentastar V6", "140 hp – 3.0L VM Diesel I4"] },
+      { label: "ProMaster City (2015–)", powers: ["178 hp – 2.4L I4 Tigershark"] },
     ],
   },
 
@@ -147,12 +147,12 @@ export const VEHICLE_CATALOG_US = [
       { group: "Wrangler" },
       { label: "Wrangler JK (2007–2011)", powers: ["202 hp – 3.8L V6"] },
       { label: "Wrangler JK (2012–2018)", powers: ["285 hp – 3.6L Pentastar V6"] },
-      { label: "Wrangler JL (2018–present)", powers: ["270 hp – 2.0L Hurricane Turbo I4", "285 hp – 3.6L Pentastar V6 eTorque", "260 hp – 3.0L EcoDiesel V6", "375 hp – 2.0L 4xe PHEV", "470 hp – 6.4L HEMI V8 392"] },
+      { label: "Wrangler JL (2018–)", powers: ["270 hp – 2.0L Hurricane Turbo I4", "285 hp – 3.6L Pentastar V6 eTorque", "260 hp – 3.0L EcoDiesel V6", "375 hp – 2.0L 4xe PHEV", "470 hp – 6.4L HEMI V8 392"] },
 
       // ── Grand Cherokee ────────────────────────────────────────────────────
       { group: "Grand Cherokee" },
       { label: "Grand Cherokee WK2 (2011–2021)", powers: ["290 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8", "707 hp – 6.2L Supercharged Trackhawk V8", "240 hp – 3.0L EcoDiesel V6"] },
-      { label: "Grand Cherokee WL (2021–present)", powers: ["270 hp – 2.0L Hurricane Turbo I4", "293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "375 hp – 2.0L 4xe PHEV", "510 hp – 6.2L Supercharged 4xe PHEV"] },
+      { label: "Grand Cherokee WL (2021–)", powers: ["270 hp – 2.0L Hurricane Turbo I4", "293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "375 hp – 2.0L 4xe PHEV", "510 hp – 6.2L Supercharged 4xe PHEV"] },
 
       // ── Cherokee ──────────────────────────────────────────────────────────
       { group: "Cherokee" },
@@ -160,15 +160,15 @@ export const VEHICLE_CATALOG_US = [
 
       // ── Compass ───────────────────────────────────────────────────────────
       { group: "Compass" },
-      { label: "Compass (2017–present)", powers: ["177 hp – 2.4L Tigershark I4", "200 hp – 1.3L Turbo I4"] },
+      { label: "Compass (2017–)", powers: ["177 hp – 2.4L Tigershark I4", "200 hp – 1.3L Turbo I4"] },
 
       // ── Renegade ─────────────────────────────────────────────────────────
       { group: "Renegade" },
-      { label: "Renegade (2015–present)", powers: ["160 hp – 1.4L MultiAir Turbo I4", "180 hp – 2.4L Tigershark I4", "180 hp – 1.3L Turbo I4"] },
+      { label: "Renegade (2015–)", powers: ["160 hp – 1.4L MultiAir Turbo I4", "180 hp – 2.4L Tigershark I4", "180 hp – 1.3L Turbo I4"] },
 
       // ── Gladiator ─────────────────────────────────────────────────────────
       { group: "Gladiator" },
-      { label: "Gladiator (2020–present)", powers: ["285 hp – 3.6L Pentastar V6", "260 hp – 3.0L EcoDiesel V6"] },
+      { label: "Gladiator (2020–)", powers: ["285 hp – 3.6L Pentastar V6", "260 hp – 3.0L EcoDiesel V6"] },
     ],
   },
 
@@ -186,12 +186,12 @@ export const VEHICLE_CATALOG_US = [
       // ── Charger ───────────────────────────────────────────────────────────
       { group: "Charger" },
       { label: "Charger (2011–2014)", powers: ["292 hp – 3.6L Pentastar V6", "370 hp – 5.7L HEMI R/T V8", "470 hp – 6.4L HEMI SRT8 V8"] },
-      { label: "Charger (2015–present)", powers: ["292 hp – 3.6L Pentastar V6", "300 hp – 3.6L Pentastar V6 AWD", "370 hp – 5.7L HEMI R/T V8", "485 hp – 6.4L HEMI 392 V8", "707 hp – 6.2L Supercharged Hellcat V8", "797 hp – 6.2L Supercharged Hellcat Redeye V8"] },
+      { label: "Charger (2015–)", powers: ["292 hp – 3.6L Pentastar V6", "300 hp – 3.6L Pentastar V6 AWD", "370 hp – 5.7L HEMI R/T V8", "485 hp – 6.4L HEMI 392 V8", "707 hp – 6.2L Supercharged Hellcat V8", "797 hp – 6.2L Supercharged Hellcat Redeye V8"] },
 
       // ── Durango ───────────────────────────────────────────────────────────
       { group: "Durango" },
       { label: "Durango (2011–2020)", powers: ["293 hp – 3.6L Pentastar V6", "360 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8"] },
-      { label: "Durango (2021–present)", powers: ["293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8", "710 hp – 6.2L Supercharged Hellcat V8"] },
+      { label: "Durango (2021–)", powers: ["293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8", "710 hp – 6.2L Supercharged Hellcat V8"] },
     ],
   },
 
@@ -206,45 +206,45 @@ export const VEHICLE_CATALOG_US = [
       { label: "Civic 8th gen (2006–2011)", powers: ["140 hp – 1.8L SOHC i-VTEC I4", "197 hp – 2.0L DOHC i-VTEC Si I4"] },
       { label: "Civic 9th gen (2012–2015)", powers: ["143 hp – 1.8L i-VTEC I4", "205 hp – 2.4L i-VTEC Si I4", "110 hp – 1.5L IMA Hybrid"] },
       { label: "Civic 10th gen (2016–2021)", powers: ["158 hp – 2.0L DOHC I4 (Sedan/Coupe)", "174 hp – 1.5L VTEC Turbo I4", "180 hp – 1.5L VTEC Turbo I4 (Sport/Touring)", "205 hp – 1.5L VTEC Turbo Si", "306 hp – 2.0L DOHC Turbo Type R"] },
-      { label: "Civic 11th gen (2022–present)", powers: ["158 hp – 2.0L DOHC I4 (LX/Sport)", "192 hp – 1.5L VTEC Turbo I4", "200 hp – 1.5L VTEC Turbo Si", "315 hp – 2.0L DOHC Turbo Type R"] },
+      { label: "Civic 11th gen (2022–)", powers: ["158 hp – 2.0L DOHC I4 (LX/Sport)", "192 hp – 1.5L VTEC Turbo I4", "200 hp – 1.5L VTEC Turbo Si", "315 hp – 2.0L DOHC Turbo Type R"] },
 
       // ── Accord ────────────────────────────────────────────────────────────
       { group: "Accord" },
       { label: "Accord 8th gen (2008–2012)", powers: ["177 hp – 2.4L i-VTEC I4", "271 hp – 3.5L i-VTEC V6"] },
       { label: "Accord 9th gen (2013–2017)", powers: ["185 hp – 2.4L i-VTEC I4", "278 hp – 3.5L i-VTEC V6", "196 hp – 2.0L IMA Hybrid"] },
       { label: "Accord 10th gen (2018–2022)", powers: ["192 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4", "212 hp – 2.0L Hybrid i-MMD"] },
-      { label: "Accord 11th gen (2023–present)", powers: ["192 hp – 1.5L Turbo I4", "204 hp – 2.0L Hybrid i-MMD"] },
+      { label: "Accord 11th gen (2023–)", powers: ["192 hp – 1.5L Turbo I4", "204 hp – 2.0L Hybrid i-MMD"] },
 
       // ── CR-V ──────────────────────────────────────────────────────────────
       { group: "CR-V" },
       { label: "CR-V 3rd gen (2007–2011)", powers: ["166 hp – 2.4L DOHC i-VTEC I4"] },
       { label: "CR-V 4th gen (2012–2016)", powers: ["185 hp – 2.4L DOHC i-VTEC I4"] },
       { label: "CR-V 5th gen (2017–2022)", powers: ["190 hp – 1.5L VTEC Turbo I4", "184 hp – 2.4L DOHC I4 (2017)"] },
-      { label: "CR-V 6th gen (2023–present)", powers: ["190 hp – 1.5L Turbo I4", "204 hp – 2.0L Hybrid i-MMD"] },
+      { label: "CR-V 6th gen (2023–)", powers: ["190 hp – 1.5L Turbo I4", "204 hp – 2.0L Hybrid i-MMD"] },
 
       // ── Pilot ─────────────────────────────────────────────────────────────
       { group: "Pilot" },
       { label: "Pilot 2nd gen (2009–2015)", powers: ["250 hp – 3.5L SOHC i-VTEC V6"] },
       { label: "Pilot 3rd gen (2016–2022)", powers: ["280 hp – 3.5L i-VTEC V6 Direct Injection"] },
-      { label: "Pilot 4th gen (2023–present)", powers: ["285 hp – 3.5L i-VTEC V6", "285 hp – 3.5L V6 TrailSport"] },
+      { label: "Pilot 4th gen (2023–)", powers: ["285 hp – 3.5L i-VTEC V6", "285 hp – 3.5L V6 TrailSport"] },
 
       // ── Odyssey ───────────────────────────────────────────────────────────
       { group: "Odyssey" },
       { label: "Odyssey (2011–2017)", powers: ["248 hp – 3.5L i-VTEC V6"] },
-      { label: "Odyssey (2018–present)", powers: ["280 hp – 3.5L SOHC i-VTEC V6"] },
+      { label: "Odyssey (2018–)", powers: ["280 hp – 3.5L SOHC i-VTEC V6"] },
 
       // ── HR-V ──────────────────────────────────────────────────────────────
       { group: "HR-V" },
       { label: "HR-V 1st gen (2016–2022)", powers: ["141 hp – 1.8L SOHC i-VTEC I4"] },
-      { label: "HR-V 2nd gen (2023–present)", powers: ["158 hp – 2.0L DOHC i-VTEC I4"] },
+      { label: "HR-V 2nd gen (2023–)", powers: ["158 hp – 2.0L DOHC i-VTEC I4"] },
 
       // ── Ridgeline ─────────────────────────────────────────────────────────
       { group: "Ridgeline" },
-      { label: "Ridgeline (2017–present)", powers: ["280 hp – 3.5L i-VTEC V6"] },
+      { label: "Ridgeline (2017–)", powers: ["280 hp – 3.5L i-VTEC V6"] },
 
       // ── Passport ──────────────────────────────────────────────────────────
       { group: "Passport" },
-      { label: "Passport (2019–present)", powers: ["280 hp – 3.5L i-VTEC V6"] },
+      { label: "Passport (2019–)", powers: ["280 hp – 3.5L i-VTEC V6"] },
     ],
   },
 
@@ -258,42 +258,42 @@ export const VEHICLE_CATALOG_US = [
       { group: "Outback" },
       { label: "Outback 4th gen (2010–2014)", powers: ["170 hp – 2.5L SOHC Boxer H4", "256 hp – 3.6L DOHC Boxer H6"] },
       { label: "Outback 5th gen (2015–2019)", powers: ["175 hp – 2.5L DOHC Boxer H4", "256 hp – 3.6L DOHC Boxer H6"] },
-      { label: "Outback 6th gen (2020–present)", powers: ["182 hp – 2.5L DOHC Boxer H4", "260 hp – 2.4L Turbocharged Boxer H4"] },
+      { label: "Outback 6th gen (2020–)", powers: ["182 hp – 2.5L DOHC Boxer H4", "260 hp – 2.4L Turbocharged Boxer H4"] },
 
       // ── Forester ──────────────────────────────────────────────────────────
       { group: "Forester" },
       { label: "Forester 3rd gen (2009–2013)", powers: ["170 hp – 2.5L SOHC Boxer H4", "224 hp – 2.5L Turbo XT Boxer H4"] },
       { label: "Forester 4th gen (2014–2018)", powers: ["170 hp – 2.5L DOHC Boxer H4", "250 hp – 2.0L Turbo XT Boxer H4"] },
-      { label: "Forester 5th gen (2019–present)", powers: ["182 hp – 2.5L DOHC Boxer H4", "182 hp – 2.5L e-Boxer Hybrid (2022+)"] },
+      { label: "Forester 5th gen (2019–)", powers: ["182 hp – 2.5L DOHC Boxer H4", "182 hp – 2.5L e-Boxer Hybrid (2022+)"] },
 
       // ── Crosstrek ─────────────────────────────────────────────────────────
       { group: "Crosstrek" },
       { label: "Crosstrek (2013–2023)", powers: ["148 hp – 2.0L Boxer H4", "152 hp – 2.0L Boxer H4 (2018+)", "137 hp – 2.0L PHEV Plug-in Hybrid"] },
-      { label: "Crosstrek (2024–present)", powers: ["182 hp – 2.5L DOHC Boxer H4"] },
+      { label: "Crosstrek (2024–)", powers: ["182 hp – 2.5L DOHC Boxer H4"] },
 
       // ── Legacy ────────────────────────────────────────────────────────────
       { group: "Legacy" },
       { label: "Legacy (2015–2019)", powers: ["175 hp – 2.5L DOHC Boxer H4", "256 hp – 3.6L DOHC Boxer H6"] },
-      { label: "Legacy (2020–present)", powers: ["182 hp – 2.5L DOHC Boxer H4", "260 hp – 2.4L Turbo Boxer H4"] },
+      { label: "Legacy (2020–)", powers: ["182 hp – 2.5L DOHC Boxer H4", "260 hp – 2.4L Turbo Boxer H4"] },
 
       // ── Ascent ────────────────────────────────────────────────────────────
       { group: "Ascent" },
-      { label: "Ascent (2019–present)", powers: ["260 hp – 2.4L Turbocharged Boxer H4"] },
+      { label: "Ascent (2019–)", powers: ["260 hp – 2.4L Turbocharged Boxer H4"] },
 
       // ── WRX ───────────────────────────────────────────────────────────────
       { group: "WRX" },
       { label: "WRX (2015–2021)", powers: ["268 hp – 2.0L Turbocharged EJ20/FA20 Boxer H4", "305 hp – 2.5L Turbocharged EJ25 STI Boxer H4"] },
-      { label: "WRX (2022–present)", powers: ["271 hp – 2.4L Turbocharged Boxer H4", "275 hp – 2.4L Turbocharged Boxer H4 (GT)"] },
+      { label: "WRX (2022–)", powers: ["271 hp – 2.4L Turbocharged Boxer H4", "275 hp – 2.4L Turbocharged Boxer H4 (GT)"] },
 
       // ── BRZ ───────────────────────────────────────────────────────────────
       { group: "BRZ" },
       { label: "BRZ 1st gen (2013–2021)", powers: ["205 hp – 2.0L Boxer H4 FA20"] },
-      { label: "BRZ 2nd gen (2022–present)", powers: ["228 hp – 2.4L Boxer H4 FA24"] },
+      { label: "BRZ 2nd gen (2022–)", powers: ["228 hp – 2.4L Boxer H4 FA24"] },
 
       // ── Impreza ───────────────────────────────────────────────────────────
       { group: "Impreza" },
       { label: "Impreza (2017–2023)", powers: ["152 hp – 2.0L DOHC Boxer H4"] },
-      { label: "Impreza (2024–present)", powers: ["182 hp – 2.5L DOHC Boxer H4"] },
+      { label: "Impreza (2024–)", powers: ["182 hp – 2.5L DOHC Boxer H4"] },
     ],
   },
 
@@ -307,7 +307,7 @@ export const VEHICLE_CATALOG_US = [
       { group: "Mazda3" },
       { label: "Mazda3 (2010–2013)", powers: ["148 hp – 2.0L DOHC I4", "167 hp – 2.5L DOHC I4"] },
       { label: "Mazda3 (2014–2018)", powers: ["155 hp – 2.0L SkyActiv-G I4", "184 hp – 2.5L SkyActiv-G I4"] },
-      { label: "Mazda3 (2019–present)", powers: ["155 hp – 2.0L SkyActiv-G I4", "186 hp – 2.5L SkyActiv-G I4", "227 hp – 2.5L Turbo SkyActiv-G I4 AWD"] },
+      { label: "Mazda3 (2019–)", powers: ["155 hp – 2.0L SkyActiv-G I4", "186 hp – 2.5L SkyActiv-G I4", "227 hp – 2.5L Turbo SkyActiv-G I4 AWD"] },
 
       // ── Mazda6 ────────────────────────────────────────────────────────────
       { group: "Mazda6" },
@@ -316,11 +316,11 @@ export const VEHICLE_CATALOG_US = [
       // ── CX-5 ──────────────────────────────────────────────────────────────
       { group: "CX-5" },
       { label: "CX-5 1st gen (2013–2016)", powers: ["155 hp – 2.0L SkyActiv-G I4", "184 hp – 2.5L SkyActiv-G I4"] },
-      { label: "CX-5 2nd gen (2017–present)", powers: ["187 hp – 2.5L SkyActiv-G I4", "187 hp – 2.5L SkyActiv-G AWD", "227 hp – 2.5L Turbo SkyActiv-G I4", "256 hp – 2.5L Turbo SkyActiv-G (93 oct)"] },
+      { label: "CX-5 2nd gen (2017–)", powers: ["187 hp – 2.5L SkyActiv-G I4", "187 hp – 2.5L SkyActiv-G AWD", "227 hp – 2.5L Turbo SkyActiv-G I4", "256 hp – 2.5L Turbo SkyActiv-G (93 oct)"] },
 
       // ── CX-50 ─────────────────────────────────────────────────────────────
       { group: "CX-50" },
-      { label: "CX-50 (2023–present)", powers: ["187 hp – 2.5L SkyActiv-G I4", "256 hp – 2.5L Turbo SkyActiv-G I4"] },
+      { label: "CX-50 (2023–)", powers: ["187 hp – 2.5L SkyActiv-G I4", "256 hp – 2.5L Turbo SkyActiv-G I4"] },
 
       // ── CX-9 ──────────────────────────────────────────────────────────────
       { group: "CX-9" },
@@ -330,7 +330,7 @@ export const VEHICLE_CATALOG_US = [
       { group: "MX-5 Miata" },
       { label: "MX-5 Miata NC (2006–2015)", powers: ["158 hp – 2.0L DOHC I4 MZR"] },
       { label: "MX-5 Miata ND (2016–2018)", powers: ["155 hp – 2.0L SkyActiv-G I4"] },
-      { label: "MX-5 Miata ND (2019–present)", powers: ["181 hp – 2.0L SkyActiv-G I4"] },
+      { label: "MX-5 Miata ND (2019–)", powers: ["181 hp – 2.0L SkyActiv-G I4"] },
     ],
   },
 
@@ -344,27 +344,27 @@ export const VEHICLE_CATALOG_US = [
       { group: "Escalade" },
       { label: "Escalade (2007–2014)", powers: ["403 hp – 6.2L EcoTec V8"] },
       { label: "Escalade (2015–2020)", powers: ["420 hp – 6.2L EcoTec3 V8"] },
-      { label: "Escalade (2021–present)", powers: ["420 hp – 6.2L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "682 hp – 6.2L Supercharged V-Series V8"] },
+      { label: "Escalade (2021–)", powers: ["420 hp – 6.2L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "682 hp – 6.2L Supercharged V-Series V8"] },
 
       // ── XT4 ───────────────────────────────────────────────────────────────
       { group: "XT4" },
-      { label: "XT4 (2019–present)", powers: ["237 hp – 2.0L Turbo I4"] },
+      { label: "XT4 (2019–)", powers: ["237 hp – 2.0L Turbo I4"] },
 
       // ── XT5 ───────────────────────────────────────────────────────────────
       { group: "XT5" },
-      { label: "XT5 (2017–present)", powers: ["310 hp – 3.6L V6 SIDI", "237 hp – 2.0L Turbo I4 (2021+)"] },
+      { label: "XT5 (2017–)", powers: ["310 hp – 3.6L V6 SIDI", "237 hp – 2.0L Turbo I4 (2021+)"] },
 
       // ── XT6 ───────────────────────────────────────────────────────────────
       { group: "XT6" },
-      { label: "XT6 (2020–present)", powers: ["310 hp – 3.6L V6 SIDI", "237 hp – 2.0L Turbo I4 (2022+)"] },
+      { label: "XT6 (2020–)", powers: ["310 hp – 3.6L V6 SIDI", "237 hp – 2.0L Turbo I4 (2022+)"] },
 
       // ── CT4 ───────────────────────────────────────────────────────────────
       { group: "CT4" },
-      { label: "CT4 (2020–present)", powers: ["237 hp – 2.0L Turbo I4", "325 hp – 2.7L Turbo I4 V-Series", "472 hp – 3.6L Twin Turbo Blackwing V6"] },
+      { label: "CT4 (2020–)", powers: ["237 hp – 2.0L Turbo I4", "325 hp – 2.7L Turbo I4 V-Series", "472 hp – 3.6L Twin Turbo Blackwing V6"] },
 
       // ── CT5 ───────────────────────────────────────────────────────────────
       { group: "CT5" },
-      { label: "CT5 (2020–present)", powers: ["237 hp – 2.0L Turbo I4", "335 hp – 3.0L Twin Turbo V6 V-Series", "668 hp – 6.2L Supercharged Blackwing V8"] },
+      { label: "CT5 (2020–)", powers: ["237 hp – 2.0L Turbo I4", "335 hp – 3.0L Twin Turbo V6 V-Series", "668 hp – 6.2L Supercharged Blackwing V8"] },
     ],
   },
 
@@ -378,20 +378,20 @@ export const VEHICLE_CATALOG_US = [
       { group: "Navigator" },
       { label: "Navigator (2007–2014)", powers: ["310 hp – 5.4L V8"] },
       { label: "Navigator (2015–2017)", powers: ["380 hp – 3.5L EcoBoost V6"] },
-      { label: "Navigator (2018–present)", powers: ["450 hp – 3.5L Twin Turbo EcoBoost V6"] },
+      { label: "Navigator (2018–)", powers: ["450 hp – 3.5L Twin Turbo EcoBoost V6"] },
 
       // ── Aviator ───────────────────────────────────────────────────────────
       { group: "Aviator" },
-      { label: "Aviator (2020–present)", powers: ["400 hp – 3.0L Twin Turbo V6", "494 hp – 3.0L Twin Turbo PHEV V6"] },
+      { label: "Aviator (2020–)", powers: ["400 hp – 3.0L Twin Turbo V6", "494 hp – 3.0L Twin Turbo PHEV V6"] },
 
       // ── Corsair ───────────────────────────────────────────────────────────
       { group: "Corsair" },
-      { label: "Corsair (2020–present)", powers: ["247 hp – 2.0L EcoBoost Turbo I4", "266 hp – 2.5L PHEV Hybrid I4"] },
+      { label: "Corsair (2020–)", powers: ["247 hp – 2.0L EcoBoost Turbo I4", "266 hp – 2.5L PHEV Hybrid I4"] },
 
       // ── Nautilus ──────────────────────────────────────────────────────────
       { group: "Nautilus" },
       { label: "Nautilus (2019–2023)", powers: ["250 hp – 2.0L EcoBoost Turbo I4", "335 hp – 2.7L EcoBoost Turbo V6"] },
-      { label: "Nautilus (2024–present)", powers: ["328 hp – 2.7L EcoBoost Turbo V6"] },
+      { label: "Nautilus (2024–)", powers: ["328 hp – 2.7L EcoBoost Turbo V6"] },
 
       // ── MKZ ───────────────────────────────────────────────────────────────
       { group: "MKZ" },
@@ -407,7 +407,7 @@ export const VEHICLE_CATALOG_US = [
     models: [
       // ── Pacifica ──────────────────────────────────────────────────────────
       { group: "Pacifica" },
-      { label: "Pacifica (2017–present)", powers: ["287 hp – 3.6L Pentastar V6", "260 hp – 3.6L Pentastar Hybrid PHEV"] },
+      { label: "Pacifica (2017–)", powers: ["287 hp – 3.6L Pentastar V6", "260 hp – 3.6L Pentastar Hybrid PHEV"] },
 
       // ── Chrysler 300 ──────────────────────────────────────────────────────
       { group: "300" },
@@ -424,21 +424,21 @@ export const VEHICLE_CATALOG_US = [
       // ── Encore ────────────────────────────────────────────────────────────
       { group: "Encore" },
       { label: "Encore (2013–2019)", powers: ["138 hp – 1.4L Turbo I4 Ecotec", "153 hp – 1.4L Turbo Sport I4"] },
-      { label: "Encore (2020–present)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3 AWD"] },
+      { label: "Encore (2020–)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3 AWD"] },
 
       // ── Encore GX ─────────────────────────────────────────────────────────
       { group: "Encore GX" },
-      { label: "Encore GX (2020–present)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3"] },
+      { label: "Encore GX (2020–)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3"] },
 
       // ── Envision ──────────────────────────────────────────────────────────
       { group: "Envision" },
       { label: "Envision (2016–2020)", powers: ["197 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4"] },
-      { label: "Envision (2021–present)", powers: ["228 hp – 2.0L Turbo I4"] },
+      { label: "Envision (2021–)", powers: ["228 hp – 2.0L Turbo I4"] },
 
       // ── Enclave ───────────────────────────────────────────────────────────
       { group: "Enclave" },
       { label: "Enclave (2008–2017)", powers: ["281 hp – 3.6L V6 SIDI"] },
-      { label: "Enclave (2018–present)", powers: ["310 hp – 3.6L V6 SIDI"] },
+      { label: "Enclave (2018–)", powers: ["310 hp – 3.6L V6 SIDI"] },
     ],
   },
 
@@ -451,21 +451,21 @@ export const VEHICLE_CATALOG_US = [
       // ── MDX ───────────────────────────────────────────────────────────────
       { group: "MDX" },
       { label: "MDX 3rd gen (2014–2020)", powers: ["290 hp – 3.5L SOHC i-VTEC V6", "321 hp – 3.5L Sport Hybrid SH-AWD V6"] },
-      { label: "MDX 4th gen (2022–present)", powers: ["290 hp – 3.5L SOHC V6 Turbo", "355 hp – 3.0L Twin Turbo Type S V6"] },
+      { label: "MDX 4th gen (2022–)", powers: ["290 hp – 3.5L SOHC V6 Turbo", "355 hp – 3.0L Twin Turbo Type S V6"] },
 
       // ── RDX ───────────────────────────────────────────────────────────────
       { group: "RDX" },
       { label: "RDX (2013–2018)", powers: ["279 hp – 3.5L SOHC V6"] },
-      { label: "RDX (2019–present)", powers: ["272 hp – 2.0L VTEC Turbo I4"] },
+      { label: "RDX (2019–)", powers: ["272 hp – 2.0L VTEC Turbo I4"] },
 
       // ── TLX ───────────────────────────────────────────────────────────────
       { group: "TLX" },
       { label: "TLX (2015–2020)", powers: ["206 hp – 2.4L DOHC i-VTEC I4", "290 hp – 3.5L SOHC V6 SH-AWD"] },
-      { label: "TLX (2021–present)", powers: ["272 hp – 2.0L Turbo I4", "355 hp – 3.0L Twin Turbo Type S V6"] },
+      { label: "TLX (2021–)", powers: ["272 hp – 2.0L Turbo I4", "355 hp – 3.0L Twin Turbo Type S V6"] },
 
       // ── Integra ───────────────────────────────────────────────────────────
       { group: "Integra" },
-      { label: "Integra (2023–present)", powers: ["200 hp – 1.5L VTEC Turbo I4", "320 hp – 1.5L VTEC Turbo Type S I4"] },
+      { label: "Integra (2023–)", powers: ["200 hp – 1.5L VTEC Turbo I4", "320 hp – 1.5L VTEC Turbo Type S I4"] },
 
       // ── ILX ───────────────────────────────────────────────────────────────
       { group: "ILX" },
@@ -484,33 +484,33 @@ export const VEHICLE_CATALOG_US = [
       { label: "RX 350/400h (2007–2009)", powers: ["270 hp – 3.5L V6 2GR-FE", "268 hp – 3.3L Hybrid V6"] },
       { label: "RX 350/450h (2010–2015)", powers: ["275 hp – 3.5L V6 2GR-FE", "295 hp – 3.5L Hybrid V6"] },
       { label: "RX 350/450h (2016–2022)", powers: ["295 hp – 3.5L V6 2GR-FKS", "308 hp – 3.5L Hybrid V6"] },
-      { label: "RX 350/500h/350h (2023–present)", powers: ["275 hp – 2.4L Turbo I4", "366 hp – 2.4L Turbo Hybrid", "246 hp – 2.5L FHEV Hybrid"] },
+      { label: "RX 350/500h/350h (2023–)", powers: ["275 hp – 2.4L Turbo I4", "366 hp – 2.4L Turbo Hybrid", "246 hp – 2.5L FHEV Hybrid"] },
 
       // ── NX ────────────────────────────────────────────────────────────────
       { group: "NX" },
       { label: "NX 200t/300 (2015–2021)", powers: ["235 hp – 2.0L Turbo I4"] },
-      { label: "NX 250/350/350h/450h+ (2022–present)", powers: ["203 hp – 2.5L NA I4", "275 hp – 2.4L Turbo I4", "243 hp – 2.5L FHEV Hybrid", "306 hp – 2.5L PHEV"] },
+      { label: "NX 250/350/350h/450h+ (2022–)", powers: ["203 hp – 2.5L NA I4", "275 hp – 2.4L Turbo I4", "243 hp – 2.5L FHEV Hybrid", "306 hp – 2.5L PHEV"] },
 
       // ── GX ────────────────────────────────────────────────────────────────
       { group: "GX" },
       { label: "GX 460 (2010–2023)", powers: ["301 hp – 4.6L V8 1UR-FE"] },
-      { label: "GX 550 (2024–present)", powers: ["349 hp – 3.4L Twin Turbo V6", "406 hp – 3.4L Twin Turbo Hybrid V6"] },
+      { label: "GX 550 (2024–)", powers: ["349 hp – 3.4L Twin Turbo V6", "406 hp – 3.4L Twin Turbo Hybrid V6"] },
 
       // ── LX ────────────────────────────────────────────────────────────────
       { group: "LX" },
       { label: "LX 570 (2008–2021)", powers: ["383 hp – 5.7L V8 3UR-FE"] },
-      { label: "LX 600 (2022–present)", powers: ["409 hp – 3.4L Twin Turbo V6", "457 hp – 3.4L Twin Turbo Hybrid V6"] },
+      { label: "LX 600 (2022–)", powers: ["409 hp – 3.4L Twin Turbo V6", "457 hp – 3.4L Twin Turbo Hybrid V6"] },
 
       // ── ES ────────────────────────────────────────────────────────────────
       { group: "ES" },
       { label: "ES 350/300h (2013–2018)", powers: ["268 hp – 3.5L V6 2GR-FE", "200 hp – 2.5L Hybrid"] },
-      { label: "ES 350/300h (2019–present)", powers: ["302 hp – 3.5L V6 2GR-FKS", "215 hp – 2.5L FHEV Hybrid"] },
+      { label: "ES 350/300h (2019–)", powers: ["302 hp – 3.5L V6 2GR-FKS", "215 hp – 2.5L FHEV Hybrid"] },
 
       // ── IS ────────────────────────────────────────────────────────────────
       { group: "IS" },
       { label: "IS 250/350 (2006–2013)", powers: ["204 hp – 2.5L V6", "306 hp – 3.5L V6 2GR-FSE"] },
       { label: "IS 200t/300/350 (2014–2020)", powers: ["241 hp – 2.0L Turbo I4", "260 hp – 3.5L V6 AWD", "311 hp – 3.5L V6 RWD"] },
-      { label: "IS 300/350/500 (2021–present)", powers: ["260 hp – 3.5L V6 AWD", "311 hp – 3.5L V6 RWD", "472 hp – 5.0L V8 IS 500"] },
+      { label: "IS 300/350/500 (2021–)", powers: ["260 hp – 3.5L V6 AWD", "311 hp – 3.5L V6 RWD", "472 hp – 5.0L V8 IS 500"] },
     ],
   },
 
@@ -523,24 +523,24 @@ export const VEHICLE_CATALOG_US = [
       // ── QX60 ──────────────────────────────────────────────────────────────
       { group: "QX60" },
       { label: "QX60 (2013–2021)", powers: ["265 hp – 2.5L Supercharged Hybrid I4", "295 hp – 3.5L V6 VQ35DE"] },
-      { label: "QX60 (2022–present)", powers: ["295 hp – 3.5L V6 VQ35DD"] },
+      { label: "QX60 (2022–)", powers: ["295 hp – 3.5L V6 VQ35DD"] },
 
       // ── QX80 ──────────────────────────────────────────────────────────────
       { group: "QX80" },
-      { label: "QX80 (2014–present)", powers: ["400 hp – 5.6L V8 Endurance VK56VD"] },
+      { label: "QX80 (2014–)", powers: ["400 hp – 5.6L V8 Endurance VK56VD"] },
 
       // ── QX50 ──────────────────────────────────────────────────────────────
       { group: "QX50" },
-      { label: "QX50 (2019–present)", powers: ["268 hp – 2.0L VC-Turbo Variable Compression I4"] },
+      { label: "QX50 (2019–)", powers: ["268 hp – 2.0L VC-Turbo Variable Compression I4"] },
 
       // ── Q50 ───────────────────────────────────────────────────────────────
       { group: "Q50" },
       { label: "Q50 (2014–2015)", powers: ["208 hp – 2.0L Turbo I4", "328 hp – 3.7L V6 VQ37VHR", "360 hp – 3.5L Hybrid V6"] },
-      { label: "Q50 (2016–present)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
+      { label: "Q50 (2016–)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
 
       // ── Q60 ───────────────────────────────────────────────────────────────
       { group: "Q60" },
-      { label: "Q60 (2017–present)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
+      { label: "Q60 (2017–)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
     ],
   },
 
@@ -552,31 +552,31 @@ export const VEHICLE_CATALOG_US = [
     models: [
       // ── GV80 ──────────────────────────────────────────────────────────────
       { group: "GV80" },
-      { label: "GV80 (2021–present)", powers: ["300 hp – 2.5L Turbo I4", "375 hp – 3.5L Twin Turbo V6", "278 hp – 3.0L Turbo Diesel (international)"] },
+      { label: "GV80 (2021–)", powers: ["300 hp – 2.5L Turbo I4", "375 hp – 3.5L Twin Turbo V6", "278 hp – 3.0L Turbo Diesel (international)"] },
 
       // ── GV70 ──────────────────────────────────────────────────────────────
       { group: "GV70" },
-      { label: "GV70 (2022–present)", powers: ["300 hp – 2.5L Turbo I4", "375 hp – 3.5L Twin Turbo V6"] },
-      { label: "GV70 Electrified (2023–present)", powers: ["429 hp – Dual Motor Electric AWD", "429 hp – Dual Motor EV Boost 483 hp"] },
+      { label: "GV70 (2022–)", powers: ["300 hp – 2.5L Turbo I4", "375 hp – 3.5L Twin Turbo V6"] },
+      { label: "GV70 Electrified (2023–)", powers: ["429 hp – Dual Motor Electric AWD", "429 hp – Dual Motor EV Boost 483 hp"] },
 
       // ── GV60 ──────────────────────────────────────────────────────────────
       { group: "GV60" },
-      { label: "GV60 (2023–present)", powers: ["314 hp – Single Motor RWD Electric", "429 hp – Dual Motor AWD Electric", "429 hp – Performance Boost 483 hp Electric"] },
+      { label: "GV60 (2023–)", powers: ["314 hp – Single Motor RWD Electric", "429 hp – Dual Motor AWD Electric", "429 hp – Performance Boost 483 hp Electric"] },
 
       // ── G80 ───────────────────────────────────────────────────────────────
       { group: "G80" },
       { label: "G80 (2017–2020)", powers: ["311 hp – 3.8L V6 Lambda", "365 hp – 5.0L V8 Tau", "245 hp – 2.0L Turbo I4"] },
-      { label: "G80 (2021–present)", powers: ["300 hp – 2.5L Turbo I4", "375 hp – 3.5L Twin Turbo V6"] },
-      { label: "G80 Electrified (2023–present)", powers: ["365 hp – Dual Motor AWD Electric"] },
+      { label: "G80 (2021–)", powers: ["300 hp – 2.5L Turbo I4", "375 hp – 3.5L Twin Turbo V6"] },
+      { label: "G80 Electrified (2023–)", powers: ["365 hp – Dual Motor AWD Electric"] },
 
       // ── G70 ───────────────────────────────────────────────────────────────
       { group: "G70" },
-      { label: "G70 (2019–present)", powers: ["252 hp – 2.0L Turbo I4", "365 hp – 3.3L Twin Turbo V6"] },
+      { label: "G70 (2019–)", powers: ["252 hp – 2.0L Turbo I4", "365 hp – 3.3L Twin Turbo V6"] },
 
       // ── G90 ───────────────────────────────────────────────────────────────
       { group: "G90" },
       { label: "G90 (2017–2022)", powers: ["311 hp – 3.3L Twin Turbo V6", "420 hp – 5.0L V8 Tau"] },
-      { label: "G90 (2023–present)", powers: ["375 hp – 3.5L Twin Turbo V6"] },
+      { label: "G90 (2023–)", powers: ["375 hp – 3.5L Twin Turbo V6"] },
     ],
   },
 

@@ -100,6 +100,18 @@ export const strings = {
   'app.feedbackSent':     'Odesláno, děkujeme!',
   'app.feedbackError':    'Nepodařilo se odeslat',
 
+  // Admin review
+  'review.sidebarBtn':    '📋 Ke kontrole',
+  'review.title':         'KONTROLA PŘÍPADŮ',
+  'review.loading':       'Načítám...',
+  'review.count':         '{count} případů čeká na kontrolu',
+  'review.empty':         'Žádné případy ke kontrole ✓',
+  'review.refresh':       'Obnovit',
+  'review.approveAll':    'Schválit vše',
+  'review.approve':       'Schválit',
+  'review.reject':        'Zamítnout',
+  'review.resolution':    'PROVEDENÁ OPRAVA',
+
   // Status
   'status.closed':        '✓ UZAVŘENÝ',
   'status.active':        '● AKTIVNÍ',

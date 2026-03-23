@@ -44,7 +44,34 @@
       "Bash(xargs grep -l \"window\\\\.\")",
       "Bash(node tests/i18n.test.js)",
       "WebSearch",
-      "Bash(grep -l \"test\\\\|spec\" *.js *.jsx)"
+      "Bash(grep -l \"test\\\\|spec\" *.js *.jsx)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(ls /c/GB/.claude/worktrees/optimistic-shtern/web/node_modules/.bin/vite*)",
+      "Bash(npx eslint:*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(node /c/GB/.claude/worktrees/optimistic-shtern/.claude/pre-push-check.mjs)",
+      "Bash(node -e \"const s=require\\(''/c/GB/.claude/worktrees/optimistic-shtern/.claude/settings.local.json''\\); const h=s.hooks?.PreToolUse?.[0]; console.log\\(''matcher:'', h.matcher\\); console.log\\(''command:'', h.hooks[0].command\\); console.log\\(''timeout:'', h.hooks[0].timeout\\); console.log\\(''JSON valid: OK''\\)\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\); const s=JSON.parse\\(fs.readFileSync\\(''C:/GB/.claude/worktrees/optimistic-shtern/.claude/settings.local.json'',''utf8''\\)\\); const h=s.hooks?.PreToolUse?.[0]; console.log\\(''matcher:'', h.matcher\\); console.log\\(''command:'', h.hooks[0].command\\); console.log\\(''timeout:'', h.hooks[0].timeout\\); console.log\\(''JSON valid: OK''\\)\")",
+      "Bash(xargs ls:*)",
+      "Bash(find C:/GB/.claude/worktrees/optimistic-shtern/web/src/hooks -name *.js)",
+      "Bash(npx supabase:*)",
+      "Bash(curl -s -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo\" \"https://nmvjthfezyjcwuzphiuu.supabase.co/rest/v1/gearbrain_web_sessions?select=user_id&limit=1\")"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/pre-push-check.mjs",
+            "timeout": 120,
+            "statusMessage": "Running pre-push checks (ESLint + build)..."
+          }
+        ]
+      }
     ]
   }
 }

@@ -26,11 +26,11 @@ export async function loadCases() {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return (data ?? []).map(row => ({
-    ...row.data,
-    _rowId: row.id,
-    _status: row.status,
-  }))
+  return (data ?? []).map(row => {
+    const c = { ...row.data, _rowId: row.id, _status: row.status }
+    if (c.vehicle?.model) c.vehicle = { ...c.vehicle, model: c.vehicle.model.replace(/–dosud\)/, '–)').replace(/–present\)/, '–)') }
+    return c
+  })
 }
 
 // ── Save a case (upsert by user_id + local_id) ────────────────────────────────
@@ -150,6 +150,36 @@ async function edgeFetch(fnName, body) {
   return res.json()
 }
 
+// ── Admin: fetch pending review cases ─────────────────────────────────────────
+
+export async function fetchReviewCases(status = 'pending') {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token || ANON_KEY
+  const res = await fetch(`${FUNCTIONS_URL}/review-cases?status=${status}&limit=50`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': ANON_KEY,
+    },
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    let msg = `review-cases: HTTP ${res.status}`
+    try { const j = JSON.parse(text); msg = j.error || msg } catch {}
+    throw new Error(msg)
+  }
+  return res.json()
+}
+
+// ── Admin: approve/reject case(s) ────────────────────────────────────────────
+
+export async function updateCaseStatus(caseIdOrIds, status) {
+  const payload = Array.isArray(caseIdOrIds)
+    ? { case_ids: caseIdOrIds, status }
+    : { case_id: caseIdOrIds, status }
+  return edgeFetch('review-cases', payload)
+}
+
 // ── Call AI via Edge Function ─────────────────────────────────────────────────
 
 export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, model = 'deepseek-reasoner' }) {
@@ -181,6 +211,7 @@ export async function getGlobalCaseCount() {
   const { count, error } = await supabase
     .from('gearbrain_cases')
     .select('*', { count: 'exact', head: true })
+    .eq('status', 'approved')
   if (error) throw error
   return count ?? 0
 }

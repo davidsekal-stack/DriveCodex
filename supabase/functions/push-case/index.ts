@@ -115,6 +115,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
       description:     translatedDescription || null,
       resolution:      translatedResolution,
       closed_at:       closed_at       ?? new Date().toISOString(),
+      status:          'pending',
     }
 
     const { error } = await supabase

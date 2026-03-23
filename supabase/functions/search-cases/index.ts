@@ -156,6 +156,7 @@ Return format: {"symptoms":["..."],"text":"..."}`,
     let query = supabase
       .from('gearbrain_cases')
       .select('*')
+      .eq('status', 'approved')
       .order('closed_at', { ascending: false })
       .limit(200)
 
