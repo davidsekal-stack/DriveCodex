@@ -1,3 +1,5 @@
+import { MSG } from "../constants/enums.js";
+
 export function mapStoredCases(rows) {
   return (rows ?? []).map((row) => ({
     ...row.data,
@@ -28,7 +30,7 @@ export function buildSaveCasePayload(userId, caseData, status, updatedAt) {
 }
 
 export function buildPushClosedCasePayload(kase, userId) {
-  const inputs = (kase.messages ?? []).filter((message) => message.type === "input");
+  const inputs = (kase.messages ?? []).filter((message) => message.type === MSG.INPUT);
   const symptoms = [...new Set(inputs.flatMap((message) => message.symptoms ?? []))];
   const obdCodes = [...new Set(inputs.flatMap((message) => message.obdCodes ?? []))];
   const texts = inputs.map((message) => message.text).filter(Boolean);

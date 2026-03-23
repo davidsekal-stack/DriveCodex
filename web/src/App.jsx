@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 
+import { MSG }                              from "./constants/enums.js";
 import { DARK, LIGHT }                      from "./theme.js";
 import { signOut }                           from "./lib/supabase.js";
 import * as storage                          from "./lib/storage.js";
@@ -116,10 +117,10 @@ function App() {
     tr,
   });
 
-  const diagCount   = activeCase?.messages.filter((m) => m.type === "diagnosis").length ?? 0;
+  const diagCount   = activeCase?.messages.filter((m) => m.type === MSG.DIAGNOSIS).length ?? 0;
 
   // Extract faults from the latest diagnosis for smart close modal
-  const latestDiag = activeCase?.messages?.filter((m) => m.type === "diagnosis").at(-1);
+  const latestDiag = activeCase?.messages?.filter((m) => m.type === MSG.DIAGNOSIS).at(-1);
   const diagFaults = latestDiag?.result?.závady ?? [];
 
   const isAdmin = session && ADMIN_EMAILS.includes(session.user?.email);

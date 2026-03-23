@@ -1,5 +1,7 @@
+import { MSG } from "../constants/enums.js";
+
 export function collectCaseInputs(messages = [], inputMsg) {
-  const prevInputs = messages.filter((message) => message.type === "input");
+  const prevInputs = messages.filter((message) => message.type === MSG.INPUT);
   const allInputs = [...prevInputs, inputMsg];
 
   return {

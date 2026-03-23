@@ -1,3 +1,4 @@
+import { CASE_STATUS } from "../constants/enums.js";
 import InputForm, { FollowUpPrompt } from "./InputForm.jsx";
 
 export default function SessionComposer({
@@ -9,7 +10,7 @@ export default function SessionComposer({
   t,
   tr,
 }) {
-  if (activeCase.status !== "rozpracovaný") return null;
+  if (activeCase.status !== CASE_STATUS.OPEN) return null;
 
   return (
     <div style={{ borderTop: `1px solid ${t.border}`, padding: mobile ? "10px" : "14px 20px", background: t.bgFollowup, flexShrink: 0 }}>

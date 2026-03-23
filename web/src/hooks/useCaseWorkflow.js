@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 
+import { MSG, CASE_STATUS } from "../constants/enums.js";
 import { uid } from "../lib/utils.js";
 import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "../lib/ai.js";
 import { validateResolution } from "../lib/validation.js";
@@ -60,7 +61,7 @@ export default function useCaseWorkflow({
 
     const inputMsg = {
       id: uid(),
-      type: "input",
+      type: MSG.INPUT,
       ...inputData,
       timestamp: new Date().toISOString(),
     };
@@ -113,7 +114,7 @@ export default function useCaseWorkflow({
       const usedTokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
       const diagnosisMsg = {
         id: uid(),
-        type: "diagnosis",
+        type: MSG.DIAGNOSIS,
         result: normalized,
         ragMatchIds: similarCases.map((item) => item.id),
         tokensUsed: usedTokens,
@@ -121,7 +122,7 @@ export default function useCaseWorkflow({
       };
 
       updateCase(caseId, (storedCase) => {
-        const isFirstDiagnosis = storedCase.messages.filter((message) => message.type === "diagnosis").length === 0;
+        const isFirstDiagnosis = storedCase.messages.filter((message) => message.type === MSG.DIAGNOSIS).length === 0;
         return {
           messages: [...storedCase.messages, diagnosisMsg],
           name: isFirstDiagnosis
@@ -152,7 +153,7 @@ export default function useCaseWorkflow({
     const closedAt = new Date().toISOString();
 
     updateCase(activeId, () => ({
-      status: "uzavřený",
+      status: CASE_STATUS.CLOSED,
       closedAt,
       resolution: trimmedResolution,
     }));
@@ -160,7 +161,7 @@ export default function useCaseWorkflow({
     if (currentCase && hasConsent()) {
       const fullCase = {
         ...currentCase,
-        status: "uzavřený",
+        status: CASE_STATUS.CLOSED,
         closedAt,
         resolution: trimmedResolution,
       };

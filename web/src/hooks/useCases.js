@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { CASE_STATUS } from "../constants/enums.js";
 import { uid } from "../lib/utils.js";
 import * as storage from "../lib/storage.js";
 
@@ -80,7 +81,7 @@ export default function useCases() {
     const id = caseData.id;
     if (saveTimers.current[id]) clearTimeout(saveTimers.current[id]);
     saveTimers.current[id] = setTimeout(() => {
-      const status = caseData.status === "uzavřený" ? "closed" : "open";
+      const status = caseData.status === CASE_STATUS.CLOSED ? "closed" : "open";
       markSyncStarted();
       storage.updateCase(id, caseData, status)
         .then(() => markSyncSuccess())
@@ -118,7 +119,7 @@ export default function useCases() {
       : "Nový případ";
 
     const newCase = {
-      id, name, status: "rozpracovaný",
+      id, name, status: CASE_STATUS.OPEN,
       createdAt: new Date().toISOString(), closedAt: null,
       vehicle, messages: [], resolution: null, tokenCount: 0,
     };

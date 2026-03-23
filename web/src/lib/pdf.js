@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { MSG, CASE_STATUS } from "../constants/enums.js";
 
 // ── Font loading (Roboto from jsDelivr CDN, cached in memory) ────────────────
 const FONT_FILES = {
@@ -406,11 +407,11 @@ function renderMessages(doc, ctx, activeCase, lang, tr, F, variant) {
   let inputNum = 0, diagNum = 0;
 
   for (const msg of activeCase.messages) {
-    if (msg.type === "input") {
+    if (msg.type === MSG.INPUT) {
       inputNum++;
       renderInput(doc, ctx, msg, inputNum, tr, F, variant);
     }
-    if (msg.type === "diagnosis") {
+    if (msg.type === MSG.DIAGNOSIS) {
       diagNum++;
       renderDiagnosis(doc, ctx, msg, diagNum, lang, tr, F, variant);
     }
@@ -695,7 +696,7 @@ function renderFaultMinimalist(doc, ctx, f, fi, tr, F, lang) {
 
 // ── Shared: resolution block ─────────────────────────────────────────────────
 function renderResolution(doc, ctx, activeCase, lang, tr, F) {
-  if (activeCase.status !== "uzavřený" || !activeCase.resolution) return;
+  if (activeCase.status !== CASE_STATUS.CLOSED || !activeCase.resolution) return;
   ctx.checkPage(14);
   ctx.y += 4;
   doc.setFont(F, "bold"); doc.setFontSize(FS.body); doc.setTextColor(C.mid);

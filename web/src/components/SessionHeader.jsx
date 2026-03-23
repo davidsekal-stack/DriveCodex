@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { CASE_STATUS } from "../constants/enums.js";
 import { CASE_TOKEN_LIMIT } from "../lib/ai.js";
 import { exportCasePdf, PDF_VARIANTS } from "../lib/pdf.js";
 import { fmtMileage } from "../lib/utils.js";
@@ -41,7 +42,7 @@ export default function SessionHeader({
           {!mobile && activeCase.vehicle?.enginePower && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {activeCase.vehicle.enginePower}</span>}
           {!mobile && activeCase.vehicle?.mileage && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {fmtMileage(activeCase.vehicle.mileage, lang)}</span>}
           <StatusBadge status={activeCase.status} t={t} tr={tr} />
-          {activeCase.status === "rozpracovaný" && (
+          {activeCase.status === CASE_STATUS.OPEN && (
             <span title={`${(activeCase.tokenCount ?? 0).toLocaleString()} / ${CASE_TOKEN_LIMIT.toLocaleString()} tokens`}
               style={{ fontSize: "0.62rem", color: getUsageColor(usageMeta.tone, t), letterSpacing: "0.04em" }}>
               {usageMeta.label}
@@ -77,7 +78,7 @@ export default function SessionHeader({
             )}
           </div>
         )}
-        {activeCase.status === "rozpracovaný" && (
+        {activeCase.status === CASE_STATUS.OPEN && (
           <button onClick={onRequestCloseCase}
             style={{ background: t.doneStatusBg, border: `1px solid ${t.doneStatusBorder}`, color: t.doneStatusColor, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
             {tr("app.closeBtn")}

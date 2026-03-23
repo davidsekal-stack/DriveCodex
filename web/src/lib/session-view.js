@@ -1,3 +1,5 @@
+import { MSG } from "../constants/enums.js";
+
 export function getTokenUsageMeta(tokenCount, tokenLimit) {
   const usagePercent = Math.min(100, Math.round((tokenCount ?? 0) / tokenLimit * 100));
 
@@ -9,9 +11,9 @@ export function getTokenUsageMeta(tokenCount, tokenLimit) {
 }
 
 export function getInputRoundNumber(messages, index) {
-  return messages.slice(0, index + 1).filter((message) => message.type === "input").length;
+  return messages.slice(0, index + 1).filter((message) => message.type === MSG.INPUT).length;
 }
 
 export function hasDiagnoses(messages) {
-  return messages.some((message) => message.type === "diagnosis");
+  return messages.some((message) => message.type === MSG.DIAGNOSIS);
 }

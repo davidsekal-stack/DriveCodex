@@ -1,3 +1,4 @@
+import { MSG, CASE_STATUS } from "../constants/enums.js";
 import { fmtDate } from "../lib/utils.js";
 import { getInputRoundNumber } from "../lib/session-view.js";
 import DiagCard from "./DiagCard.jsx";
@@ -23,7 +24,7 @@ export default function SessionTimeline({
         )}
 
         {activeCase.messages.map((message, index) => {
-          if (message.type === "input") {
+          if (message.type === MSG.INPUT) {
             const roundNo = getInputRoundNumber(activeCase.messages, index);
             const hasChips = (message.symptoms?.length > 0) || (message.obdCodes?.length > 0);
 
@@ -53,7 +54,7 @@ export default function SessionTimeline({
             );
           }
 
-          if (message.type === "diagnosis") {
+          if (message.type === MSG.DIAGNOSIS) {
             const matchIds = message.ragMatchIds ?? [];
             const ragSessions = cases.filter((kase) => matchIds.includes(kase.id));
 
@@ -87,7 +88,7 @@ export default function SessionTimeline({
           </div>
         )}
 
-        {activeCase.status === "uzavřený" && activeCase.resolution && (
+        {activeCase.status === CASE_STATUS.CLOSED && activeCase.resolution && (
           <div style={{ padding: "14px 16px", background: t.closedBg, border: `1px solid ${t.closedBorder}`, borderLeft: `4px solid ${t.doneStatusColor}`, borderRadius: 2, marginTop: 4 }}>
             <div style={{ fontSize: "0.68rem", color: t.doneStatusColor, letterSpacing: "0.1em", marginBottom: 6 }}>
               {tr("app.caseClosed", { date: activeCase.closedAt ? fmtDate(activeCase.closedAt, lang) : "" })}
