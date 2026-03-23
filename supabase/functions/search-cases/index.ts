@@ -14,30 +14,77 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // ── Scoring konstanty ──────────────────────────────────────────────────────────
-// Značka vozidla se nepoužívá ke scoringu — slouží jako povinný pre-filtr na DB úrovni
-const SCORE_THRESHOLD   = 8     // Minimální absolutní skóre
-const MATCH_RATIO_MIN   = 0.5   // Minimální míra shody (50%)
-const MAX_TEXT_SCORE     = 2
+// Značka + model = povinný pre-filtr na DB úrovni (nescoruji se)
+const SCORE_THRESHOLD   = 8     // Maximální absolutní práh (snižuje se dynamicky)
+const MATCH_RATIO_MIN   = 0.5   // Minimální obousměrná míra shody (F1 ≥ 50%)
+const MAX_TEXT_SCORE    = 2
 
-const W_MODEL  = 3
-const W_ENGINE = 2
-const W_OBD    = 4
-const W_SYM    = 1.5
-const W_WORD   = 0.3
+const W_MODEL       = 3
+const W_ENGINE      = 2
+const W_OBD_GENERIC = 2     // P0xxx, P2xxx — SAE standardní kódy (generické)
+const W_OBD_SPECIFIC = 5    // P1xxx, P3xxx, C/B/U — manufacturer-specific
+const W_SYM         = 1.5
+const W_WORD        = 0.3
+const W_MILEAGE_CLOSE = 2   // nájezd ±30%
+const W_MILEAGE_FAR   = 1   // nájezd ±50%
 
-/**
- * Spočítá maximální možné skóre pro daný vstup —
- * kolik bodů by kandidát dostal při 100% shodě.
- */
-function computeMaxScore(input: any): number {
+// ── Pomocné funkce ───────────────────────────────────────────────────────────
+
+/** Váha OBD kódu: generické (P0/P2) méně, specifické (P1/P3/C/B/U) více */
+function obdWeight(code: string): number {
+  const c = (code ?? '').toUpperCase()
+  if (c.startsWith('P0') || c.startsWith('P2')) return W_OBD_GENERIC
+  return W_OBD_SPECIFIC
+}
+
+/** Skóre za podobnost nájezdu km */
+function mileageScore(a: any, b: any): number {
+  const ma = parseInt(String(a ?? ''))
+  const mb = parseInt(String(b ?? ''))
+  if (isNaN(ma) || isNaN(mb) || ma <= 0 || mb <= 0) return 0
+  const ratio = Math.min(ma, mb) / Math.max(ma, mb)
+  if (ratio >= 0.7) return W_MILEAGE_CLOSE
+  if (ratio >= 0.5) return W_MILEAGE_FAR
+  return 0
+}
+
+/** Max možné skóre z pohledu vstupu (co uživatel zadal) */
+function computeInputMaxScore(input: any): number {
   let max = 0
   if (input.vehicle?.model)       max += W_MODEL
   if (input.vehicle?.enginePower) max += W_ENGINE
-  max += (input.obdCodes?.length ?? 0) * W_OBD
+  if (input.vehicle?.mileage)     max += W_MILEAGE_CLOSE
+  for (const code of input.obdCodes ?? []) max += obdWeight(code)
   max += (input.symptoms?.length ?? 0) * W_SYM
-  const wordCount = (input.text ?? '').split(/\s+/).filter((w: string) => w.length > 4).length
-  max += Math.min(wordCount * W_WORD, MAX_TEXT_SCORE)
+  const wc = (input.text ?? '').split(/\s+/).filter((w: string) => w.length > 4).length
+  max += Math.min(wc * W_WORD, MAX_TEXT_SCORE)
   return max
+}
+
+/** Max možné skóre z pohledu kandidáta (co je v DB záznamu) */
+function computeCandidateMaxScore(row: any): number {
+  let max = 0
+  if (row.vehicle_model) max += W_MODEL
+  if (row.engine_power)  max += W_ENGINE
+  if (row.mileage)       max += W_MILEAGE_CLOSE
+  for (const code of row.obd_codes ?? []) max += obdWeight(code)
+  max += (row.symptoms?.length ?? 0) * W_SYM
+  const wc = (row.description ?? '').split(/\s+/).filter((w: string) => w.length > 4).length
+  max += Math.min(wc * W_WORD, MAX_TEXT_SCORE)
+  return max
+}
+
+/**
+ * F1-style obousměrná míra shody.
+ * forwardRatio  = "kolik z toho co hledám, má kandidát"
+ * reverseRatio  = "kolik z kandidátova obsahu odpovídá mému vstupu"
+ * F1 = harmonický průměr obou → penalizuje nesymetrické shody
+ */
+function f1Ratio(score: number, inputMax: number, candidateMax: number): number {
+  const fwd = inputMax > 0 ? score / inputMax : 0
+  const rev = candidateMax > 0 ? score / candidateMax : 0
+  if (fwd + rev === 0) return 0
+  return 2 * fwd * rev / (fwd + rev)
 }
 
 function computeSimilarity(row: any, input: any): number {
@@ -51,9 +98,10 @@ function computeSimilarity(row: any, input: any): number {
 
   if (input.vehicle?.model && row.vehicle_model === input.vehicle.model) score += W_MODEL
   if (input.vehicle?.enginePower && row.engine_power === input.vehicle.enginePower) score += W_ENGINE
+  score += mileageScore(input.vehicle?.mileage, row.mileage)
 
   for (const code of input.obdCodes ?? []) {
-    if (allText.includes(code.toLowerCase())) score += W_OBD
+    if (allText.includes(code.toLowerCase())) score += obdWeight(code)
   }
   for (const sym of input.symptoms ?? []) {
     if (allText.includes(sym.toLowerCase())) score += W_SYM
@@ -200,23 +248,29 @@ Return format: {"symptoms":["..."],"text":"..."}`,
 
     // Scoring používá přeložené příznaky a text (ostatní jsou jazykově neutrální)
     const input = { vehicle, symptoms: searchSymptoms, obdCodes, text: searchText }
-    const maxScore = computeMaxScore(input)
+    const inputMax = computeInputMaxScore(input)
+
+    // Dynamický práh: min(8, 70% maxSkóre)
+    // → pro jednoduché dotazy (1 kód + model = max 5) se práh sníží na 3.5
+    // → pro komplexní dotazy (5 kódů + model + engine = max 25+) zůstane 8
+    const dynamicThreshold = Math.min(SCORE_THRESHOLD, inputMax * 0.7)
 
     // Scoring + filtrování + řazení
     // Kandidát musí splnit OBĚ podmínky:
-    //   1) absolutní skóre ≥ 8
-    //   2) míra shody ≥ 50% (skóre / maxSkóre)
+    //   1) absolutní skóre ≥ dynamický práh
+    //   2) F1 obousměrná míra shody ≥ 50%
     const scored = (rows ?? []).map((row: any) => {
       const score = computeSimilarity(row, input)
-      const ratio = maxScore > 0 ? score / maxScore : 0
-      return { row, score, ratio, passes: score >= SCORE_THRESHOLD && ratio >= MATCH_RATIO_MIN }
+      const candidateMax = computeCandidateMaxScore(row)
+      const matchRatio = f1Ratio(score, inputMax, candidateMax)
+      return { row, score, matchRatio, passes: score >= dynamicThreshold && matchRatio >= MATCH_RATIO_MIN }
     })
 
     const results = scored
       .filter((x: any) => x.passes)
       .sort((a: any, b: any) => b.score - a.score)
       .slice(0, 5)
-      .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragRatio: x.ratio }))
+      .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragMatchRatio: x.matchRatio }))
 
     return new Response(
       JSON.stringify({ cases: results, count: results.length }),
