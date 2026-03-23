@@ -16,7 +16,7 @@ export const strings = {
   'app.newCase':          '+ NEW CASE',
   'app.noCases':          'No cases.',
   'app.noCasesHint':      'Click NEW CASE to start.',
-  'app.dbActive':         'Database active — {count} closed cases',
+  'app.dbActive':         'Database active — {count} cases',
   'app.dbActiveEmpty':    'Database active — empty',
   'app.dbInactive':       'Database inactive',
   'app.dbConnecting':     'Database: connecting...',

@@ -16,7 +16,7 @@ export const strings = {
   'app.newCase':          '+ NEUER FALL',
   'app.noCases':          'Keine Fälle.',
   'app.noCasesHint':      'Klicken Sie auf NEUER FALL.',
-  'app.dbActive':         'Datenbank aktiv — {count} abgeschlossene Fälle',
+  'app.dbActive':         'Datenbank aktiv — {count} Fälle',
   'app.dbActiveEmpty':    'Datenbank aktiv — leer',
   'app.dbInactive':       'Datenbank inaktiv',
   'app.dbConnecting':     'Datenbank: verbinde...',

@@ -16,7 +16,7 @@ export const strings = {
   'app.newCase':          '+ NOVÝ PŘÍPAD',
   'app.noCases':          'Žádné případy.',
   'app.noCasesHint':      'Klikněte na NOVÝ PŘÍPAD.',
-  'app.dbActive':         'Databáze aktivní — {count} uzavřených případů',
+  'app.dbActive':         'Databáze aktivní — {count} případů',
   'app.dbActiveEmpty':    'Databáze aktivní — prázdná',
   'app.dbInactive':       'Databáze neaktivní',
   'app.dbConnecting':     'Databáze: připojuji...',

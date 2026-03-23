@@ -31,7 +31,7 @@ const LANGS = [
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const t = darkMode ? DARK : LIGHT;
   const { tr, lang, changeLang } = useI18n();
   const mobile = useIsMobile();
