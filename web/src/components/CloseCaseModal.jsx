@@ -82,16 +82,11 @@ export default function CloseCaseModal({
     }
   }, [customActive]);
 
-  // Build resolution text — group actions by fault name
+  // Build resolution text — plain list of actions, no fault names
   const buildResolution = (checked, custom) => {
-    const byFault = {};
-    for (const v of Object.values(checked)) {
-      if (!byFault[v.fault]) byFault[v.fault] = [];
-      byFault[v.fault].push(v.option);
-    }
-    const parts = Object.entries(byFault).map(([fault, actions]) => `${fault}: ${actions.join(", ")}`);
-    if (custom.trim()) parts.push(custom.trim());
-    return parts.join(". ");
+    const actions = Object.values(checked).map((v) => v.option);
+    if (custom.trim()) actions.push(custom.trim());
+    return actions.join(", ");
   };
 
   const handleToggle = (key, faultName, optionText) => {
