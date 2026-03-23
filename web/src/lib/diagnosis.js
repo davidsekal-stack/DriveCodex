@@ -55,23 +55,7 @@ export function normalizeDiagnosisResult(parsed, tr, similarCount = 0) {
     ? parsed.závady.map((fault) => ({ ...fault }))
     : [];
 
-  while (faults.length < 3) {
-    const index = faults.length + 1;
-    faults.push({
-      název: tr("diag.additionalCause", { num: index }),
-      pravděpodobnost: Math.max(5, (faults[faults.length - 1]?.pravděpodobnost ?? 20) - 15),
-      popis: tr("diag.additionalCauseDesc"),
-      příznaky_shoda: [],
-      obd_kódy: [],
-      díly: [],
-      řešení: [],
-      postup: "",
-      naléhavost: "nízká",
-      poznámka: tr("diag.additionalCauseNote"),
-      zdroj: "ai",
-      početShod: 0,
-    });
-  }
+  // Show only faults the AI actually identified — no placeholder padding
 
   for (const fault of faults) {
     fault.početShod = fault.zdroj === "databáze" ? similarCount : 0;
