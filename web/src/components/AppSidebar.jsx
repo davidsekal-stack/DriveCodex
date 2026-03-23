@@ -63,8 +63,6 @@ export default function AppSidebar({
           <SidebarStatusPanel
             cloudStatus={cloudStatus}
             globalCaseCount={globalCaseCount}
-            syncError={syncError}
-            syncStatus={syncStatus}
             t={t}
             tr={tr}
           />

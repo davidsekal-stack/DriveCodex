@@ -159,7 +159,7 @@ export default function CloseCaseModal({
                 <textarea ref={customRef} value={customText} onChange={(e) => handleCustomChange(e.target.value)}
                   placeholder={tr("app.closeCustomPlaceholder")} rows={1}
                   onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
-                  style={{ width: "100%", marginTop: 6, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "6px 10px", fontSize: FONT, fontFamily: "'IBM Plex Mono',monospace", outline: "none", borderRadius: 2, boxSizing: "border-box", resize: "none", overflow: "hidden", lineHeight: 1.6 }} />
+                  style={{ width: "calc(100% - 28px)", marginTop: 6, marginLeft: 28, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "6px 10px", fontSize: FONT, fontFamily: "'IBM Plex Mono',monospace", outline: "none", borderRadius: 2, boxSizing: "border-box", resize: "none", overflow: "hidden", lineHeight: 1.6 }} />
               )}
             </div>
           </div>
