@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { signIn, signUp, signInWithGoogle } from "../lib/supabase.js";
-import { DARK } from "../theme.js";
+import { LIGHT } from "../theme.js";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 
@@ -11,7 +11,7 @@ const LANGS = [
 ];
 
 export default function LoginPage({ onAuth }) {
-  const t = DARK;
+  const t = LIGHT;
   const { tr, lang, changeLang } = useI18n();
   const mobile = useIsMobile();
   const [mode, setMode]       = useState("login"); // "login" | "register" | "verify"
