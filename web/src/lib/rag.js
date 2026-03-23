@@ -2,10 +2,10 @@
  * RAG (Retrieval-Augmented Generation) modul
  *
  * computeSimilarity() — skórovací logika, sdílena s Edge Function search-cases
+ * computeMaxScore()   — maximální možné skóre pro daný vstup (100% shoda)
  * extractSignals()    — pomocná funkce pro sestavení RAG bloku v system promptu
  *
- * Značka vozidla se nepoužívá ke scoringu — slouží jako pre-filtr
- * (Edge Function filtruje na DB úrovni, lokálně se předpokládá stejná značka).
+ * Značka + model vozidla jsou POVINNÉ pre-filtry na DB úrovni.
  *
  * Scoring algoritmus (shodný s supabase/functions/search-cases/index.ts):
  *   +3   shoda modelu vozidla
@@ -14,18 +14,34 @@
  *   +1.5 shoda příznaku
  *   +0.3 shoda klíčového slova z volného textu (>4 znaky), max +2 celkem
  *
- * Prahy relevance (v rámci stejné značky):
- *   OWN_THRESHOLD   = 5  — záznamy z této instalace
- *   OTHER_THRESHOLD = 8  — záznamy od ostatních servisů
+ * Podmínky zobrazení (obě musí platit):
+ *   SCORE_THRESHOLD = 8    — minimální absolutní skóre
+ *   MATCH_RATIO_MIN = 0.5  — minimální míra shody (skóre / maxSkóre ≥ 50%)
  */
 
-const OWN_THRESHOLD   = 5
-const OTHER_THRESHOLD = 8
+const SCORE_THRESHOLD = 8
+const MATCH_RATIO_MIN = 0.5
+const MAX_TEXT_SCORE  = 2
 
-// FIX #5: Max příspěvek z klíčových slov volného textu
-// Bez tohoto limitu může 30+ slov ve volném textu přidat 9+ bodů
-// a propašovat nesouvisející záznam přes práh.
-const MAX_TEXT_SCORE = 2
+const W_MODEL  = 3
+const W_ENGINE = 2
+const W_OBD    = 4
+const W_SYM    = 1.5
+const W_WORD   = 0.3
+
+/**
+ * Maximální možné skóre pro daný vstup při 100% shodě.
+ */
+export function computeMaxScore(input) {
+  let max = 0
+  if (input.vehicle?.model)       max += W_MODEL
+  if (input.vehicle?.enginePower) max += W_ENGINE
+  max += (input.obdCodes?.length ?? 0) * W_OBD
+  max += (input.symptoms?.length ?? 0) * W_SYM
+  const wordCount = (input.text ?? '').split(/\s+/).filter((w) => w.length > 4).length
+  max += Math.min(wordCount * W_WORD, MAX_TEXT_SCORE)
+  return max
+}
 
 /**
  * Vypočítá skóre podobnosti uzavřeného případu vůči aktuálnímu vstupu.
@@ -42,22 +58,20 @@ export function computeSimilarity(closed, input) {
 
   let score = 0
 
-  // Značka se nepoužívá ke scoringu — slouží jako pre-filtr (viz Edge Function)
-  if (input.vehicle?.model && closed.vehicle?.model === input.vehicle.model) score += 3
-  if (input.vehicle?.enginePower && closed.vehicle?.enginePower === input.vehicle.enginePower) score += 2
+  if (input.vehicle?.model && closed.vehicle?.model === input.vehicle.model) score += W_MODEL
+  if (input.vehicle?.enginePower && closed.vehicle?.enginePower === input.vehicle.enginePower) score += W_ENGINE
 
   for (const code of input.obdCodes ?? []) {
-    if (allText.includes(code.toLowerCase())) score += 4
+    if (allText.includes(code.toLowerCase())) score += W_OBD
   }
   for (const sym of input.symptoms ?? []) {
-    if (allText.includes(sym.toLowerCase())) score += 1.5
+    if (allText.includes(sym.toLowerCase())) score += W_SYM
   }
 
-  // FIX #5: Skóre z volného textu je omezeno na MAX_TEXT_SCORE
   let textScore = 0
   for (const word of (input.text ?? '').toLowerCase().split(/\s+/).filter((w) => w.length > 4)) {
     if (allText.includes(word)) {
-      textScore = Math.min(textScore + 0.3, MAX_TEXT_SCORE)
+      textScore = Math.min(textScore + W_WORD, MAX_TEXT_SCORE)
       if (textScore >= MAX_TEXT_SCORE) break
     }
   }

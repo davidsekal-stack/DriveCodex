@@ -13,11 +13,32 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// ── Scoring konstanty (shodné s src/lib/rag.js) ───────────────────────────────
-// Značka vozidla se nepoužívá ke scoringu — slouží jako pre-filtr na DB úrovni
-const OWN_THRESHOLD   = 5
-const OTHER_THRESHOLD = 8
-const MAX_TEXT_SCORE  = 2
+// ── Scoring konstanty ──────────────────────────────────────────────────────────
+// Značka vozidla se nepoužívá ke scoringu — slouží jako povinný pre-filtr na DB úrovni
+const SCORE_THRESHOLD   = 8     // Minimální absolutní skóre
+const MATCH_RATIO_MIN   = 0.5   // Minimální míra shody (50%)
+const MAX_TEXT_SCORE     = 2
+
+const W_MODEL  = 3
+const W_ENGINE = 2
+const W_OBD    = 4
+const W_SYM    = 1.5
+const W_WORD   = 0.3
+
+/**
+ * Spočítá maximální možné skóre pro daný vstup —
+ * kolik bodů by kandidát dostal při 100% shodě.
+ */
+function computeMaxScore(input: any): number {
+  let max = 0
+  if (input.vehicle?.model)       max += W_MODEL
+  if (input.vehicle?.enginePower) max += W_ENGINE
+  max += (input.obdCodes?.length ?? 0) * W_OBD
+  max += (input.symptoms?.length ?? 0) * W_SYM
+  const wordCount = (input.text ?? '').split(/\s+/).filter((w: string) => w.length > 4).length
+  max += Math.min(wordCount * W_WORD, MAX_TEXT_SCORE)
+  return max
+}
 
 function computeSimilarity(row: any, input: any): number {
   const allText = [
@@ -28,21 +49,20 @@ function computeSimilarity(row: any, input: any): number {
 
   let score = 0
 
-  // Značka se nepoužívá ke scoringu — slouží jako pre-filtr na DB úrovni
-  if (input.vehicle?.model && row.vehicle_model === input.vehicle.model) score += 3
-  if (input.vehicle?.enginePower && row.engine_power === input.vehicle.enginePower) score += 2
+  if (input.vehicle?.model && row.vehicle_model === input.vehicle.model) score += W_MODEL
+  if (input.vehicle?.enginePower && row.engine_power === input.vehicle.enginePower) score += W_ENGINE
 
   for (const code of input.obdCodes ?? []) {
-    if (allText.includes(code.toLowerCase())) score += 4
+    if (allText.includes(code.toLowerCase())) score += W_OBD
   }
   for (const sym of input.symptoms ?? []) {
-    if (allText.includes(sym.toLowerCase())) score += 1.5
+    if (allText.includes(sym.toLowerCase())) score += W_SYM
   }
 
   let textScore = 0
   for (const word of (input.text ?? '').toLowerCase().split(/\s+/).filter((w: string) => w.length > 4)) {
     if (allText.includes(word)) {
-      textScore = Math.min(textScore + 0.3, MAX_TEXT_SCORE)
+      textScore = Math.min(textScore + W_WORD, MAX_TEXT_SCORE)
       if (textScore >= MAX_TEXT_SCORE) break
     }
   }
@@ -148,25 +168,27 @@ Return format: {"symptoms":["..."],"text":"..."}`,
       { auth: { persistSession: false } }
     )
 
+    // ── Validace povinných parametrů ──────────────────────────────────────────
+    if (!vehicle?.brand || !vehicle?.model) {
+      return new Response(
+        JSON.stringify({ cases: [], count: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Předfiltrování na DB úrovni:
-    // 1) Značka — vždy, pokud je zadána
-    // 2) Model — vždy, pokud je zadán (primárnější než OBD kódy)
-    // 3) OBD kódy — doplňující filtr nad výsledky brand+model
+    // 1) Značka — povinný filtr
+    // 2) Model — povinný filtr
+    // 3) OBD kódy — doplňující filtr (overlaps)
     // (max 200 kandidátů, scoring proběhne zde)
     let query = supabase
       .from('gearbrain_cases')
       .select('*')
       .eq('status', 'approved')
+      .eq('vehicle_brand', vehicle.brand)
+      .eq('vehicle_model', vehicle.model)
       .order('closed_at', { ascending: false })
       .limit(200)
-
-    if (vehicle?.brand) {
-      query = query.eq('vehicle_brand', vehicle.brand)
-    }
-
-    if (vehicle?.model) {
-      query = query.eq('vehicle_model', vehicle.model)
-    }
 
     if (obdCodes?.length > 0) {
       query = query.overlaps('obd_codes', obdCodes)
@@ -178,23 +200,23 @@ Return format: {"symptoms":["..."],"text":"..."}`,
 
     // Scoring používá přeložené příznaky a text (ostatní jsou jazykově neutrální)
     const input = { vehicle, symptoms: searchSymptoms, obdCodes, text: searchText }
+    const maxScore = computeMaxScore(input)
 
     // Scoring + filtrování + řazení
+    // Kandidát musí splnit OBĚ podmínky:
+    //   1) absolutní skóre ≥ 8
+    //   2) míra shody ≥ 50% (skóre / maxSkóre)
     const scored = (rows ?? []).map((row: any) => {
-      const score     = computeSimilarity(row, input)
-      const isOwn     = row.user_id === userId
-      const threshold = isOwn ? OWN_THRESHOLD : OTHER_THRESHOLD
-      return { row, score, isOwn, passes: score >= threshold }
+      const score = computeSimilarity(row, input)
+      const ratio = maxScore > 0 ? score / maxScore : 0
+      return { row, score, ratio, passes: score >= SCORE_THRESHOLD && ratio >= MATCH_RATIO_MIN }
     })
 
     const results = scored
       .filter((x: any) => x.passes)
-      .sort((a: any, b: any) =>
-        b.score - a.score ||
-        (a.isOwn && !b.isOwn ? -1 : !a.isOwn && b.isOwn ? 1 : 0)
-      )
+      .sort((a: any, b: any) => b.score - a.score)
       .slice(0, 5)
-      .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragIsOwn: x.isOwn }))
+      .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragRatio: x.ratio }))
 
     return new Response(
       JSON.stringify({ cases: results, count: results.length }),
