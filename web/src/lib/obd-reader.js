@@ -24,7 +24,7 @@ const KNOWN_SERVICES = [
   // OBDLink, some higher-end adapters
   "e7810a71-73ae-499d-8c15-faa9aef0c3f2",
   // Additional services found on various adapters
-  "18f0",
+  0x18F0,
   "0000ab00-0000-1000-8000-00805f9b34fb",
 ];
 
