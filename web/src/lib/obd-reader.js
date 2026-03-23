@@ -4,12 +4,12 @@
  * Communicates with ELM327-compatible BLE adapters (KONNWEI, Vgate, OBDLink etc.)
  * via Web Bluetooth API. Reads stored (Mode 03) and pending (Mode 07) DTCs.
  *
+ * IMPORTANT: Only works with BLE (Bluetooth Low Energy / Bluetooth 4.0+) adapters.
+ * Classic Bluetooth (SPP) adapters are NOT supported by the Web Bluetooth API.
+ *
  * Usage:
  *   import { readObdCodes, isWebBluetoothSupported } from "./obd-reader.js";
  *   const { codes, error } = await readObdCodes();
- *
- * Supported adapters: Any ELM327/STN11xx BLE adapter exposing a serial-like
- * GATT service (typically FFE0/FFE1 or FFF0/FFF1 or 18F0).
  */
 
 // ── Known BLE Service/Characteristic UUIDs for ELM327 adapters ──────────────
@@ -23,6 +23,9 @@ const KNOWN_SERVICES = [
   "0000fff0-0000-1000-8000-00805f9b34fb",
   // OBDLink, some higher-end adapters
   "e7810a71-73ae-499d-8c15-faa9aef0c3f2",
+  // Additional services found on various adapters
+  "18f0",
+  "0000ab00-0000-1000-8000-00805f9b34fb",
 ];
 
 const KNOWN_CHARACTERISTICS = [
@@ -31,6 +34,8 @@ const KNOWN_CHARACTERISTICS = [
   "0000ffe1-0000-1000-8000-00805f9b34fb",
   "0000fff1-0000-1000-8000-00805f9b34fb",
   "bef8d6c9-9c21-4c9e-b632-bd58c1009f9f",
+  "0000ab01-0000-1000-8000-00805f9b34fb",
+  "0000ab02-0000-1000-8000-00805f9b34fb",
 ];
 
 // ── Public API ──────────────────────────────────────────────────────────────
@@ -51,7 +56,7 @@ export function isWebBluetoothSupported() {
  */
 export async function readObdCodes() {
   if (!isWebBluetoothSupported()) {
-    return { codes: [], error: "Web Bluetooth není v tomto prohlížeči podporován." };
+    return { codes: [], error: "Web Bluetooth is not supported in this browser." };
   }
 
   let device = null;
@@ -70,31 +75,25 @@ export async function readObdCodes() {
     // ── 2. Connect GATT ──────────────────────────────────────────────────
     server = await device.gatt.connect();
 
-    // ── 3. Find the serial TX/RX characteristic ─────────────────────────
-    const { characteristic, notify } = await findSerialCharacteristic(server);
+    // ── 3. Find the serial TX/RX characteristic(s) ───────────────────────
+    const { tx, rx } = await findSerialCharacteristics(server);
 
-    // ── 4. Set up response listener ──────────────────────────────────────
-    const send = buildSender(characteristic);
-    const waitFor = buildResponseWaiter(notify ?? characteristic);
+    // ── 4. Set up communication ──────────────────────────────────────────
+    const waitFor = buildCommandRunner(tx, rx);
 
-    // ── 5. Initialize ELM327 ─────────────────────────────────────────────
-    await send("ATZ\r");      // Reset
-    await delay(1500);        // Wait for reset
-    await send("ATE0\r");     // Echo off
-    await delay(300);
-    await send("ATL0\r");     // Linefeeds off
-    await delay(300);
-    await send("ATS0\r");     // Spaces off (compact hex)
-    await delay(300);
-    await send("ATSP0\r");    // Auto-detect protocol
-    await delay(500);
+    // ── 5. Initialize ELM327 — wait for ">" after each command ──────────
+    await waitFor("ATZ\r", 3000);     // Reset — some adapters are slow
+    await waitFor("ATE0\r", 2000);    // Echo off
+    await waitFor("ATL0\r", 1000);    // Linefeeds off
+    await waitFor("ATS0\r", 1000);    // Spaces off (compact hex)
+    await waitFor("ATSP0\r", 2000);   // Auto-detect protocol
 
     // ── 6. Read stored DTCs (Mode 03) ───────────────────────────────────
-    const storedRaw = await waitFor("03\r", 5000);
+    const storedRaw = await waitFor("03\r", 8000);
     const storedCodes = parseDtcResponse(storedRaw);
 
     // ── 7. Read pending DTCs (Mode 07) ──────────────────────────────────
-    const pendingRaw = await waitFor("07\r", 5000);
+    const pendingRaw = await waitFor("07\r", 8000);
     const pendingCodes = parseDtcResponse(pendingRaw);
 
     // ── 8. Combine & deduplicate ─────────────────────────────────────────
@@ -107,7 +106,14 @@ export async function readObdCodes() {
     if (err.name === "NotFoundError") {
       return { codes: [], error: null };
     }
-    return { codes: [], error: err.message || "Nepodařilo se připojit k OBD adaptéru." };
+    // GATT connect failed — likely a Classic BT adapter, not BLE
+    if (err.message?.includes("GATT") || err.message?.includes("connect")) {
+      return {
+        codes: [],
+        error: "Cannot connect — your adapter may use Classic Bluetooth (not BLE). Web Bluetooth requires a BLE (Bluetooth 4.0+) adapter.",
+      };
+    }
+    return { codes: [], error: err.message || "Failed to connect to OBD adapter." };
   } finally {
     // Always disconnect
     try { if (server?.connected) server.disconnect(); } catch (_) {}
@@ -117,60 +123,79 @@ export async function readObdCodes() {
 // ── BLE internals ───────────────────────────────────────────────────────────
 
 /**
- * Try known service/characteristic UUID combos until one works.
+ * Find TX (write) and RX (notify/read) characteristics.
+ * Many adapters use a single characteristic for both; some have separate ones.
  */
-async function findSerialCharacteristic(server) {
+async function findSerialCharacteristics(server) {
   for (const svcUuid of KNOWN_SERVICES) {
+    let service;
     try {
-      const service = await server.getPrimaryService(svcUuid);
-      for (const charUuid of KNOWN_CHARACTERISTICS) {
-        try {
-          const char = await service.getCharacteristic(charUuid);
-          const props = char.properties;
-
-          // We need write. Notify is optional (some adapters use read polling).
-          if (props.write || props.writeWithoutResponse) {
-            let notify = null;
-            if (props.notify) {
-              await char.startNotifications();
-              notify = char;
-            }
-            return { characteristic: char, notify };
-          }
-        } catch (_) { /* try next characteristic */ }
-      }
-    } catch (_) { /* try next service */ }
-  }
-  throw new Error("Nenalezena kompatibilní BLE služba. Zkontrolujte adaptér.");
-}
-
-/**
- * Build a write function for the characteristic.
- */
-function buildSender(characteristic) {
-  const encoder = new TextEncoder();
-  return async (cmd) => {
-    const data = encoder.encode(cmd);
-    if (characteristic.properties.writeWithoutResponse) {
-      await characteristic.writeValueWithoutResponse(data);
-    } else {
-      await characteristic.writeValueWithResponse(data);
+      service = await server.getPrimaryService(svcUuid);
+    } catch (_) {
+      continue; // Service not available
     }
-  };
+
+    let txChar = null;
+    let rxChar = null;
+
+    // Enumerate all known characteristics on this service
+    for (const charUuid of KNOWN_CHARACTERISTICS) {
+      let char;
+      try {
+        char = await service.getCharacteristic(charUuid);
+      } catch (_) {
+        continue;
+      }
+
+      const props = char.properties;
+
+      // Found a writable characteristic → candidate for TX
+      if (!txChar && (props.write || props.writeWithoutResponse)) {
+        txChar = char;
+      }
+
+      // Found a notifiable characteristic → candidate for RX
+      if (!rxChar && props.notify) {
+        rxChar = char;
+      }
+
+      // Single characteristic does both → use it for TX and RX
+      if ((props.write || props.writeWithoutResponse) && props.notify) {
+        txChar = char;
+        rxChar = char;
+        break;
+      }
+    }
+
+    if (txChar) {
+      // Start notifications on RX if we have one
+      if (rxChar) {
+        try {
+          await rxChar.startNotifications();
+        } catch (_) {
+          rxChar = null; // Fall back to polling
+        }
+      }
+      return { tx: txChar, rx: rxChar ?? txChar };
+    }
+  }
+
+  throw new Error("No compatible BLE service found. Make sure your adapter supports BLE (not Classic Bluetooth).");
 }
 
 /**
- * Build a function that sends a command and waits for a complete response.
+ * Build a function that sends a command via TX and reads the response via RX.
  * ELM327 terminates responses with ">".
  */
-function buildResponseWaiter(characteristic) {
+function buildCommandRunner(tx, rx) {
   const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
   let buffer = "";
   let resolver = null;
 
-  // If characteristic supports notifications, listen for data chunks
-  if (characteristic.properties?.notify) {
-    characteristic.addEventListener("characteristicvaluechanged", (event) => {
+  // If RX supports notifications, listen for data chunks
+  if (rx.properties?.notify) {
+    rx.addEventListener("characteristicvaluechanged", (event) => {
       buffer += decoder.decode(event.target.value);
       if (buffer.includes(">") && resolver) {
         const response = buffer;
@@ -183,30 +208,30 @@ function buildResponseWaiter(characteristic) {
 
   return async (cmd, timeoutMs = 5000) => {
     buffer = "";
-    const encoder = new TextEncoder();
-    const data = encoder.encode(cmd);
 
-    if (characteristic.properties.writeWithoutResponse) {
-      await characteristic.writeValueWithoutResponse(data);
+    // Send command via TX characteristic
+    const data = encoder.encode(cmd);
+    if (tx.properties.writeWithoutResponse) {
+      await tx.writeValueWithoutResponse(data);
     } else {
-      await characteristic.writeValueWithResponse(data);
+      await tx.writeValueWithResponse(data);
     }
 
-    // If notifications are active, wait for ">" prompt
-    if (characteristic.properties?.notify) {
-      return new Promise((resolve, reject) => {
+    // Wait for response via RX
+    if (rx.properties?.notify) {
+      return new Promise((resolve) => {
         resolver = resolve;
         setTimeout(() => {
           if (resolver) {
             resolver = null;
-            resolve(buffer); // Return whatever we got
+            resolve(buffer); // Return whatever we got so far
           }
         }, timeoutMs);
       });
     }
 
     // Fallback: poll by reading characteristic value
-    return pollResponse(characteristic, decoder, timeoutMs);
+    return pollResponse(rx, decoder, timeoutMs);
   };
 }
 
@@ -218,7 +243,7 @@ async function pollResponse(characteristic, decoder, timeoutMs) {
   let result = "";
 
   while (Date.now() - start < timeoutMs) {
-    await delay(200);
+    await delay(250);
     try {
       const value = await characteristic.readValue();
       const chunk = decoder.decode(value);
@@ -252,19 +277,34 @@ async function pollResponse(characteristic, decoder, timeoutMs) {
 export function parseDtcResponse(raw) {
   if (!raw) return [];
 
-  // Strip whitespace and non-hex, but keep the response prefix (43/47)
+  // Strip whitespace, control chars and ELM prompt
   const clean = raw
     .replace(/\r|\n|>/g, "")
     .replace(/\s/g, "")
     .toUpperCase();
+
+  // Remove known ELM327 noise: "NODATA", "SEARCHING...", "UNABLE TO CONNECT", "ERROR"
+  if (/NODATA|UNABLETOCONNECT|ERROR|STOPPED|\?/.test(clean)) {
+    return [];
+  }
 
   // Find mode response markers: 43 = stored DTCs, 47 = pending DTCs
   const codes = [];
   const markers = ["43", "47"];
 
   for (const marker of markers) {
-    let idx = clean.indexOf(marker);
-    while (idx !== -1) {
+    let idx = 0;
+    while (true) {
+      idx = clean.indexOf(marker, idx);
+      if (idx === -1) break;
+
+      // Validate marker position — should be at start or after non-hex boundary
+      // to avoid false matches inside DTC data
+      if (idx > 0 && /[0-9A-F]/.test(clean[idx - 1])) {
+        idx += 2;
+        continue;
+      }
+
       // Skip the 2-char marker
       let pos = idx + 2;
 
@@ -275,7 +315,7 @@ export function parseDtcResponse(raw) {
         // Validate it's hex
         if (!/^[0-9A-F]{4}$/.test(dtcHex)) break;
 
-        // 0000 = no more codes
+        // 0000 = padding / no more codes
         if (dtcHex === "0000") {
           pos += 4;
           continue;
@@ -286,8 +326,7 @@ export function parseDtcResponse(raw) {
         pos += 4;
       }
 
-      // Find next occurrence of marker
-      idx = clean.indexOf(marker, pos);
+      idx = pos;
     }
   }
 
