@@ -66,7 +66,7 @@ export function normalizeDiagnosisResult(parsed, tr, similarCount = 0) {
     if (!Array.isArray(fault.řešení)) fault.řešení = [];
     fault.řešení = fault.řešení
       .filter((r) => typeof r === "string" && r.trim().length > 0)
-      .map((r) => r.trim().slice(0, 60))
+      .map((r) => r.trim().slice(0, 120))
       .slice(0, 4);
     fault.řešení = [...new Set(fault.řešení)];
   }

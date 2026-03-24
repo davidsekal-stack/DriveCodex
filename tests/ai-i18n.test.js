@@ -133,36 +133,32 @@ async function run() {
     )
   })
 
-  test('Dlouhý nerelevantní text → fail s lokalizovanou chybou (CS)', () => {
+  test('Topic relevance check je vypnutý — vše projde (CS)', () => {
     const r = checkTopicRelevance(
       'Dnes jsem šel do obchodu a koupil jsem si nové boty. Pak jsem navštívil kamarádku a povídali jsme si o počasí.', 'cs'
     )
-    assert.strictEqual(r.ok, false)
-    assert(r.reason.includes('technický'), `CS chyba: ${r.reason}`)
+    assert.strictEqual(r.ok, true)
   })
 
-  test('Dlouhý nerelevantní text → fail s lokalizovanou chybou (EN)', () => {
+  test('Topic relevance check je vypnutý — vše projde (EN)', () => {
     const r = checkTopicRelevance(
       'Today I went to the store and bought new shoes. Then I visited my friend and we talked about the weather for a while.', 'en'
     )
-    assert.strictEqual(r.ok, false)
-    assert(r.reason.includes('technical'), `EN chyba: ${r.reason}`)
+    assert.strictEqual(r.ok, true)
   })
 
-  test('Dlouhý nerelevantní text → fail s lokalizovanou chybou (DE)', () => {
+  test('Topic relevance check je vypnutý — vše projde (DE)', () => {
     const r = checkTopicRelevance(
       'Heute bin ich in den Laden gegangen und habe neue Schuhe gekauft. Dann besuchte ich meine Freundin und wir sprachen über Dinge.', 'de'
     )
-    assert.strictEqual(r.ok, false)
-    assert(r.reason.includes('technischen') || r.reason.includes('technische'), `DE chyba: ${r.reason}`)
+    assert.strictEqual(r.ok, true)
   })
 
-  test('checkTopicRelevance bez lang → CS fallback', () => {
+  test('Topic relevance check bez lang → vše projde', () => {
     const r = checkTopicRelevance(
       'Dnes jsem šel do obchodu a koupil jsem si nové boty. Pak jsem navštívil kamarádku a povídali jsme si o počasí.'
     )
-    assert.strictEqual(r.ok, false)
-    assert(r.reason.includes('technický'), `Fallback chyba: ${r.reason}`)
+    assert.strictEqual(r.ok, true)
   })
 
   // ── Výsledky ───────────────────────────────────────────────────────────────

@@ -79,19 +79,19 @@ async function run() {
   console.log('\n── validateResolution: příliš dlouhý ────────────────────────────')
 
   test('Dlouhý → CS hláška', () => {
-    const r = validateResolution('Opraveno '.repeat(60), 'cs')
+    const r = validateResolution('Opraveno '.repeat(150), 'cs')
     assert.strictEqual(r.ok, false)
     assert(r.reason.includes('dlouhý'), `CS: ${r.reason}`)
   })
 
   test('Dlouhý → EN hláška', () => {
-    const r = validateResolution('Repaired '.repeat(60), 'en')
+    const r = validateResolution('Repaired '.repeat(150), 'en')
     assert.strictEqual(r.ok, false)
     assert(r.reason.includes('long'), `EN: ${r.reason}`)
   })
 
   test('Dlouhý → DE hláška', () => {
-    const r = validateResolution('Repariert '.repeat(60), 'de')
+    const r = validateResolution('Repariert '.repeat(150), 'de')
     assert.strictEqual(r.ok, false)
     assert(r.reason.includes('lang'), `DE: ${r.reason}`)
   })

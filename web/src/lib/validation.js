@@ -1,7 +1,7 @@
 import { translate } from '../i18n/translate.js'
 
 const MIN_RESOLUTION_LENGTH = 10
-const MAX_RESOLUTION_LENGTH = 400
+const MAX_RESOLUTION_LENGTH = 1000
 
 /**
  * Sdílená validační logika pro resolution text.

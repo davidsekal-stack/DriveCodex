@@ -676,8 +676,8 @@ describe('validateResolution — validace opravy', () => {
     strictEqual(validateResolution('krátké', 'cs').ok, false)
   })
 
-  test('příliš dlouhý text (>400 znaků) = chyba', () => {
-    const long = 'a '.repeat(250)
+  test('příliš dlouhý text (>1000 znaků) = chyba', () => {
+    const long = 'a '.repeat(600)
     strictEqual(validateResolution(long, 'cs').ok, false)
   })
 
