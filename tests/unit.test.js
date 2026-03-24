@@ -133,10 +133,10 @@ describe('checkTopicRelevance — off-topic detekce', () => {
     ok(checkTopicRelevance('', 'cs').ok)
   })
 
-  test('dlouhý text bez technických signálů = odmítnuto', () => {
+  test('topic relevance disabled — always passes', () => {
     const long = 'Jak se má vaše rodina? Doufám že všichni jsou v pořádku a můžeme si popovídat o počasí a dalších věcech.'
     const res = checkTopicRelevance(long, 'cs')
-    strictEqual(res.ok, false)
+    strictEqual(res.ok, true)
   })
 
   test('dlouhý text s OBD kódem = přijato', () => {
@@ -233,10 +233,9 @@ describe('diagnosis helpers — workflow extrakce', () => {
       ],
     }, tr, 4)
 
-    strictEqual(normalized.závady.length, 3)
+    strictEqual(normalized.závady.length, 2)
     strictEqual(normalized.závady[0].početShod, 4)
     strictEqual(normalized.závady[1].početShod, 0)
-    strictEqual(normalized.závady[2].název, 'Další příčina 3')
   })
 
   test('buildDiagnosedCaseName skládá název z vozidla a primární závady', () => {
@@ -278,23 +277,23 @@ describe('runtime config — URL skládání', () => {
 
 describe('app bootstrap helpers — načtení po přihlášení', () => {
   test('loadCasesCloudStatus vrátí ok při úspěšném loadCases', async () => {
-    strictEqual(await loadCasesCloudStatus(async () => ['case-1']), 'ok')
+    strictEqual(await loadCasesCloudStatus(async () => ({ ok: true, data: ['case-1'] })), 'ok')
   })
 
   test('loadCasesCloudStatus vrátí error při selhání loadCases', async () => {
-    strictEqual(await loadCasesCloudStatus(async () => { throw new Error('boom') }), 'error')
+    strictEqual(await loadCasesCloudStatus(async () => ({ ok: false, error: 'boom' })), 'error')
   })
 
   test('loadGlobalCaseCount vrátí count při úspěchu', async () => {
     deepStrictEqual(
-      await loadGlobalCaseCount(async () => 42),
+      await loadGlobalCaseCount(async () => ({ ok: true, data: 42 })),
       { globalCaseCount: 42, hasGlobalCaseCount: true },
     )
   })
 
   test('loadGlobalCaseCount nepropaguje chybu při selhání', async () => {
     deepStrictEqual(
-      await loadGlobalCaseCount(async () => { throw new Error('offline') }),
+      await loadGlobalCaseCount(async () => ({ ok: false, error: 'offline' })),
       { globalCaseCount: null, hasGlobalCaseCount: false },
     )
   })
@@ -722,7 +721,7 @@ describe('computeSimilarity — RAG scoring', () => {
       text: '',
     }
     const score = computeSimilarity(closedCase, input)
-    ok(score >= 10, `Skóre by mělo být ≥10, je ${score}`)
+    ok(score >= 8, `Skóre by mělo být ≥8, je ${score}`)
   })
 
   test('žádná shoda = skóre 0', () => {
@@ -735,14 +734,14 @@ describe('computeSimilarity — RAG scoring', () => {
     strictEqual(computeSimilarity(closedCase, input), 0)
   })
 
-  test('OBD kód má nejvyšší váhu (+4)', () => {
+  test('generický OBD kód (P0xxx) má váhu +2', () => {
     const input = {
       vehicle: { model: 'Jiný model' },
       obdCodes: ['P0401'],
       symptoms: [],
       text: '',
     }
-    strictEqual(computeSimilarity(closedCase, input), 4)
+    strictEqual(computeSimilarity(closedCase, input), 2)
   })
 
   test('textové skóre je omezeno na MAX_TEXT_SCORE=2', () => {
@@ -883,7 +882,7 @@ describe('helpers — vehicle catalog', () => {
     deepStrictEqual(usBrands, sortBrands(usBrands))
     ok(euBrands.includes('SEAT'))
     ok(euBrands.includes('Opel'))
-    ok(euBrands.includes('Mazda'))
+    ok(usBrands.includes('Mazda'))
     ok(euBrands.includes('Cupra'))
     ok(euBrands.includes('Volvo'))
     ok(euBrands.includes('Suzuki'))
