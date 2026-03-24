@@ -168,9 +168,6 @@ export const strings = {
   'diag.sourceDb':            'DATABASE',
   'diag.sourceAi':            'AI ANALYSIS',
   'diag.dbCases':             '{count} matches',
-  'diag.additionalCause':     'Additional possible cause #{num}',
-  'diag.additionalCauseDesc': 'AI model did not identify enough alternative causes. Consult a technician.',
-  'diag.additionalCauseNote': 'Auto-generated — AI returned fewer than 3 faults.',
   'diag.recommendedTests':    'RECOMMENDED TESTS',
   'diag.notes':               'NOTES',
 
@@ -208,6 +205,16 @@ export const strings = {
   'pdf.variant.technical.desc':'Formal — tables, bordered cards',
   'pdf.variant.minimalist':    'Minimalist',
   'pdf.variant.minimalist.desc':'Clean, lots of white space',
+
+  // Share
+  'share.btn':            '🔗 SHARE',
+  'share.copied':         '✓ Link copied!',
+  'share.badge':          'SHARED DIAGNOSIS',
+  'share.loading':        'Loading diagnosis...',
+  'share.notFound':       'Shared link not found or expired.',
+  'share.cta.title':      'Want your own diagnosis?',
+  'share.cta.text':       'Register for free and diagnose your vehicle with AI and a database of mechanic experience.',
+  'share.cta.btn':        'REGISTER FREE',
 
   // Symptom categories
   'sym.cat.engine':       'Engine & Power',

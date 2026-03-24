@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CASE_STATUS } from "../constants/enums.js";
 import { CASE_TOKEN_LIMIT } from "../lib/ai.js";
 import { exportCasePdf, PDF_VARIANTS } from "../lib/pdf.js";
+import { createShareLink } from "../lib/storage-edge.js";
 import { fmtMileage } from "../lib/utils.js";
 import { getTokenUsageMeta, hasDiagnoses } from "../lib/session-view.js";
 import StatusBadge from "./StatusBadge.jsx";
@@ -23,15 +24,40 @@ export default function SessionHeader({
   tr,
 }) {
   const [pdfMenu, setPdfMenu] = useState(false);
+  const [shareState, setShareState] = useState("idle"); // idle | loading | copied | error
 
   useEffect(() => {
     setPdfMenu(false);
+    setShareState("idle");
   }, [activeCase?.id]);
 
   if (!activeCase) return null;
 
   const usageMeta = getTokenUsageMeta(activeCase.tokenCount, CASE_TOKEN_LIMIT);
   const showPdfMenu = hasDiagnoses(activeCase.messages);
+
+  const handleShare = async () => {
+    setShareState("loading");
+    try {
+      const result = await createShareLink(activeCase);
+      if (result.url) {
+        await navigator.clipboard.writeText(result.url);
+        setShareState("copied");
+        setTimeout(() => setShareState("idle"), 3000);
+      } else {
+        setShareState("error");
+        setTimeout(() => setShareState("idle"), 3000);
+      }
+    } catch {
+      setShareState("error");
+      setTimeout(() => setShareState("idle"), 3000);
+    }
+  };
+
+  const shareLabel = shareState === "loading" ? "..."
+    : shareState === "copied" ? tr("share.copied")
+    : shareState === "error" ? "✕"
+    : tr("share.btn");
 
   return (
     <div style={{ padding: mobile ? "6px 10px" : "0 18px", minHeight: 52, background: t.bgHeader, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: 8 }}>
@@ -51,6 +77,12 @@ export default function SessionHeader({
         </div>
       </div>
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+        {showPdfMenu && (
+          <button onClick={handleShare} disabled={shareState === "loading"}
+            style={{ background: shareState === "copied" ? t.doneStatusBg : t.bgCard, border: `1px solid ${shareState === "copied" ? t.doneStatusBorder : t.border}`, color: shareState === "copied" ? t.doneStatusColor : shareState === "error" ? "#dc2626" : t.textMuted, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: shareState === "loading" ? "wait" : "pointer", fontFamily: "inherit", borderRadius: 2, transition: "all 0.2s" }}>
+            {shareLabel}
+          </button>
+        )}
         {showPdfMenu && (
           <div style={{ position: "relative" }}>
             <button onClick={() => setPdfMenu((open) => !open)}

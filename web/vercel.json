@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/share/:id", "destination": "https://nmvjthfezyjcwuzphiuu.supabase.co/functions/v1/share-case?id=:id" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

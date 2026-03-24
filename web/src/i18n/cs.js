@@ -168,9 +168,6 @@ export const strings = {
   'diag.sourceDb':            'DATABÁZE',
   'diag.sourceAi':            'AI ANALÝZA',
   'diag.dbCases':             '{count} shod',
-  'diag.additionalCause':     'Další možná příčina #{num}',
-  'diag.additionalCauseDesc': 'AI model neidentifikoval dostatek alternativních příčin. Doporučujeme konzultovat s technikem.',
-  'diag.additionalCauseNote': 'Doplněno automaticky — AI vrátil méně než 3 závady.',
   'diag.recommendedTests':    'DOPORUČENÉ TESTY',
   'diag.notes':               'POZNÁMKY',
 
@@ -208,6 +205,16 @@ export const strings = {
   'pdf.variant.technical.desc':'Formální — tabulky, karty s rámečkem',
   'pdf.variant.minimalist':    'Minimalistický',
   'pdf.variant.minimalist.desc':'Čistý, hodně bílého prostoru',
+
+  // Share
+  'share.btn':            '🔗 SDÍLET',
+  'share.copied':         '✓ Odkaz zkopírován!',
+  'share.badge':          'SDÍLENÁ DIAGNOSTIKA',
+  'share.loading':        'Načítám diagnostiku...',
+  'share.notFound':       'Sdílený odkaz nebyl nalezen nebo vypršel.',
+  'share.cta.title':      'Chcete vlastní diagnostiku?',
+  'share.cta.text':       'Zaregistrujte se zdarma a diagnostikujte své vozidlo s pomocí AI a databáze zkušeností mechaniků.',
+  'share.cta.btn':        'ZAREGISTROVAT SE ZDARMA',
 
   // Symptom categories
   'sym.cat.engine':       'Motor & Výkon',

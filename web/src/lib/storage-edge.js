@@ -112,6 +112,44 @@ export async function updateCaseStatus(caseIdOrIds, status) {
   return edgeFetch("review-cases", payload);
 }
 
+export async function createShareLink(activeCase) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const vehicle = activeCase.vehicle ?? {};
+  const vehicleParts = [vehicle.model, vehicle.enginePower].filter(Boolean);
+  const vehicleSummary = vehicleParts.join(" · ") || "Vehicle";
+
+  // Extract fault summary from latest diagnosis
+  const diagMsgs = (activeCase.messages ?? []).filter((m) => m.type === "diagnosis");
+  const latest = diagMsgs[diagMsgs.length - 1];
+  const topFault = latest?.result?.závady?.[0];
+  const faultSummary = topFault
+    ? `${topFault.název} — ${topFault.pravděpodobnost}%`
+    : "";
+
+  const snapshot = {
+    name: activeCase.name,
+    vehicle: activeCase.vehicle,
+    messages: activeCase.messages,
+    status: activeCase.status,
+    resolution: activeCase.resolution,
+    closedAt: activeCase.closedAt,
+  };
+
+  try {
+    const result = await edgeFetch("share-case", {
+      session_id: activeCase.id,
+      snapshot,
+      vehicle_summary: vehicleSummary,
+      fault_summary: faultSummary,
+    });
+    return result;
+  } catch (error) {
+    return { error: error.message || "Failed to create share link" };
+  }
+}
+
 export async function searchCases(ragInput) {
   const { data: { user } } = await supabase.auth.getUser();
 

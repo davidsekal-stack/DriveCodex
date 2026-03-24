@@ -168,9 +168,6 @@ export const strings = {
   'diag.sourceDb':            'DATENBANK',
   'diag.sourceAi':            'KI-ANALYSE',
   'diag.dbCases':             '{count} Treffer',
-  'diag.additionalCause':     'Weitere mögliche Ursache #{num}',
-  'diag.additionalCauseDesc': 'Das KI-Modell hat nicht genügend alternative Ursachen identifiziert. Konsultieren Sie einen Techniker.',
-  'diag.additionalCauseNote': 'Automatisch ergänzt — KI lieferte weniger als 3 Fehler.',
   'diag.recommendedTests':    'EMPFOHLENE TESTS',
   'diag.notes':               'ANMERKUNGEN',
 
@@ -208,6 +205,16 @@ export const strings = {
   'pdf.variant.technical.desc':'Formell — Tabellen, Karten mit Rahmen',
   'pdf.variant.minimalist':    'Minimalistisch',
   'pdf.variant.minimalist.desc':'Sauber, viel Weißraum',
+
+  // Share
+  'share.btn':            '🔗 TEILEN',
+  'share.copied':         '✓ Link kopiert!',
+  'share.badge':          'GETEILTE DIAGNOSE',
+  'share.loading':        'Diagnose wird geladen...',
+  'share.notFound':       'Geteilter Link nicht gefunden oder abgelaufen.',
+  'share.cta.title':      'Eigene Diagnose gewünscht?',
+  'share.cta.text':       'Registrieren Sie sich kostenlos und diagnostizieren Sie Ihr Fahrzeug mit KI und einer Mechaniker-Erfahrungsdatenbank.',
+  'share.cta.btn':        'KOSTENLOS REGISTRIEREN',
 
   // Symptom categories
   'sym.cat.engine':       'Motor & Leistung',
