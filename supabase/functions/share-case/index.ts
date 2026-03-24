@@ -81,8 +81,10 @@ async function handleGet(req: Request): Promise<Response> {
 
   const title = `GearBrain — ${data.vehicle_summary || 'Diagnostika'}`
   const description = data.fault_summary || 'AI-powered vehicle diagnostic report'
-  const redirectUrl = `${FRONTEND_URL}/?share=${encodeURIComponent(id)}`
+  const shareUrl = `${FRONTEND_URL}/share/${id}`
 
+  // OG crawlers (Facebook, Discord, Twitter) parse meta tags from this HTML.
+  // Real browsers hitting this endpoint directly get redirected to the SPA.
   return html(`<!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -92,17 +94,17 @@ async function handleGet(req: Request): Promise<Response> {
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:image" content="${OG_IMAGE}" />
-  <meta property="og:url" content="${FRONTEND_URL}/share/${escapeHtml(id)}" />
+  <meta property="og:url" content="${escapeHtml(shareUrl)}" />
   <meta property="og:site_name" content="GearBrain" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${OG_IMAGE}" />
-  <script>window.location.replace("${redirectUrl}")</script>
+  <script>window.location.replace("${shareUrl}")</script>
 </head>
 <body style="font-family:monospace;padding:40px;color:#333">
   <p>Redirecting to GearBrain diagnostics...</p>
-  <p><a href="${redirectUrl}">Click here if not redirected</a></p>
+  <p><a href="${shareUrl}">Click here if not redirected</a></p>
 </body>
 </html>`)
 }
