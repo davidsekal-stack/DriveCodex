@@ -142,6 +142,25 @@ export const strings = {
   'login.invalidCredentials': 'Invalid email or password.',
   'login.alreadyRegistered':  'This email is already registered. Please sign in.',
 
+  // Terms of Service
+  'tos.title':               'Terms of Service',
+  'tos.intro':               'Please review and accept the GearBrain Terms of Service before registering.',
+  'tos.keyPoints':           'Key Points:',
+  'tos.aiDisclaimer':        'AI Diagnostics',
+  'tos.aiDisclaimerDesc':    'Diagnostic results are indicative and serve as a support tool for mechanics. They do not replace a professional vehicle inspection. Always verify recommendations with your own diagnostics.',
+  'tos.liability':           'Limitation of Liability',
+  'tos.liabilityDesc':       'GearBrain is not liable for any damages resulting from repairs based on AI recommendations. The service is provided "as is" without warranty of accuracy or completeness.',
+  'tos.dataUsage':           'Data Usage',
+  'tos.dataUsageDesc':       'Closed diagnostic cases may be anonymized and used to improve service quality (similar cases database). Personal data is not included in anonymized data.',
+  'tos.privacy':             'Privacy',
+  'tos.privacyDesc':         'We only process data necessary to operate the service. Your data is never sold to third parties. GDPR rules apply.',
+  'tos.law':                 'Governing Law',
+  'tos.lawDesc':             'These terms are governed by the laws of the Czech Republic.',
+  'tos.fullLink':            'Read full Terms of Service',
+  'tos.agree':               'I have read and agree to the Terms of Service',
+  'tos.accept':              'Accept & Continue',
+  'tos.decline':             'I don\'t agree',
+
   // InputForm
   'input.symptomsTab':        '⚡ SYMPTOMS',
   'input.obdTab':             '📡 OBD',

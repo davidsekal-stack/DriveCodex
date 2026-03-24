@@ -142,6 +142,25 @@ export const strings = {
   'login.invalidCredentials': 'Ungültige E-Mail oder Passwort.',
   'login.alreadyRegistered':  'Diese E-Mail ist bereits registriert. Bitte melden Sie sich an.',
 
+  // Terms of Service
+  'tos.title':               'Nutzungsbedingungen',
+  'tos.intro':               'Bitte lesen und akzeptieren Sie die GearBrain-Nutzungsbedingungen vor der Registrierung.',
+  'tos.keyPoints':           'Wichtige Punkte:',
+  'tos.aiDisclaimer':        'AI-Diagnose',
+  'tos.aiDisclaimerDesc':    'Diagnoseergebnisse sind orientierend und dienen als Hilfsmittel für Mechaniker. Sie ersetzen keine fachgerechte Fahrzeuginspektion. Überprüfen Sie Empfehlungen immer mit eigener Diagnostik.',
+  'tos.liability':           'Haftungsbeschränkung',
+  'tos.liabilityDesc':       'GearBrain haftet nicht für Schäden, die durch Reparaturen auf Basis von AI-Empfehlungen entstehen. Der Dienst wird ohne Gewährleistung der Genauigkeit oder Vollständigkeit bereitgestellt.',
+  'tos.dataUsage':           'Datennutzung',
+  'tos.dataUsageDesc':       'Abgeschlossene Diagnosefälle können anonymisiert und zur Verbesserung der Servicequalität verwendet werden (Datenbank ähnlicher Fälle). Personenbezogene Daten sind nicht in anonymisierten Daten enthalten.',
+  'tos.privacy':             'Datenschutz',
+  'tos.privacyDesc':         'Wir verarbeiten nur die für den Betrieb des Dienstes erforderlichen Daten. Ihre Daten werden niemals an Dritte verkauft. Es gelten die DSGVO-Regeln.',
+  'tos.law':                 'Anwendbares Recht',
+  'tos.lawDesc':             'Diese Bedingungen unterliegen dem Recht der Tschechischen Republik.',
+  'tos.fullLink':            'Vollständige Nutzungsbedingungen lesen',
+  'tos.agree':               'Ich habe die Nutzungsbedingungen gelesen und stimme zu',
+  'tos.accept':              'Akzeptieren & Fortfahren',
+  'tos.decline':             'Ich stimme nicht zu',
+
   // InputForm
   'input.symptomsTab':        '⚡ SYMPTOME',
   'input.obdTab':             '📡 OBD',

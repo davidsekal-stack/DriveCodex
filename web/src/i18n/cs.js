@@ -142,6 +142,25 @@ export const strings = {
   'login.invalidCredentials': 'Neplatný email nebo heslo.',
   'login.alreadyRegistered':  'Tento email je již registrován. Přihlaste se.',
 
+  // Terms of Service
+  'tos.title':               'Podmínky služby',
+  'tos.intro':               'Před registrací si prosím přečtěte a odsouhlaste podmínky služby GearBrain.',
+  'tos.keyPoints':           'Hlavní body:',
+  'tos.aiDisclaimer':        'AI diagnostika',
+  'tos.aiDisclaimerDesc':    'Výsledky diagnostiky jsou orientační a slouží jako podpůrný nástroj pro mechaniky. Nenahrazují odbornou prohlídku vozidla. Vždy ověřte doporučení vlastní diagnostikou.',
+  'tos.liability':           'Odpovědnost',
+  'tos.liabilityDesc':       'GearBrain nenese odpovědnost za škody vzniklé opravami provedenými na základě AI doporučení. Služba je poskytována „tak jak je" bez záruky přesnosti nebo úplnosti.',
+  'tos.dataUsage':           'Využití dat',
+  'tos.dataUsageDesc':       'Uzavřené diagnostické případy mohou být anonymizovány a použity ke zlepšení kvality služby (databáze podobných případů). Osobní údaje nejsou součástí anonymizovaných dat.',
+  'tos.privacy':             'Ochrana osobních údajů',
+  'tos.privacyDesc':         'Zpracováváme pouze data nezbytná pro provoz služby. Vaše data nikdy neprodáváme třetím stranám. Platí pravidla GDPR.',
+  'tos.law':                 'Rozhodné právo',
+  'tos.lawDesc':             'Tyto podmínky se řídí právním řádem České republiky.',
+  'tos.fullLink':            'Zobrazit úplné podmínky',
+  'tos.agree':               'Přečetl/a jsem si a souhlasím s Podmínkami služby',
+  'tos.accept':              'Souhlasím a pokračuji',
+  'tos.decline':             'Nesouhlasím',
+
   // InputForm
   'input.symptomsTab':        '⚡ PŘÍZNAKY',
   'input.obdTab':             '📡 OBD',

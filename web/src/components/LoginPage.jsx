@@ -3,6 +3,7 @@ import { signIn, signUp, signInWithGoogle } from "../lib/supabase.js";
 import { LIGHT } from "../theme.js";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
+import TosModal from "./TosModal.jsx";
 
 const LANGS = [
   { code: "cs", label: "CS" },
@@ -19,29 +20,41 @@ export default function LoginPage({ onAuth }) {
   const [password, setPassword] = useState("");
   const [error, setError]     = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showTos, setShowTos] = useState(false);
+
+  const doRegister = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await signUp(email, password);
+      if (data.user && !data.session) {
+        setMode("verify");
+      } else {
+        onAuth(data.session);
+      }
+    } catch (err) {
+      setError(err.message === "User already registered"
+        ? tr('login.alreadyRegistered')
+        : err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    if (mode === "register") {
+      setShowTos(true);
+      return;
+    }
     setLoading(true);
     try {
-      if (mode === "register") {
-        const data = await signUp(email, password);
-        if (data.user && !data.session) {
-          // Email confirmation required
-          setMode("verify");
-        } else {
-          onAuth(data.session);
-        }
-      } else {
-        const data = await signIn(email, password);
-        onAuth(data.session);
-      }
+      const data = await signIn(email, password);
+      onAuth(data.session);
     } catch (err) {
       setError(err.message === "Invalid login credentials"
         ? tr('login.invalidCredentials')
-        : err.message === "User already registered"
-        ? tr('login.alreadyRegistered')
         : err.message);
     } finally {
       setLoading(false);
@@ -161,6 +174,15 @@ export default function LoginPage({ onAuth }) {
           </div>
         )}
       </div>
+
+      {showTos && (
+        <TosModal
+          t={t}
+          tr={tr}
+          onAccept={() => { setShowTos(false); doRegister(); }}
+          onDecline={() => setShowTos(false)}
+        />
+      )}
     </div>
   );
 }
