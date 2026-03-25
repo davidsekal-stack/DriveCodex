@@ -22,7 +22,7 @@ globalThis.localStorage = {
 // ── Imports ──────────────────────────────────────────────────────────────────
 import { strictEqual, deepStrictEqual, ok } from 'node:assert'
 
-import { computeSimilarity, extractSignals } from '../web/src/lib/rag.js'
+import { extractSignals } from '../web/src/lib/rag.js'
 import { smartRepair, checkTopicRelevance } from '../web/src/lib/ai.js'
 import { loadInitialSession } from '../web/src/lib/auth-session.js'
 import { loadCasesCloudStatus, loadGlobalCaseCount } from '../web/src/lib/app-bootstrap.js'
@@ -702,59 +702,8 @@ describe('validateResolution — validace opravy', () => {
   })
 })
 
-describe('computeSimilarity — RAG scoring', () => {
-  const closedCase = {
-    vehicle: { brand: 'Ford', model: 'Focus MK3 1.6 TDCi 85kW', enginePower: '1.6 TDCi 85kW' },
-    messages: [{
-      type: 'input',
-      symptoms: ['loss of power', 'black smoke'],
-      obdCodes: ['P0401'],
-      text: 'EGR valve blocked',
-    }],
-  }
-
-  test('plná shoda modelu + motoru + OBD = vysoké skóre', () => {
-    const input = {
-      vehicle: { model: 'Focus MK3 1.6 TDCi 85kW', enginePower: '1.6 TDCi 85kW' },
-      obdCodes: ['P0401'],
-      symptoms: ['loss of power'],
-      text: '',
-    }
-    const score = computeSimilarity(closedCase, input)
-    ok(score >= 8, `Skóre by mělo být ≥8, je ${score}`)
-  })
-
-  test('žádná shoda = skóre 0', () => {
-    const input = {
-      vehicle: { model: 'Transit Custom 2.0 EcoBlue 130kW' },
-      obdCodes: ['P0171'],
-      symptoms: ['overheating'],
-      text: '',
-    }
-    strictEqual(computeSimilarity(closedCase, input), 0)
-  })
-
-  test('generický OBD kód (P0xxx) má váhu +2', () => {
-    const input = {
-      vehicle: { model: 'Jiný model' },
-      obdCodes: ['P0401'],
-      symptoms: [],
-      text: '',
-    }
-    strictEqual(computeSimilarity(closedCase, input), 2)
-  })
-
-  test('textové skóre je omezeno na MAX_TEXT_SCORE=2', () => {
-    const input = {
-      vehicle: {},
-      obdCodes: [],
-      symptoms: [],
-      text: 'valve blocked power smoke',
-    }
-    const score = computeSimilarity(closedCase, input)
-    ok(score <= 2, `Textové skóre by mělo být ≤2, je ${score}`)
-  })
-})
+// NOTE: computeSimilarity scoring tests removed — scoring lives exclusively
+// in search-cases edge function. Test via integration tests instead.
 
 describe('extractSignals', () => {
   test('extrahuje unikátní příznaky a OBD kódy', () => {
