@@ -115,6 +115,22 @@ export const strings = {
   'review.reject':        'Ablehnen',
   'review.resolution':    'DURCHGEFÜHRTE REPARATUR',
 
+  // Analytics
+  'analytics.sidebarBtn': 'Analytik',
+  'analytics.title':      'ANALYTIK',
+  'analytics.loading':    'Laden...',
+  'analytics.period':     'Letzte {days} Tage',
+  'analytics.today':      'Heute',
+  'analytics.users':      'Benutzer',
+  'analytics.totalCalls': 'AI-AUFRUFE',
+  'analytics.tokens':     'TOKENS',
+  'analytics.activeDays': 'AKTIVE TAGE',
+  'analytics.cases':      'FÄLLE',
+  'analytics.chartCalls': 'AI-AUFRUFE / TAG',
+  'analytics.chartTokens':'TOKEN-VERBRAUCH / TAG',
+  'analytics.chartUsers': 'AKTIVE BENUTZER / TAG',
+  'analytics.noData':     'Keine Daten für diesen Zeitraum',
+
   // Status
   'status.closed':        '✓ ABGESCHLOSSEN',
   'status.active':        '● AKTIV',

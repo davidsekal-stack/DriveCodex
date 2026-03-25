@@ -13,6 +13,7 @@ export default function AppSidebar({
   mobile,
   onCloseSidebar,
   onOpenCase,
+  onStartAnalytics,
   onStartNewCase,
   onStartReview,
   pendingReviewCount,
@@ -59,6 +60,12 @@ export default function AppSidebar({
                   {pendingReviewCount}
                 </span>
               )}
+            </button>
+          )}
+          {isAdmin && (
+            <button onClick={onStartAnalytics}
+              style={{ width: "100%", marginTop: 6, background: view === "analytics" ? t.bgSelected : "transparent", border: `1px solid ${t.border}`, cursor: "pointer", padding: "8px 10px", fontSize: "0.75rem", letterSpacing: "0.06em", fontWeight: 500, fontFamily: "inherit", borderRadius: 2, color: t.textMuted, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span>{tr("analytics.sidebarBtn")}</span>
             </button>
           )}
         </div>

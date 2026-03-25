@@ -16,6 +16,7 @@ import ErrorBoundary                        from "./components/ErrorBoundary.jsx
 import ConsentGate                          from "./components/ConsentBanner.jsx";
 import WelcomeView                          from "./components/WelcomeView.jsx";
 import ReviewPanel                          from "./components/ReviewPanel.jsx";
+import AnalyticsPanel                       from "./components/AnalyticsPanel.jsx";
 import useAppBootstrapData                  from "./hooks/useAppBootstrapData.js";
 import useAuthSession                       from "./hooks/useAuthSession.js";
 import useCaseDraft                         from "./hooks/useCaseDraft.js";
@@ -184,6 +185,7 @@ function App() {
           onCloseSidebar={() => setSidebarOpen(false)}
           onOpenCase={openCase}
           onStartNewCase={startNewCase}
+          onStartAnalytics={() => { setView("analytics"); setActiveId(null); setSidebarOpen(false); }}
           onStartReview={() => { setView("review"); setActiveId(null); setSidebarOpen(false); }}
           pendingReviewCount={pendingReviewCount}
           sidebarOpen={sidebarOpen}
@@ -196,6 +198,15 @@ function App() {
 
         {/* MAIN */}
         <main style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+
+          {/* Admin analytics */}
+          {view === "analytics" && isAdmin && (
+            <AnalyticsPanel
+              t={t}
+              tr={tr}
+              fetchAnalytics={(days) => storage.fetchAnalytics(days)}
+            />
+          )}
 
           {/* Admin review */}
           {view === "review" && isAdmin && (

@@ -150,6 +150,27 @@ export async function createShareLink(activeCase) {
   }
 }
 
+export async function fetchAnalytics(days = 30) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = getEdgeFunctionToken(session, RUNTIME_CONFIG.supabaseAnonKey);
+  const res = await fetch(`${RUNTIME_CONFIG.edgeFunctionsUrl}/analytics?days=${days}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: RUNTIME_CONFIG.supabaseAnonKey,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    let msg = `analytics: HTTP ${res.status}`;
+    try { const j = JSON.parse(text); msg = j.error || msg; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+
+  return res.json();
+}
+
 export async function searchCases(ragInput) {
   const { data: { user } } = await supabase.auth.getUser();
 

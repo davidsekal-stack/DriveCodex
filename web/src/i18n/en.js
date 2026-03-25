@@ -115,6 +115,22 @@ export const strings = {
   'review.reject':        'Reject',
   'review.resolution':    'REPAIR PERFORMED',
 
+  // Analytics
+  'analytics.sidebarBtn': 'Analytics',
+  'analytics.title':      'ANALYTICS',
+  'analytics.loading':    'Loading...',
+  'analytics.period':     'Last {days} days',
+  'analytics.today':      'Today',
+  'analytics.users':      'users',
+  'analytics.totalCalls': 'AI CALLS',
+  'analytics.tokens':     'TOKENS',
+  'analytics.activeDays': 'ACTIVE DAYS',
+  'analytics.cases':      'CASES',
+  'analytics.chartCalls': 'AI CALLS / DAY',
+  'analytics.chartTokens':'TOKEN USAGE / DAY',
+  'analytics.chartUsers': 'ACTIVE USERS / DAY',
+  'analytics.noData':     'No data for this period',
+
   // Status
   'status.closed':        '✓ CLOSED',
   'status.active':        '● ACTIVE',

@@ -115,6 +115,22 @@ export const strings = {
   'review.reject':        'Zamítnout',
   'review.resolution':    'PROVEDENÁ OPRAVA',
 
+  // Analytics
+  'analytics.sidebarBtn': 'Analytika',
+  'analytics.title':      'ANALYTIKA',
+  'analytics.loading':    'Načítám...',
+  'analytics.period':     'Posledních {days} dní',
+  'analytics.today':      'Dnes',
+  'analytics.users':      'uživatelů',
+  'analytics.totalCalls': 'AI VOLÁNÍ',
+  'analytics.tokens':     'TOKENY',
+  'analytics.activeDays': 'AKTIVNÍCH DNÍ',
+  'analytics.cases':      'PŘÍPADY',
+  'analytics.chartCalls': 'AI VOLÁNÍ / DEN',
+  'analytics.chartTokens':'SPOTŘEBA TOKENŮ / DEN',
+  'analytics.chartUsers': 'AKTIVNÍ UŽIVATELÉ / DEN',
+  'analytics.noData':     'Žádná data za toto období',
+
   // Status
   'status.closed':        '✓ UZAVŘENÝ',
   'status.active':        '● AKTIVNÍ',

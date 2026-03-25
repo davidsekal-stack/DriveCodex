@@ -8,6 +8,7 @@ export {
 
 export {
   callAI,
+  fetchAnalytics,
   fetchReviewCases,
   pushClosedCase,
   searchCases,
