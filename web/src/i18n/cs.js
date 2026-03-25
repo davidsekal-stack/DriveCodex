@@ -131,6 +131,13 @@ export const strings = {
   'analytics.chartTokens':'SPOTŘEBA TOKENŮ / DEN',
   'analytics.chartUsers': 'AKTIVNÍ UŽIVATELÉ / DEN',
   'analytics.noData':     'Žádná data za toto období',
+  'analytics.registeredUsers': 'REGISTROVANÍ',
+  'analytics.new7d':      '7d',
+  'analytics.new30d':     '30d',
+  'analytics.topUsers':   'NEJAKTIVNĚJŠÍ UŽIVATELÉ',
+  'analytics.user':       'UŽIVATEL',
+  'analytics.topCalls':   'VOLÁNÍ',
+  'analytics.topTokens':  'TOKENY',
 
   // Status
   'status.closed':        '✓ UZAVŘENÝ',

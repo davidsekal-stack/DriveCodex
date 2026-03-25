@@ -131,6 +131,13 @@ export const strings = {
   'analytics.chartTokens':'TOKEN-VERBRAUCH / TAG',
   'analytics.chartUsers': 'AKTIVE BENUTZER / TAG',
   'analytics.noData':     'Keine Daten für diesen Zeitraum',
+  'analytics.registeredUsers': 'REGISTRIERT',
+  'analytics.new7d':      '7T',
+  'analytics.new30d':     '30T',
+  'analytics.topUsers':   'TOP BENUTZER NACH TOKEN-VERBRAUCH',
+  'analytics.user':       'BENUTZER',
+  'analytics.topCalls':   'AUFRUFE',
+  'analytics.topTokens':  'TOKENS',
 
   // Status
   'status.closed':        '✓ ABGESCHLOSSEN',

@@ -125,6 +125,8 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
   const aiDaily = fillDays(data?.ai_daily ?? [], sinceDate, "day", { calls: 0, input_tok: 0, output_tok: 0, users: 0 });
   const sessDaily = fillDays(data?.sessions_daily ?? [], sinceDate, "day", { new_sessions: 0, active_users: 0 });
   const caseStats = data?.case_stats ?? {};
+  const regUsers = data?.registered_users ?? {};
+  const topUsers = data?.top_users ?? [];
 
   const totalCalls = aiDaily.reduce((s, d) => s + (d.calls ?? 0), 0);
   const totalInputTok = aiDaily.reduce((s, d) => s + (d.input_tok ?? 0), 0);
@@ -196,6 +198,8 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
                 sub={todaySess ? `${tr("analytics.today")}: ${todaySess.active_users} ${tr("analytics.users")}` : null} color="#059669" t={t} />
               <StatCard label={tr("analytics.cases")} value={caseStats.total ?? 0}
                 sub={`${caseStats.approved ?? 0} ✓  ${caseStats.pending ?? 0} ⏳  ${caseStats.rejected ?? 0} ✕`} color="#d97706" t={t} />
+              <StatCard label={tr("analytics.registeredUsers")} value={regUsers.total_users ?? 0}
+                sub={`${tr("analytics.new7d")}: +${regUsers.users_7d ?? 0}  ${tr("analytics.new30d")}: +${regUsers.users_30d ?? 0}`} color="#7c3aed" t={t} />
             </div>
 
             {/* AI calls chart */}
@@ -231,6 +235,48 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
                 : <div style={{ fontSize: SMALL, color: t.textVeryFaint, padding: "20px 0" }}>{tr("analytics.noData")}</div>
               }
             </div>
+
+            {/* Top users table */}
+            {topUsers.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: SMALL, fontWeight: 600, color: t.textMuted, marginBottom: 8, letterSpacing: "0.06em" }}>
+                  {tr("analytics.topUsers")}
+                </div>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: SMALL }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: `2px solid ${t.border}`, color: t.textFaint, fontSize: TINY, letterSpacing: "0.06em" }}>#</th>
+                      <th style={{ textAlign: "left", padding: "8px 10px", borderBottom: `2px solid ${t.border}`, color: t.textFaint, fontSize: TINY, letterSpacing: "0.06em" }}>{tr("analytics.user")}</th>
+                      <th style={{ textAlign: "right", padding: "8px 10px", borderBottom: `2px solid ${t.border}`, color: t.textFaint, fontSize: TINY, letterSpacing: "0.06em" }}>{tr("analytics.topCalls")}</th>
+                      <th style={{ textAlign: "right", padding: "8px 10px", borderBottom: `2px solid ${t.border}`, color: t.textFaint, fontSize: TINY, letterSpacing: "0.06em" }}>{tr("analytics.topTokens")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topUsers.map((u, i) => {
+                      const maxTok = topUsers[0]?.total_tok ?? 1;
+                      const pct = Math.round((u.total_tok / maxTok) * 100);
+                      return (
+                        <tr key={u.user_id} style={{ background: i % 2 === 0 ? "transparent" : t.bgMuted }}>
+                          <td style={{ padding: "7px 10px", color: t.textVeryFaint, fontWeight: 600 }}>{i + 1}</td>
+                          <td style={{ padding: "7px 10px", color: t.text }}>
+                            <div>{u.user_email}</div>
+                          </td>
+                          <td style={{ padding: "7px 10px", textAlign: "right", color: t.textMuted }}>{u.calls}</td>
+                          <td style={{ padding: "7px 10px", textAlign: "right" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
+                              <div style={{ width: 60, height: 6, background: t.bgMuted, borderRadius: 3, overflow: "hidden" }}>
+                                <div style={{ width: `${pct}%`, height: "100%", background: "#7c3aed", borderRadius: 3 }} />
+                              </div>
+                              <span style={{ color: t.text, fontWeight: 600, minWidth: 40, textAlign: "right" }}>{fmtTok(u.total_tok)}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </>
         )}
       </div>

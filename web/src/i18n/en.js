@@ -131,6 +131,13 @@ export const strings = {
   'analytics.chartTokens':'TOKEN USAGE / DAY',
   'analytics.chartUsers': 'ACTIVE USERS / DAY',
   'analytics.noData':     'No data for this period',
+  'analytics.registeredUsers': 'REGISTERED',
+  'analytics.new7d':      '7d',
+  'analytics.new30d':     '30d',
+  'analytics.topUsers':   'TOP USERS BY TOKEN USAGE',
+  'analytics.user':       'USER',
+  'analytics.topCalls':   'CALLS',
+  'analytics.topTokens':  'TOKENS',
 
   // Status
   'status.closed':        '✓ CLOSED',

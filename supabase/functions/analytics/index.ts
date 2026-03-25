@@ -67,19 +67,20 @@ Deno.serve(async (req) => {
 
   try {
     // Parallel queries
-    const [aiUsage, sessions, cases] = await Promise.all([
-      // AI usage per day
+    const [aiUsage, sessions, cases, regUsers, topUsers] = await Promise.all([
       supabase.rpc('analytics_ai_daily', { since_date: since }),
-      // Active sessions per day
       supabase.rpc('analytics_sessions_daily', { since_date: since }),
-      // Case stats
       supabase.rpc('analytics_case_stats'),
+      supabase.rpc('analytics_registered_users'),
+      supabase.rpc('analytics_top_users', { since_date: since, lim: 10 }),
     ])
 
     return json({
       ai_daily: aiUsage.data ?? [],
       sessions_daily: sessions.data ?? [],
       case_stats: cases.data?.[0] ?? { total: 0, pending: 0, approved: 0, rejected: 0 },
+      registered_users: regUsers.data?.[0] ?? { total_users: 0, users_today: 0, users_7d: 0, users_30d: 0 },
+      top_users: topUsers.data ?? [],
       days: effectiveDays,
       since: since.slice(0, 10),
     }, 200)
