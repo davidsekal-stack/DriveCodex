@@ -9,7 +9,7 @@ Supports 30+ vehicle brands (EU + US market), 3 languages (CS/EN/DE).
 ```bash
 cd web
 npm install
-npm run dev       # → http://localhost:5173
+npm run dev       # → http://localhost:5180
 ```
 
 ## Build & Deploy
@@ -37,25 +37,40 @@ gearbrain/
 ├── web/                         React SPA (Vite)
 │   ├── src/
 │   │   ├── App.jsx              View routing, theme, sidebar
-│   │   ├── components/          23 UI components
-│   │   ├── hooks/               9 custom hooks (business logic)
-│   │   ├── lib/                 22 modules (AI, RAG, storage, validation)
+│   │   ├── components/          UI components (incl. admin panels)
+│   │   ├── hooks/               Custom hooks (business logic)
+│   │   ├── lib/                 Pure functions (AI, RAG, storage, validation)
 │   │   ├── i18n/                Localization (CS/EN/DE)
-│   │   └── constants/           Vehicle catalogs, OBD codes, symptoms
+│   │   └── constants/           Vehicle catalogs, OBD codes, symptoms, enums
 │   └── package.json
 ├── supabase/
 │   ├── functions/
+│   │   ├── _shared/             Shared helpers (CORS, auth, response, client)
+│   │   ├── analytics/           Admin analytics dashboard data
 │   │   ├── deepseek-proxy/      AI API proxy + rate limiting
 │   │   ├── push-case/           Save closed case to RAG (pending review)
 │   │   ├── search-cases/        RAG scoring + retrieval
 │   │   ├── review-cases/        Admin approve/reject
-│   │   └── send-feedback/       User feedback
-│   └── migrations/              SQL migrations (002–009)
+│   │   ├── send-feedback/       User feedback
+│   │   └── share-case/          Shareable diagnostic links + OG tags
+│   └── migrations/              SQL migrations (002–012)
 ├── tests/                       Unit + integration tests
 ├── CLAUDE.md                    Claude Code instructions
 ├── HANDOVER.md                  Architecture & data flow docs
 └── package.json
 ```
+
+## Features
+
+- **AI Diagnosis** — DeepSeek-powered analysis with structured fault cards (probability, parts, OBD codes, repair steps)
+- **RAG Database** — ~920 verified cases, scored by vehicle/OBD/symptom similarity
+- **Admin Review** — Cases go through pending → approved/rejected workflow before entering RAG
+- **Admin Analytics** — Usage stats, token consumption, registered users, top users
+- **Shareable Links** — Read-only diagnostic snapshots with OG meta tags for social media
+- **Terms of Service** — Consent gate with localized ToS/EULA
+- **PDF Export** — Full diagnostic report export
+- **OBD BLE Reader** — Web Bluetooth integration for reading OBD codes
+- **3 Languages** — Czech, English, German (all UI strings via i18n)
 
 ## Documentation
 

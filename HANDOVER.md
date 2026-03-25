@@ -1,30 +1,34 @@
 # GearBrain — Project Handover
 
-Last updated: 2026-03-23
+Last updated: 2026-03-25
 
 ## Architecture
 
 ```
 Browser (React SPA)
-  ├── App.jsx ─── view routing, theme, sidebar
-  ├── hooks/ ──── business logic (7 custom hooks)
-  ├── lib/ ────── pure functions (22 modules)
-  ├── constants/ ─ vehicle catalogs, OBD codes
-  └── i18n/ ───── CS, EN, DE (~170 keys each)
+  ├── App.jsx ─── view routing, theme, sidebar, admin detection
+  ├── hooks/ ──── business logic (custom hooks)
+  ├── lib/ ────── pure functions (AI, storage, validation)
+  ├── constants/ ─ vehicle catalogs, OBD codes, enums, timing
+  └── i18n/ ───── CS, EN, DE (~180 keys each)
 
 Supabase
   ├── Edge Functions (Deno)
-  │   ├── deepseek-proxy ── AI API proxy (rate limiting)
-  │   ├── push-case ─────── save closed case (pending → review)
-  │   ├── search-cases ──── RAG scoring (approved cases only)
-  │   ├── review-cases ──── admin approve/reject
-  │   └── send-feedback ─── user feedback
+  │   ├── _shared/ ─────── CORS, auth, response helpers, client factory
+  │   ├── analytics ────── admin dashboard data (daily AI/sessions/tokens/users)
+  │   ├── deepseek-proxy ─ AI API proxy (rate limiting: 50/day/user)
+  │   ├── push-case ────── save closed case (pending → review)
+  │   ├── search-cases ─── RAG scoring (approved cases only)
+  │   ├── review-cases ─── admin approve/reject
+  │   ├── send-feedback ── user feedback + email notification
+  │   └── share-case ───── shareable links + OG meta tags
   ├── Tables
   │   ├── gearbrain_cases ────────── RAG database (status: pending/approved/rejected)
   │   ├── gearbrain_web_sessions ── active user cases (JSONB)
-  │   ├── gearbrain_ai_usage ────── rate limiting
+  │   ├── gearbrain_ai_usage ────── token tracking + rate limiting
   │   ├── gearbrain_feedback ────── user feedback
-  │   └── gearbrain_violations ──── abuse tracking
+  │   ├── gearbrain_violations ──── abuse tracking
+  │   └── shared_cases ──────────── shareable diagnostic snapshots
   └── Views
       └── gearbrain_cases_review ── cases + user email (for admin UI)
 ```
@@ -46,7 +50,7 @@ New → rozpracovaný (in-progress) → uzavřený (closed)
   → Admin review → approved (enters RAG) or rejected
 ```
 
-### RAG Scoring (search-cases + rag.js)
+### RAG Scoring (search-cases edge function only)
 ```
 Pre-filter: brand + model (mandatory), OBD overlap
 Scoring weights:
@@ -61,23 +65,49 @@ Scoring weights:
 Thresholds:
   Dynamic: min(8, inputMax × 0.7)
   F1 bidirectional ratio ≥ 50%
+
+NOTE: Scoring logic lives ONLY in search-cases/index.ts.
+Frontend rag.js contains only extractSignals() for prompt building.
 ```
+
+### Shareable Links
+```
+User clicks Share → POST share-case → snapshot stored in shared_cases
+Visitor opens /share/:id → SPA renders read-only SharedCaseView
+Social bots → Vercel rewrite → share-case GET → HTML with OG tags
+```
+
+## Edge Function Shared Helpers
+
+All 7 edge functions import from `supabase/functions/_shared/`:
+- `cors.ts` — `CORS_HEADERS`, `optionsResponse()`
+- `response.ts` — `json()`, `html()` response builders
+- `auth.ts` — `getAuthUser()`, `isAdmin()` for admin endpoints
+- `client.ts` — `getServiceClient()` Supabase service-role factory
+
+## Admin Configuration
+
+- **Frontend**: `VITE_ADMIN_EMAILS` env var (fallback: `davidsekal@gmail.com`)
+- **Edge functions**: `ADMIN_USER_IDS` Supabase secret (email or UUID, comma-separated)
+- **Feedback email**: `FEEDBACK_EMAIL` Supabase secret
+
+## Enum Constants
+
+Centralized in `web/src/constants/enums.js`:
+- `MSG.INPUT`, `MSG.DIAGNOSIS` — message types
+- `CASE_STATUS.OPEN`, `CASE_STATUS.CLOSED` — case status strings
+- `REVIEW_STATUS.PENDING`, `REVIEW_STATUS.APPROVED`, `REVIEW_STATUS.REJECTED`
 
 ## Supabase Config
 - Project ref: `nmvjthfezyjcwuzphiuu`
-- Secrets: `DEEPSEEK_API_KEY`, `ADMIN_USER_IDS` (email)
+- Secrets: `DEEPSEEK_API_KEY`, `ADMIN_USER_IDS`, `FEEDBACK_EMAIL`, `RESEND_API_KEY`, `FRONTEND_URL`
 - RLS: users see only own sessions; cases accessed via edge functions (service role)
+- SQL migrations: 002–012
 
 ## Known Issues
 - **OBD BLE reader** — only works with BLE adapters, not Classic Bluetooth (Web Bluetooth API limitation)
 - **ESLint peer dep** — eslint@10 vs eslint-plugin-react (needs ^9.7). Deferred.
 - **Integration tests** — test account password unknown, skipped on push
 - **Bundle size** — main chunk ~990 KB (no code splitting yet)
-
-## Codebase Stats (2026-03-23)
-- 8,786 lines JS/JSX across 85 source files
-- 23 React components, 9 custom hooks, 22 lib modules
-- 3,402 lines of tests (unit + i18n + validation + catalog + integration)
-- 3 languages (CS, EN, DE)
-- ~920 closed cases in RAG database
-- 5 Supabase edge functions, 7 DB migrations (002–009)
+- **Share link encoding** — OG tags had UTF-8 issues (edge function charset fix deployed)
+- **Toyota test** — `resolveToyotaVehicleModel` "dosud" → open range change has 1 failing test
