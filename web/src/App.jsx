@@ -27,7 +27,7 @@ import useGlobalShortcuts                   from "./hooks/useGlobalShortcuts.js"
 import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
 
-const ADMIN_EMAILS = ["davidsekal1@seznam.cz"];
+const ADMIN_EMAILS = ["davidsekal@gmail.com"];
 
 const LANGS = [
   { code: "cs", label: "CS" },
