@@ -1,3 +1,5 @@
+import { err } from "./result.js";
+
 export function getStorageErrorMessage(error, fallbackMessage = "Unknown storage error") {
   if (typeof error === "string" && error.trim()) {
     return error.trim();
@@ -19,9 +21,9 @@ export function makeStorageSuccessResult(data = {}) {
 }
 
 export function makeStorageErrorResult(error, fallbackMessage = "Unknown storage error", data = {}) {
+  const normalized = err(getStorageErrorMessage(error, fallbackMessage));
   return {
-    ok: false,
-    error: getStorageErrorMessage(error, fallbackMessage),
+    ...normalized,
     ...data,
   };
 }

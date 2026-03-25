@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { ok, err } from "./result.js";
 import {
   buildSaveCasePayload,
   mapStoredCases,
@@ -12,13 +13,13 @@ export async function loadCases() {
     .select("id, data, status, created_at, updated_at")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
-  return mapStoredCases(data);
+  if (error) return err(error);
+  return ok(mapStoredCases(data));
 }
 
 async function saveCase(caseData, status = "open") {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Nepřihlášen");
+  if (!user) return err("Nepřihlášen");
 
   const { error } = await supabase
     .from(TABLE)
@@ -27,7 +28,8 @@ async function saveCase(caseData, status = "open") {
       { onConflict: "user_id,local_id" },
     );
 
-  if (error) throw error;
+  if (error) return err(error);
+  return ok();
 }
 
 export async function createCase(caseData) {
@@ -44,7 +46,8 @@ export async function deleteCase(caseId) {
     .delete()
     .eq("local_id", caseId);
 
-  if (error) throw error;
+  if (error) return err(error);
+  return ok();
 }
 
 export async function getGlobalCaseCount() {
@@ -53,6 +56,6 @@ export async function getGlobalCaseCount() {
     .select("*", { count: "exact", head: true })
     .eq("status", "approved");
 
-  if (error) throw error;
-  return count ?? 0;
+  if (error) return err(error);
+  return ok(count ?? 0);
 }

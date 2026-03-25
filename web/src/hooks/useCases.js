@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { CASE_STATUS } from "../constants/enums.js";
+import { DEBOUNCE_SAVE_MS, SYNC_IDLE_RESET_MS } from "../constants/timing.js";
+import { isOk } from "../lib/result.js";
 import { uid } from "../lib/utils.js";
 import * as storage from "../lib/storage.js";
 
@@ -45,7 +47,7 @@ export default function useCases() {
     clearSyncResetTimer();
     syncResetTimer.current = setTimeout(() => {
       setSyncStatus("idle");
-    }, 2500);
+    }, SYNC_IDLE_RESET_MS);
   }, [clearSyncResetTimer]);
 
   const markSyncSuccess = useCallback((options = {}) => {
@@ -84,12 +86,11 @@ export default function useCases() {
       const status = caseData.status === CASE_STATUS.CLOSED ? "closed" : "open";
       markSyncStarted();
       storage.updateCase(id, caseData, status)
-        .then(() => markSyncSuccess())
-        .catch((error) => {
-          console.warn('[save]', error.message);
-          markSyncError(error);
+        .then((result) => {
+          if (isOk(result)) { markSyncSuccess(); }
+          else { console.warn('[save]', result.error); markSyncError({ message: result.error }); }
         });
-    }, 500);
+    }, DEBOUNCE_SAVE_MS);
   }, [markSyncError, markSyncStarted, markSyncSuccess]);
 
   // ── CRUD ──────────────────────────────────────────────────────────────────────
@@ -130,10 +131,9 @@ export default function useCases() {
     // Async save to Supabase
     markSyncStarted();
     storage.createCase(newCase)
-      .then(() => markSyncSuccess())
-      .catch((error) => {
-        console.warn('[create]', error.message);
-        markSyncError(error);
+      .then((result) => {
+        if (isOk(result)) { markSyncSuccess(); }
+        else { console.warn('[create]', result.error); markSyncError({ message: result.error }); }
       });
 
     return id;
@@ -144,10 +144,9 @@ export default function useCases() {
     if (activeId === id) setActiveId(null);
     markSyncStarted();
     storage.deleteCase(id)
-      .then(() => markSyncSuccess())
-      .catch((error) => {
-        console.warn('[delete]', error.message);
-        markSyncError(error);
+      .then((result) => {
+        if (isOk(result)) { markSyncSuccess(); }
+        else { console.warn('[delete]', result.error); markSyncError({ message: result.error }); }
       });
   }, [activeId, markSyncError, markSyncStarted, markSyncSuccess]);
 
@@ -155,16 +154,15 @@ export default function useCases() {
 
   const loadCases = useCallback(async () => {
     markSyncStarted();
-    try {
-      const loaded = await storage.loadCases();
-      setCases(loaded);
+    const result = await storage.loadCases();
+    if (isOk(result)) {
+      setCases(result.data);
       markSyncSuccess({ resetError: true });
-      return loaded;
-    } catch (e) {
-      console.warn('[loadCases]', e.message);
-      markSyncError(e);
-      throw e;
+      return result;
     }
+    console.warn('[loadCases]', result.error);
+    markSyncError({ message: result.error });
+    return result;
   }, [markSyncError, markSyncStarted, markSyncSuccess]);
 
   return {

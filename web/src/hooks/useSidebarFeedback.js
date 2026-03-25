@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
+import { FEEDBACK_RESET_MS } from "../constants/timing.js";
 import * as storage from "../lib/storage.js";
 
 export default function useSidebarFeedback({ lang }) {
@@ -16,7 +16,7 @@ export default function useSidebarFeedback({ lang }) {
 
   const scheduleStatusReset = useCallback(() => {
     clearResetTimer();
-    resetTimerRef.current = setTimeout(() => setFeedbackStatus("idle"), 3000);
+    resetTimerRef.current = setTimeout(() => setFeedbackStatus("idle"), FEEDBACK_RESET_MS);
   }, [clearResetTimer]);
 
   useEffect(() => () => {

@@ -1,22 +1,13 @@
+import { isOk } from "./result.js";
+
 export async function loadCasesCloudStatus(loadCases) {
-  try {
-    await loadCases();
-    return "ok";
-  } catch {
-    return "error";
-  }
+  const result = await loadCases();
+  return isOk(result) ? "ok" : "error";
 }
 
 export async function loadGlobalCaseCount(getGlobalCaseCount) {
-  try {
-    return {
-      globalCaseCount: await getGlobalCaseCount(),
-      hasGlobalCaseCount: true,
-    };
-  } catch {
-    return {
-      globalCaseCount: null,
-      hasGlobalCaseCount: false,
-    };
-  }
+  const result = await getGlobalCaseCount();
+  return isOk(result)
+    ? { globalCaseCount: result.data, hasGlobalCaseCount: true }
+    : { globalCaseCount: null, hasGlobalCaseCount: false };
 }
