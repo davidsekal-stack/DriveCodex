@@ -8,34 +8,25 @@
  * Body: { message: string, userEmail?: string, lang?: string }
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { optionsResponse } from '../_shared/cors.ts'
+import { json } from '../_shared/response.ts'
+import { getServiceClient } from '../_shared/client.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-const FEEDBACK_EMAIL = 'davidsekal@gmail.com'
+// Configurable via env var — fallback for backwards compatibility
+const FEEDBACK_EMAIL = Deno.env.get('FEEDBACK_EMAIL') || 'davidsekal@gmail.com'
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return optionsResponse()
 
   try {
     const { message, userEmail, lang } = await req.json()
 
     if (!message?.trim()) {
-      return new Response(
-        JSON.stringify({ error: 'Empty feedback' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ error: 'Empty feedback' }, 400)
     }
 
     // ── Store in Supabase DB ────────────────────────────────────────────────
-    const supabaseUrl  = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase     = createClient(supabaseUrl, supabaseKey)
+    const supabase = getServiceClient()
 
     await supabase.from('gearbrain_feedback').insert({
       message:    message.trim(),
@@ -66,15 +57,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ ok: true })
   } catch (err) {
     console.error('send-feedback error:', err)
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ error: err.message }, 500)
   }
 })

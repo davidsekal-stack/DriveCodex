@@ -14,20 +14,15 @@
  * which is resolved server-side via IMPORTER_USER_ID.
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { optionsResponse } from '../_shared/cors.ts'
+import { json } from '../_shared/response.ts'
+import { getServiceClient } from '../_shared/client.ts'
 
 const IMPORTER_USER_ALIAS = 'ai_importer'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return optionsResponse()
 
   try {
     const {
@@ -104,11 +99,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
     }
 
     // ── Uložení do gearbrain_cases ─────────────────────────────────────────────
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { auth: { persistSession: false } },
-    )
+    const supabase = getServiceClient()
 
     const row = {
       local_id:        local_id        ?? null,
@@ -134,20 +125,13 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
       return json({ error: error.message }, 500)
     }
 
-    return json({ ok: true }, 200)
+    return json({ ok: true })
 
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     return json({ error: msg }, 500)
   }
 })
-
-function json(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
 
 function resolveIncomingUserId(value: unknown): { userId: string } | { error: string } {
   const raw = (value ?? '').toString().trim()

@@ -27,7 +27,7 @@ import useGlobalShortcuts                   from "./hooks/useGlobalShortcuts.js"
 import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
 
-const ADMIN_EMAILS = ["davidsekal@gmail.com"];
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || "davidsekal@gmail.com").split(",").map((e) => e.trim());
 
 const LANGS = [
   { code: "cs", label: "CS" },

@@ -11,7 +11,9 @@
  * Body: { vehicle, symptoms, obdCodes, text, userId }
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { optionsResponse } from '../_shared/cors.ts'
+import { json } from '../_shared/response.ts'
+import { getServiceClient } from '../_shared/client.ts'
 
 // ── Scoring konstanty ──────────────────────────────────────────────────────────
 // Značka + model = povinný pre-filtr na DB úrovni (nescoruji se)
@@ -150,15 +152,7 @@ function rowToCase(row: any) {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
-  // CORS
-  const corsHeaders = {
-    'Access-Control-Allow-Origin':  '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
-
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return optionsResponse()
 
   try {
     const { vehicle, symptoms, obdCodes, text, userId } = await req.json()
@@ -210,18 +204,11 @@ Return format: {"symptoms":["..."],"text":"..."}`,
     }
 
     // Service role klient — má přístup k tabulce i přes zakázaný anon SELECT
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { auth: { persistSession: false } }
-    )
+    const supabase = getServiceClient()
 
     // ── Validace povinných parametrů ──────────────────────────────────────────
     if (!vehicle?.brand || !vehicle?.model) {
-      return new Response(
-        JSON.stringify({ cases: [], count: 0 }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return json({ cases: [], count: 0 })
     }
 
     // Předfiltrování na DB úrovni:
@@ -272,16 +259,10 @@ Return format: {"symptoms":["..."],"text":"..."}`,
       .slice(0, 5)
       .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragMatchRatio: x.matchRatio }))
 
-    return new Response(
-      JSON.stringify({ cases: results, count: results.length }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ cases: results, count: results.length })
 
   } catch (e: any) {
-    return new Response(
-      JSON.stringify({ cases: [], count: 0, error: e.message }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      // 200 i při chybě — aplikace tiše pokračuje bez RAG
-    )
+    // 200 i při chybě — aplikace tiše pokračuje bez RAG
+    return json({ cases: [], count: 0, error: e.message })
   }
 })

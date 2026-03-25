@@ -10,7 +10,9 @@
  * Body: { model, system, messages, max_tokens, user_id }
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { optionsResponse } from '../_shared/cors.ts'
+import { json } from '../_shared/response.ts'
+import { getServiceClient } from '../_shared/client.ts'
 
 const ALLOWED_MODELS = [
   'deepseek-chat',
@@ -21,37 +23,26 @@ const DAILY_LIMIT     = 50
 const MAX_TOKENS_CAP  = 8000
 
 Deno.serve(async (req) => {
-  const corsHeaders = {
-    'Access-Control-Allow-Origin':  '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
-
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return optionsResponse()
 
   try {
     const { model, system, messages, max_tokens, user_id } = await req.json()
 
     // ── Validace ───────────────────────────────────────────────────────────
     if (!user_id || typeof user_id !== 'string') {
-      return json({ error: { message: 'Chybí user_id.' } }, 400, corsHeaders)
+      return json({ error: { message: 'Chybí user_id.' } }, 400)
     }
     if (!ALLOWED_MODELS.includes(model)) {
-      return json({ error: { message: `Nepovolený model: ${model}` } }, 400, corsHeaders)
+      return json({ error: { message: `Nepovolený model: ${model}` } }, 400)
     }
     if (!Array.isArray(messages) || messages.length === 0) {
-      return json({ error: { message: 'Chybí messages.' } }, 400, corsHeaders)
+      return json({ error: { message: 'Chybí messages.' } }, 400)
     }
 
     const safeMaxTokens = Math.min(max_tokens ?? 4000, MAX_TOKENS_CAP)
 
     // ── Rate limiting ──────────────────────────────────────────────────────
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { auth: { persistSession: false } },
-    )
+    const supabase = getServiceClient()
 
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     const { count, error: countErr } = await supabase
@@ -63,14 +54,14 @@ Deno.serve(async (req) => {
     if (!countErr && (count ?? 0) >= DAILY_LIMIT) {
       return json(
         { error: { message: `Denní limit ${DAILY_LIMIT} AI dotazů překročen. Zkuste to zítra.` } },
-        429, corsHeaders,
+        429,
       )
     }
 
     // ── Forward to DeepSeek ──────────────────────────────────────────────
     const apiKey = Deno.env.get('DEEPSEEK_API_KEY')
     if (!apiKey) {
-      return json({ error: { message: 'Server: chybí konfigurace AI služby.' } }, 500, corsHeaders)
+      return json({ error: { message: 'Server: chybí konfigurace AI služby.' } }, 500)
     }
 
     const dsMessages = [
@@ -94,7 +85,7 @@ Deno.serve(async (req) => {
     const dsData = await dsRes.json()
 
     if (dsData.error) {
-      return json({ error: { message: dsData.error.message || 'DeepSeek API error' } }, dsRes.status, corsHeaders)
+      return json({ error: { message: dsData.error.message || 'DeepSeek API error' } }, dsRes.status)
     }
 
     const text = dsData.choices?.[0]?.message?.content ?? ''
@@ -125,21 +116,10 @@ Deno.serve(async (req) => {
       })
       .then(() => {})
 
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return json(response)
 
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
-    return json({ error: { message: `Proxy chyba: ${msg}` } }, 500, corsHeaders)
+    return json({ error: { message: `Proxy chyba: ${msg}` } }, 500)
   }
 })
-
-/** Helper pro JSON response */
-function json(body: unknown, status: number, headers: Record<string, string>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...headers, 'Content-Type': 'application/json' },
-  })
-}

@@ -14,11 +14,9 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { optionsResponse } from '../_shared/cors.ts'
+import { json, html } from '../_shared/response.ts'
+import { getServiceClient } from '../_shared/client.ts'
 
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://gearbrain.vercel.app'
 const OG_IMAGE = `${FRONTEND_URL}/og-image.png`
@@ -32,30 +30,6 @@ function generateShareId(length = 9): string {
   return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('')
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function json(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
-
-function html(content: string, status = 200) {
-  return new Response(content, {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
-  })
-}
-
-function getSupabase() {
-  return createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    { auth: { persistSession: false } },
-  )
-}
-
 // ── GET: OG HTML page ────────────────────────────────────────────────────────
 
 async function handleGet(req: Request): Promise<Response> {
@@ -66,7 +40,7 @@ async function handleGet(req: Request): Promise<Response> {
     return json({ error: 'Missing id parameter' }, 400)
   }
 
-  const supabase = getSupabase()
+  const supabase = getServiceClient()
   const { data, error } = await supabase
     .from('shared_cases')
     .select('vehicle_summary, fault_summary')
@@ -83,8 +57,6 @@ async function handleGet(req: Request): Promise<Response> {
   const description = data.fault_summary || 'AI-powered vehicle diagnostic report'
   const shareUrl = `${FRONTEND_URL}/share/${id}`
 
-  // OG crawlers (Facebook, Discord, Twitter) parse meta tags from this HTML.
-  // Real browsers hitting this endpoint directly get redirected to the SPA.
   return html(`<!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -120,7 +92,6 @@ function escapeHtml(str: string): string {
 // ── POST: Create share link ──────────────────────────────────────────────────
 
 async function handlePost(req: Request): Promise<Response> {
-  // Verify auth via JWT
   const authHeader = req.headers.get('Authorization') ?? ''
   const token = authHeader.replace('Bearer ', '')
 
@@ -128,17 +99,13 @@ async function handlePost(req: Request): Promise<Response> {
     return json({ error: 'Unauthorized' }, 401)
   }
 
-  const supabase = getSupabase()
+  const supabase = getServiceClient()
 
-  // Decode JWT to get user_id — use anon key for client, verify token explicitly
+  // Decode JWT to get user_id
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
   const { data: { user }, error: authError } = await createClient(
     Deno.env.get('SUPABASE_URL')!,
     anonKey,
-    {
-      auth: { persistSession: false },
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    },
   ).auth.getUser(token)
 
   if (authError || !user) {
@@ -160,7 +127,6 @@ async function handlePost(req: Request): Promise<Response> {
     .single()
 
   if (existing) {
-    // Return existing share link
     return json({
       ok: true,
       id: existing.id,
@@ -196,9 +162,7 @@ async function handlePost(req: Request): Promise<Response> {
 // ── Router ───────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return optionsResponse()
 
   try {
     if (req.method === 'GET') return await handleGet(req)
