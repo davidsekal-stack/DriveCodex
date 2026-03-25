@@ -55,8 +55,15 @@ Deno.serve(async (req) => {
   )
 
   const url = new URL(req.url)
-  const days = Math.min(parseInt(url.searchParams.get('days') ?? '30'), 90)
-  const since = new Date(Date.now() - days * 86400000).toISOString()
+  const rawDays = parseInt(url.searchParams.get('days') ?? '30')
+  // days=0 means "max" — from project start (2026-03-17)
+  const PROJECT_START = '2026-03-17T00:00:00Z'
+  const since = rawDays === 0
+    ? PROJECT_START
+    : new Date(Date.now() - Math.min(rawDays, 365) * 86400000).toISOString()
+  const effectiveDays = rawDays === 0
+    ? Math.ceil((Date.now() - new Date(PROJECT_START).getTime()) / 86400000)
+    : Math.min(rawDays, 365)
 
   try {
     // Parallel queries
@@ -73,7 +80,8 @@ Deno.serve(async (req) => {
       ai_daily: aiUsage.data ?? [],
       sessions_daily: sessions.data ?? [],
       case_stats: cases.data?.[0] ?? { total: 0, pending: 0, approved: 0, rejected: 0 },
-      days,
+      days: effectiveDays,
+      since: since.slice(0, 10),
     }, 200)
 
   } catch (e: unknown) {

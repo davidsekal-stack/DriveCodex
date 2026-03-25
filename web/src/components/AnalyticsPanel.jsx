@@ -8,6 +8,21 @@ import { useState, useEffect, useCallback } from "react";
 const FONT = "0.82rem";
 const SMALL = "0.7rem";
 const TINY = "0.65rem";
+const PROJECT_START = "2026-03-17";
+
+/** Fill missing days with zeroes so all charts have the same x-axis */
+function fillDays(sparse, sinceDate, labelKey, defaultRow) {
+  const map = new Map(sparse.map((d) => [d[labelKey], d]));
+  const start = new Date(sinceDate + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const result = [];
+  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    result.push(map.get(key) ?? { [labelKey]: key, ...defaultRow });
+  }
+  return result;
+}
 
 // ── SVG Bar Chart ──────────────────────────────────────────────────────────────
 
@@ -105,17 +120,18 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
 
   useEffect(() => { load(); }, [load]);
 
-  // Aggregate totals from daily data
-  const aiDaily = data?.ai_daily ?? [];
-  const sessDaily = data?.sessions_daily ?? [];
+  // Aggregate totals from daily data, filling gaps with zeroes
+  const sinceDate = data?.since ?? PROJECT_START;
+  const aiDaily = fillDays(data?.ai_daily ?? [], sinceDate, "day", { calls: 0, input_tok: 0, output_tok: 0, users: 0 });
+  const sessDaily = fillDays(data?.sessions_daily ?? [], sinceDate, "day", { new_sessions: 0, active_users: 0 });
   const caseStats = data?.case_stats ?? {};
 
   const totalCalls = aiDaily.reduce((s, d) => s + (d.calls ?? 0), 0);
   const totalInputTok = aiDaily.reduce((s, d) => s + (d.input_tok ?? 0), 0);
   const totalOutputTok = aiDaily.reduce((s, d) => s + (d.output_tok ?? 0), 0);
-  const totalUsers = new Set(sessDaily.flatMap((d) => [d.day])).size; // days with activity
-  const todayAi = aiDaily[aiDaily.length - 1];
-  const todaySess = sessDaily[sessDaily.length - 1];
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayAi = aiDaily.find((d) => d.day === todayStr);
+  const todaySess = sessDaily.find((d) => d.day === todayStr);
 
   const fmtTok = (v) => v >= 1_000_000 ? (v / 1_000_000).toFixed(1) + "M" : v >= 1000 ? (v / 1000).toFixed(0) + "k" : String(v);
 
@@ -130,22 +146,25 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
               {tr("analytics.title")}
             </div>
             <div style={{ fontSize: SMALL, color: t.textFaint, marginTop: 2 }}>
-              {loading ? tr("analytics.loading") : tr("analytics.period", { days })}
+              {loading ? tr("analytics.loading") : days === 0 ? tr("analytics.periodMax") : tr("analytics.period", { days })}
             </div>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
-            {[7, 14, 30].map((d) => (
-              <button key={d} onClick={() => setDays(d)}
-                style={{
-                  background: days === d ? t.accent : t.bgCard,
-                  border: `1px solid ${days === d ? t.accent : t.border}`,
-                  color: days === d ? "#fff" : t.textMuted,
-                  padding: "5px 12px", fontSize: SMALL, cursor: "pointer",
-                  fontFamily: "inherit", borderRadius: 2, fontWeight: days === d ? 600 : 400,
-                }}>
-                {d}d
-              </button>
-            ))}
+            {[7, 14, 30, 0].map((d) => {
+              const label = d === 0 ? "Max" : `${d}d`;
+              return (
+                <button key={d} onClick={() => setDays(d)}
+                  style={{
+                    background: days === d ? t.accent : t.bgCard,
+                    border: `1px solid ${days === d ? t.accent : t.border}`,
+                    color: days === d ? "#fff" : t.textMuted,
+                    padding: "5px 12px", fontSize: SMALL, cursor: "pointer",
+                    fontFamily: "inherit", borderRadius: 2, fontWeight: days === d ? 600 : 400,
+                  }}>
+                  {label}
+                </button>
+              );
+            })}
             <button onClick={load} disabled={loading}
               style={{ background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 12px", fontSize: SMALL, cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
               ↻

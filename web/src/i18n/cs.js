@@ -120,6 +120,7 @@ export const strings = {
   'analytics.title':      'ANALYTIKA',
   'analytics.loading':    'Načítám...',
   'analytics.period':     'Posledních {days} dní',
+  'analytics.periodMax':  'Od 17. 3. 2026 do současnosti',
   'analytics.today':      'Dnes',
   'analytics.users':      'uživatelů',
   'analytics.totalCalls': 'AI VOLÁNÍ',

@@ -120,6 +120,7 @@ export const strings = {
   'analytics.title':      'ANALYTIK',
   'analytics.loading':    'Laden...',
   'analytics.period':     'Letzte {days} Tage',
+  'analytics.periodMax':  'Seit 17. März 2026',
   'analytics.today':      'Heute',
   'analytics.users':      'Benutzer',
   'analytics.totalCalls': 'AI-AUFRUFE',
