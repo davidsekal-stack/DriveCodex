@@ -138,6 +138,7 @@ export const strings = {
   'analytics.user':       'UŽIVATEL',
   'analytics.topCalls':   'VOLÁNÍ',
   'analytics.topTokens':  'TOKENY',
+  'analytics.brandStats': 'DIAGNOSTIKOVANÉ ZNAČKY',
 
   // Status
   'status.closed':        '✓ UZAVŘENÝ',

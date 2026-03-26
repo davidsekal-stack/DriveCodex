@@ -6,6 +6,9 @@
  * - Denní unikátní uživatelé
  * - Celkové počty (případy, uživatelé, tokeny)
  * - Top uživatelé podle spotřeby tokenů
+ * - Statistika značek vozidel
+ *
+ * Admin účty (ANALYTICS_EXCLUDE_EMAILS) se automaticky odfiltrují.
  */
 
 import { optionsResponse } from '../_shared/cors.ts'
@@ -14,6 +17,12 @@ import { getAuthUser, isAdmin } from '../_shared/auth.ts'
 import { getServiceClient } from '../_shared/client.ts'
 
 const PROJECT_START = '2026-03-17T00:00:00Z'
+
+// Emaily k vyloučení z analytiky (admin/test účty)
+const EXCLUDE_EMAILS = (Deno.env.get('ANALYTICS_EXCLUDE_EMAILS') ?? '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return optionsResponse()
@@ -34,13 +43,16 @@ Deno.serve(async (req) => {
     ? Math.ceil((Date.now() - new Date(PROJECT_START).getTime()) / 86400000)
     : Math.min(rawDays, 365)
 
+  const ex = EXCLUDE_EMAILS
+
   try {
-    const [aiUsage, sessions, cases, regUsers, topUsers] = await Promise.all([
-      supabase.rpc('analytics_ai_daily', { since_date: since }),
-      supabase.rpc('analytics_sessions_daily', { since_date: since }),
+    const [aiUsage, sessions, cases, regUsers, topUsers, brands] = await Promise.all([
+      supabase.rpc('analytics_ai_daily', { since_date: since, exclude_emails: ex }),
+      supabase.rpc('analytics_sessions_daily', { since_date: since, exclude_emails: ex }),
       supabase.rpc('analytics_case_stats'),
-      supabase.rpc('analytics_registered_users'),
-      supabase.rpc('analytics_top_users', { since_date: since, lim: 10 }),
+      supabase.rpc('analytics_registered_users', { exclude_emails: ex }),
+      supabase.rpc('analytics_top_users', { since_date: since, lim: 10, exclude_emails: ex }),
+      supabase.rpc('analytics_brand_stats', { since_date: since, exclude_emails: ex }),
     ])
 
     return json({
@@ -49,6 +61,7 @@ Deno.serve(async (req) => {
       case_stats: cases.data?.[0] ?? { total: 0, pending: 0, approved: 0, rejected: 0 },
       registered_users: regUsers.data?.[0] ?? { total_users: 0, users_today: 0, users_7d: 0, users_30d: 0 },
       top_users: topUsers.data ?? [],
+      brand_stats: brands.data ?? [],
       days: effectiveDays,
       since: since.slice(0, 10),
     })

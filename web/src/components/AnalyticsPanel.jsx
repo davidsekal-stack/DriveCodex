@@ -54,6 +54,7 @@ export default function AnalyticsPanel({ tr, fetchAnalytics }) {
   const caseStats = data?.case_stats ?? {};
   const regUsers = data?.registered_users ?? {};
   const topUsers = data?.top_users ?? [];
+  const brandStats = data?.brand_stats ?? [];
 
   const totalCalls = aiDaily.reduce((s, d) => s + (d.calls ?? 0), 0);
   const totalInputTok = aiDaily.reduce((s, d) => s + (d.input_tok ?? 0), 0);
@@ -162,6 +163,36 @@ export default function AnalyticsPanel({ tr, fetchAnalytics }) {
                 : <div style={{ fontSize: SMALL, color: t.textVeryFaint, padding: "20px 0" }}>{tr("analytics.noData")}</div>
               }
             </div>
+
+            {/* Brand stats */}
+            {brandStats.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: SMALL, fontWeight: 600, color: t.textMuted, marginBottom: 8, letterSpacing: "0.06em" }}>
+                  {tr("analytics.brandStats")}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {brandStats.map((b) => {
+                    const maxSess = brandStats[0]?.sessions ?? 1;
+                    const pct = Math.round((b.sessions / maxSess) * 100);
+                    const opacity = 0.3 + 0.7 * (pct / 100);
+                    return (
+                      <div key={b.brand} style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        padding: "6px 12px", background: t.bgCard,
+                        border: `1px solid ${t.border}`, borderRadius: 2,
+                        minWidth: 140,
+                      }}>
+                        <span style={{ fontSize: FONT, fontWeight: 600, color: t.text, opacity, flex: 1 }}>{b.brand}</span>
+                        <span style={{ fontSize: TINY, color: t.textMuted, fontWeight: 600 }}>{b.sessions}</span>
+                        <div style={{ width: 40, height: 5, background: t.bgMuted, borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: `${pct}%`, height: "100%", background: t.accent, borderRadius: 3 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Top users table */}
             {topUsers.length > 0 && (

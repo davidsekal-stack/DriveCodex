@@ -138,6 +138,7 @@ export const strings = {
   'analytics.user':       'USER',
   'analytics.topCalls':   'CALLS',
   'analytics.topTokens':  'TOKENS',
+  'analytics.brandStats': 'DIAGNOSED BRANDS',
 
   // Status
   'status.closed':        '✓ CLOSED',
