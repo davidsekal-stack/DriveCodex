@@ -180,10 +180,13 @@ export default function AnalyticsPanel({ tr, fetchAnalytics }) {
                         display: "flex", alignItems: "center", gap: 8,
                         padding: "6px 12px", background: t.bgCard,
                         border: `1px solid ${t.border}`, borderRadius: 2,
-                        minWidth: 140,
+                        minWidth: 170,
                       }}>
                         <span style={{ fontSize: FONT, fontWeight: 600, color: t.text, opacity, flex: 1 }}>{b.brand}</span>
-                        <span style={{ fontSize: TINY, color: t.textMuted, fontWeight: 600 }}>{b.sessions}</span>
+                        <span style={{ fontSize: TINY, color: t.textMuted, fontWeight: 600 }} title={tr("analytics.brandSessions")}>{b.sessions}</span>
+                        {b.closed_cases > 0 && (
+                          <span style={{ fontSize: TINY, color: "#059669", fontWeight: 600 }} title={tr("analytics.brandClosed")}>{b.closed_cases} ✓</span>
+                        )}
                         <div style={{ width: 40, height: 5, background: t.bgMuted, borderRadius: 3, overflow: "hidden" }}>
                           <div style={{ width: `${pct}%`, height: "100%", background: t.accent, borderRadius: 3 }} />
                         </div>

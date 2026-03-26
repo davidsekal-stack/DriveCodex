@@ -139,6 +139,8 @@ export const strings = {
   'analytics.topCalls':   'VOLÁNÍ',
   'analytics.topTokens':  'TOKENY',
   'analytics.brandStats': 'DIAGNOSTIKOVANÉ ZNAČKY',
+  'analytics.brandSessions': 'Počet diagnostik',
+  'analytics.brandClosed': 'Uzavřené případy v DB',
 
   // Status
   'status.closed':        '✓ UZAVŘENÝ',

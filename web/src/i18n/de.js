@@ -139,6 +139,8 @@ export const strings = {
   'analytics.topCalls':   'AUFRUFE',
   'analytics.topTokens':  'TOKENS',
   'analytics.brandStats': 'DIAGNOSTIZIERTE MARKEN',
+  'analytics.brandSessions': 'Anzahl der Diagnosen',
+  'analytics.brandClosed': 'Abgeschlossene Fälle in DB',
 
   // Status
   'status.closed':        '✓ ABGESCHLOSSEN',
