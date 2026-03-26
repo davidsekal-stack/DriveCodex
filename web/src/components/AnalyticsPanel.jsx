@@ -1,9 +1,10 @@
 /**
  * Admin Analytics Panel — denní přehledy AI usage, sessions, případy
- * SVG sloupcové grafy, inline styly, theme-aware
  */
 
 import { useState, useEffect, useCallback } from "react";
+import BarChart from "./BarChart.jsx";
+import StatCard from "./StatCard.jsx";
 
 const FONT = "0.82rem";
 const SMALL = "0.7rem";
@@ -22,79 +23,6 @@ function fillDays(sparse, sinceDate, labelKey, defaultRow) {
     result.push(map.get(key) ?? { [labelKey]: key, ...defaultRow });
   }
   return result;
-}
-
-// ── SVG Bar Chart ──────────────────────────────────────────────────────────────
-
-function BarChart({ data, labelKey, valueKey, color, t, height = 160, formatValue }) {
-  if (!data.length) return null;
-
-  const values = data.map((d) => d[valueKey] ?? 0);
-  const max = Math.max(...values, 1);
-  const barW = Math.max(8, Math.min(28, Math.floor(600 / data.length) - 4));
-  const chartW = data.length * (barW + 4) + 40;
-  const fmt = formatValue || ((v) => v.toLocaleString());
-
-  return (
-    <div style={{ overflowX: "auto", marginBottom: 8 }}>
-      <svg width={Math.max(chartW, 300)} height={height + 30} style={{ display: "block" }}>
-        {/* Grid lines */}
-        {[0.25, 0.5, 0.75, 1].map((frac) => (
-          <line
-            key={frac}
-            x1={35} y1={height - height * frac}
-            x2={chartW} y2={height - height * frac}
-            stroke={t.border} strokeDasharray="3,3"
-          />
-        ))}
-        {/* Y-axis labels */}
-        {[0, 0.5, 1].map((frac) => (
-          <text key={frac} x={32} y={height - height * frac + 4}
-            textAnchor="end" fill={t.textVeryFaint} fontSize={9} fontFamily="inherit">
-            {fmt(Math.round(max * frac))}
-          </text>
-        ))}
-        {/* Bars */}
-        {data.map((d, i) => {
-          const val = d[valueKey] ?? 0;
-          const barH = (val / max) * height;
-          const x = 40 + i * (barW + 4);
-          const label = d[labelKey] ?? "";
-          // Show day label every few bars to avoid clutter
-          const showLabel = data.length <= 15 || i % Math.ceil(data.length / 10) === 0 || i === data.length - 1;
-          return (
-            <g key={i}>
-              <rect
-                x={x} y={height - barH}
-                width={barW} height={Math.max(barH, 1)}
-                fill={color} rx={1} opacity={0.85}
-              />
-              {/* Tooltip on hover via title */}
-              <title>{`${label}: ${fmt(val)}`}</title>
-              {showLabel && (
-                <text x={x + barW / 2} y={height + 14}
-                  textAnchor="middle" fill={t.textVeryFaint} fontSize={8} fontFamily="inherit">
-                  {label.slice(5)}
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
-// ── Stat Card ──────────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, sub, color, t }) {
-  return (
-    <div style={{ flex: "1 1 120px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 4, padding: "14px 16px", minWidth: 120 }}>
-      <div style={{ fontSize: TINY, color: t.textFaint, letterSpacing: "0.06em", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: "1.4rem", fontWeight: 700, color: color || t.accent }}>{value}</div>
-      {sub && <div style={{ fontSize: TINY, color: t.textVeryFaint, marginTop: 3 }}>{sub}</div>}
-    </div>
-  );
 }
 
 // ── Main Panel ─────────────────────────────────────────────────────────────────

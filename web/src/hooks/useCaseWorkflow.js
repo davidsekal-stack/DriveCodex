@@ -1,18 +1,8 @@
 import { useCallback, useState } from "react";
 
-import { MSG, CASE_STATUS } from "../constants/enums.js";
-import { uid } from "../lib/utils.js";
-import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "../lib/ai.js";
+import { CASE_STATUS } from "../constants/enums.js";
 import { validateResolution } from "../lib/validation.js";
-import {
-  buildDiagnosedCaseName,
-  buildDiagnosisUserPrompt,
-  buildRagInput,
-  collectCaseInputs,
-  normalizeDiagnosisResult,
-  removeMessageById,
-  searchSimilarCases,
-} from "../lib/diagnosis.js";
+import { executeDiagnosis } from "../lib/run-diagnosis.js";
 import * as storage from "../lib/storage.js";
 import { hasConsent } from "../components/ConsentBanner.jsx";
 
@@ -49,95 +39,36 @@ export default function useCaseWorkflow({
     return id;
   }, [createCase, setView]);
 
-  const rollbackInputMessage = useCallback((caseId, inputMsgId) => {
-    updateCase(caseId, (currentCase) => ({
-      messages: removeMessageById(currentCase.messages, inputMsgId),
-    }));
-  }, [updateCase]);
-
   const runDiag = useCallback(async (caseId, inputData) => {
     setLoading(true);
     setError(null);
 
-    const inputMsg = {
-      id: uid(),
-      type: MSG.INPUT,
-      ...inputData,
-      timestamp: new Date().toISOString(),
-    };
-    updateCase(caseId, (currentCase) => ({ messages: [...currentCase.messages, inputMsg] }));
-
     const currentCase = casesRef.current.find((item) => item.id === caseId) ?? {};
-    const vehicle = currentCase.vehicle ?? {};
-    const { allSymptoms, allObdCodes, allTexts } = collectCaseInputs(currentCase.messages ?? [], inputMsg);
-    const ragInput = buildRagInput(vehicle, allSymptoms, allObdCodes, allTexts);
-    const userPrompt = buildDiagnosisUserPrompt({ vehicle, allSymptoms, allObdCodes, allTexts, tr });
-
-    const currentTokens = currentCase.tokenCount ?? 0;
-    if (currentTokens >= CASE_TOKEN_LIMIT) {
-      setError(tr("app.tokenLimit", { limit: CASE_TOKEN_LIMIT.toLocaleString() }));
-      rollbackInputMessage(caseId, inputMsg.id);
-      setLoading(false);
-      return;
-    }
-
-    const freeText = inputData.text?.trim() ?? "";
-    if (freeText && !inputData.symptoms?.length && !inputData.obdCodes?.length) {
-      const topicCheck = checkTopicRelevance(freeText, lang);
-      if (!topicCheck.ok) {
-        setError(topicCheck.reason);
-        rollbackInputMessage(caseId, inputMsg.id);
-        setLoading(false);
-        return;
-      }
-    }
-
-    const { cases: similarCases = [], ok: searchOk } = await searchSimilarCases(storage.searchCases, ragInput);
-    setCloudStatus(searchOk ? "ok" : "error");
 
     try {
-      const data = await storage.callAI({
-        systemPrompt: buildSystemPrompt(similarCases, vehicle, lang),
-        userMessage: userPrompt,
-        maxTokens: 4000,
+      const result = await executeDiagnosis({
+        currentCase,
+        inputData,
+        callAI: storage.callAI,
+        searchCases: storage.searchCases,
+        tr,
+        lang,
       });
 
-      if (data.error) throw new Error(data.error.message || tr("app.aiError"));
-      if (!data.content) throw new Error(tr("app.aiNoResponse"));
+      setCloudStatus(result.cloudStatus);
 
-      const raw = data.content.map((block) => block.text ?? "").join("");
-      const parsed = smartRepair(raw);
-      if (!parsed) throw new Error(tr("app.aiUnreadable"));
-      if (!parsed.závady?.length) throw new Error(tr("app.noFaults"));
-
-      const normalized = normalizeDiagnosisResult(parsed, tr, similarCases.length);
-      const usedTokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
-      const diagnosisMsg = {
-        id: uid(),
-        type: MSG.DIAGNOSIS,
-        result: normalized,
-        ragMatchIds: similarCases.map((item) => item.id),
-        tokensUsed: usedTokens,
-        timestamp: new Date().toISOString(),
-      };
-
-      updateCase(caseId, (storedCase) => {
-        const isFirstDiagnosis = storedCase.messages.filter((message) => message.type === MSG.DIAGNOSIS).length === 0;
-        return {
-          messages: [...storedCase.messages, diagnosisMsg],
-          name: isFirstDiagnosis
-            ? buildDiagnosedCaseName(vehicle, normalized.závady?.[0]?.název, tr("app.defaultVehicle"))
-            : storedCase.name,
-          tokenCount: (storedCase.tokenCount ?? 0) + usedTokens,
-        };
-      });
+      // Add input message first, then diagnosis
+      updateCase(caseId, (storedCase) => ({
+        messages: [...storedCase.messages, result.inputMsg, result.diagnosisMsg],
+        name: result.caseName ?? storedCase.name,
+        tokenCount: (storedCase.tokenCount ?? 0) + result.usedTokens,
+      }));
     } catch (cause) {
       setError(tr("app.errorPrefix") + cause.message);
-      rollbackInputMessage(caseId, inputMsg.id);
     } finally {
       setLoading(false);
     }
-  }, [casesRef, lang, rollbackInputMessage, tr, updateCase]);
+  }, [casesRef, lang, tr, updateCase]);
 
   const closeCase = useCallback(async (resolutionText) => {
     const trimmedResolution = resolutionText.trim();
