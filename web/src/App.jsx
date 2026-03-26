@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 
 import { MSG }                              from "./constants/enums.js";
 import { DARK, LIGHT }                      from "./theme.js";
@@ -17,6 +17,7 @@ import ConsentGate                          from "./components/ConsentBanner.jsx
 import WelcomeView                          from "./components/WelcomeView.jsx";
 import ReviewPanel                          from "./components/ReviewPanel.jsx";
 import AnalyticsPanel                       from "./components/AnalyticsPanel.jsx";
+import useAdminData                         from "./hooks/useAdminData.js";
 import useAppBootstrapData                  from "./hooks/useAppBootstrapData.js";
 import useAuthSession                       from "./hooks/useAuthSession.js";
 import useCaseDraft                         from "./hooks/useCaseDraft.js";
@@ -45,7 +46,6 @@ function App() {
   const { appReady, session, setSession } = useAuthSession();
 
   const [view,       setView]       = useState("welcome");
-  const [pendingReviewCount, setPendingReviewCount] = useState(0);
 
   const {
     cases, activeCase, activeId, setActiveId,
@@ -125,15 +125,7 @@ function App() {
   const diagFaults = latestDiag?.result?.závady ?? [];
 
   const isAdmin = session && ADMIN_EMAILS.includes(session.user?.email);
-
-  // Fetch pending review count for admins
-  useEffect(() => {
-    if (session && isAdmin) {
-      storage.fetchReviewCases("pending")
-        .then((data) => setPendingReviewCount(data.cases?.length ?? 0))
-        .catch(() => {});
-    }
-  }, [session, isAdmin]);
+  const { pendingReviewCount, refreshPendingCount } = useAdminData(session, isAdmin);
 
   const handleLogout = useCallback(async () => {
     await signOut();
@@ -217,10 +209,7 @@ function App() {
               fetchCases={() => storage.fetchReviewCases("pending")}
               updateStatus={(idOrIds, status) => {
                 return storage.updateCaseStatus(idOrIds, status).then((res) => {
-                  // Refresh pending count
-                  storage.fetchReviewCases("pending")
-                    .then((data) => setPendingReviewCount(data.cases?.length ?? 0))
-                    .catch(() => {});
+                  refreshPendingCount();
                   return res;
                 });
               }}

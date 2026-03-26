@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { SYMPTOM_CATEGORIES, getObdCodes } from "../constants/index.js";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
-import { isWebBluetoothSupported, readObdCodes } from "../lib/obd-reader.js";
+import useBleReader from "../hooks/useBleReader.js";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
@@ -22,9 +22,11 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
   const [obdCodes, setObdCodes] = useState([]);
   const [text,     setText]     = useState("");
   const [openCat,  setOpenCat]  = useState(SYMPTOM_CATEGORIES[0]?.catKey ?? "");
-  const [bleStatus, setBleStatus] = useState("idle"); // idle | connecting | error
-  const [bleError,  setBleError]  = useState(null);
-  const bleSupported = isWebBluetoothSupported();
+
+  const addBleCodes = useCallback((codes) => {
+    setObdCodes((prev) => [...new Set([...prev, ...codes])]);
+  }, []);
+  const { supported: bleSupported, status: bleStatus, error: bleError, read: handleBleRead } = useBleReader(addBleCodes);
 
   const toggleSymptom = (key) =>
     setSymptoms((prev) => prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]);
@@ -36,21 +38,6 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
     const parsed = obdInput.toUpperCase().split(/[\s,;]+/).filter((c) => OBD_REGEX.test(c));
     setObdCodes((prev) => [...new Set([...prev, ...parsed])]);
     setObdInput("");
-  };
-
-  const handleBleRead = async () => {
-    setBleStatus("connecting");
-    setBleError(null);
-    const { codes, error } = await readObdCodes();
-    if (error) {
-      setBleStatus("error");
-      setBleError(error);
-    } else if (codes.length > 0) {
-      setObdCodes((prev) => [...new Set([...prev, ...codes])]);
-      setBleStatus("idle");
-    } else {
-      setBleStatus("idle");
-    }
   };
 
   const handleSubmit = () => {
