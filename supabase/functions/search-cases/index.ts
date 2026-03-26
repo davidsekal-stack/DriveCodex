@@ -16,7 +16,7 @@ import { json } from '../_shared/response.ts'
 import { getServiceClient } from '../_shared/client.ts'
 
 // ── Scoring konstanty ──────────────────────────────────────────────────────────
-// Značka + model = povinný pre-filtr na DB úrovni (nescoruji se)
+// Značka = povinný pre-filtr na DB úrovni; model dává extra body ve scoringu
 const SCORE_THRESHOLD   = 8     // Maximální absolutní práh (snižuje se dynamicky)
 const MATCH_RATIO_MIN   = 0.5   // Minimální obousměrná míra shody (F1 ≥ 50%)
 const MAX_TEXT_SCORE    = 2
@@ -207,13 +207,13 @@ Return format: {"symptoms":["..."],"text":"..."}`,
     const supabase = getServiceClient()
 
     // ── Validace povinných parametrů ──────────────────────────────────────────
-    if (!vehicle?.brand || !vehicle?.model) {
+    if (!vehicle?.brand) {
       return json({ cases: [], count: 0 })
     }
 
     // Předfiltrování na DB úrovni:
     // 1) Značka — povinný filtr
-    // 2) Model — povinný filtr
+    // 2) Model — nepovinný (dává extra body ve scoringu)
     // 3) OBD kódy — doplňující filtr (overlaps)
     // (max 200 kandidátů, scoring proběhne zde)
     let query = supabase
@@ -221,7 +221,6 @@ Return format: {"symptoms":["..."],"text":"..."}`,
       .select('*')
       .eq('status', 'approved')
       .eq('vehicle_brand', vehicle.brand)
-      .eq('vehicle_model', vehicle.model)
       .order('closed_at', { ascending: false })
       .limit(200)
 
