@@ -1,4 +1,5 @@
 import { MSG } from "../constants/enums.js";
+import { MAX_REPAIR_STEPS, MAX_REPAIR_LENGTH } from "../constants/limits.js";
 
 export function collectCaseInputs(messages = [], inputMsg) {
   const prevInputs = messages.filter((message) => message.type === MSG.INPUT);
@@ -66,8 +67,8 @@ export function normalizeDiagnosisResult(parsed, tr, similarCount = 0) {
     if (!Array.isArray(fault.řešení)) fault.řešení = [];
     fault.řešení = fault.řešení
       .filter((r) => typeof r === "string" && r.trim().length > 0)
-      .map((r) => r.trim().slice(0, 120))
-      .slice(0, 4);
+      .map((r) => r.trim().slice(0, MAX_REPAIR_LENGTH))
+      .slice(0, MAX_REPAIR_STEPS);
     fault.řešení = [...new Set(fault.řešení)];
   }
 

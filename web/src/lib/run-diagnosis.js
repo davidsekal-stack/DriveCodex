@@ -7,7 +7,8 @@
 
 import { MSG } from "../constants/enums.js";
 import { uid } from "./utils.js";
-import { smartRepair, buildSystemPrompt, checkTopicRelevance, CASE_TOKEN_LIMIT } from "./ai.js";
+import { smartRepair, buildSystemPrompt, checkTopicRelevance } from "./ai.js";
+import { CASE_TOKEN_LIMIT, AI_MAX_TOKENS } from "../constants/limits.js";
 import {
   buildDiagnosedCaseName,
   buildDiagnosisUserPrompt,
@@ -62,7 +63,7 @@ export async function executeDiagnosis({ currentCase, inputData, callAI, searchC
   const data = await callAI({
     systemPrompt: buildSystemPrompt(similarCases, vehicle, lang),
     userMessage: userPrompt,
-    maxTokens: 4000,
+    maxTokens: AI_MAX_TOKENS,
   });
 
   if (data.error) throw new Error(data.error.message || tr("app.aiError"));

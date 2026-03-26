@@ -56,7 +56,9 @@ export async function pushClosedCase(kase) {
   }
 }
 
-export async function callAI({ systemPrompt, userMessage, maxTokens = 4000, model = "deepseek-reasoner" }) {
+import { AI_MAX_TOKENS, AI_MODEL } from "../constants/limits.js";
+
+export async function callAI({ systemPrompt, userMessage, maxTokens = AI_MAX_TOKENS, model = AI_MODEL }) {
   const { data: { user } } = await supabase.auth.getUser();
 
   return edgeFetch("deepseek-proxy", buildAiRequestPayload({

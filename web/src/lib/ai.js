@@ -1,10 +1,7 @@
 import { extractSignals } from "./rag.js";
 import { getBrandEntry }  from "../constants/index.js";
 import { translate }       from "../i18n/translate.js";
-
-// ── Limity ────────────────────────────────────────────────────────────────────
-
-export const CASE_TOKEN_LIMIT = 100_000
+export { CASE_TOKEN_LIMIT } from "../constants/limits.js";
 
 // ── Detekce typu paliva z názvu motorizace ──────────────────────────────────
 
