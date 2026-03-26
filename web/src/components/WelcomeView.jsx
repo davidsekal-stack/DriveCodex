@@ -1,4 +1,7 @@
-export default function WelcomeView({ mobile, onStartNewCase, t, tr }) {
+import { useTheme } from "../contexts/ThemeContext.jsx";
+
+export default function WelcomeView({ mobile, onStartNewCase, tr }) {
+  const { t } = useTheme();
   return (
     <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16 }}>
       <div style={{ fontSize: mobile ? "2rem" : "3rem", opacity: 0.07 }}>🔧</div>

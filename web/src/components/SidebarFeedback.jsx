@@ -1,11 +1,13 @@
+import { useTheme } from "../contexts/ThemeContext.jsx";
+
 export default function SidebarFeedback({
   feedbackStatus,
   feedbackText,
   onChangeText,
   onSubmit,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   const canSubmit = Boolean(feedbackText.trim()) && feedbackStatus !== "sending";
 
   return (

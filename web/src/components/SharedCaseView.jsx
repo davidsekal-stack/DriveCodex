@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
-import { LIGHT, DARK } from "../theme.js";
 import { MSG, CASE_STATUS } from "../constants/enums.js";
+import { ThemeProvider, useTheme } from "../contexts/ThemeContext.jsx";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import { supabase } from "../lib/supabase.js";
@@ -13,14 +13,13 @@ import DiagCard from "./DiagCard.jsx";
 
 // ── Shared Case Page (public, read-only) ─────────────────────────────────────
 
-export default function SharedCaseView({ shareId }) {
+function SharedCaseViewInner({ shareId }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const { t, darkMode, toggleDarkMode } = useTheme();
   const { tr, lang, changeLang } = useI18n();
   const mobile = useIsMobile();
-  const t = darkMode ? DARK : LIGHT;
 
   useEffect(() => {
     async function fetchShare() {
@@ -51,7 +50,7 @@ export default function SharedCaseView({ shareId }) {
   if (loading) {
     return (
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace" }}>
-        <GlobalStyles t={t} darkMode={darkMode} />
+        <GlobalStyles />
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em" }}>GEARBRAIN</div>
           <div style={{ fontSize: "0.75rem", color: t.textFaint, marginTop: 8, animation: "pulse 1.5s ease infinite" }}>{tr("share.loading")}</div>
@@ -64,11 +63,11 @@ export default function SharedCaseView({ shareId }) {
   if (error || !data) {
     return (
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace" }}>
-        <GlobalStyles t={t} darkMode={darkMode} />
+        <GlobalStyles />
         <div style={{ textAlign: "center", maxWidth: 400, padding: 20 }}>
           <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em", marginBottom: 16 }}>GEARBRAIN</div>
           <div style={{ fontSize: "0.85rem", color: "#dc2626", marginBottom: 24 }}>{error || tr("share.notFound")}</div>
-          <ShareCTA t={t} tr={tr} />
+          <ShareCTA tr={tr} />
         </div>
       </div>
     );
@@ -80,7 +79,7 @@ export default function SharedCaseView({ shareId }) {
 
   return (
     <div style={{ minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "'IBM Plex Mono','Courier New',monospace", transition: "background 0.2s, color 0.2s" }}>
-      <GlobalStyles t={t} darkMode={darkMode} />
+      <GlobalStyles />
 
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <div style={{ padding: mobile ? "10px 12px" : "12px 24px", background: t.bgHeader, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -89,7 +88,7 @@ export default function SharedCaseView({ shareId }) {
           <span style={{ fontSize: "0.55rem", color: t.textFaint, letterSpacing: "0.1em" }}>{tr("share.badge")}</span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button onClick={() => setDarkMode((d) => !d)} style={{ background: "transparent", border: "none", color: t.textFaint, cursor: "pointer", fontSize: "0.72rem", fontFamily: "inherit" }}>
+          <button onClick={toggleDarkMode} style={{ background: "transparent", border: "none", color: t.textFaint, cursor: "pointer", fontSize: "0.72rem", fontFamily: "inherit" }}>
             {darkMode ? tr("app.lightMode") : tr("app.darkMode")}
           </button>
           {["cs", "en", "de"].map((code) => (
@@ -129,10 +128,10 @@ export default function SharedCaseView({ shareId }) {
                       {hasChips && (
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: message.text ? 8 : 0 }}>
                           {(message.symptoms ?? []).map((symptom) => (
-                            <SymptomChip key={symptom} label={tr(symptom)} t={t} />
+                            <SymptomChip key={symptom} label={tr(symptom)} />
                           ))}
                           {(message.obdCodes ?? []).map((code) => (
-                            <ObdChip key={code} code={code} t={t} />
+                            <ObdChip key={code} code={code} />
                           ))}
                         </div>
                       )}
@@ -152,7 +151,7 @@ export default function SharedCaseView({ shareId }) {
                     <div style={{ fontSize: "0.65rem", color: t.accentText, marginBottom: 4, letterSpacing: "0.06em" }}>
                       ◈ GearBrain · {fmtDate(message.timestamp, lang)}
                     </div>
-                    <DiagCard result={message.result} ragMatches={[]} t={t} />
+                    <DiagCard result={message.result} ragMatches={[]} />
                   </div>
                 </div>
               );
@@ -176,16 +175,25 @@ export default function SharedCaseView({ shareId }) {
       {/* ── CTA footer ──────────────────────────────────────────────────────── */}
       <div style={{ padding: mobile ? "20px 12px" : "30px 24px", background: t.bgHeader, borderTop: `1px solid ${t.border}` }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <ShareCTA t={t} tr={tr} />
+          <ShareCTA tr={tr} />
         </div>
       </div>
     </div>
   );
 }
 
+export default function SharedCaseView({ shareId }) {
+  return (
+    <ThemeProvider>
+      <SharedCaseViewInner shareId={shareId} />
+    </ThemeProvider>
+  );
+}
+
 // ── CTA Component ──────────────────────────────────────────────────────────
 
-function ShareCTA({ t, tr }) {
+function ShareCTA({ tr }) {
+  const { t } = useTheme();
   return (
     <div style={{ textAlign: "center", padding: "16px 0" }}>
       <div style={{ fontSize: "0.95rem", fontWeight: 700, color: t.text, marginBottom: 6, fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: "0.06em" }}>

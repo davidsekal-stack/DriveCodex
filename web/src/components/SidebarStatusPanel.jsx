@@ -1,9 +1,11 @@
+import { useTheme } from "../contexts/ThemeContext.jsx";
+
 export default function SidebarStatusPanel({
   cloudStatus,
   globalCaseCount,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   const isActive = cloudStatus === "ok";
   const isError = cloudStatus === "error";
 

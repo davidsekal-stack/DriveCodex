@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import ModalShell from "./ModalShell.jsx";
 import { FONT_MODAL as FONT } from "../constants/typography.js";
 
@@ -10,7 +11,8 @@ const TOS_POINTS = [
   { title: "tos.law",          desc: "tos.lawDesc" },
 ];
 
-export default function TosModal({ onAccept, onDecline, t, tr }) {
+export default function TosModal({ onAccept, onDecline, tr }) {
+  const { t } = useTheme();
   const [agreed, setAgreed] = useState(false);
 
   return (

@@ -1,4 +1,5 @@
 import { CASE_STATUS } from "../constants/enums.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import InputForm, { FollowUpPrompt } from "./InputForm.jsx";
 
 export default function SessionComposer({
@@ -7,9 +8,9 @@ export default function SessionComposer({
   loading,
   mobile,
   onRunDiag,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   if (activeCase.status !== CASE_STATUS.OPEN) return null;
 
   return (
@@ -18,12 +19,12 @@ export default function SessionComposer({
         {diagCount === 0 ? (
           <>
             <div style={{ fontSize: "0.68rem", color: t.textVeryFaint, letterSpacing: "0.08em", marginBottom: 10 }}>{tr("app.firstDiag")}</div>
-            <InputForm onSubmit={onRunDiag} loading={loading} label={tr("app.runDiag")} t={t} vehicle={activeCase.vehicle} />
+            <InputForm onSubmit={onRunDiag} loading={loading} label={tr("app.runDiag")} vehicle={activeCase.vehicle} />
           </>
         ) : (
           <>
             <div style={{ fontSize: "0.68rem", color: t.textVeryFaint, letterSpacing: "0.08em", marginBottom: 10 }}>{tr("app.addInfo")}</div>
-            <FollowUpPrompt onSubmit={onRunDiag} loading={loading} t={t} />
+            <FollowUpPrompt onSubmit={onRunDiag} loading={loading} />
           </>
         )}
       </div>

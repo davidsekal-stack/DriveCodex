@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import { fmtDate } from "../lib/utils.js";
 import { FONT, SMALL, TINY } from "../constants/typography.js";
 
@@ -15,7 +16,8 @@ function Badge({ label, bg, color, border }) {
   );
 }
 
-function CaseCard({ c, t, lang, tr, onApprove, onReject, busy }) {
+function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
+  const { t } = useTheme();
   const symptoms = c.symptoms ?? [];
   const codes = c.obd_codes ?? [];
 
@@ -111,7 +113,8 @@ function CaseCard({ c, t, lang, tr, onApprove, onReject, busy }) {
   );
 }
 
-export default function ReviewPanel({ t, lang, tr, fetchCases, updateStatus }) {
+export default function ReviewPanel({ lang, tr, fetchCases, updateStatus }) {
+  const { t } = useTheme();
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -207,7 +210,6 @@ export default function ReviewPanel({ t, lang, tr, fetchCases, updateStatus }) {
           <CaseCard
             key={c.id}
             c={c}
-            t={t}
             lang={lang}
             tr={tr}
             busy={busyIds.has(c.id)}

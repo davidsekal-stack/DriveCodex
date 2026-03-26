@@ -1,8 +1,11 @@
 /**
  * SVG sloupcový graf — znovupoužitelná komponenta pro analytics.
- * Props: data, labelKey, valueKey, color, t (theme), height, formatValue
+ * Props: data, labelKey, valueKey, color, height, formatValue
  */
-export default function BarChart({ data, labelKey, valueKey, color, t, height = 160, formatValue }) {
+import { useTheme } from "../contexts/ThemeContext.jsx";
+
+export default function BarChart({ data, labelKey, valueKey, color, height = 160, formatValue }) {
+  const { t } = useTheme();
   if (!data.length) return null;
 
   const values = data.map((d) => d[valueKey] ?? 0);

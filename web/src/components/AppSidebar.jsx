@@ -1,3 +1,4 @@
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import useSidebarFeedback from "../hooks/useSidebarFeedback.js";
 import SidebarCaseList from "./SidebarCaseList.jsx";
 import SidebarFeedback from "./SidebarFeedback.jsx";
@@ -20,10 +21,10 @@ export default function AppSidebar({
   sidebarOpen,
   syncError,
   syncStatus,
-  t,
   tr,
   view,
 }) {
+  const { t } = useTheme();
   const {
     feedbackStatus,
     feedbackText,
@@ -76,7 +77,6 @@ export default function AppSidebar({
             cases={cases}
             lang={lang}
             onOpenCase={onOpenCase}
-            t={t}
             tr={tr}
           />
         </div>
@@ -85,7 +85,6 @@ export default function AppSidebar({
           <SidebarStatusPanel
             cloudStatus={cloudStatus}
             globalCaseCount={globalCaseCount}
-            t={t}
             tr={tr}
           />
           <SidebarFeedback
@@ -93,7 +92,6 @@ export default function AppSidebar({
             feedbackText={feedbackText}
             onChangeText={setFeedbackText}
             onSubmit={submitFeedback}
-            t={t}
             tr={tr}
           />
         </div>

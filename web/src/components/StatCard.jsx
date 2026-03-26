@@ -1,10 +1,12 @@
 /**
  * Statistická karta — label, velká hodnota, volitelný sub-text.
- * Props: label, value, sub, color, t (theme)
+ * Props: label, value, sub, color
  */
 import { TINY } from "../constants/typography.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
-export default function StatCard({ label, value, sub, color, t }) {
+export default function StatCard({ label, value, sub, color }) {
+  const { t } = useTheme();
   return (
     <div style={{ flex: "1 1 120px", background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 4, padding: "14px 16px", minWidth: 120 }}>
       <div style={{ fontSize: TINY, color: t.textFaint, letterSpacing: "0.06em", marginBottom: 6 }}>{label}</div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import SessionComposer from "./SessionComposer.jsx";
 import SessionHeader from "./SessionHeader.jsx";
@@ -16,7 +16,6 @@ export default function SessionView({
   onRequestCloseCase,
   onRequestDelete,
   onRunDiag,
-  t,
   tr,
 }) {
   const chatEndRef = useRef(null);
@@ -40,7 +39,6 @@ export default function SessionView({
         mobile={mobile}
         onRequestCloseCase={onRequestCloseCase}
         onRequestDelete={onRequestDelete}
-        t={t}
         tr={tr}
       />
 
@@ -52,7 +50,6 @@ export default function SessionView({
         lang={lang}
         loading={loading}
         mobile={mobile}
-        t={t}
         tr={tr}
       />
 
@@ -62,7 +59,6 @@ export default function SessionView({
         loading={loading}
         mobile={mobile}
         onRunDiag={runActiveDiag}
-        t={t}
         tr={tr}
       />
     </div>

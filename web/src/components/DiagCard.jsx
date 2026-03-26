@@ -1,4 +1,5 @@
 import { useI18n } from "../i18n/index.jsx";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import { ObdChip } from "./Chip.jsx";
 
@@ -15,7 +16,8 @@ function sourceColor(fault) {
 
 // ── Pomocné sub-komponenty ────────────────────────────────────────────────────
 
-function SectionLabel({ t, children }) {
+function SectionLabel({ children }) {
+  const { t } = useTheme();
   return (
     <div style={{ fontSize: "0.58rem", color: t.textFaint, letterSpacing: "0.12em", marginBottom: 6 }}>
       {children}
@@ -23,7 +25,8 @@ function SectionLabel({ t, children }) {
   );
 }
 
-function SourceBadge({ fault, t, tr }) {
+function SourceBadge({ fault, tr }) {
+  const { t } = useTheme();
   const isDb = fault.zdroj === "databáze";
   const sc = sourceColor(fault);
   const count = fault.početShod ?? fault.shpipadů ?? 0;
@@ -47,7 +50,8 @@ function SourceBadge({ fault, t, tr }) {
 
 // ── Jedna závada ──────────────────────────────────────────────────────────────
 
-function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
+function FaultCard({ fault: f, isPrimary, tr, mobile }) {
+  const { t } = useTheme();
   const sc = sourceColor(f);
   return (
     <div style={{ background: t.bgCard, border: `1px solid ${isPrimary ? sc.accent : t.border}`, padding: mobile ? "12px" : "16px", borderLeft: `4px solid ${sc.accent}`, marginBottom: 8, borderRadius: 2 }}>
@@ -59,7 +63,7 @@ function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
             {isPrimary && "◈ "}{f.název}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
-            <SourceBadge fault={f} t={t} tr={tr} />
+            <SourceBadge fault={f} tr={tr} />
             {f.díly?.length > 0 && (
               <span style={{ fontSize: "0.66rem", color: t.textFaint }}>
                 {f.díly.join(" · ")}
@@ -87,14 +91,14 @@ function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
       {/* OBD kódy */}
       {f.obd_kódy?.length > 0 && (
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
-          {f.obd_kódy.map((c) => <ObdChip key={c} code={c} t={t} />)}
+          {f.obd_kódy.map((c) => <ObdChip key={c} code={c} />)}
         </div>
       )}
 
       {/* Postup opravy */}
       {f.postup && (
         <div style={{ background: t.postupBg, border: `1px solid ${t.postupBorder}`, padding: "10px 14px", marginBottom: 8, borderRadius: 2 }}>
-          <SectionLabel t={t}>{tr('diag.repairProcedure')}</SectionLabel>
+          <SectionLabel>{tr('diag.repairProcedure')}</SectionLabel>
           <div style={{ fontSize: "0.8rem", color: t.textMuted, lineHeight: 1.8 }}>{f.postup}</div>
         </div>
       )}
@@ -111,7 +115,8 @@ function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
 
 // ── Hlavní komponenta ─────────────────────────────────────────────────────────
 
-export default function DiagCard({ result, ragMatches = [], t }) {
+export default function DiagCard({ result, ragMatches = [] }) {
+  const { t } = useTheme();
   const { tr } = useI18n();
   const mobile = useIsMobile();
   const dalsiInfo = result.další_info === "Výsledek zkrácen." ? null : result.další_info;
@@ -132,7 +137,7 @@ export default function DiagCard({ result, ragMatches = [], t }) {
 
       {/* Závady */}
       {result.závady?.map((f, i) => (
-        <FaultCard key={i} fault={f} isPrimary={i === 0} t={t} tr={tr} mobile={mobile} />
+        <FaultCard key={i} fault={f} isPrimary={i === 0} tr={tr} mobile={mobile} />
       ))}
 
       {/* Doporučené testy + poznámky */}
@@ -140,7 +145,7 @@ export default function DiagCard({ result, ragMatches = [], t }) {
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 8, marginTop: 8 }}>
           {result.doporučené_testy?.length > 0 && (
             <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2 }}>
-              <SectionLabel t={t}>{tr('diag.recommendedTests')}</SectionLabel>
+              <SectionLabel>{tr('diag.recommendedTests')}</SectionLabel>
               {result.doporučené_testy.map((test, i) => (
                 <div key={i} style={{ fontSize: "0.78rem", color: t.textMuted, padding: "3px 0", borderBottom: `1px solid ${t.border}`, display: "flex", gap: 6 }}>
                   <span style={{ color: t.accent }}>{String(i + 1).padStart(2, "0")}.</span>
@@ -150,7 +155,7 @@ export default function DiagCard({ result, ragMatches = [], t }) {
             </div>
           )}
           <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2 }}>
-            <SectionLabel t={t}>{tr('diag.notes')}</SectionLabel>
+            <SectionLabel>{tr('diag.notes')}</SectionLabel>
             {result.varování && (
               <div style={{ fontSize: "0.76rem", color: "#dc2626", background: "rgba(220,38,38,0.07)", padding: "6px 8px", marginBottom: 6, borderLeft: "2px solid #dc2626", borderRadius: 2 }}>
                 ⚠ {result.varování}

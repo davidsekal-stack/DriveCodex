@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import BarChart from "./BarChart.jsx";
 import StatCard from "./StatCard.jsx";
 import { FONT, SMALL, TINY } from "../constants/typography.js";
@@ -24,7 +25,8 @@ function fillDays(sparse, sinceDate, labelKey, defaultRow) {
 
 // ── Main Panel ─────────────────────────────────────────────────────────────────
 
-export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
+export default function AnalyticsPanel({ tr, fetchAnalytics }) {
+  const { t } = useTheme();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -116,15 +118,15 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
             {/* Stat cards */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
               <StatCard label={tr("analytics.totalCalls")} value={totalCalls.toLocaleString()}
-                sub={todayAi ? `${tr("analytics.today")}: ${todayAi.calls}` : null} color={t.accent} t={t} />
+                sub={todayAi ? `${tr("analytics.today")}: ${todayAi.calls}` : null} color={t.accent} />
               <StatCard label={tr("analytics.tokens")} value={fmtTok(totalInputTok + totalOutputTok)}
-                sub={`${fmtTok(totalInputTok)} in / ${fmtTok(totalOutputTok)} out`} color="#2563eb" t={t} />
+                sub={`${fmtTok(totalInputTok)} in / ${fmtTok(totalOutputTok)} out`} color="#2563eb" />
               <StatCard label={tr("analytics.activeDays")} value={sessDaily.length}
-                sub={todaySess ? `${tr("analytics.today")}: ${todaySess.active_users} ${tr("analytics.users")}` : null} color="#059669" t={t} />
+                sub={todaySess ? `${tr("analytics.today")}: ${todaySess.active_users} ${tr("analytics.users")}` : null} color="#059669" />
               <StatCard label={tr("analytics.cases")} value={caseStats.total ?? 0}
-                sub={`${caseStats.approved ?? 0} ✓  ${caseStats.pending ?? 0} ⏳  ${caseStats.rejected ?? 0} ✕`} color="#d97706" t={t} />
+                sub={`${caseStats.approved ?? 0} ✓  ${caseStats.pending ?? 0} ⏳  ${caseStats.rejected ?? 0} ✕`} color="#d97706" />
               <StatCard label={tr("analytics.registeredUsers")} value={regUsers.total_users ?? 0}
-                sub={`${tr("analytics.new7d")}: +${regUsers.users_7d ?? 0}  ${tr("analytics.new30d")}: +${regUsers.users_30d ?? 0}`} color="#7c3aed" t={t} />
+                sub={`${tr("analytics.new7d")}: +${regUsers.users_7d ?? 0}  ${tr("analytics.new30d")}: +${regUsers.users_30d ?? 0}`} color="#7c3aed" />
             </div>
 
             {/* AI calls chart */}
@@ -133,7 +135,7 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
                 {tr("analytics.chartCalls")}
               </div>
               {aiDaily.length > 0
-                ? <BarChart data={aiDaily} labelKey="day" valueKey="calls" color={t.accent} t={t} />
+                ? <BarChart data={aiDaily} labelKey="day" valueKey="calls" color={t.accent} />
                 : <div style={{ fontSize: SMALL, color: t.textVeryFaint, padding: "20px 0" }}>{tr("analytics.noData")}</div>
               }
             </div>
@@ -145,7 +147,7 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
               </div>
               {aiDaily.length > 0
                 ? <BarChart data={aiDaily.map((d) => ({ ...d, total_tok: (d.input_tok ?? 0) + (d.output_tok ?? 0) }))}
-                    labelKey="day" valueKey="total_tok" color="#2563eb" t={t} formatValue={fmtTok} />
+                    labelKey="day" valueKey="total_tok" color="#2563eb" formatValue={fmtTok} />
                 : <div style={{ fontSize: SMALL, color: t.textVeryFaint, padding: "20px 0" }}>{tr("analytics.noData")}</div>
               }
             </div>
@@ -156,7 +158,7 @@ export default function AnalyticsPanel({ t, tr, fetchAnalytics }) {
                 {tr("analytics.chartUsers")}
               </div>
               {sessDaily.length > 0
-                ? <BarChart data={sessDaily} labelKey="day" valueKey="active_users" color="#059669" t={t} height={120} />
+                ? <BarChart data={sessDaily} labelKey="day" valueKey="active_users" color="#059669" height={120} />
                 : <div style={{ fontSize: SMALL, color: t.textVeryFaint, padding: "20px 0" }}>{tr("analytics.noData")}</div>
               }
             </div>

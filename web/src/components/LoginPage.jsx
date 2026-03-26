@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signIn, signUp, signInWithGoogle } from "../lib/supabase.js";
 import { LIGHT } from "../theme.js";
+import { ThemeProvider, useTheme } from "../contexts/ThemeContext.jsx";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import TosModal from "./TosModal.jsx";
@@ -12,7 +13,15 @@ const LANGS = [
 ];
 
 export default function LoginPage({ onAuth }) {
-  const t = LIGHT;
+  return (
+    <ThemeProvider forceTheme={LIGHT}>
+      <LoginPageInner onAuth={onAuth} />
+    </ThemeProvider>
+  );
+}
+
+function LoginPageInner({ onAuth }) {
+  const { t } = useTheme();
   const { tr, lang, changeLang } = useI18n();
   const mobile = useIsMobile();
   const [mode, setMode]       = useState("login"); // "login" | "register" | "verify"
@@ -177,7 +186,6 @@ export default function LoginPage({ onAuth }) {
 
       {showTos && (
         <TosModal
-          t={t}
           tr={tr}
           onAccept={() => { setShowTos(false); doRegister(); }}
           onDecline={() => setShowTos(false)}

@@ -1,12 +1,14 @@
 import { useState, useCallback } from "react";
 import { SYMPTOM_CATEGORIES, getObdCodes } from "../constants/index.js";
 import { useI18n } from "../i18n/index.jsx";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import useBleReader from "../hooks/useBleReader.js";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
-export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
+export default function InputForm({ onSubmit, loading, label, vehicle }) {
+  const { t } = useTheme();
   const { tr } = useI18n();
   const mobile = useIsMobile();
 
@@ -210,7 +212,8 @@ export default function InputForm({ onSubmit, loading, label, t, vehicle }) {
 }
 
 // ── FollowUpPrompt — jednoduchá promptlina pro pokračování diagnostiky ─────────
-export function FollowUpPrompt({ onSubmit, loading, t }) {
+export function FollowUpPrompt({ onSubmit, loading }) {
+  const { t } = useTheme();
   const { tr } = useI18n();
   const [text, setText] = useState("");
 

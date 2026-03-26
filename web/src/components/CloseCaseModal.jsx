@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import ModalShell from "./ModalShell.jsx";
 import { FONT_MODAL as FONT } from "../constants/typography.js";
 
 // ── Checkbox component ───────────────────────────────────────────────────────
 
-function Checkbox({ checked, accent, t }) {
+function Checkbox({ checked, accent }) {
+  const { t } = useTheme();
   return (
     <span style={{ width: 16, height: 16, borderRadius: 3, border: `2px solid ${checked ? accent : t.border}`, background: checked ? accent : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
       {checked && <span style={{ color: "#fff", fontSize: "0.7rem", lineHeight: 1, fontWeight: 700 }}>✓</span>}
@@ -14,7 +16,8 @@ function Checkbox({ checked, accent, t }) {
 
 // ── Jedna závada s checkbox řešeními ─────────────────────────────────────────
 
-function FaultResolutionGroup({ fault, index, checkedOptions, onToggle, t }) {
+function FaultResolutionGroup({ fault, index, checkedOptions, onToggle }) {
+  const { t } = useTheme();
   const hasOptions = fault.řešení?.length > 0;
   if (!hasOptions) return null;
 
@@ -38,7 +41,7 @@ function FaultResolutionGroup({ fault, index, checkedOptions, onToggle, t }) {
         const isChecked = !!checkedOptions[key];
         return (
           <label key={optIdx} onClick={() => onToggle(key, fault.název, option)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 4px", cursor: "pointer", fontSize: FONT, color: isChecked ? t.text : t.textMuted, borderRadius: 2, background: isChecked ? `${accent}11` : "transparent", transition: "background 0.1s" }}>
-            <Checkbox checked={isChecked} accent={accent} t={t} />
+            <Checkbox checked={isChecked} accent={accent} />
             {option}
           </label>
         );
@@ -57,9 +60,9 @@ export default function CloseCaseModal({
   onChangeResolution,
   onConfirm,
   resolution,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   // Checkbox state: { "0-1": { fault: "...", option: "..." }, ... }
   const [checkedOptions, setCheckedOptions] = useState({});
   const [customText, setCustomText] = useState("");
@@ -144,14 +147,13 @@ export default function CloseCaseModal({
                 index={idx}
                 checkedOptions={checkedOptions}
                 onToggle={handleToggle}
-                t={t}
               />
             ))}
 
             {/* Standalone "Jiné" option — always visible */}
             <div style={{ marginTop: 4, padding: "10px 12px", background: t.bgCard, border: `1px solid ${customActive ? t.accent : t.border}`, borderLeft: `3px solid ${t.textFaint}`, borderRadius: 2 }}>
               <label onClick={handleCustomToggle} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 4px", cursor: "pointer", fontSize: FONT, color: customActive ? t.text : t.textMuted }}>
-                <Checkbox checked={customActive} accent={t.accent || "#888"} t={t} />
+                <Checkbox checked={customActive} accent={t.accent || "#888"} />
                 {tr("app.closeOther")}
               </label>
               {customActive && (

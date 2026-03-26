@@ -1,17 +1,17 @@
+import { useTheme } from "../contexts/ThemeContext.jsx";
+
 export default function AppHeader({
   changeLang,
-  darkMode,
   lang,
   mobile,
   onLogout,
-  onToggleDarkMode,
   onToggleSidebar,
   session,
   sidebarOpen,
-  t,
   tr,
   langs,
 }) {
+  const { t, darkMode, toggleDarkMode } = useTheme();
   return (
     <header style={{ background: t.bgHeader, borderBottom: `2px solid ${t.accent}`, padding: mobile ? "0 10px" : "0 20px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, boxShadow: darkMode ? "none" : "0 1px 8px rgba(0,0,0,0.07)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: mobile ? 6 : 10 }}>
@@ -40,7 +40,7 @@ export default function AppHeader({
           ))}
         </select>
 
-        <button onClick={onToggleDarkMode}
+        <button onClick={toggleDarkMode}
           style={{ display: "flex", alignItems: "center", gap: 5, background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, padding: "5px 11px", fontSize: "0.75rem", fontFamily: "inherit", cursor: "pointer", borderRadius: 20, height: 30 }}>
           {darkMode ? (mobile ? "☀" : tr("app.lightMode")) : (mobile ? "☾" : tr("app.darkMode"))}
         </button>

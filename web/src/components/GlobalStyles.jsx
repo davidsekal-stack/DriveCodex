@@ -1,4 +1,7 @@
-export default function GlobalStyles({ darkMode, t }) {
+import { useTheme } from "../contexts/ThemeContext.jsx";
+
+export default function GlobalStyles() {
+  const { t, darkMode } = useTheme();
   return (
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@400;600;700;800&display=swap');

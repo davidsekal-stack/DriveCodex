@@ -1,4 +1,5 @@
 import { ACTIVE_BRAND_DROPDOWN_OPTIONS, findIdentHistory, getBrandModels, getModelPowers, setDefaultBrand } from "../constants/index.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import { fmtDate } from "../lib/utils.js";
 import InputForm from "./InputForm.jsx";
 
@@ -16,9 +17,9 @@ export default function NewCaseView({
   setDefaultBrandState,
   setIdentHistory,
   setNewVehicle,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   const modelOptions = getBrandModels(newVehicle.brand);
   const powers = getModelPowers(newVehicle.model);
 
@@ -151,7 +152,7 @@ export default function NewCaseView({
         </div>
 
         {error && <div style={{ marginBottom: 14, padding: "10px 13px", background: "rgba(220,38,38,0.08)", border: "1px solid #dc2626", color: "#dc2626", fontSize: "0.82rem", borderRadius: 2 }}>⚠ {error}</div>}
-        <InputForm onSubmit={onSubmit} loading={loading} label={tr("app.startDiag")} t={t} vehicle={newVehicle} />
+        <InputForm onSubmit={onSubmit} loading={loading} label={tr("app.startDiag")} vehicle={newVehicle} />
       </div>
     </div>
   );

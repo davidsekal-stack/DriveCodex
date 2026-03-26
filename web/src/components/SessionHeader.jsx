@@ -6,6 +6,7 @@ import { exportCasePdf, PDF_VARIANTS } from "../lib/pdf.js";
 import { createShareLink } from "../lib/storage-edge.js";
 import { fmtMileage } from "../lib/utils.js";
 import { getTokenUsageMeta, hasDiagnoses } from "../lib/session-view.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import StatusBadge from "./StatusBadge.jsx";
 
 function getUsageColor(tone, t) {
@@ -20,9 +21,9 @@ export default function SessionHeader({
   mobile,
   onRequestCloseCase,
   onRequestDelete,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   const [pdfMenu, setPdfMenu] = useState(false);
   const [shareState, setShareState] = useState("idle"); // idle | loading | copied | error
 
@@ -67,7 +68,7 @@ export default function SessionHeader({
           {activeCase.vehicle?.model && <span style={{ fontSize: "0.68rem", color: t.textFaint, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeCase.vehicle.model}</span>}
           {!mobile && activeCase.vehicle?.enginePower && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {activeCase.vehicle.enginePower}</span>}
           {!mobile && activeCase.vehicle?.mileage && <span style={{ fontSize: "0.68rem", color: t.textVeryFaint }}>· {fmtMileage(activeCase.vehicle.mileage, lang)}</span>}
-          <StatusBadge status={activeCase.status} t={t} tr={tr} />
+          <StatusBadge status={activeCase.status} tr={tr} />
           {activeCase.status === CASE_STATUS.OPEN && (
             <span title={`${(activeCase.tokenCount ?? 0).toLocaleString()} / ${CASE_TOKEN_LIMIT.toLocaleString()} tokens`}
               style={{ fontSize: "0.62rem", color: getUsageColor(usageMeta.tone, t), letterSpacing: "0.04em" }}>

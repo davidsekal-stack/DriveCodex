@@ -1,6 +1,8 @@
 import { CASE_STATUS } from "../constants/enums.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
-export default function StatusBadge({ status, t, tr }) {
+export default function StatusBadge({ status, tr }) {
+  const { t } = useTheme();
   const closed = status === CASE_STATUS.CLOSED;
 
   return (

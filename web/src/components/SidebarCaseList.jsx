@@ -1,3 +1,4 @@
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import { buildSidebarCaseSubtitle } from "../lib/sidebar-case-list.js";
 import StatusBadge from "./StatusBadge.jsx";
 
@@ -6,9 +7,9 @@ export default function SidebarCaseList({
   cases,
   lang,
   onOpenCase,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   if (cases.length === 0) {
     return (
       <div style={{ padding: "24px 12px", textAlign: "center", color: t.textVeryFaint, fontSize: "0.75rem", lineHeight: 1.8 }}>
@@ -28,7 +29,7 @@ export default function SidebarCaseList({
         <div style={{ fontSize: "0.75rem", color: activeId === kase.id ? t.text : t.textLabel, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: activeId === kase.id ? 600 : 400 }}>
           {kase.name}
         </div>
-        <StatusBadge status={kase.status} t={t} tr={tr} />
+        <StatusBadge status={kase.status} tr={tr} />
       </div>
       <div style={{ fontSize: "0.65rem", color: t.textVeryFaint }}>
         {buildSidebarCaseSubtitle(kase, lang)}

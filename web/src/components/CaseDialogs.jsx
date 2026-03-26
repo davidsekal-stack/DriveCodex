@@ -15,7 +15,6 @@ export default function CaseDialogs({
   onConfirmCloseCase,
   onConfirmDeleteCase,
   resolution,
-  t,
   tr,
 }) {
   return (
@@ -29,14 +28,12 @@ export default function CaseDialogs({
           onChangeResolution={onChangeResolution}
           onConfirm={onConfirmCloseCase}
           resolution={resolution}
-          t={t}
           tr={tr}
         />
       )}
 
       {deleteId && (
         <ConfirmModal
-          t={t}
           title={tr("app.deleteCaseTitle")}
           message={getDeleteCaseMessage(cases, deleteId, tr)}
           confirmLabel={tr("app.deleteBtn")}

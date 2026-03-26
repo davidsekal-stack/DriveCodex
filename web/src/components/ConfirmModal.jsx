@@ -1,9 +1,11 @@
 import { useI18n } from "../i18n/index.jsx";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 /**
  * ConfirmModal — nahrazuje window.confirm() aby ladil s dark theme.
  */
-export default function ConfirmModal({ title, message, onConfirm, onCancel, confirmLabel, danger = false, t }) {
+export default function ConfirmModal({ title, message, onConfirm, onCancel, confirmLabel, danger = false }) {
+  const { t } = useTheme();
   const { tr } = useI18n();
   return (
     <div onClick={onCancel} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}>

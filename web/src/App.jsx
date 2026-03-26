@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
 
 import { MSG }                              from "./constants/enums.js";
-import { DARK, LIGHT }                      from "./theme.js";
 import { signOut }                           from "./lib/supabase.js";
 import * as storage                          from "./lib/storage.js";
+import { ThemeProvider, useTheme }          from "./contexts/ThemeContext.jsx";
 import AppHeader                            from "./components/AppHeader.jsx";
 import AppSidebar                           from "./components/AppSidebar.jsx";
 import CaseDialogs                          from "./components/CaseDialogs.jsx";
@@ -38,8 +38,7 @@ const LANGS = [
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
-  const t = darkMode ? DARK : LIGHT;
+  const { t, darkMode, toggleDarkMode } = useTheme();
   const { tr, lang, changeLang } = useI18n();
   const mobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -147,20 +146,17 @@ function App() {
   return (
     <ConsentGate>
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: t.bg, color: t.text, fontFamily: "'IBM Plex Mono','Courier New',monospace", overflow: "hidden", transition: "background 0.2s, color 0.2s" }}>
-      <GlobalStyles t={t} darkMode={darkMode} />
+      <GlobalStyles />
 
       <AppHeader
         changeLang={changeLang}
-        darkMode={darkMode}
         lang={lang}
         langs={LANGS}
         mobile={mobile}
         onLogout={handleLogout}
-        onToggleDarkMode={() => setDarkMode((dark) => !dark)}
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
         session={session}
         sidebarOpen={sidebarOpen}
-        t={t}
         tr={tr}
       />
 
@@ -183,7 +179,6 @@ function App() {
           sidebarOpen={sidebarOpen}
           syncError={syncError}
           syncStatus={syncStatus}
-          t={t}
           tr={tr}
           view={view}
         />
@@ -194,7 +189,6 @@ function App() {
           {/* Admin analytics */}
           {view === "analytics" && isAdmin && (
             <AnalyticsPanel
-              t={t}
               tr={tr}
               fetchAnalytics={(days) => storage.fetchAnalytics(days)}
             />
@@ -203,7 +197,6 @@ function App() {
           {/* Admin review */}
           {view === "review" && isAdmin && (
             <ReviewPanel
-              t={t}
               lang={lang}
               tr={tr}
               fetchCases={() => storage.fetchReviewCases("pending")}
@@ -218,7 +211,7 @@ function App() {
 
           {/* Welcome */}
           {view === "welcome" && (
-            <WelcomeView mobile={mobile} onStartNewCase={startNewCase} t={t} tr={tr} />
+            <WelcomeView mobile={mobile} onStartNewCase={startNewCase} tr={tr} />
           )}
 
           {/* Nový případ */}
@@ -237,7 +230,6 @@ function App() {
               setDefaultBrandState={setDefaultBrandState}
               setIdentHistory={setIdentHistory}
               setNewVehicle={setNewVehicle}
-              t={t}
               tr={tr}
             />
           )}
@@ -256,7 +248,6 @@ function App() {
               onRequestCloseCase={openCloseModal}
               onRequestDelete={requestDeleteCase}
               onRunDiag={runDiag}
-              t={t}
               tr={tr}
             />
           )}
@@ -276,7 +267,6 @@ function App() {
         onConfirmCloseCase={confirmCloseCase}
         onConfirmDeleteCase={confirmDeleteCase}
         resolution={resolution}
-        t={t}
         tr={tr}
       />
 
@@ -288,7 +278,9 @@ function App() {
 export default function WrappedApp() {
   return (
     <ErrorBoundary>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

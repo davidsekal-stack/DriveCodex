@@ -1,4 +1,5 @@
 import { MSG, CASE_STATUS } from "../constants/enums.js";
+import { useTheme } from "../contexts/ThemeContext.jsx";
 import { fmtDate } from "../lib/utils.js";
 import { getInputRoundNumber } from "../lib/session-view.js";
 import { SymptomChip, ObdChip } from "./Chip.jsx";
@@ -12,9 +13,9 @@ export default function SessionTimeline({
   lang,
   loading,
   mobile,
-  t,
   tr,
 }) {
+  const { t } = useTheme();
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "10px" : "20px", background: t.bg }}>
       <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: mobile ? 8 : 12 }}>
@@ -39,10 +40,10 @@ export default function SessionTimeline({
                     {hasChips && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: message.text ? 8 : 0 }}>
                         {(message.symptoms ?? []).map((symptom) => (
-                          <SymptomChip key={symptom} label={tr(symptom)} t={t} />
+                          <SymptomChip key={symptom} label={tr(symptom)} />
                         ))}
                         {(message.obdCodes ?? []).map((code) => (
-                          <ObdChip key={code} code={code} t={t} />
+                          <ObdChip key={code} code={code} />
                         ))}
                       </div>
                     )}
@@ -65,7 +66,7 @@ export default function SessionTimeline({
                   <div style={{ fontSize: "0.65rem", color: t.accentText, marginBottom: 4, letterSpacing: "0.06em" }}>
                     ◈ GearBrain · {fmtDate(message.timestamp, lang)}
                   </div>
-                  <DiagCard result={message.result} ragMatches={ragSessions} t={t} />
+                  <DiagCard result={message.result} ragMatches={ragSessions} />
                 </div>
               </div>
             );
