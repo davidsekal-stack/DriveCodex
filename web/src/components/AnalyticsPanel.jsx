@@ -5,10 +5,7 @@
 import { useState, useEffect, useCallback } from "react";
 import BarChart from "./BarChart.jsx";
 import StatCard from "./StatCard.jsx";
-
-const FONT = "0.82rem";
-const SMALL = "0.7rem";
-const TINY = "0.65rem";
+import { FONT, SMALL, TINY } from "../constants/typography.js";
 const PROJECT_START = "2026-03-17";
 
 /** Fill missing days with zeroes so all charts have the same x-axis */

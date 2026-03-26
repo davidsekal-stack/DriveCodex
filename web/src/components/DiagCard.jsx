@@ -1,5 +1,6 @@
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
+import { ObdChip } from "./Chip.jsx";
 
 // ── Source-based colors ──────────────────────────────────────────────────────
 // Green = from database (verified), Blue = AI-generated
@@ -19,14 +20,6 @@ function SectionLabel({ t, children }) {
     <div style={{ fontSize: "0.58rem", color: t.textFaint, letterSpacing: "0.12em", marginBottom: 6 }}>
       {children}
     </div>
-  );
-}
-
-function ObdChip({ code, t }) {
-  return (
-    <span style={{ fontSize: "0.78rem", color: t.obdText, fontFamily: "monospace", background: t.obdBg, padding: "2px 8px", border: `1px solid ${t.obdBorder}`, borderRadius: 2 }}>
-      {code}
-    </span>
   );
 }
 

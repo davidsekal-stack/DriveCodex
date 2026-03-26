@@ -2,7 +2,7 @@
  * Statistická karta — label, velká hodnota, volitelný sub-text.
  * Props: label, value, sub, color, t (theme)
  */
-const TINY = "0.65rem";
+import { TINY } from "../constants/typography.js";
 
 export default function StatCard({ label, value, sub, color, t }) {
   return (

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ModalShell from "./ModalShell.jsx";
-
-const FONT = "0.85rem";
+import { FONT_MODAL as FONT } from "../constants/typography.js";
 
 // ── Checkbox component ───────────────────────────────────────────────────────
 

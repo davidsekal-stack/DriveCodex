@@ -1,7 +1,6 @@
 import { useState } from "react";
 import ModalShell from "./ModalShell.jsx";
-
-const FONT = "0.85rem";
+import { FONT_MODAL as FONT } from "../constants/typography.js";
 
 const TOS_POINTS = [
   { title: "tos.aiDisclaimer", desc: "tos.aiDisclaimerDesc" },

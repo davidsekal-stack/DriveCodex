@@ -1,6 +1,7 @@
 import { MSG, CASE_STATUS } from "../constants/enums.js";
 import { fmtDate } from "../lib/utils.js";
 import { getInputRoundNumber } from "../lib/session-view.js";
+import { SymptomChip, ObdChip } from "./Chip.jsx";
 import DiagCard from "./DiagCard.jsx";
 
 export default function SessionTimeline({
@@ -38,10 +39,10 @@ export default function SessionTimeline({
                     {hasChips && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: message.text ? 8 : 0 }}>
                         {(message.symptoms ?? []).map((symptom) => (
-                          <span key={symptom} style={{ padding: "2px 8px", background: t.sympBg, border: `1px solid ${t.sympBorder}`, color: t.sympText, fontSize: "0.76rem", borderRadius: 2 }}>{tr(symptom)}</span>
+                          <SymptomChip key={symptom} label={tr(symptom)} t={t} />
                         ))}
                         {(message.obdCodes ?? []).map((code) => (
-                          <span key={code} style={{ padding: "2px 8px", background: t.obdBg, border: `1px solid ${t.obdBorder}`, color: t.obdText, fontSize: "0.76rem", fontFamily: "monospace", borderRadius: 2 }}>{code}</span>
+                          <ObdChip key={code} code={code} t={t} />
                         ))}
                       </div>
                     )}

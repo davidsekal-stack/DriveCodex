@@ -5,10 +5,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { fmtDate } from "../lib/utils.js";
-
-const FONT = "0.82rem";
-const SMALL = "0.7rem";
-const TINY = "0.65rem";
+import { FONT, SMALL, TINY } from "../constants/typography.js";
 
 function Badge({ label, bg, color, border }) {
   return (
