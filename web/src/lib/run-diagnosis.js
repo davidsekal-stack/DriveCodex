@@ -17,6 +17,7 @@ import {
   normalizeDiagnosisResult,
   searchSimilarCases,
 } from "./diagnosis.js";
+import { lookupDtcCodes, formatDtcBlock, getBrandGroup } from "./dtc-lookup.js";
 
 /**
  * @param {Object} params
@@ -56,12 +57,17 @@ export async function executeDiagnosis({ currentCase, inputData, callAI, searchC
   const ragInput = buildRagInput(vehicle, allSymptoms, allObdCodes, allTexts);
   const userPrompt = buildDiagnosisUserPrompt({ vehicle, allSymptoms, allObdCodes, allTexts, tr });
 
-  // RAG search
-  const { cases: similarCases = [], ok: searchOk } = await searchSimilarCases(searchCases, ragInput);
+  // RAG search + DTC lookup (parallel)
+  const brandGroup = getBrandGroup(vehicle.brand);
+  const [{ cases: similarCases = [], ok: searchOk }, dtcMap] = await Promise.all([
+    searchSimilarCases(searchCases, ragInput),
+    lookupDtcCodes(allObdCodes, brandGroup),
+  ]);
 
-  // AI call
+  // AI call — enrich system prompt with DTC descriptions
+  const dtcBlock = formatDtcBlock(dtcMap, lang);
   const data = await callAI({
-    systemPrompt: buildSystemPrompt(similarCases, vehicle, lang),
+    systemPrompt: buildSystemPrompt(similarCases, vehicle, lang) + dtcBlock,
     userMessage: userPrompt,
     maxTokens: AI_MAX_TOKENS,
   });
