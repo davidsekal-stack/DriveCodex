@@ -38,6 +38,8 @@ export const strings = {
   'app.identLabel':       'PLATE / VIN',
   'app.identPlate':       'LP',
   'app.identPlaceholder': 'Licence plate or VIN (optional)',
+  'app.vinDecode':        'Decode',
+  'app.vinError':         'Failed to decode VIN. Please check the code.',
   'app.identHistory':     '📋 {count} previous cases for this vehicle',
   'app.identShowHistory': 'Show history',
   'app.startDiag':        'START DIAGNOSIS',

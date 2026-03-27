@@ -38,6 +38,8 @@ export const strings = {
   'app.identLabel':       'KENNZEICHEN / VIN',
   'app.identPlate':       'KZ',
   'app.identPlaceholder': 'Kennzeichen oder VIN (optional)',
+  'app.vinDecode':        'Dekodieren',
+  'app.vinError':         'FIN konnte nicht dekodiert werden. Bitte überprüfen Sie den Code.',
   'app.identHistory':     '📋 {count} frühere Fälle für dieses Fahrzeug',
   'app.identShowHistory': 'Verlauf anzeigen',
   'app.startDiag':        'DIAGNOSE STARTEN',

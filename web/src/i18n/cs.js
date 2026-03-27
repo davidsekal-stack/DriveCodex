@@ -38,6 +38,8 @@ export const strings = {
   'app.identLabel':       'SPZ / VIN',
   'app.identPlate':       'SPZ',
   'app.identPlaceholder': 'SPZ nebo VIN (nepovinné)',
+  'app.vinDecode':        'Dekódovat',
+  'app.vinError':         'VIN se nepodařilo dekódovat. Zkontrolujte správnost kódu.',
   'app.identHistory':     '📋 {count} předchozích případů pro toto vozidlo',
   'app.identShowHistory': 'Zobrazit historii',
   'app.startDiag':        'ZAHÁJIT DIAGNOSTIKU',

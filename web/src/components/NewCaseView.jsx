@@ -1,6 +1,8 @@
-import { ACTIVE_BRAND_DROPDOWN_OPTIONS, findIdentHistory, getBrandModels, getModelPowers, setDefaultBrand } from "../constants/index.js";
+import { useState, useCallback } from "react";
+import { ACTIVE_BRAND_DROPDOWN_OPTIONS, ACTIVE_BRANDS, findIdentHistory, getBrandModels, getModelPowers, setDefaultBrand } from "../constants/index.js";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 import { fmtDate } from "../lib/utils.js";
+import { isValidVin, decodeVin } from "../lib/vin-decoder.js";
 import InputForm from "./InputForm.jsx";
 
 export default function NewCaseView({
@@ -22,6 +24,49 @@ export default function NewCaseView({
   const { t } = useTheme();
   const modelOptions = getBrandModels(newVehicle.brand);
   const powers = getModelPowers(newVehicle.model);
+
+  const [vinLoading, setVinLoading] = useState(false);
+  const [vinResult, setVinResult] = useState(null); // { ok, brand, model, year, engineDesc, ... } or { ok: false, error }
+
+  const handleVinDecode = useCallback(async () => {
+    const vin = newVehicle.identValue?.trim();
+    if (!vin || !isValidVin(vin)) return;
+    setVinLoading(true);
+    setVinResult(null);
+    try {
+      const result = await decodeVin(vin);
+      setVinResult(result);
+      if (result.ok) {
+        // Auto-fill vehicle fields from VIN decode
+        setNewVehicle((v) => {
+          const update = { ...v };
+          // Match brand to our catalog
+          if (result.brand) {
+            const catalogBrand = ACTIVE_BRANDS.find((b) => b.brand === result.brand);
+            if (catalogBrand) update.brand = catalogBrand.brand;
+          }
+          // Try to match model from catalog — fuzzy match on model name + year
+          if (result.model && result.year && update.brand) {
+            const models = getBrandModels(update.brand);
+            const matched = matchCatalogModel(models, result.model, result.year);
+            if (matched) {
+              update.model = matched.label;
+              update.enginePower = "";
+              // Try to match engine power
+              if (result.kw) {
+                const modelPowers = getModelPowers(matched.label);
+                const matchedPower = matchCatalogPower(modelPowers, result.kw, result.displacementL);
+                if (matchedPower) update.enginePower = matchedPower;
+              }
+            }
+          }
+          return update;
+        });
+      }
+    } finally {
+      setVinLoading(false);
+    }
+  }, [newVehicle.identValue, setNewVehicle]);
 
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "14px 10px" : "24px", background: t.bg }}>
@@ -123,9 +168,30 @@ export default function NewCaseView({
                   const identValue = e.target.value;
                   setNewVehicle((vehicle) => ({ ...vehicle, identValue }));
                   setIdentHistory(findIdentHistory(identValue));
+                  setVinResult(null);
                 }}
                 style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none", textTransform: "uppercase" }} />
+              {newVehicle.identType === "vin" && isValidVin(newVehicle.identValue) && (
+                <button onClick={handleVinDecode} disabled={vinLoading}
+                  style={{ flexShrink: 0, background: vinLoading ? t.bgMuted : t.accent, color: vinLoading ? t.textFaint : "#fff", border: "none", cursor: vinLoading ? "wait" : "pointer", padding: "9px 14px", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2, transition: "all 0.15s", letterSpacing: "0.04em" }}>
+                  {vinLoading ? "..." : tr("app.vinDecode")}
+                </button>
+              )}
             </div>
+            {vinResult && (
+              <div style={{ marginTop: 6, padding: "8px 10px", background: vinResult.ok ? "rgba(5,150,105,0.08)" : "rgba(220,38,38,0.08)", border: `1px solid ${vinResult.ok ? "rgba(5,150,105,0.3)" : "rgba(220,38,38,0.3)"}`, borderRadius: 2, fontSize: "0.75rem" }}>
+                {vinResult.ok ? (
+                  <div style={{ color: t.text }}>
+                    <span style={{ fontWeight: 600, color: "#059669" }}>✓ VIN:</span>{" "}
+                    {[vinResult.brand, vinResult.model, vinResult.year, vinResult.engineDesc, vinResult.fuelType, vinResult.trim].filter(Boolean).join(" · ")}
+                  </div>
+                ) : (
+                  <div style={{ color: "#dc2626" }}>
+                    ⚠ {tr("app.vinError")}
+                  </div>
+                )}
+              </div>
+            )}
             {identHistory.length > 0 && (
               <div style={{ marginTop: 6, padding: "6px 10px", background: t.bgMuted, border: `1px solid ${t.border}`, borderRadius: 2, fontSize: "0.75rem", color: t.textFaint }}>
                 <span>{tr("app.identHistory", { count: identHistory.length })}</span>
@@ -156,4 +222,89 @@ export default function NewCaseView({
       </div>
     </div>
   );
+}
+
+// ── Fuzzy matching helpers for catalog lookup ─────────────────────────────────
+
+/**
+ * Match NHTSA model name + year to our catalog model list.
+ * E.g. NHTSA "Golf" + "2014" → catalog "Golf VII (2012–2020)"
+ */
+function matchCatalogModel(models, nhtsaModel, year) {
+  if (!models?.length || !nhtsaModel) return null;
+  const nm = nhtsaModel.toLowerCase().replace(/[-_]/g, " ");
+  const yr = parseInt(year, 10) || 0;
+
+  // Score each catalog model
+  let best = null;
+  let bestScore = 0;
+
+  for (const item of models) {
+    if (item.group || !item.label) continue;
+    const label = item.label.toLowerCase();
+
+    // Check if model name appears in catalog label
+    const nameMatch = label.includes(nm) || nm.includes(label.split("(")[0].trim().split(" ").pop());
+    if (!nameMatch) continue;
+
+    // Check year range
+    const yearMatch = matchYearRange(item.label, yr);
+    const score = (nameMatch ? 10 : 0) + (yearMatch ? 5 : 0);
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = item;
+    }
+  }
+  return best;
+}
+
+/**
+ * Check if year falls within a catalog model's year range.
+ * E.g. "Golf VII (2012–2020)" with year 2014 → true
+ */
+function matchYearRange(label, year) {
+  if (!year) return false;
+  const rangeMatch = label.match(/\((\d{4})[-–](\d{4}|)\)/);
+  if (!rangeMatch) return false;
+  const from = parseInt(rangeMatch[1], 10);
+  const to = rangeMatch[2] ? parseInt(rangeMatch[2], 10) : 2099;
+  return year >= from && year <= to;
+}
+
+/**
+ * Match decoded kW + displacement to a catalog power string.
+ * E.g. kw=92, displacement=1.0 → "92 kW – 1.0 EcoBoost"
+ */
+function matchCatalogPower(powers, kw, displacementL) {
+  if (!powers?.length || !kw) return null;
+  const targetKw = parseInt(kw, 10);
+  const targetL = displacementL ? parseFloat(displacementL) : 0;
+
+  let best = null;
+  let bestDiff = Infinity;
+
+  for (const power of powers) {
+    const kwMatch = power.match(/^(\d+)\s*kW/);
+    if (!kwMatch) continue;
+    const pKw = parseInt(kwMatch[1], 10);
+    const kwDiff = Math.abs(pKw - targetKw);
+
+    // Also check displacement if available
+    let lDiff = 0;
+    if (targetL) {
+      const lMatch = power.match(/(\d+\.\d+)/);
+      if (lMatch) lDiff = Math.abs(parseFloat(lMatch[1]) - targetL);
+    }
+
+    const totalDiff = kwDiff + lDiff * 20; // Displacement difference weighted more
+    if (totalDiff < bestDiff) {
+      bestDiff = totalDiff;
+      best = power;
+    }
+  }
+
+  // Only accept if kW is within ±10
+  if (best && bestDiff < 15) return best;
+  return null;
 }
