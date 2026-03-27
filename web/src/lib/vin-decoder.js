@@ -1,3 +1,4 @@
+/* global AbortController, fetch */
 /**
  * VIN decoder — uses the free NHTSA vPIC API (no key required, CORS enabled).
  * Decodes a 17-character VIN into brand, model, year, engine, fuel type etc.
