@@ -75,9 +75,12 @@ export async function decodeVin(vin) {
   }
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(`${NHTSA_URL}/${clean}?format=json`, {
-      signal: AbortSignal.timeout(8000),
+      signal: controller.signal,
     });
+    clearTimeout(timer);
     if (!res.ok) return { ok: false, error: "api_error" };
 
     const json = await res.json();
