@@ -9,7 +9,8 @@ import { supabase } from "./supabase.js";
 const BRAND_GROUP_MAP = {
   Volkswagen: "VAG", VW: "VAG", Škoda: "VAG", Skoda: "VAG",
   Audi: "VAG", Seat: "VAG", SEAT: "VAG", Cupra: "VAG",
-  // Future: BMW: "BMW", Mercedes: "MB", etc.
+  BMW: "BMW", MINI: "BMW", Mini: "BMW",
+  "Mercedes-Benz": "MB", Mercedes: "MB", Smart: "MB",
 };
 
 export function getBrandGroup(brand) {
