@@ -89,7 +89,7 @@ export async function sendFeedback(message, lang) {
 export async function fetchReviewCases(status = "pending") {
   const { data: { session } } = await supabase.auth.getSession();
   const token = getEdgeFunctionToken(session, RUNTIME_CONFIG.supabaseAnonKey);
-  const res = await fetch(`${RUNTIME_CONFIG.edgeFunctionsUrl}/review-cases?status=${status}&limit=50`, {
+  const res = await fetch(`${RUNTIME_CONFIG.edgeFunctionsUrl}/review-cases?status=${status}&limit=500`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,

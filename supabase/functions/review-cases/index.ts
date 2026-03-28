@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     if (req.method === 'GET') {
       const url = new URL(req.url)
       const statusFilter = url.searchParams.get('status') ?? 'pending'
-      const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '50'), 200)
+      const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '50'), 500)
 
       const { data, error } = await supabase
         .from('gearbrain_cases_review')
