@@ -199,6 +199,7 @@ function isRootForumUrl(url) {
 function canonicalTopicUrl(url) {
   try {
     const parsed = new URL(url);
+    if (parsed.protocol === "http:") parsed.protocol = "https:";
     parsed.hash = "";
     parsed.search = "";
     return parsed.toString();
@@ -210,6 +211,7 @@ function canonicalTopicUrl(url) {
 function canonicalListingUrl(url) {
   try {
     const parsed = new URL(url);
+    if (parsed.protocol === "http:") parsed.protocol = "https:";
     const keep = parsed.searchParams.get("kols");
     parsed.search = "";
     if (keep && Number(keep) > 1) parsed.searchParams.set("kols", String(Number(keep)));
@@ -563,6 +565,38 @@ export function buildClubCrawlerApi(config) {
     return best.label;
   }
 
+  function pickCandidateLabelByExplicitAlias(candidateLabels, rawText) {
+    const normalized = normalizeForumMatchText(rawText);
+    if (!normalized?.trim() || !Array.isArray(candidateLabels) || candidateLabels.length === 0) return null;
+
+    const matches = [];
+    for (const label of candidateLabels.filter(Boolean)) {
+      for (const alias of getModelAliasTexts(label).map(normalizeForumMatchText).filter(Boolean)) {
+        const regex = new RegExp(`(^|\\b)${escapeRegExp(alias)}(\\b|$)`, "i");
+        if (!regex.test(normalized)) continue;
+        matches.push({
+          label,
+          alias,
+          aliasTokens: alias.split(/\s+/).filter(Boolean).length,
+          aliasLength: alias.length,
+        });
+      }
+    }
+
+    if (matches.length === 0) return null;
+    matches.sort((a, b) => (
+      b.aliasTokens - a.aliasTokens ||
+      b.aliasLength - a.aliasLength ||
+      a.label.localeCompare(b.label)
+    ));
+
+    const best = matches[0];
+    const tied = matches.filter(match => match.aliasTokens === best.aliasTokens && match.aliasLength === best.aliasLength);
+    const distinctLabels = [...new Set(tied.map(match => match.label))];
+    if (distinctLabels.length !== 1) return null;
+    return best.label;
+  }
+
   function pickModelLabel(rawText) {
     const normalized = normalizeForumMatchText(rawText);
     if (!normalized?.trim()) return null;
@@ -613,11 +647,15 @@ export function buildClubCrawlerApi(config) {
     const familyContext = normalizeForumMatchText([modelRaw, threadTitle].filter(Boolean).join(" | ")) || combined;
     const models = restrictCandidates((brandEntry.models ?? []).filter(model => model?.label), familyContext);
 
+    if (forumHint?.forum_type === "unknown") return null;
+
     if (forumHint?.resolved_model && forumHint.forum_type === "model") return forumHint.resolved_model;
 
     if (forumHint?.forum_type === "model_family") {
       const yearMatch = resolveFamilyModelFromYears(forumHint.candidate_models, explicitYears, combined);
       if (yearMatch) return yearMatch;
+      const explicitAliasMatch = pickCandidateLabelByExplicitAlias(forumHint.candidate_models, combined);
+      if (explicitAliasMatch) return explicitAliasMatch;
       return null;
     }
 
@@ -626,6 +664,8 @@ export function buildClubCrawlerApi(config) {
       if (forumHint.candidate_models.length > 1) {
         const yearMatch = resolveFamilyModelFromYears(forumHint.candidate_models, explicitYears, combined);
         if (yearMatch) return yearMatch;
+        const explicitAliasMatch = pickCandidateLabelByExplicitAlias(forumHint.candidate_models, combined);
+        if (explicitAliasMatch) return explicitAliasMatch;
         const filtered = restrictCandidates(forumHint.candidate_models.map(label => ({ label })), combined);
         if (filtered.length === 1) return filtered[0].label;
         return null;
@@ -687,12 +727,15 @@ export function buildClubCrawlerApi(config) {
   function inferForumInventory({ forumUrl, forumTitle }) {
     const cleanTitle = normalizeForumTitle(forumTitle);
     const hint = forumHints.get(getCategorySlug(forumUrl)) ?? null;
-    const resolvedModel = hint?.resolved_model ?? resolveVehicleModel({
-      modelRaw: cleanTitle,
-      threadTitle: cleanTitle,
-      parentForumTitle: cleanTitle,
-      subforumUrl: forumUrl,
-    });
+    const shouldInferResolvedModel = !hint || hint.forum_type === "model";
+    const resolvedModel = shouldInferResolvedModel
+      ? (hint?.resolved_model ?? resolveVehicleModel({
+          modelRaw: cleanTitle,
+          threadTitle: cleanTitle,
+          parentForumTitle: cleanTitle,
+          subforumUrl: forumUrl,
+        }))
+      : (hint?.resolved_model ?? null);
     const candidateModels = (hint?.candidate_models ?? listCatalogMatches(cleanTitle, 12)).filter(isEligibleModelLabel);
     const keep = Boolean((resolvedModel && isEligibleModelLabel(resolvedModel)) || candidateModels.length > 0);
 

@@ -161,6 +161,9 @@ export const strings = {
   'diag.additionalCauseNote': 'Auto-generated — AI returned fewer than 3 faults.',
   'diag.recommendedTests':    'RECOMMENDED TESTS',
   'diag.notes':               'NOTES',
+  'diag.databaseSources':     'SOURCE BULLETINS / CASES',
+  'diag.openSource':          'Open source',
+  'diag.databaseSourceFallback': 'Database source',
 
   // ConfirmModal
   'confirm.cancel':           'Cancel',

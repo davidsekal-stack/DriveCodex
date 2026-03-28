@@ -27,16 +27,23 @@ const MODEL_ALIAS_BY_LABEL = new Map([
 
 const FORUM_HINTS = new Map([
   ["mii", { forum_type: "model", resolved_model: "Mii (2012–2020)", candidate_models: [] }],
+  ["ibiza-i-021a", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["ibiza-ii-typ-6k", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
   ["ibiza-iii-6l", { forum_type: "model", resolved_model: "Ibiza III 6L (2002–2008)", candidate_models: [] }],
   ["ibiza-iv-6j", { forum_type: "model", resolved_model: "Ibiza IV (2008–2017)", candidate_models: [] }],
   ["ibiza-v-kj", { forum_type: "model", resolved_model: "Ibiza V (2017–dosud)", candidate_models: [] }],
   ["ibiza", { forum_type: "model_family", resolved_model: null, candidate_models: ["Ibiza III 6L (2002–2008)", "Ibiza IV (2008–2017)", "Ibiza V (2017–dosud)"], note: "Generic Ibiza forum spans multiple post-2000 generations." }],
+  ["leon-i-typ-1m", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
   ["leon-ii-1p", { forum_type: "model", resolved_model: "Leon II 1P (2005–2012)", candidate_models: [] }],
   ["leon-iii-5f", { forum_type: "model", resolved_model: "Leon III (2012–2020)", candidate_models: [] }],
   ["leon-iv-kl", { forum_type: "model", resolved_model: "Leon IV (2020–dosud)", candidate_models: [] }],
   ["leon", { forum_type: "model_family", resolved_model: null, candidate_models: ["Leon II 1P (2005–2012)", "Leon III (2012–2020)", "Leon IV (2020–dosud)"], note: "Generic Leon forum spans multiple post-2000 generations." }],
+  ["cordoba-i-typ-6k", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
   ["cordoba-ii", { forum_type: "model", resolved_model: "Cordoba II (2002–2009)", candidate_models: [] }],
+  ["toledo-mk1-typ-1l", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["toledo-mk2-typ-1m", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
   ["toledo-iii-5p", { forum_type: "model", resolved_model: "Toledo III 5P (2004–2009)", candidate_models: [] }],
+  ["toledo-mk4-typ-nh", { forum_type: "model", resolved_model: "Toledo IV (2012–2019)", candidate_models: [] }],
   ["toledo-iv-nh", { forum_type: "model", resolved_model: "Toledo IV (2012–2019)", candidate_models: [] }],
   ["toledo", { forum_type: "model_family", resolved_model: null, candidate_models: ["Toledo III 5P (2004–2009)", "Toledo IV (2012–2019)"], note: "Generic Toledo forum spans multiple post-2000 generations." }],
   ["altea", { forum_type: "model", resolved_model: "Altea / Altea XL / Freetrack (2004–2015)", candidate_models: [] }],
@@ -44,12 +51,18 @@ const FORUM_HINTS = new Map([
   ["arona", { forum_type: "model", resolved_model: "Arona (2017–dosud)", candidate_models: [] }],
   ["ateca", { forum_type: "model", resolved_model: "Ateca (2016–dosud)", candidate_models: [] }],
   ["tarraco", { forum_type: "model", resolved_model: "Tarraco (2018–dosud)", candidate_models: [] }],
+  ["alhambra-typ-7m", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["alhambra-typ-7n", { forum_type: "model", resolved_model: "Alhambra II (2010–2022)", candidate_models: [] }],
   ["alhambra-ii", { forum_type: "model", resolved_model: "Alhambra II (2010–2022)", candidate_models: [] }],
 ]);
 
 function restrictSeatCandidates({ models, rawText, normalizeForumMatchText }) {
   const normalized = normalizeForumMatchText(rawText);
   if (!normalized) return models;
+
+  if (/\b(1l|1m|021a|6k|7m)\b/i.test(normalized) || /\b(mk1|mk2)\b/i.test(normalized)) {
+    return [];
+  }
 
   const modelGenMatch = normalized.match(/\b(ibiza|leon|toledo|cordoba)\s+(ii|iii|iv|v)\b/i);
   if (modelGenMatch) {

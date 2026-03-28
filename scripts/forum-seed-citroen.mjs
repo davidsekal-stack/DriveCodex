@@ -32,7 +32,7 @@ const MODEL_ALIAS_BY_LABEL = new Map([
   ["Nemo / Nemo Multispace (2008–2017)", ["Nemo", "Nemo Multispace"]],
   ["Jumpy II (2007–2016)", ["Jumpy II"]],
   ["Jumpy III (2016–současnost)", ["Jumpy III"]],
-  ["Jumper III 2.2 HDi (2006–2016)", ["Jumper III"]],
+  ["Jumper III 2.2 HDi (2006–2016)", ["Jumper III 2.2 HDi"]],
   ["Jumper III 2.0/2.2 BlueHDi (2016–současnost)", ["Jumper III FL"]],
   ["DS3 (2010–2019)", ["DS3"]],
   ["DS4 (2011–2018)", ["DS4"]],
@@ -42,10 +42,12 @@ const MODEL_ALIAS_BY_LABEL = new Map([
 const FORUM_HINTS = new Map([
   ["c1-i", { forum_type: "model", resolved_model: "C1 I (2005–2014)", candidate_models: [] }],
   ["c1-ii", { forum_type: "model", resolved_model: "C1 II (2014–2022)", candidate_models: [] }],
+  ["c1", { forum_type: "model_family", resolved_model: null, candidate_models: ["C1 I (2005–2014)", "C1 II (2014–2022)"], note: "Generic C1 forum spans multiple post-2000 generations." }],
   ["c2", { forum_type: "model", resolved_model: "C2 (2003–2009)", candidate_models: [] }],
   ["c3-i", { forum_type: "model", resolved_model: "C3 I (2002–2009)", candidate_models: [] }],
   ["c3-ii", { forum_type: "model", resolved_model: "C3 II (2009–2016)", candidate_models: [] }],
   ["c3-iii", { forum_type: "model", resolved_model: "C3 III (2016–současnost)", candidate_models: [] }],
+  ["c3-pluriel", { forum_type: "unknown", resolved_model: null, candidate_models: [], note: "C3 Pluriel is intentionally excluded until it is verified and catalogued separately." }],
   ["c3-picasso", { forum_type: "model", resolved_model: "C3 Picasso (2009–2017)", candidate_models: [] }],
   ["c3-aircross", { forum_type: "model", resolved_model: "C3 Aircross (2017–současnost)", candidate_models: [] }],
   ["c4-i", { forum_type: "model", resolved_model: "C4 I (2004–2010)", candidate_models: [] }],
@@ -54,21 +56,27 @@ const FORUM_HINTS = new Map([
   ["c4-picasso-grand-i", { forum_type: "model", resolved_model: "C4 Picasso / Grand C4 Picasso I (2006–2013)", candidate_models: [] }],
   ["c4-picasso-grand-ii", { forum_type: "model", resolved_model: "C4 Picasso / Grand C4 Picasso II / SpaceTourer (2013–2022)", candidate_models: [] }],
   ["c4-picasso", { forum_type: "model_family", resolved_model: null, candidate_models: ["C4 Picasso / Grand C4 Picasso I (2006–2013)", "C4 Picasso / Grand C4 Picasso II / SpaceTourer (2013–2022)"], note: "Generic C4 Picasso forum spans multiple post-2000 generations." }],
+  ["c4-aircross", { forum_type: "unknown", resolved_model: null, candidate_models: [], note: "C4 Aircross is not yet mapped into the verified Citroen catalog." }],
   ["c4-cactus", { forum_type: "model", resolved_model: "C4 Cactus (2014–2020)", candidate_models: [] }],
+  ["c4-x", { forum_type: "unknown", resolved_model: null, candidate_models: [], note: "C4 X is not yet mapped into the verified Citroen catalog." }],
   ["c5-iii", { forum_type: "model", resolved_model: "C5 III (2008–2017)", candidate_models: [] }],
   ["c5-aircross", { forum_type: "model", resolved_model: "C5 Aircross (2018–současnost)", candidate_models: [] }],
   ["c5-x", { forum_type: "model", resolved_model: "C5 X (2022–současnost)", candidate_models: [] }],
   ["c6", { forum_type: "model", resolved_model: "C6 (2005–2012)", candidate_models: [] }],
   ["c8", { forum_type: "model", resolved_model: "C8 (2002–2014)", candidate_models: [] }],
   ["c-crosser", { forum_type: "model", resolved_model: "C-Crosser (2007–2012)", candidate_models: [] }],
+  ["c-zero", { forum_type: "unknown", resolved_model: null, candidate_models: [], note: "C-Zero is intentionally excluded until it is verified and catalogued separately." }],
   ["berlingo-ii", { forum_type: "model", resolved_model: "Berlingo II (2008–2018)", candidate_models: [] }],
   ["berlingo-iii", { forum_type: "model", resolved_model: "Berlingo III (2018–současnost)", candidate_models: [] }],
   ["nemo", { forum_type: "model", resolved_model: "Nemo / Nemo Multispace (2008–2017)", candidate_models: [] }],
   ["jumpy-ii", { forum_type: "model", resolved_model: "Jumpy II (2007–2016)", candidate_models: [] }],
   ["jumpy-iii", { forum_type: "model", resolved_model: "Jumpy III (2016–současnost)", candidate_models: [] }],
+  ["jumpy-dispatch", { forum_type: "model_family", resolved_model: null, candidate_models: ["Jumpy II (2007–2016)", "Jumpy III (2016–současnost)"], note: "Generic Jumpy / Dispatch forum spans multiple post-2000 generations." }],
   ["jumpy", { forum_type: "model_family", resolved_model: null, candidate_models: ["Jumpy II (2007–2016)", "Jumpy III (2016–současnost)"], note: "Generic Jumpy forum spans multiple post-2000 generations." }],
+  ["jumper", { forum_type: "model_family", resolved_model: null, candidate_models: ["Jumper III 2.2 HDi (2006–2016)", "Jumper III 2.0/2.2 BlueHDi (2016–současnost)"], note: "Generic Jumper forum spans pre- and post-facelift versions." }],
   ["jumper-iii", { forum_type: "model_family", resolved_model: null, candidate_models: ["Jumper III 2.2 HDi (2006–2016)", "Jumper III 2.0/2.2 BlueHDi (2016–současnost)"], note: "Generic Jumper III forum spans pre- and post-facelift versions." }],
   ["ds3", { forum_type: "model", resolved_model: "DS3 (2010–2019)", candidate_models: [] }],
+  ["ds3-ii", { forum_type: "unknown", resolved_model: null, candidate_models: [], note: "DS3 II is intentionally excluded until it is verified and catalogued separately." }],
   ["ds4", { forum_type: "model", resolved_model: "DS4 (2011–2018)", candidate_models: [] }],
   ["ds5", { forum_type: "model", resolved_model: "DS5 (2011–2018)", candidate_models: [] }],
 ]);
@@ -77,7 +85,7 @@ function restrictCitroenCandidates({ models, rawText, normalizeForumMatchText })
   const normalized = normalizeForumMatchText(rawText);
   if (!normalized) return models;
 
-  if (/\b(xsara|xantia|zx|saxo|ax|xm|bx)\b/i.test(normalized)) return [];
+  if (/\b(xsara|xantia|zx|saxo|ax|xm|bx|pluriel|c zero|czero)\b/i.test(normalized)) return [];
 
   const familyMatch = normalized.match(/\b(c[1-8]|berlingo|jumpy|jumper)\s+(i{1,3}|iv)\b/i);
   if (familyMatch) {

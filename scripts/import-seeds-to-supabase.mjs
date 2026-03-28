@@ -182,17 +182,54 @@ export function normalizeResolutionText(value) {
   return `${safeCut}...`;
 }
 
+function extractNhtsaMetadata(seed) {
+  return seed?.metadata?.source_type === "nhtsa_mfr_comm" ? seed.metadata : null;
+}
+
+function buildNhtsaSourceRef(metadata) {
+  const tsbId = typeof metadata?.tsb_id === "string" ? metadata.tsb_id.trim() : "";
+  const nhtsaId = typeof metadata?.nhtsa_id === "string" ? metadata.nhtsa_id.trim() : "";
+  if (tsbId && nhtsaId) return `${tsbId} / NHTSA ${nhtsaId}`;
+  if (tsbId) return tsbId;
+  if (nhtsaId) return `NHTSA ${nhtsaId}`;
+  return null;
+}
+
+function extractNhtsaBulletinYear(metadata) {
+  const candidates = [metadata?.date_added, metadata?.mfr_comm_date];
+  for (const candidate of candidates) {
+    const raw = typeof candidate === "string" ? candidate.trim() : "";
+    if (/^\d{8}$/.test(raw)) return raw.slice(0, 4);
+  }
+  return null;
+}
+
+function buildNhtsaBulletinUrl(metadata) {
+  const year = extractNhtsaBulletinYear(metadata);
+  const nhtsaId = typeof metadata?.nhtsa_id === "string" ? metadata.nhtsa_id.trim() : "";
+  if (!year || !nhtsaId) return null;
+  return `https://static.nhtsa.gov/odi/tsbs/${year}/MC-${nhtsaId}-0001.pdf`;
+}
+
 export function normalizeSeedPayload(seed, fallbackUserId = DEFAULT_USER_ID, forcedUserId = "") {
   const resolvedUserId = forcedUserId || (seed?.user_id ?? fallbackUserId).toString().trim() || fallbackUserId;
+  const nhtsaMetadata = extractNhtsaMetadata(seed);
   const threadUrl = typeof seed?.thread_url === "string" && seed.thread_url.trim()
     ? seed.thread_url.trim()
     : typeof seed?.metadata?.thread_url === "string" && seed.metadata.thread_url.trim()
       ? seed.metadata.thread_url.trim()
-      : null;
+      : buildNhtsaBulletinUrl(nhtsaMetadata);
+  const sourceRef = typeof seed?.source_ref === "string" && seed.source_ref.trim()
+    ? seed.source_ref.trim()
+    : typeof seed?.metadata?.source_ref === "string" && seed.metadata.source_ref.trim()
+      ? seed.metadata.source_ref.trim()
+      : buildNhtsaSourceRef(nhtsaMetadata);
   return {
     local_id: (seed?.local_id ?? "").toString().trim(),
     user_id: resolvedUserId,
+    skip_translation: nhtsaMetadata !== null,
     thread_url: threadUrl,
+    source_ref: sourceRef,
     vehicle_brand: seed?.vehicle_brand ?? null,
     vehicle_model: seed?.vehicle_model ?? null,
     mileage: Number.isFinite(seed?.mileage) ? Math.trunc(seed.mileage) : null,

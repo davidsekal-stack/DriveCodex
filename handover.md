@@ -1,6 +1,33 @@
 # Handover
 
-Aktualizováno: 2026-03-22
+Aktualizováno: 2026-03-28
+
+## Nepřekročitelné pravidlo pro seed importy
+
+Parsery a crawlery jsou jen **coarse filter**. To platí zejména pro:
+- `scripts/tsb-seed-nhtsa.mjs`
+- všechny `scripts/forum-seed-*.mjs`
+
+Závazné workflow:
+1. parser/crawler může jen vytěžit kandidáty do `ready` a `to_review`
+2. **každý kandidát určený k importu musí projít individuálním AI/manual review**
+3. teprve potom smí jít do Supabase
+
+Nepřípustné je:
+- importovat NHTSA nebo forum `ready` dávku jen na základě parser verdictu
+- spoléhat na pattern-level review tam, kde uživatel výslovně požaduje individuální kontrolu každého případu
+
+Pro NHTSA konkrétně:
+- `tsb-seed-nhtsa.mjs` je jen hrubý filtr a text normalizer
+- `tsb-review-nhtsa-ai.mjs` musí finální accepted seed přepsat do krátkých symptom tagů; `symptoms` mají být krátké labely, typicky `1-4` slova, ne celé věty
+- pokud seed obsahuje explicitní `obd_codes`, nesmí zároveň nechávat redundantní symptom tag typu `DTCs P1234/...`; DTC patří do `obd_codes`, ne do `symptoms`
+- finální import se má dělat až po **individuálním průchodu všech kandidátů**
+- pokud se po importu objeví nevalidní případ, má se:
+  - smazat celé dotčené import okno ze Supabase
+  - reviewed subset vytvořit znovu
+  - nahrát jen ručně potvrzené případy
+- `push-case` nesmí u reviewed NHTSA seedů znovu text přeformulovat; importer proto pro NHTSA posílá `skip_translation: true`
+- `push-case` při duplicitě nesmí dělat jen no-op; musí přepsat celý case payload (`symptoms`, `obd_codes`, `description`, `resolution`, atd.), aby šel reviewed subset bezpečně reimportovat přes stejné `local_id`
 
 ## Co je teď důležité
 

@@ -161,6 +161,9 @@ export const strings = {
   'diag.additionalCauseNote': 'Doplněno automaticky — AI vrátil méně než 3 závady.',
   'diag.recommendedTests':    'DOPORUČENÉ TESTY',
   'diag.notes':               'POZNÁMKY',
+  'diag.databaseSources':     'ZDROJOVÉ BULLETINY / PŘÍPADY',
+  'diag.openSource':          'Otevřít zdroj',
+  'diag.databaseSourceFallback': 'Databázový zdroj',
 
   // ConfirmModal
   'confirm.cancel':           'Zrušit',

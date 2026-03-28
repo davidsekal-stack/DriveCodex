@@ -644,7 +644,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Dacia",
     active:    true,
-    expertise: "Dacia osobní vozidla všech modelových řad (Logan, Sandero, Duster, Jogger, Dokker, Lodgy, Spring) — motory SCe, TCe, dCi, Blue dCi, LPG a elektrický pohon od roku 2006 do současnosti, EU spec",
+    expertise: "Dacia osobní vozidla všech modelových řad (Logan, Sandero, Duster, Bigster, Jogger, Dokker, Lodgy, Spring) — motory SCe, TCe, dCi, Blue dCi, LPG a elektrický pohon od roku 2006 do současnosti, EU spec",
     models: [
       // ── Logan ─────────────────────────────────────────────────────────────────
       { group: "Logan" },
@@ -663,6 +663,10 @@ export const VEHICLE_CATALOG = [
       { label: "Duster I (2010–2017)", powers: ["77 kW – 1.6", "92 kW – 1.2 TCe", "79 kW – 1.5 dCi", "80 kW – 1.5 dCi"] },
       { label: "Duster II (2018–2024)", powers: ["96 kW – 1.0 TCe", "110 kW – 1.3 TCe", "96 kW – 1.0 TCe LPG", "84 kW – 1.5 Blue dCi", "85 kW – 1.5 Blue dCi"] },
       { label: "Duster III (2024–dosud)", powers: ["96 kW – 1.0 TCe", "103 kW – 1.2 TCe", "96 kW – 1.0 TCe LPG", "103 kW – 1.2 TCe Hybrid 48V"] },
+
+      // ── Bigster ───────────────────────────────────────────────────────────────
+      { group: "Bigster" },
+      { label: "Bigster (2025–dosud)" },
 
       // ── Lodgy / Jogger ────────────────────────────────────────────────────────
       { group: "Lodgy / Jogger" },
@@ -858,8 +862,12 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Tesla",
     active:    true,
-    expertise: "Tesla elektromobily všech modelových řad (Model 3, Model Y, Model S, Model X) — elektrické pohony, bateriové systémy NMC/LFP, BMS, tepelné čerpadlo, rekuperace, supercharging, HV bezpečnost, OTA aktualizace",
+    expertise: "Tesla elektromobily a lehká užitková EV hlavních sériově vyráběných modelových řad (Roadster, Model S, Model 3, Model X, Model Y, Cybertruck, Semi) — elektrické pohony, bateriové systémy NMC/LFP, BMS, tepelné čerpadlo, rekuperace, supercharging, HV bezpečnost, OTA aktualizace",
     models: [
+      // ── Roadster ─────────────────────────────────────────────────────────────
+      { group: "Roadster" },
+      { label: "Roadster I (2008–2012)" },
+
       // ── Model 3 ──────────────────────────────────────────────────────────────
       { group: "Model 3" },
       { label: "Model 3 (2017–2023)", powers: ["208 kW – Standard Range RWD", "324 kW – Long Range AWD", "357 kW – Performance AWD"] },
@@ -879,6 +887,11 @@ export const VEHICLE_CATALOG = [
       { group: "Model X" },
       { label: "Model X (2015–2020)", powers: ["311 kW – 100D AWD", "449 kW – P100D AWD"] },
       { label: "Model X (2021–dosud)", powers: ["493 kW – Dual Motor AWD", "750 kW – Plaid Tri-Motor"] },
+
+      // ── Cybertruck / Semi ───────────────────────────────────────────────────
+      { group: "Cybertruck / Semi" },
+      { label: "Cybertruck (2023–dosud)" },
+      { label: "Semi (2022–dosud)" },
     ],
   },
 
@@ -945,15 +958,17 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Hyundai",
     active:    true,
-    expertise: "Hyundai osobní vozy a SUV všech modelových řad (i10, i20, i30, Tucson, Santa Fe, Kona, IONIQ 5/6) — motory T-GDi, GDi, CRDi, hybridní a elektrické pohony E-GMP od roku 2008, EU spec",
+    expertise: "Hyundai osobní vozy a SUV všech klíčových modelových řad (i10, i20, i30, i40, ix20, Bayon, Tucson, Santa Fe, Kona, IONIQ, INSTER, Genesis, Veloster) — motory MPI, T-GDi, GDi, CRDi, hybridní a elektrické pohony od roku 2001, převážně EU spec",
     models: [
       // ── i10 ──────────────────────────────────────────────────────────────────
       { group: "i10" },
+      { label: "i10 I PA (2008–2013)" },
       { label: "i10 II BA (2013–2019)", powers: ["49 kW – 1.0 Kappa MPI", "64 kW – 1.2 Kappa MPI"] },
       { label: "i10 III AC3 (2019–dosud)", powers: ["49 kW – 1.0 MPI", "62 kW – 1.2 MPI", "74 kW – 1.0 T-GDi"] },
 
       // ── i20 ──────────────────────────────────────────────────────────────────
       { group: "i20" },
+      { label: "i20 I PB (2008–2014)" },
       { label: "i20 II GB (2014–2020)", powers: ["55 kW – 1.2 MPI", "62 kW – 1.2 MPI", "74 kW – 1.0 T-GDi", "88 kW – 1.0 T-GDi", "74 kW – 1.4 MPI", "55 kW – 1.1 CRDi", "66 kW – 1.4 CRDi"] },
       { label: "i20 III BC3 (2020–dosud)", powers: ["62 kW – 1.2 MPI", "74 kW – 1.0 T-GDi", "88 kW – 1.0 T-GDi MHEV", "150 kW – 1.6 T-GDi N"] },
 
@@ -967,16 +982,33 @@ export const VEHICLE_CATALOG = [
       { group: "i40" },
       { label: "i40 (2011–2019)", powers: ["99 kW – 1.6 GDi", "130 kW – 2.0 GDi", "100 kW – 1.7 CRDi", "104 kW – 1.7 CRDi", "136 kW – 2.0 CRDi"] },
 
+      // ── ix20 ────────────────────────────────────────────────────────────────
+      { group: "ix20" },
+      { label: "ix20 (2010–2019)", powers: ["66 kW – 1.4 MPI", "92 kW – 1.6 MPI", "57 kW – 1.4 CRDi", "66 kW – 1.6 CRDi"] },
+
+      // ── Coupe / Genesis / Veloster ──────────────────────────────────────────
+      { group: "Coupe / Genesis / Veloster" },
+      { label: "Coupe GK / Tuscani (2001–2009)" },
+      { label: "Genesis Coupe BK (2008–2012)", powers: ["154 kW – 2.0 Turbo"] },
+      { group: "Genesis" },
+      { label: "Genesis Sportlimousine DH (2015–2016)", powers: ["232 kW – 3.8 V6 GDI AWD"] },
+      { group: "Veloster" },
+      { label: "Veloster I FS (2011–2018)", powers: ["137 kW – 1.6 T-GDi Turbo"] },
+
       // ── Tucson ───────────────────────────────────────────────────────────────
       { group: "Tucson" },
+      { label: "Tucson I JM (2004–2010)" },
       { label: "Tucson II LM / ix35 (2009–2015)", powers: ["122 kW – 2.0 GDi", "100 kW – 1.7 CRDi", "135 kW – 2.0 CRDi"] },
       { label: "Tucson III TL (2015–2020)", powers: ["97 kW – 1.6 GDi", "130 kW – 1.6 T-GDi", "85 kW – 1.6 CRDi", "100 kW – 1.7 CRDi", "136 kW – 2.0 CRDi"] },
       { label: "Tucson IV NX4 (2021–dosud)", powers: ["110 kW – 1.6 T-GDi", "132 kW – 1.6 T-GDi MHEV", "169 kW – 1.6 T-GDi HEV", "195 kW – 1.6 T-GDi PHEV", "85 kW – 1.6 CRDi", "100 kW – 1.6 CRDi MHEV"] },
 
       // ── Santa Fe ─────────────────────────────────────────────────────────────
       { group: "Santa Fe" },
+      { label: "Santa Fe I SM (2000–2006)" },
+      { label: "Santa Fe II CM (2006–2012)" },
       { label: "Santa Fe III DM (2012–2018)", powers: ["138 kW – 2.4 GDi", "176 kW – 2.0 T-GDi", "110 kW – 2.0 CRDi", "145 kW – 2.2 CRDi"] },
       { label: "Santa Fe IV TM (2018–dosud)", powers: ["136 kW – 2.4 GDi", "169 kW – 1.6 T-GDi HEV", "195 kW – 1.6 T-GDi PHEV", "110 kW – 2.0 CRDi", "147 kW – 2.2 CRDi"] },
+      { label: "Santa Fe V MX5 (2024–dosud)", powers: ["158 kW – 1.6 T-GDi HEV", "186 kW – 1.6 T-GDi PHEV"] },
 
       // ── Kona ─────────────────────────────────────────────────────────────────
       { group: "Kona" },
@@ -995,6 +1027,10 @@ export const VEHICLE_CATALOG = [
       { group: "IONIQ" },
       { label: "IONIQ 5 NE (2021–dosud)", powers: ["125 kW – Standard Range RWD", "168 kW – Long Range RWD", "239 kW – Long Range AWD", "448 kW – N AWD"] },
       { label: "IONIQ 6 CE (2022–dosud)", powers: ["111 kW – Standard Range RWD", "168 kW – Long Range RWD", "239 kW – Long Range AWD"] },
+
+      // ── INSTER ───────────────────────────────────────────────────────────────
+      { group: "INSTER" },
+      { label: "INSTER (2024–dosud)", powers: ["71.1 kW – Electric 42 kWh", "85.5 kW – Electric 49 kWh"] },
     ],
   },
 
@@ -1003,31 +1039,39 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Mercedes-Benz",
     active:    true,
-    expertise: "Mercedes-Benz osobní a užitková vozidla (A, B, C, E, GLA, GLB, GLC, Sprinter, Vito) — motory M270/M260/M264/M282/M133/M139 benzín, OM607/OM608/OM651/OM654/OM656 diesel, elektrické pohony od roku 2006, EU spec (BlueTEC, AdBlue, DPF Euro 5/6, SCR)",
+    expertise: "Mercedes-Benz osobní a užitková vozidla hlavních post-2000 modelových řad (A, B, C, E, CLA, CLS, SLK/SLC, GLA, GLK, GLC, ML/GLE, Sprinter, Vito, Citan) — motory M111/M271/M270/M260/M264/M282/M133/M139 benzín, OM611/OM646/OM651/OM654/OM656 diesel, elektrické pohony od roku 2000, EU spec (BlueTEC, AdBlue, DPF Euro 5/6, SCR)",
     models: [
       // ── A-Class ────────────────────────────────────────────────────────────────
       { group: "A-Class" },
+      { label: "A-Class W169 (2004–2012)" },
       { label: "A-Class W176 (2012–2018)", powers: ["75 kW – A160 1.6 (M270)", "90 kW – A180 1.6 (M270)", "115 kW – A200 1.6 (M270)", "155 kW – A250 2.0 (M270)", "265 kW – A45 AMG 2.0 (M133)", "280 kW – A45 AMG FL 2.0 (M133)", "80 kW – A160d 1.5 (OM607)", "80 kW – A180d 1.5 (OM607)", "100 kW – A180d 1.5 (OM607)", "100 kW – A200d 2.1 (OM651)", "130 kW – A220d 2.1 (OM651)"] },
       { label: "A-Class W177 (2018–současnost)", powers: ["80 kW – A160 1.3 (M282)", "100 kW – A180 1.3 (M282)", "120 kW – A200 1.3 (M282)", "165 kW – A250 2.0 (M260)", "225 kW – A35 AMG 2.0 (M260)", "306 kW – A45 S AMG 2.0 (M139)", "85 kW – A180d 1.5 (OM608)", "110 kW – A200d 2.0 (OM654)", "140 kW – A220d 2.0 (OM654)"] },
 
       // ── B-Class ────────────────────────────────────────────────────────────────
       { group: "B-Class" },
+      { label: "B-Class W245 (2005–2011)" },
       { label: "B-Class W246 (2011–2018)", powers: ["75 kW – B160 1.6 (M270)", "90 kW – B180 1.6 (M270)", "115 kW – B200 1.6 (M270)", "155 kW – B250 2.0 (M270)", "80 kW – B160d 1.5 (OM607)", "80 kW – B180d 1.5 (OM607)", "100 kW – B180d 1.5 (OM607)", "100 kW – B200d 2.1 (OM651)", "130 kW – B220d 2.1 (OM651)"] },
       { label: "B-Class W247 (2018–současnost)", powers: ["80 kW – B160 1.3 (M282)", "100 kW – B180 1.3 (M282)", "120 kW – B200 1.3 (M282)", "165 kW – B250 2.0 (M260)", "85 kW – B180d 1.5 (OM608)", "110 kW – B200d 2.0 (OM654)", "140 kW – B220d 2.0 (OM654)"] },
 
       // ── C-Class ────────────────────────────────────────────────────────────────
       { group: "C-Class" },
+      { label: "C-Class W203 (2000–2007)" },
+      { label: "C-Class SportCoupé C203 (2001–2008)" },
       { label: "C-Class W204 (2007–2014)", powers: ["115 kW – C180 1.8 K (M271)", "135 kW – C200 1.8 K (M271)", "125 kW – C200 CGI 1.8 (M271)", "150 kW – C250 CGI 1.8 (M271)", "170 kW – C300 3.0 (M272)", "170 kW – C350 3.5 (M272)", "336 kW – C63 AMG 6.2 (M156)", "350 kW – C63 AMG FL 6.2 (M156)", "100 kW – C200 CDI 2.1 (OM651)", "125 kW – C220 CDI 2.1 (OM651)", "150 kW – C250 CDI 2.1 (OM651)", "150 kW – C250 BlueTEC 2.1 (OM651)", "170 kW – C300 CDI 3.0 (OM642)"] },
+      { label: "C-Class Coupé C204 (2011–2015)" },
+      { label: "CLC CL203 (2008–2011)" },
       { label: "C-Class W205 (2014–2021)", powers: ["115 kW – C180 1.6 (M274)", "135 kW – C200 2.0 (M274)", "155 kW – C250 2.0 (M274)", "180 kW – C300 2.0 (M274)", "270 kW – C43 AMG 3.0 V6 (M276)", "350 kW – C63 AMG 4.0 V8 (M177)", "375 kW – C63 S AMG 4.0 V8 (M177)", "90 kW – C160d 1.6 (OM626)", "100 kW – C180d 1.6 (OM626)", "125 kW – C220d 2.0 (OM654)", "143 kW – C220d FL 2.0 (OM654)", "140 kW – C250d 2.1 (OM651)", "173 kW – C300d 2.0 (OM654)", "190 kW – C300de 2.0 PHEV (OM654)"] },
       { label: "C-Class W206 (2021–současnost)", powers: ["125 kW – C180 1.5 (M254)", "150 kW – C200 1.5 (M254)", "190 kW – C300 2.0 (M254)", "280 kW – C43 AMG 2.0 (M139)", "350 kW – C63 S AMG 2.0 PHEV (M139)", "125 kW – C200d 2.0 (OM654M)", "147 kW – C220d 2.0 (OM654M)", "195 kW – C300d 2.0 (OM654M)", "230 kW – C300de 2.0 PHEV (OM654M)"] },
 
       // ── E-Class ────────────────────────────────────────────────────────────────
       { group: "E-Class" },
+      { label: "E-Class W211 (2002–2009)" },
       { label: "E-Class W212 (2009–2016)", powers: ["135 kW – E200 1.8 CGI (M271)", "150 kW – E250 1.8 CGI (M271)", "155 kW – E250 2.0 (M274)", "185 kW – E300 3.5 (M276)", "225 kW – E400 3.0 V6 (M276)", "300 kW – E500 4.7 V8 (M278)", "386 kW – E63 AMG 5.5 V8 (M157)", "100 kW – E200 CDI 2.1 (OM651)", "125 kW – E220 CDI 2.1 (OM651)", "150 kW – E250 CDI 2.1 (OM651)", "150 kW – E250 BlueTEC 2.1 (OM651)", "170 kW – E300 BlueTEC 3.0 (OM642)", "190 kW – E350 BlueTEC 3.0 (OM642)"] },
       { label: "E-Class W213 (2016–současnost)", powers: ["135 kW – E200 2.0 (M264)", "145 kW – E200 2.0 FL (M254)", "190 kW – E300 2.0 (M264)", "270 kW – E43 AMG 3.0 V6 (M276)", "310 kW – E53 AMG 3.0 I6 (M256)", "420 kW – E63 S AMG 4.0 V8 (M177)", "120 kW – E200d 2.0 (OM654)", "143 kW – E220d 2.0 (OM654)", "195 kW – E300d 2.0 (OM654)", "210 kW – E350d 3.0 (OM656)", "243 kW – E400d 3.0 (OM656)", "225 kW – E300de 2.0 PHEV (OM654)", "240 kW – E300e 2.0 PHEV (M254)"] },
 
       // ── GLA ────────────────────────────────────────────────────────────────────
       { group: "GLA" },
+      { label: "GLA X156 (2013–2020)" },
       { label: "GLA H247 (2020–současnost)", powers: ["100 kW – GLA 180 1.3 (M282)", "120 kW – GLA 200 1.3 (M282)", "165 kW – GLA 250 2.0 (M260)", "225 kW – GLA 35 AMG 2.0 (M260)", "306 kW – GLA 45 S AMG 2.0 (M139)", "85 kW – GLA 180d 1.5 (OM608)", "110 kW – GLA 200d 2.0 (OM654)", "140 kW – GLA 220d 2.0 (OM654)"] },
 
       // ── GLB ────────────────────────────────────────────────────────────────────
@@ -1048,12 +1092,39 @@ export const VEHICLE_CATALOG = [
 
       // ── Vito ────────────────────────────────────────────────────────────────────
       { group: "Vito" },
+      { label: "Vito / Viano W639 (2003–2014)" },
       { label: "Vito W447 (2014–současnost)", powers: ["65 kW – 109 CDI 1.6 (OM622)", "75 kW – 111 CDI 1.6 (OM622)", "100 kW – 114 CDI 2.1 (OM651)", "120 kW – 116 CDI 2.1 (OM651)", "140 kW – 119 CDI 2.1 (OM651)", "100 kW – 114 CDI 2.0 FL (OM654)", "120 kW – 116 CDI 2.0 FL (OM654)", "143 kW – 119 CDI 2.0 FL (OM654)", "150 kW – 124 CDI 2.0 FL (OM654)", "100 kW – eVito Electric"] },
 
       // ── CLA ────────────────────────────────────────────────────────────────────
       { group: "CLA" },
       { label: "CLA C117 (2013–2019)", powers: ["90 kW – CLA 180 1.6 (M270)", "115 kW – CLA 200 1.6 (M270)", "155 kW – CLA 250 2.0 (M270)", "265 kW – CLA 45 AMG 2.0 (M133)", "280 kW – CLA 45 AMG FL 2.0 (M133)", "80 kW – CLA 180d 1.5 (OM607)", "100 kW – CLA 200d 2.1 (OM651)", "130 kW – CLA 220d 2.1 (OM651)"] },
       { label: "CLA C118 (2019–současnost)", powers: ["100 kW – CLA 180 1.3 (M282)", "120 kW – CLA 200 1.3 (M282)", "165 kW – CLA 250 2.0 (M260)", "225 kW – CLA 35 AMG 2.0 (M260)", "306 kW – CLA 45 S AMG 2.0 (M139)", "85 kW – CLA 180d 1.5 (OM608)", "110 kW – CLA 200d 2.0 (OM654)", "140 kW – CLA 220d 2.0 (OM654)"] },
+
+      // ── CLK / CLE / roadsters ───────────────────────────────────────────────
+      { group: "CLK / CLE / roadsters" },
+      { label: "CLK W209 (2002–2009)" },
+      { label: "CLE C/A236 (2023–dosud)" },
+      { label: "SL R230 (2001–2011)" },
+      { label: "SL R231 (2012–2020)" },
+      { label: "SLK R171 (2004–2011)" },
+      { label: "SLK R172 (2011–2016)" },
+      { label: "SLC R172 (2016–2020)" },
+
+      // ── CLS / CL / S-Class Coupé ────────────────────────────────────────────
+      { group: "CLS / CL / S-Class Coupé" },
+      { label: "CL C216 (2006–2013)" },
+      { label: "CLS C219 (2004–2010)" },
+      { label: "CLS C218 / X218 (2010–2018)" },
+      { label: "CLS C257 (2018–2023)" },
+      { label: "S-Class Coupé / Cabrio C/A217 (2014–2020)" },
+
+      // ── R-Class / ML / GL / GLK ────────────────────────────────────────────
+      { group: "R-Class / ML / GL / GLK" },
+      { label: "R-Class W251 (2005–2013)" },
+      { label: "ML-Class W164 (2005–2011)" },
+      { label: "ML-Class W166 (2011–2015)" },
+      { label: "GL-Class X164 (2006–2012)" },
+      { label: "GLK X204 (2008–2015)" },
 
       // ── GLE ────────────────────────────────────────────────────────────────────
       { group: "GLE" },
@@ -1062,8 +1133,8 @@ export const VEHICLE_CATALOG = [
 
       // ── GLS ────────────────────────────────────────────────────────────────────
       { group: "GLS" },
-      { label: "GLS X166 (2015–2019)", powers: ["190 kW – GLS 350d 3.0 (OM642)", "270 kW – GLS 400 3.5 (M276)", "335 kW – GLS 500 4.7 (M278)", "430 kW – GLS 63 AMG 5.5 (M157)"] },
-      { label: "GLS X167 (2019–současnost)", powers: ["243 kW – GLS 400d 3.0 (OM656)", "270 kW – GLS 450 3.0 (M256)", "390 kW – GLS 580 4.0 (M176)", "450 kW – GLS 63 AMG 4.0 (M177)", "110 kW – EQB 250 Electric", "168 kW – EQB 300 Electric", "215 kW – EQB 350 Electric"] },
+      { label: "GL / GLS X166 (2012–2019)" },
+      { label: "GLS X167 (2019–současnost)", powers: ["243 kW – GLS 400d 3.0 (OM656)", "270 kW – GLS 450 3.0 (M256)", "390 kW – GLS 580 4.0 (M176)", "450 kW – GLS 63 AMG 4.0 (M177)"] },
 
       // ── S-Class ────────────────────────────────────────────────────────────────
       { group: "S-Class" },
@@ -1075,14 +1146,19 @@ export const VEHICLE_CATALOG = [
       { group: "V-Class" },
       { label: "V-Class W447 (2014–současnost)", powers: ["100 kW – V200d 2.0 (OM654)", "120 kW – V220d 2.0 (OM654)", "143 kW – V250d 2.0 (OM654)", "150 kW – V300d 2.0 (OM654)", "100 kW – EQV Electric"] },
 
+      // ── Vaneo ────────────────────────────────────────────────────────────────
+      { group: "Vaneo" },
+      { label: "Vaneo W414 (2001–2005)" },
+
       // ── Citan / T-Class ─────────────────────────────────────────────────────
       { group: "Citan / T-Class" },
-      { label: "Citan W420 (2012–2021)", powers: ["55 kW – 108 CDI 1.5 (K9K)", "66 kW – 109 CDI 1.5 (K9K)", "81 kW – 111 CDI 1.5 (K9K)", "75 kW – 112 1.2 (H5Ft)"] },
-      { label: "Citan/T-Class W420 II (2022–současnost)", powers: ["75 kW – T160 1.3 (M282)", "96 kW – T180 1.3 (M282)", "85 kW – T160d 1.5 (OM608)", "70 kW – eCitan Electric", "90 kW – EQT Electric"] },
+      { label: "Citan I (2012–2021)", powers: ["55 kW – 108 CDI 1.5 (K9K)", "66 kW – 109 CDI 1.5 (K9K)", "81 kW – 111 CDI 1.5 (K9K)", "75 kW – 112 1.2 (H5Ft)"] },
+      { label: "Citan / T-Class II (2022–současnost)", powers: ["75 kW – T160 1.3 (M282)", "96 kW – T180 1.3 (M282)", "85 kW – T160d 1.5 (OM608)", "70 kW – eCitan Electric", "90 kW – EQT Electric"] },
 
       // ── EQ (elektro) ───────────────────────────────────────────────────────
       { group: "EQ (elektro)" },
       { label: "EQA H243 (2021–současnost)", powers: ["140 kW – EQA 250", "168 kW – EQA 300 4MATIC", "215 kW – EQA 350 4MATIC"] },
+      { label: "EQB X243 (2021–současnost)", powers: ["110 kW – EQB 250 Electric", "168 kW – EQB 300 Electric", "215 kW – EQB 350 Electric"] },
       { label: "EQC N293 (2019–2023)", powers: ["300 kW – EQC 400 4MATIC"] },
       { label: "EQE V295 (2022–současnost)", powers: ["215 kW – EQE 300", "292 kW – EQE 350+", "460 kW – EQE 53 AMG 4MATIC+"] },
       { label: "EQS V297 (2021–současnost)", powers: ["245 kW – EQS 350+", "265 kW – EQS 450+", "360 kW – EQS 580 4MATIC", "484 kW – EQS 53 AMG 4MATIC+"] },
@@ -1180,15 +1256,23 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Nissan",
     active:    true,
-    expertise: "Nissan osobní a užitková vozidla všech modelových řad (Micra, Note, Juke, Qashqai, X-Trail, Leaf, NV200, NV300) — motory HR/MR/K9K/R9M benzín a diesel, e-POWER, elektrické pohony od roku 2006 do současnosti, EU spec (DPF, AdBlue Euro 5/6)",
+    expertise: "Nissan osobní a užitková vozidla hlavních post-2000 modelových řad (Almera, Primera, Micra, Note, Juke, Qashqai, X-Trail, Murano, Leaf, Ariya, Navara, Patrol, 350Z/370Z/Z, GT-R, Pulsar, Tiida, NV200, NV300) — motory QG/QR/HR/MR/VQ/VR/YD/K9K/R9M benzín a diesel, e-POWER a elektrické pohony, EU a hlavní globální specifikace od roku 2000 do současnosti",
     models: [
+      // ── Almera / Primera ──────────────────────────────────────────────────────
+      { group: "Almera / Primera" },
+      { label: "Almera N16 (2000–2006)", powers: ["66 kW – 1.5 QG15DE", "84 kW – 1.8 QG18DE", "81 kW – 2.2 Di YD22DDTi", "100 kW – 2.2 dCi YD22DDTi"] },
+      { label: "Almera Tino V10 (2000–2006)", powers: ["84 kW – 1.8 QG18DE", "100 kW – 2.0 QR20DE", "81 kW – 2.2 Di YD22DDTi", "100 kW – 2.2 dCi YD22DDTi"] },
+      { label: "Primera P12 (2001–2007)", powers: ["80 kW – 1.6 QG16DE", "85 kW – 1.8 QG18DE", "103 kW – 2.0 QR20DE", "93 kW – 2.2 dCi YD22DDTi", "102 kW – 2.2 dCi YD22DDTi"] },
+
       // ── Micra ──────────────────────────────────────────────────────────────────
       { group: "Micra" },
+      { label: "Micra K12 (2002–2010)", powers: ["48 kW – 1.2 CR12DE", "59 kW – 1.2 CR12DE", "65 kW – 1.4 CR14DE", "81 kW – 1.6 HR16DE", "60 kW – 1.5 dCi K9K"] },
       { label: "Micra K13 (2010–2017)", powers: ["54 kW – 1.2 HR12DE", "72 kW – 1.2 DIG-S HR12DDR", "48 kW – 1.5 dCi K9K"] },
       { label: "Micra K14 (2017–současnost)", powers: ["52 kW – 0.9 IG-T H4Bt", "71 kW – 0.9 IG-T H4Bt", "73 kW – 1.0 IG-T HR10DET", "86 kW – 1.0 IG-T HR10DET", "55 kW – 1.5 dCi K9K"] },
 
       // ── Note ───────────────────────────────────────────────────────────────────
       { group: "Note" },
+      { label: "Note E11 (2006–2013)", powers: ["65 kW – 1.4 CR14DE", "81 kW – 1.6 HR16DE", "50 kW – 1.5 dCi K9K", "63 kW – 1.5 dCi K9K"] },
       { label: "Note E12 (2013–2020)", powers: ["54 kW – 1.2 HR12DE", "72 kW – 1.2 DIG-S HR12DDR", "66 kW – 1.5 dCi K9K"] },
 
       // ── Juke ───────────────────────────────────────────────────────────────────
@@ -1204,9 +1288,25 @@ export const VEHICLE_CATALOG = [
 
       // ── X-Trail ────────────────────────────────────────────────────────────────
       { group: "X-Trail" },
+      { label: "X-Trail T30 (2001–2007)", powers: ["103 kW – 2.0 QR20DE", "121 kW – 2.5 QR25DE", "84 kW – 2.2 Di YD22DDTi", "100 kW – 2.2 dCi YD22DDTi"] },
       { label: "X-Trail T31 (2007–2013)", powers: ["104 kW – 2.0 MR20DE", "124 kW – 2.5 QR25DE", "110 kW – 2.0 dCi M9R", "127 kW – 2.0 dCi M9R"] },
       { label: "X-Trail T32 (2014–2021)", powers: ["120 kW – 1.6 DIG-T MR16DDT", "126 kW – 2.0 MR20DD", "96 kW – 1.6 dCi R9M", "130 kW – 2.0 dCi M9R"] },
       { label: "X-Trail T33 (2022–současnost)", powers: ["110 kW – 1.5 VC-Turbo KR15DDT", "150 kW – 1.5 VC-Turbo e-POWER", "157 kW – 1.5 VC-Turbo e-POWER e-4ORCE"] },
+
+      // ── Z / GT-R ───────────────────────────────────────────────────────────────
+      { group: "Z / GT-R" },
+      { label: "350Z Z33 (2002–2009)", powers: ["206 kW – 3.5 V6 VQ35DE", "221 kW – 3.5 V6 VQ35HR", "230 kW – 3.5 V6 VQ35HR Nismo"] },
+      { label: "370Z Z34 (2009–2020)", powers: ["241 kW – 3.7 V6 VQ37VHR", "253 kW – 3.7 V6 VQ37VHR Nismo"] },
+      { label: "Z RZ34 (2022–současnost)", powers: ["298 kW – 3.0 V6 VR30DDTT", "309 kW – 3.0 V6 VR30DDTT Nismo"] },
+      { label: "GT-R R35 (2007–současnost)", powers: ["353 kW – 3.8 V6 VR38DETT", "390 kW – 3.8 V6 VR38DETT", "419 kW – 3.8 V6 VR38DETT Nismo", "447 kW – 3.8 V6 VR38DETT Nismo"] },
+
+      // ── Murano / Tiida / Pulsar / Patrol ─────────────────────────────────────
+      { group: "Murano / Tiida / Pulsar / Patrol" },
+      { label: "Murano Z50 (2002–2008)", powers: ["172 kW – 3.5 V6 VQ35DE"] },
+      { label: "Murano Z51 (2008–2014)", powers: ["188 kW – 3.5 V6 VQ35DE", "140 kW – 2.5 dCi YD25DDTi"] },
+      { label: "Tiida C11 (2004–2012)", powers: ["81 kW – 1.6 HR16DE", "93 kW – 1.8 MR18DE", "63 kW – 1.5 dCi K9K"] },
+      { label: "Pulsar C13 (2014–2018)", powers: ["85 kW – 1.2 DIG-T HRA2DDT", "140 kW – 1.6 DIG-T MR16DDT", "81 kW – 1.5 dCi K9K"] },
+      { label: "Patrol Y62 (2010–současnost)", powers: ["298 kW – 5.6 V8 VK56VD"] },
 
       // ── Leaf ───────────────────────────────────────────────────────────────────
       { group: "Leaf" },

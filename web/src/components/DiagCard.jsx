@@ -52,6 +52,21 @@ function SourceBadge({ fault, t, tr }) {
   );
 }
 
+function getUniqueRagSources(ragMatches = []) {
+  const seen = new Set();
+  const unique = [];
+
+  for (const match of ragMatches) {
+    const key = [match?.sourceRef, match?.threadUrl, match?.id].filter(Boolean).join("||");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(match);
+    if (unique.length >= 5) break;
+  }
+
+  return unique;
+}
+
 // ── Jedna závada ──────────────────────────────────────────────────────────────
 
 function FaultCard({ fault: f, isPrimary, t, tr, mobile }) {
@@ -123,6 +138,7 @@ export default function DiagCard({ result, ragMatches = [], t }) {
   const mobile = useIsMobile();
   const dalsiInfo = result.další_info === "Výsledek zkrácen." ? null : result.další_info;
   const hasMeta = result.doporučené_testy?.length > 0 || result.varování || dalsiInfo;
+  const ragSources = getUniqueRagSources(ragMatches).filter((match) => match?.sourceRef || match?.threadUrl);
 
   return (
     <div className="fade-in">
@@ -136,6 +152,46 @@ export default function DiagCard({ result, ragMatches = [], t }) {
           </div>
         )}
       </div>
+
+      {ragSources.length > 0 && (
+        <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2, marginBottom: 12 }}>
+          <SectionLabel t={t}>{tr('diag.databaseSources')}</SectionLabel>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {ragSources.map((match, index) => {
+              const vehicleLabel = [match.vehicle?.brand, match.vehicle?.model].filter(Boolean).join(" ");
+              const resolutionPreview = typeof match.resolution === "string" ? match.resolution.slice(0, 120) : "";
+
+              return (
+                <div key={`${match.sourceRef || "source"}-${index}`} style={{ borderLeft: `2px solid ${t.borderAccent}`, paddingLeft: 10 }}>
+                  <div style={{ fontSize: "0.76rem", color: t.text, fontWeight: 600 }}>
+                    {match.sourceRef || tr('diag.databaseSourceFallback')}
+                  </div>
+                  {vehicleLabel && (
+                    <div style={{ fontSize: "0.7rem", color: t.textFaint, marginTop: 2 }}>
+                      {vehicleLabel}
+                    </div>
+                  )}
+                  {resolutionPreview && (
+                    <div style={{ fontSize: "0.72rem", color: t.textMuted, marginTop: 2, lineHeight: 1.5 }}>
+                      {resolutionPreview}{match.resolution?.length > 120 ? "..." : ""}
+                    </div>
+                  )}
+                  {match.threadUrl && (
+                    <a
+                      href={match.threadUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "inline-block", marginTop: 4, fontSize: "0.72rem", color: t.accent, textDecoration: "underline" }}
+                    >
+                      {tr('diag.openSource')}
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Závady */}
       {result.závady?.map((f, i) => (

@@ -116,6 +116,15 @@ export default function useCaseWorkflow({
         type: "diagnosis",
         result: normalized,
         ragMatchIds: similarCases.map((item) => item.id),
+        ragMatches: similarCases.map((item) => ({
+          id: item.id,
+          localId: item.localId ?? null,
+          threadUrl: item.threadUrl ?? null,
+          sourceRef: item.sourceRef ?? null,
+          ragScore: item.ragScore ?? null,
+          vehicle: item.vehicle ?? null,
+          resolution: item.resolution ?? "",
+        })),
         tokensUsed: usedTokens,
         timestamp: new Date().toISOString(),
       };

@@ -391,13 +391,19 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Cadillac",
     active:    true,
-    expertise: "Cadillac luxury vehicles — Escalade, XT4, XT5, XT6, CT4, CT5 — 2.0L Turbo, 2.7L Turbo, 3.0L Twin Turbo, 6.2L LT1/LT4 V8, 3.0L Duramax Diesel, 10-speed automatic, Super Cruise semi-autonomous driving, Magnetic Ride Control, Blackwing performance variants, 2007–present US spec",
+    expertise: "Cadillac luxury vehicles — Escalade, Escalade ESV, XT4, XT5, XT6, CT4, CT5, CT6, XTS, ATS, CTS, SRX, Escalade IQ, OPTIQ, VISTIQ — 2.0L/2.7L Turbo I4, 3.0L Twin Turbo, 3.6L V6, 4.2L Blackwing V8, 6.2L LT1/LT4 V8, 3.0L Duramax Diesel, electric AWD variants, 10-speed automatic, Super Cruise semi-autonomous driving, Magnetic Ride Control, V-Series and Blackwing performance variants, 2007–present US spec",
     models: [
       // ── Escalade ──────────────────────────────────────────────────────────
       { group: "Escalade" },
       { label: "Escalade (2007–2014)", powers: ["403 hp – 6.2L EcoTec V8"] },
       { label: "Escalade (2015–2020)", powers: ["420 hp – 6.2L EcoTec3 V8"] },
       { label: "Escalade (2021–present)", powers: ["420 hp – 6.2L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "682 hp – 6.2L Supercharged V-Series V8"] },
+
+      // ── Escalade ESV ──────────────────────────────────────────────────────
+      { group: "Escalade ESV" },
+      { label: "Escalade ESV (2007–2014)", powers: ["403 hp – 6.2L EcoTec V8"] },
+      { label: "Escalade ESV (2015–2020)", powers: ["420 hp – 6.2L EcoTec3 V8"] },
+      { label: "Escalade ESV (2021–present)", powers: ["420 hp – 6.2L EcoTec3 V8", "277 hp – 3.0L Duramax Diesel I6", "682 hp – 6.2L Supercharged V-Series V8"] },
 
       // ── XT4 ───────────────────────────────────────────────────────────────
       { group: "XT4" },
@@ -419,17 +425,53 @@ export const VEHICLE_CATALOG_US = [
       { group: "CT5" },
       { label: "CT5 (2020–present)", powers: ["237 hp – 2.0L Turbo I4", "335 hp – 3.0L Twin Turbo V6 V-Series", "668 hp – 6.2L Supercharged Blackwing V8"] },
 
+      // ── CT6 ───────────────────────────────────────────────────────────────
+      { group: "CT6" },
+      { label: "CT6 (2016–2020)", powers: ["265 hp – 2.0L Turbo I4", "335 hp – 3.6L V6", "404 hp – 3.0L Twin Turbo V6"] },
+
+      // ── XTS ───────────────────────────────────────────────────────────────
+      { group: "XTS" },
+      { label: "XTS (2013–2019)", powers: ["304 hp – 3.6L V6", "410 hp – 3.6L Twin Turbo V-Sport V6"] },
+
+      // ── ATS / ATS-V ───────────────────────────────────────────────────────
+      { group: "ATS" },
+      { label: "ATS (2013–2019)", powers: ["272 hp – 2.0L Turbo I4", "321 hp – 3.6L V6"] },
+      { group: "ATS-V" },
+      { label: "ATS-V (2016–2019)", powers: ["464 hp – 3.6L Twin Turbo V6"] },
+
+      // ── CTS / CTS-V ───────────────────────────────────────────────────────
+      { group: "CTS" },
+      { label: "CTS (2014–2019)", powers: ["268 hp – 2.0L Turbo I4", "335 hp – 3.6L V6"] },
+      { group: "CTS-V" },
+      { label: "CTS-V (2016–2019)", powers: ["640 hp – 6.2L Supercharged V8"] },
+
+      // ── SRX ───────────────────────────────────────────────────────────────
+      { group: "SRX" },
+      { label: "SRX (2010–2016)", powers: ["265 hp – 3.0L V6", "308 hp – 3.6L V6"] },
+
       // ── LYRIQ ────────────────────────────────────────────────────────────
       { group: "LYRIQ" },
       { label: "LYRIQ (2023–present)", powers: ["340 hp – Electric RWD", "500 hp – Electric AWD"] },
-    ],
-  },
+
+      // ── Escalade IQ ───────────────────────────────────────────────────────
+      { group: "Escalade IQ" },
+      { label: "Escalade IQ (2025–present)", powers: ["750 hp – Electric AWD"] },
+
+      // ── OPTIQ ─────────────────────────────────────────────────────────────
+      { group: "OPTIQ" },
+      { label: "OPTIQ (2025–present)", powers: ["300 hp – Electric AWD"] },
+
+      // ── VISTIQ ────────────────────────────────────────────────────────────
+      { group: "VISTIQ" },
+      { label: "VISTIQ (2026–present)", powers: ["615 hp – Electric AWD"] },
+      ],
+    },
 
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Lincoln",
     active:    true,
-    expertise: "Lincoln premium vehicles — Navigator, Aviator, Corsair, Nautilus, MKZ — 2.0L/2.7L EcoBoost Turbo, 3.0L Twin Turbo, 3.5L EcoBoost, PHEV/Hybrid variants, 10R80 10-speed automatic, air suspension, CoPilot360 driver assist, 2007–present US spec",
+    expertise: "Lincoln premium vehicles — Navigator, Aviator, Corsair, Nautilus, MKZ, MKC, MKX, Continental, MKT — 2.0L/2.3L/2.7L EcoBoost Turbo I4/V6, 3.0L Twin Turbo, 3.5L EcoBoost, PHEV/Hybrid variants, 10R80 10-speed automatic, air suspension, APIM/BCM module faults, CoPilot360 driver assist, 2007–present US spec",
     models: [
       // ── Navigator ─────────────────────────────────────────────────────────
       { group: "Navigator" },
@@ -453,6 +495,22 @@ export const VEHICLE_CATALOG_US = [
       // ── MKZ ───────────────────────────────────────────────────────────────
       { group: "MKZ" },
       { label: "MKZ (2013–2020)", powers: ["245 hp – 2.0L EcoBoost Turbo I4", "400 hp – 3.0L Twin Turbo V6", "188 hp – 2.0L Hybrid"] },
+
+      // ── MKC ───────────────────────────────────────────────────────────────
+      { group: "MKC" },
+      { label: "MKC (2015–2019)", powers: ["245 hp – 2.0L EcoBoost Turbo I4", "285 hp – 2.3L EcoBoost Turbo I4"] },
+
+      // ── MKX ───────────────────────────────────────────────────────────────
+      { group: "MKX" },
+      { label: "MKX (2016–2018)", powers: ["303 hp – 3.7L Ti-VCT V6", "335 hp – 2.7L EcoBoost Turbo V6"] },
+
+      // ── Continental ───────────────────────────────────────────────────────
+      { group: "Continental" },
+      { label: "Continental (2017–2020)", powers: ["305 hp – 3.7L Ti-VCT V6", "335 hp – 2.7L EcoBoost Turbo V6", "400 hp – 3.0L Twin Turbo V6"] },
+
+      // ── MKT ───────────────────────────────────────────────────────────────
+      { group: "MKT" },
+      { label: "MKT (2013–2019)", powers: ["365 hp – 3.5L EcoBoost V6"] },
     ],
   },
 
@@ -476,27 +534,35 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Buick",
     active:    true,
-    expertise: "Buick luxury-entry vehicles — Encore, Encore GX, Envision, Enclave — 1.2L/1.3L/1.4L Turbo I3/I4, 2.0L Turbo, 3.6L V6 SIDI, Active Noise Cancellation, 2013–present US spec. Shares GM platforms with Chevrolet/GMC",
+    expertise: "Buick luxury-entry vehicles — Encore, Encore GX, Envista, Envision, Enclave, Regal — 1.2L/1.3L/1.4L Turbo I3/I4, 2.0L Turbo, 2.5L/3.6L V6, Active Noise Cancellation, 2013–present US spec. Shares GM platforms with Chevrolet/GMC",
     models: [
-      // ── Encore ────────────────────────────────────────────────────────────
-      { group: "Encore" },
-      { label: "Encore (2013–2022)", powers: ["138 hp – 1.4L Turbo I4 Ecotec", "153 hp – 1.4L Turbo Sport I4"] },
+        // ── Encore ────────────────────────────────────────────────────────────
+        { group: "Encore" },
+        { label: "Encore (2013–2022)", powers: ["138 hp – 1.4L Turbo I4 Ecotec", "153 hp – 1.4L Turbo Sport I4"] },
 
-      // ── Encore GX ─────────────────────────────────────────────────────────
-      { group: "Encore GX" },
-      { label: "Encore GX (2020–present)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3"] },
+        // ── Encore GX ─────────────────────────────────────────────────────────
+        { group: "Encore GX" },
+        { label: "Encore GX (2020–present)", powers: ["137 hp – 1.2L Turbo I3", "155 hp – 1.3L Turbo I3"] },
 
-      // ── Envision ──────────────────────────────────────────────────────────
-      { group: "Envision" },
-      { label: "Envision (2016–2020)", powers: ["197 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4"] },
-      { label: "Envision (2021–present)", powers: ["228 hp – 2.0L Turbo I4"] },
+        // ── Envista ───────────────────────────────────────────────────────────
+        { group: "Envista" },
+        { label: "Envista (2024–present)", powers: ["137 hp – 1.2L Turbo I3"] },
 
-      // ── Enclave ───────────────────────────────────────────────────────────
-      { group: "Enclave" },
-      { label: "Enclave (2008–2017)", powers: ["281 hp – 3.6L V6 SIDI"] },
-      { label: "Enclave (2018–present)", powers: ["310 hp – 3.6L V6 SIDI"] },
-    ],
-  },
+        // ── Envision ──────────────────────────────────────────────────────────
+        { group: "Envision" },
+        { label: "Envision (2016–2020)", powers: ["197 hp – 1.5L Turbo I4", "252 hp – 2.0L Turbo I4"] },
+        { label: "Envision (2021–present)", powers: ["228 hp – 2.0L Turbo I4"] },
+
+        // ── Enclave ───────────────────────────────────────────────────────────
+        { group: "Enclave" },
+        { label: "Enclave (2008–2017)", powers: ["281 hp – 3.6L V6 SIDI"] },
+        { label: "Enclave (2018–present)", powers: ["310 hp – 3.6L V6 SIDI"] },
+
+        // ── Regal ─────────────────────────────────────────────────────────────
+        { group: "Regal" },
+        { label: "Regal (2018–2020)", powers: ["250 hp – 2.0L Turbo I4", "310 hp – 3.6L V6 GS"] },
+      ],
+    },
 
   // ─────────────────────────────────────────────────────────────────────────────
   {
@@ -533,7 +599,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Lexus",
     active:    true,
-    expertise: "Lexus luxury vehicles — RX, NX, GX, LX, ES, IS, LS, GS — 2.0L Turbo, 2.5L/3.5L V6, 4.6L/5.0L V8, multi-stage Hybrid Drive, Lexus Safety System+, air suspension, Variable Gear Ratio Steering, 2006–present US spec",
+    expertise: "Lexus luxury vehicles — RX, NX, GX, LX, TX, ES, IS, LS, GS — 2.0L Turbo, 2.4L Turbo, 2.5L/3.5L V6, 4.6L/5.0L V8, multi-stage Hybrid Drive, Lexus Safety System+, air suspension, Variable Gear Ratio Steering, 2006–present US spec",
     models: [
       // ── RX ────────────────────────────────────────────────────────────────
       { group: "RX" },
@@ -557,6 +623,10 @@ export const VEHICLE_CATALOG_US = [
       { label: "LX 570 (2008–2021)", powers: ["383 hp – 5.7L V8 3UR-FE"] },
       { label: "LX 600 (2022–present)", powers: ["409 hp – 3.4L Twin Turbo V6", "457 hp – 3.4L Twin Turbo Hybrid V6"] },
 
+      // ── TX ────────────────────────────────────────────────────────────────
+      { group: "TX" },
+      { label: "TX 350/500h/550h+ (2024–present)", powers: ["275 hp – 2.4L Turbo I4", "366 hp – 2.4L Turbo Hybrid", "404 hp – 3.5L V6 Plug-in Hybrid"] },
+
       // ── ES ────────────────────────────────────────────────────────────────
       { group: "ES" },
       { label: "ES 350/300h (2013–2018)", powers: ["268 hp – 3.5L V6 2GR-FE", "200 hp – 2.5L Hybrid"] },
@@ -574,7 +644,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Infiniti",
     active:    true,
-    expertise: "Infiniti luxury vehicles — QX60, QX80, QX50, Q50, Q60 — 2.0L VC-Turbo (Variable Compression), 3.0L Twin Turbo V6, 3.5L V6 Hybrid, 5.6L V8 Endurance, ProPILOT Assist, Dynamic Digital Suspension, 2007–present US spec",
+    expertise: "Infiniti luxury vehicles — QX60, QX80, QX50, QX55, Q50, Q60, Q70 — 2.0L VC-Turbo (Variable Compression), 3.0L Twin Turbo V6, 3.5L V6 Hybrid, 5.6L V8 Endurance, ProPILOT Assist, Dynamic Digital Suspension, 2007–present US spec",
     models: [
       // ── QX60 ──────────────────────────────────────────────────────────────
       { group: "QX60" },
@@ -585,20 +655,23 @@ export const VEHICLE_CATALOG_US = [
       { group: "QX80" },
       { label: "QX80 (2014–present)", powers: ["400 hp – 5.6L V8 Endurance VK56VD"] },
 
-      // ── QX50 ──────────────────────────────────────────────────────────────
-      { group: "QX50" },
-      { label: "QX50 (2019–present)", powers: ["268 hp – 2.0L VC-Turbo Variable Compression I4"] },
+        // ── QX50 ──────────────────────────────────────────────────────────────
+        { group: "QX50" },
+        { label: "QX50 (2019–present)", powers: ["268 hp – 2.0L VC-Turbo Variable Compression I4"] },
+        { label: "QX55 (2022–present)", powers: ["268 hp – 2.0L VC-Turbo Variable Compression I4"] },
 
-      // ── Q50 ───────────────────────────────────────────────────────────────
-      { group: "Q50" },
-      { label: "Q50 (2014–2015)", powers: ["208 hp – 2.0L Turbo I4", "328 hp – 3.7L V6 VQ37VHR", "360 hp – 3.5L Hybrid V6"] },
-      { label: "Q50 (2016–present)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
+        // ── Q50 / Q60 / Q70 ───────────────────────────────────────────────────
+        { group: "Q50" },
+        { label: "Q50 (2014–2015)", powers: ["208 hp – 2.0L Turbo I4", "328 hp – 3.7L V6 VQ37VHR", "360 hp – 3.5L Hybrid V6"] },
+        { label: "Q50 (2016–present)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
 
-      // ── Q60 ───────────────────────────────────────────────────────────────
-      { group: "Q60" },
-      { label: "Q60 (2017–present)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
-    ],
-  },
+        // ── Q60 ───────────────────────────────────────────────────────────────
+        { group: "Q60" },
+        { label: "Q60 (2017–present)", powers: ["208 hp – 2.0L Turbo I4", "300 hp – 3.0L Twin Turbo V6", "400 hp – 3.0L Twin Turbo V6 Red Sport"] },
+        { group: "Q70" },
+        { label: "Q70 (2011–2019)", powers: ["330 hp – 3.7L V6 VQ37VHR", "420 hp – 5.6L V8 VK56VD", "360 hp – 3.5L Hybrid V6"] },
+      ],
+    },
 
   // ─────────────────────────────────────────────────────────────────────────────
   {
@@ -640,7 +713,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Ford (US)",
     active:    true,
-    expertise: "Ford US market — F-150, Super Duty, Explorer, Escape, Bronco, Bronco Sport, Edge, Maverick, Expedition, Mustang US, Transit US, EcoSport US — EcoBoost turbo engines, 5.0L Coyote V8, PowerBoost Hybrid, PowerStroke Diesel, 10R80 10-speed auto, 2006–present US spec",
+    expertise: "Ford US market — F-150, Super Duty, Explorer, Escape, Bronco, Bronco Sport, Edge, Maverick, Expedition, Mustang US, Mustang Mach-E, Transit US, E-Transit, EcoSport US — EcoBoost turbo engines, 5.0L Coyote V8, PowerBoost Hybrid, PowerStroke Diesel, 10R80 10-speed auto, EV platforms, 2006–present US spec",
     models: [
       // ── F-150 ────────────────────────────────────────────────────────────
       { group: "F-150" },
@@ -697,9 +770,41 @@ export const VEHICLE_CATALOG_US = [
       { label: "Mustang S550 (2015–2023)", powers: ["310 hp – 2.3L EcoBoost I4", "460 hp – 5.0L Coyote V8 GT", "480 hp – 5.0L Coyote V8 Mach 1", "526 hp – 5.2L Voodoo V8 Shelby GT350", "760 hp – 5.2L Supercharged Shelby GT500 V8"] },
       { label: "Mustang S650 (2024–present)", powers: ["315 hp – 2.3L EcoBoost I4", "480 hp – 5.0L Coyote V8 GT", "500 hp – 5.0L Coyote V8 Dark Horse"] },
 
+      // ── Mustang Mach-E (US) ─────────────────────────────────────────────
+      { group: "Mustang Mach-E (US)" },
+      { label: "Mustang Mach-E (2021–present)" },
+
       // ── Transit (US) ─────────────────────────────────────────────────────
       { group: "Transit (US)" },
       { label: "Transit (2015–present)", powers: ["275 hp – 3.5L V6 PFDI", "310 hp – 3.5L EcoBoost V6", "266 hp – 2.0L EcoBoost I4 (AWD)", "174 hp – E-Transit Electric"] },
+      { label: "E-Transit (2022–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Tesla (US)",
+    active:    false,
+    expertise: "Tesla US market — Model 3, Model Y, Model S, Model X, Cybertruck — electric drive units, high-voltage battery systems, thermal management, supercharging, OTA updates, 2012–present US spec",
+    models: [
+      { group: "Model 3" },
+      { label: "Model 3 (2017–2023)" },
+      { label: "Model 3 Highland (2024–present)" },
+
+      { group: "Model Y" },
+      { label: "Model Y (2020–2024)" },
+      { label: "Model Y Juniper (2025–present)" },
+
+      { group: "Model S" },
+      { label: "Model S (2012–2020)" },
+      { label: "Model S (2021–present)" },
+
+      { group: "Model X" },
+      { label: "Model X (2015–2020)" },
+      { label: "Model X (2021–present)" },
+
+      { group: "Cybertruck" },
+      { label: "Cybertruck (2023–present)" },
     ],
   },
 
@@ -898,7 +1003,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Kia (US)",
     active:    true,
-    expertise: "Kia US market — Forte, K5, Seltos, Sportage, Sorento, Telluride, Carnival, Soul, EV6, EV9 — Smartstream GDi/T-GDi, HEV/PHEV/EV powertrains, DCT/IVT/8AT transmissions, E-GMP platform, 2010–present US spec",
+    expertise: "Kia US market — Forte, K5, Seltos, Sportage, Sorento, Telluride, Carnival, Soul, Niro, EV6, EV9 — Smartstream GDi/T-GDi, HEV/PHEV/EV powertrains, DCT/IVT/8AT transmissions, E-GMP platform, 2010–present US spec",
     models: [
       // ── Forte ────────────────────────────────────────────────────────────
       { group: "Forte" },
@@ -938,6 +1043,11 @@ export const VEHICLE_CATALOG_US = [
       { label: "Soul (2014–2019)", powers: ["130 hp – 1.6L MPI I4", "164 hp – 2.0L GDi I4", "201 hp – 1.6L T-GDi I4", "109 hp – Electric 27 kWh"] },
       { label: "Soul (2020–present)", powers: ["147 hp – 2.0L MPI I4", "201 hp – Electric 64 kWh"] },
 
+      // ── Niro (US) ───────────────────────────────────────────────────────
+      { group: "Niro (US)" },
+      { label: "Niro (2017–2022)", powers: ["139 hp – 1.6L GDi HEV", "139 hp – 1.6L GDi PHEV", "201 hp – Electric e-Niro"] },
+      { label: "Niro (2023–present)", powers: ["139 hp – 1.6L GDi HEV", "180 hp – 1.6L GDi PHEV", "201 hp – Electric Niro EV", "253 hp – Electric Niro EV Wind/Wave+"] },
+
       // ── EV6 (US) ─────────────────────────────────────────────────────────
       { group: "EV6 (US)" },
       { label: "EV6 (2022–present)", powers: ["167 hp – Standard Range RWD", "225 hp – Long Range RWD", "320 hp – Long Range AWD", "576 hp – GT AWD"] },
@@ -950,9 +1060,215 @@ export const VEHICLE_CATALOG_US = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   {
+    brand:     "Porsche",
+    active:    false,
+    expertise: "Porsche US market — 911, 718 Boxster/Cayman, Cayenne, Macan, Panamera, Taycan — turbocharged flat-six/four engines, PDK, AWD, PHEV and EV platforms, 2003–present US spec",
+    models: [
+      { group: "911" },
+      { label: "911 (2005–2011)" },
+      { label: "911 (2012–2018)" },
+      { label: "911 (2019–present)" },
+      { group: "718 / Boxster / Cayman" },
+      { label: "Boxster / Cayman (2005–2012)" },
+      { label: "Boxster / Cayman (2013–2016)" },
+      { label: "718 Boxster / Cayman (2017–present)" },
+      { group: "Cayenne" },
+      { label: "Cayenne (2003–2010)" },
+      { label: "Cayenne (2011–2017)" },
+      { label: "Cayenne (2018–present)" },
+      { group: "Panamera" },
+      { label: "Panamera (2010–2016)" },
+      { label: "Panamera (2017–2023)" },
+      { label: "Panamera (2024–present)" },
+      { group: "Macan / Taycan" },
+      { label: "Macan (2015–2024)" },
+      { label: "Macan Electric (2024–present)" },
+      { label: "Taycan (2020–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Land Rover",
+    active:    false,
+    expertise: "Land Rover US market — Defender, Discovery, Discovery Sport, Range Rover, Range Rover Sport, Range Rover Evoque, Range Rover Velar — Ingenium petrol/diesel, mild hybrid, PHEV and 4WD systems, 2003–present US spec",
+    models: [
+      { group: "Discovery / Discovery Sport" },
+      { label: "Discovery / LR3 (2005–2009)" },
+      { label: "Discovery / LR4 (2010–2016)" },
+      { label: "Discovery (2017–present)" },
+      { label: "Discovery Sport (2015–present)" },
+      { group: "Range Rover Evoque / Velar" },
+      { label: "Range Rover Evoque (2012–2018)" },
+      { label: "Range Rover Evoque (2019–present)" },
+      { label: "Range Rover Velar (2018–present)" },
+      { group: "Range Rover / Sport / Defender" },
+      { label: "Range Rover (2003–2012)" },
+      { label: "Range Rover (2013–2021)" },
+      { label: "Range Rover (2022–present)" },
+      { label: "Range Rover Sport (2006–2013)" },
+      { label: "Range Rover Sport (2014–2022)" },
+      { label: "Range Rover Sport (2023–present)" },
+      { label: "Defender (2020–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Jaguar",
+    active:    false,
+    expertise: "Jaguar US market — XE, XF, XJ, F-PACE, E-PACE, I-PACE, F-TYPE — Ingenium petrol/diesel, supercharged V6/V8, PHEV and EV powertrains, 2003–present US spec",
+    models: [
+      { group: "Sedans" },
+      { label: "XJ (2003–2009)" },
+      { label: "XJ (2010–2019)" },
+      { label: "XF (2009–2015)" },
+      { label: "XF (2016–present)" },
+      { label: "XE (2017–present)" },
+      { group: "SUV / Sports" },
+      { label: "F-PACE (2017–present)" },
+      { label: "E-PACE (2018–present)" },
+      { label: "I-PACE (2019–present)" },
+      { label: "F-TYPE (2014–2024)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Mitsubishi",
+    active:    false,
+    expertise: "Mitsubishi US market — Outlander, Outlander PHEV, Outlander Sport, Eclipse Cross, Mirage, Lancer — MIVEC petrol engines, S-AWC/AWC, PHEV and compact crossover platforms, 2003–present US spec",
+    models: [
+      { group: "Lancer" },
+      { label: "Lancer (2003–2007)" },
+      { label: "Lancer (2008–2017)" },
+      { group: "Outlander / Eclipse Cross" },
+      { label: "Outlander (2007–2013)" },
+      { label: "Outlander (2014–2021)" },
+      { label: "Outlander (2022–present)" },
+      { label: "Outlander PHEV (2018–present)" },
+      { label: "Outlander Sport / ASX (2011–2024)" },
+      { label: "Eclipse Cross (2018–present)" },
+      { group: "Mirage / EV" },
+      { label: "Mirage / Mirage G4 (2014–2024)" },
+      { label: "i-MiEV (2012–2017)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Alfa Romeo",
+    active:    false,
+    expertise: "Alfa Romeo US market — Giulia, Stelvio, Tonale, 4C — turbo petrol and PHEV powertrains, ZF 8AT, Q4 AWD, 2015–present US spec",
+    models: [
+      { group: "Sedan / SUV" },
+      { label: "Giulia (2017–present)" },
+      { label: "Stelvio (2018–present)" },
+      { label: "Tonale (2023–present)" },
+      { group: "Sports" },
+      { label: "4C (2015–2020)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Bentley",
+    active:    false,
+    expertise: "Bentley US market — Continental GT, Continental GTC, Flying Spur, Bentayga, Mulsanne, Arnage — W12, V8 and hybrid luxury powertrains, AWD and grand touring platforms, 2001–present US spec",
+    models: [
+      { group: "Arnage / Mulsanne" },
+      { label: "Arnage (2001–2009)" },
+      { label: "Mulsanne (2010–2020)" },
+      { group: "Continental / Flying Spur / Bentayga" },
+      { label: "Continental GT (2004–2017)" },
+      { label: "Continental GT (2018–present)" },
+      { label: "Continental GTC (2005–2018)" },
+      { label: "Continental GTC (2019–present)" },
+      { label: "Flying Spur (2006–2019)" },
+      { label: "Flying Spur (2020–present)" },
+      { label: "Bentayga (2017–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Maserati",
+    active:    false,
+    expertise: "Maserati US market — Ghibli, Quattroporte, Levante, Grecale, GranTurismo, MC20 — twin-turbo V6/V8, Nettuno V6 and EV variants, 2004–present US spec",
+    models: [
+      { group: "Sedan / SUV" },
+      { label: "Quattroporte (2004–2012)" },
+      { label: "Quattroporte (2013–2023)" },
+      { label: "Ghibli (2014–2024)" },
+      { label: "Levante (2017–2024)" },
+      { label: "Grecale (2023–present)" },
+      { group: "Sports" },
+      { label: "GranTurismo (2008–2019)" },
+      { label: "GranTurismo (2024–present)" },
+      { label: "MC20 (2022–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Polestar",
+    active:    false,
+    expertise: "Polestar EV lineup — Polestar 1, 2, 3 and 4 — dual-motor EV and performance hybrid architectures, OTA diagnostics, thermal management and charging systems, 2020–present US spec",
+    models: [
+      { group: "Polestar" },
+      { label: "Polestar 1 (2020–2021)" },
+      { label: "Polestar 2 (2021–present)" },
+      { label: "Polestar 3 (2024–present)" },
+      { label: "Polestar 4 (2025–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "MINI",
+    active:    false,
+    expertise: "MINI US market — Cooper 2 Door/4 Door, Convertible, Clubman, Countryman — BMW-sourced turbo petrol engines and newer EV drivetrains, 2014–present US spec",
+    models: [
+      { group: "Cooper / Convertible" },
+      { label: "Cooper 2 Door / 4 Door (2014–2024)" },
+      { label: "Convertible (2016–present)" },
+      { group: "Clubman / Countryman" },
+      { label: "Clubman (2016–2024)" },
+      { label: "Countryman (2017–2024)" },
+      { label: "Countryman (2025–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Rivian",
+    active:    false,
+    expertise: "Rivian EV lineup — R1T, R1S and commercial delivery van platforms — quad/dual-motor electric drivetrains, thermal management, air suspension, OTA updates, 2022–present US spec",
+    models: [
+      { group: "R1 / Commercial" },
+      { label: "R1T (2022–present)" },
+      { label: "R1S (2023–present)" },
+      { label: "EDV / Commercial Van (2022–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Lucid",
+    active:    false,
+    expertise: "Lucid EV lineup — Air and Gravity — high-voltage battery systems, drive units, thermal management, charging and OTA diagnostics, 2022–present US spec",
+    models: [
+      { group: "Lucid" },
+      { label: "Air (2022–present)" },
+      { label: "Gravity (2025–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
     brand:     "Volkswagen (US)",
     active:    true,
-    expertise: "Volkswagen US market — Jetta, Tiguan, Atlas, Atlas Cross Sport, Taos, Golf GTI/R, ID.4 — TSI turbo engines, 8AT/6MT/DSG, 4MOTION AWD, MEB EV platform, 2011–present US spec",
+    expertise: "Volkswagen US market — Jetta, Tiguan, Atlas, Atlas Cross Sport, Taos, Arteon, Golf GTI/R, ID.4 — TSI turbo engines, 8AT/6MT/DSG, 4MOTION AWD, MEB EV platform, 2011–present US spec",
     models: [
       // ── Jetta (US) ──────────────────────────────────────────────────────
       { group: "Jetta (US)" },
@@ -975,6 +1291,10 @@ export const VEHICLE_CATALOG_US = [
       // ── Taos ─────────────────────────────────────────────────────────────
       { group: "Taos" },
       { label: "Taos (2022–present)", powers: ["158 hp – 1.5L TSI I4"] },
+
+      // ── Arteon (US) ─────────────────────────────────────────────────────
+      { group: "Arteon (US)" },
+      { label: "Arteon (2019–2023)", powers: ["268 hp – 2.0L TSI I4", "300 hp – 2.0L TSI 4MOTION I4"] },
 
       // ── Golf GTI / Golf R (US) ──────────────────────────────────────────
       { group: "Golf GTI / R (US)" },

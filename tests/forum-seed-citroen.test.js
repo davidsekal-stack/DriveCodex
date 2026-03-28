@@ -43,7 +43,8 @@ test("discoverCitroenRootCategoriesFromRoot keeps post-2000 Citroen forums and d
   const html = `
     <a href="https://www.citroen-club.cz/forum-kategorie/xsara-picasso-9">Xsara Picasso</a>
     <a href="https://www.citroen-club.cz/forum-kategorie/c4-picasso-grand-i-53">C4 Picasso / Grand I</a>
-    <a href="https://www.citroen-club.cz/forum-kategorie/jumper-iii-61">Jumper III</a>
+    <a href="https://www.citroen-club.cz/forum-kategorie/jumper-14">Jumper</a>
+    <a href="https://www.citroen-club.cz/forum-kategorie/c-zero-51">C-Zero</a>
   `;
 
   const categories = discoverCitroenRootCategoriesFromRoot({
@@ -53,13 +54,15 @@ test("discoverCitroenRootCategoriesFromRoot keeps post-2000 Citroen forums and d
 
   const xsara = categories.find((entry) => entry.forum_url.includes("xsara-picasso-9"));
   const picasso = categories.find((entry) => entry.forum_url.includes("c4-picasso-grand-i-53"));
-  const jumper = categories.find((entry) => entry.forum_url.includes("jumper-iii-61"));
+  const jumper = categories.find((entry) => entry.forum_url.includes("jumper-14"));
+  const czero = categories.find((entry) => entry.forum_url.includes("c-zero-51"));
 
   assert.equal(xsara.keep, false);
   assert.equal(picasso.keep, true);
   assert.equal(picasso.resolved_model, "C4 Picasso / Grand C4 Picasso I (2006–2013)");
   assert.equal(jumper.keep, true);
   assert.equal(jumper.forum_type, "model_family");
+  assert.equal(czero.keep, false);
 });
 
 test("resolveCitroenVehicleModel resolves exact Citroen forums and stays conservative on Jumper III family", () => {
@@ -86,6 +89,14 @@ test("resolveCitroenVehicleModel resolves exact Citroen forums and stays conserv
     subforumUrl: "https://www.citroen-club.cz/forum-kategorie/jumper-iii-61",
   });
   assert.equal(ambiguous, null);
+
+  const excluded = resolveCitroenVehicleModel({
+    modelRaw: "C-Zero",
+    threadTitle: "Citroen C-Zero charging issue",
+    parentForumTitle: "C-Zero - Fórum - Citroen klub",
+    subforumUrl: "https://www.citroen-club.cz/forum-kategorie/c-zero-51",
+  });
+  assert.equal(excluded, null);
 });
 
 console.log(`\nResults: ${passed} passed, ${failed} failed`);

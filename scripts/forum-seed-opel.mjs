@@ -47,10 +47,16 @@ const MODEL_ALIAS_BY_LABEL = new Map([
 ]);
 
 const FORUM_HINTS = new Map([
+  ["omega-a", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["omega-b", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["astra-f", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["corsa-a", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["vectra-a", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
   ["corsa-c", { forum_type: "model", resolved_model: "Corsa C (2000–2006)", candidate_models: [] }],
   ["corsa-d", { forum_type: "model", resolved_model: "Corsa D (2006–2014)", candidate_models: [] }],
   ["corsa-e", { forum_type: "model", resolved_model: "Corsa E (2014–2019)", candidate_models: [] }],
   ["corsa-f", { forum_type: "model", resolved_model: "Corsa F (2019–dosud)", candidate_models: [] }],
+  ["corsa-opc", { forum_type: "model_family", resolved_model: null, candidate_models: ["Corsa D (2006–2014)", "Corsa E (2014–2019)"], note: "Corsa OPC forum is kept only as a post-2000 performance sub-family." }],
   ["astra-h", { forum_type: "model", resolved_model: "Astra H (2004–2010)", candidate_models: [] }],
   ["astra-j", { forum_type: "model", resolved_model: "Astra J (2009–2015)", candidate_models: [] }],
   ["astra-k", { forum_type: "model", resolved_model: "Astra K (2015–2021)", candidate_models: [] }],
@@ -61,6 +67,7 @@ const FORUM_HINTS = new Map([
   ["insignia-b", { forum_type: "model", resolved_model: "Insignia B (2017–2022)", candidate_models: [] }],
   ["meriva-a", { forum_type: "model", resolved_model: "Meriva A (2003–2010)", candidate_models: [] }],
   ["meriva-b", { forum_type: "model", resolved_model: "Meriva B (2010–2017)", candidate_models: [] }],
+  ["meriva", { forum_type: "model_family", resolved_model: null, candidate_models: ["Meriva A (2003–2010)", "Meriva B (2010–2017)"], note: "Generic Meriva forum spans multiple post-2000 generations." }],
   ["antara", { forum_type: "model", resolved_model: "Antara (2006–2015)", candidate_models: [] }],
   ["mokka-a", { forum_type: "model", resolved_model: "Mokka A (2012–2016)", candidate_models: [] }],
   ["mokka-x", { forum_type: "model", resolved_model: "Mokka X (2016–2020)", candidate_models: [] }],
@@ -68,6 +75,7 @@ const FORUM_HINTS = new Map([
   ["mokka", { forum_type: "model_family", resolved_model: null, candidate_models: ["Mokka A (2012–2016)", "Mokka X (2016–2020)", "Mokka B (2021–dosud)"], note: "Generic Mokka forum spans multiple post-2000 generations." }],
   ["crossland-x", { forum_type: "model", resolved_model: "Crossland X (2017–2020)", candidate_models: [] }],
   ["crossland", { forum_type: "model_family", resolved_model: null, candidate_models: ["Crossland X (2017–2020)", "Crossland (2020–2024)"], note: "Generic Crossland forum spans pre- and post-facelift versions." }],
+  ["grandland-x", { forum_type: "model", resolved_model: "Grandland I (2017–2024)", candidate_models: [] }],
   ["grandland-i", { forum_type: "model", resolved_model: "Grandland I (2017–2024)", candidate_models: [] }],
   ["grandland-ii", { forum_type: "model", resolved_model: "Grandland II (2024–dosud)", candidate_models: [] }],
   ["grandland", { forum_type: "model_family", resolved_model: null, candidate_models: ["Grandland I (2017–2024)", "Grandland II (2024–dosud)"], note: "Generic Grandland forum spans multiple post-2000 generations." }],
@@ -90,6 +98,9 @@ const FORUM_HINTS = new Map([
   ["movano-c", { forum_type: "model", resolved_model: "Movano C 2.2 Diesel (2021–dosud)", candidate_models: [] }],
   ["movano-electric", { forum_type: "model", resolved_model: "Movano Electric (2021–dosud)", candidate_models: [] }],
   ["movano", { forum_type: "model_family", resolved_model: null, candidate_models: ["Movano B 2.3 CDTI (2010–2021)", "Movano C 2.2 Diesel (2021–dosud)", "Movano Electric (2021–dosud)"], note: "Generic Movano forum spans multiple post-2000 generations." }],
+  ["rocks-e", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["tuning-a-upravy", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
+  ["o-srazech-a-akcich", { forum_type: "unknown", resolved_model: null, candidate_models: [] }],
 ]);
 
 const OPEL_CODE_SPECS = [
@@ -108,6 +119,10 @@ const OPEL_CODE_SPECS = [
 function restrictOpelCandidates({ models, rawText, normalizeForumMatchText }) {
   const normalized = normalizeForumMatchText(rawText);
   if (!normalized) return models;
+
+  if (/\b(omega|astra f|corsa a|vectra a|tuning|sraz|akcich|rocks e|rocks-e)\b/i.test(normalized)) {
+    return [];
+  }
 
   for (const spec of OPEL_CODE_SPECS) {
     const match = normalized.match(new RegExp(`\\b${spec.model}\\s+([${spec.codes.join("")}])\\b`, "i"));

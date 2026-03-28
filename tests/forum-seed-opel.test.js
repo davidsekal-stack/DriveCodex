@@ -43,7 +43,7 @@ test("discoverOpelRootCategoriesFromRoot keeps post-2000 Opel forums and drops o
   const html = `
     <a href="https://www.club-opel.com/forum-kategorie/omega-b-9">Omega B</a>
     <a href="https://www.club-opel.com/forum-kategorie/astra-h-21">Astra H</a>
-    <a href="https://www.club-opel.com/forum-kategorie/grandland-55">Grandland</a>
+    <a href="https://www.club-opel.com/forum-kategorie/grandland-x-69">Grandland X</a>
   `;
 
   const categories = discoverOpelRootCategoriesFromRoot({
@@ -53,13 +53,13 @@ test("discoverOpelRootCategoriesFromRoot keeps post-2000 Opel forums and drops o
 
   const omega = categories.find((entry) => entry.forum_url.includes("omega-b-9"));
   const astra = categories.find((entry) => entry.forum_url.includes("astra-h-21"));
-  const grandland = categories.find((entry) => entry.forum_url.includes("grandland-55"));
+  const grandland = categories.find((entry) => entry.forum_url.includes("grandland-x-69"));
 
   assert.equal(omega.keep, false);
   assert.equal(astra.keep, true);
   assert.equal(astra.resolved_model, "Astra H (2004–2010)");
   assert.equal(grandland.keep, true);
-  assert.equal(grandland.forum_type, "model_family");
+  assert.equal(grandland.resolved_model, "Grandland I (2017–2024)");
 });
 
 test("resolveOpelVehicleModel resolves exact Opel forums and stays conservative on Grandland family", () => {

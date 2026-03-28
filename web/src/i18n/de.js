@@ -161,6 +161,9 @@ export const strings = {
   'diag.additionalCauseNote': 'Automatisch ergänzt — KI lieferte weniger als 3 Fehler.',
   'diag.recommendedTests':    'EMPFOHLENE TESTS',
   'diag.notes':               'ANMERKUNGEN',
+  'diag.databaseSources':     'QUELLBULLETINS / FÄLLE',
+  'diag.openSource':          'Quelle öffnen',
+  'diag.databaseSourceFallback': 'Datenbankquelle',
 
   // ConfirmModal
   'confirm.cancel':           'Abbrechen',
