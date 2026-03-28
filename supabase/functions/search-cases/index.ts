@@ -89,6 +89,56 @@ function f1Ratio(score: number, inputMax: number, candidateMax: number): number 
   return 2 * fwd * rev / (fwd + rev)
 }
 
+const BULLETIN_PROSE_PREFIX_PATTERNS = [
+  /^(?:some|certain|various|affected|these)\b/i,
+  /^(?:the following|vehicles listed|for vehicles listed)\b/i,
+]
+
+const BULLETIN_PROSE_BODY_PATTERNS = [
+  /\bequipped with\b/i,
+  /\bbuilt on\b/i,
+  /\bproduced from\b/i,
+  /\bthrough\b/i,
+  /\bmodel statement above\b/i,
+  /\bthis bulletin provides\b/i,
+  /\bthis service bulletin provides\b/i,
+  /\b\d{4}(?:[-–]\d{4}|my)\b/i,
+]
+
+function cleanText(value: any): string {
+  return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : ''
+}
+
+function looksLikeBulletinProse(text: any): boolean {
+  const normalized = cleanText(text)
+  if (!normalized) return false
+  if (normalized.length >= 135 && BULLETIN_PROSE_PREFIX_PATTERNS.some((pattern) => pattern.test(normalized))) return true
+  if (normalized.length >= 160 && BULLETIN_PROSE_BODY_PATTERNS.some((pattern) => pattern.test(normalized))) return true
+  return false
+}
+
+function isNhtsaBulletinCase(row: any): boolean {
+  return typeof row?.thread_url === 'string' && row.thread_url.includes('static.nhtsa.gov/odi/tsbs/')
+}
+
+function shouldSuppressRow(row: any): boolean {
+  if (!isNhtsaBulletinCase(row)) return false
+  if (looksLikeBulletinProse(row.description)) return true
+  if (Array.isArray(row.symptoms) && row.symptoms.some((symptom: string) => looksLikeBulletinProse(symptom))) return true
+  return false
+}
+
+function makeCanonicalDedupKey(row: any): string {
+  return [
+    cleanText(row.source_ref).toLowerCase(),
+    cleanText(row.vehicle_brand).toLowerCase(),
+    cleanText(row.vehicle_model).toLowerCase(),
+    [...new Set((row.obd_codes ?? []).map((code: string) => cleanText(code).toUpperCase()).filter(Boolean))].sort().join(','),
+    cleanText(row.description).toLowerCase(),
+    cleanText(row.resolution).toLowerCase(),
+  ].join('||')
+}
+
 function computeSimilarity(row: any, input: any): number {
   const allText = [
     ...(row.symptoms  ?? []),
@@ -125,6 +175,8 @@ function rowToCase(row: any) {
   return {
     id:             row.id,
     localId:        row.local_id,
+    threadUrl:      row.thread_url ?? null,
+    sourceRef:      row.source_ref ?? null,
     name:           `[Cloud] ${row.vehicle_brand ? row.vehicle_brand + ' ' : ''}${row.vehicle_model || 'Neznámý model'} | ${row.resolution.slice(0, 40)}`,
     status:         'uzavřený',
     createdAt:      row.created_at,
@@ -252,10 +304,19 @@ Return format: {"symptoms":["..."],"text":"..."}`,
       return { row, score, matchRatio, passes: score >= dynamicThreshold && matchRatio >= MATCH_RATIO_MIN }
     })
 
-    const results = scored
+    const ranked = scored
       .filter((x: any) => x.passes)
+      .filter((x: any) => !shouldSuppressRow(x.row))
       .sort((a: any, b: any) => b.score - a.score)
-      .slice(0, 5)
+
+    const deduped = new Map<string, any>()
+    for (const item of ranked) {
+      const key = makeCanonicalDedupKey(item.row)
+      if (!deduped.has(key)) deduped.set(key, item)
+      if (deduped.size >= 5) break
+    }
+
+    const results = [...deduped.values()]
       .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragMatchRatio: x.matchRatio }))
 
     return json({ cases: results, count: results.length })

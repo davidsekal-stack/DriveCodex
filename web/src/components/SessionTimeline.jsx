@@ -58,7 +58,9 @@ export default function SessionTimeline({
 
           if (message.type === MSG.DIAGNOSIS) {
             const matchIds = message.ragMatchIds ?? [];
-            const ragSessions = cases.filter((kase) => matchIds.includes(kase.id));
+            const ragSessions = Array.isArray(message.ragMatches) && message.ragMatches.length > 0
+              ? message.ragMatches
+              : cases.filter((kase) => matchIds.includes(kase.id));
 
             return (
               <div key={message.id} style={{ display: "flex", justifyContent: "flex-start" }}>

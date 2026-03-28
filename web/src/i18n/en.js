@@ -218,6 +218,9 @@ export const strings = {
   'diag.dbCases':             '{count} matches',
   'diag.recommendedTests':    'RECOMMENDED TESTS',
   'diag.notes':               'NOTES',
+  'diag.databaseSources':     'SOURCE BULLETINS / CASES',
+  'diag.openSource':          'Open source',
+  'diag.databaseSourceFallback': 'Database source',
 
   // ConfirmModal
   'confirm.cancel':           'Cancel',

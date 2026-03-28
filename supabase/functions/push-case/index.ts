@@ -8,7 +8,7 @@
  * všechny záznamy v DB jsou v angličtině bez ohledu na jazyk zadání.
  *
  * POST /functions/v1/push-case
- * Body: { local_id, user_id, vehicle_brand?, vehicle_model,
+ * Body: { local_id, user_id, skip_translation?, thread_url?, source_ref?, vehicle_brand?, vehicle_model,
  *         mileage?, engine_power?, symptoms, obd_codes, description?, resolution, closed_at? }
  * user_id accepts either a real UUID or the seed importer alias `ai_importer`,
  * which is resolved server-side via IMPORTER_USER_ID.
@@ -27,6 +27,9 @@ Deno.serve(async (req) => {
   try {
     const {
       local_id, user_id,
+      skip_translation,
+      thread_url,
+      source_ref,
       vehicle_brand, vehicle_model,
       mileage, engine_power,
       symptoms, obd_codes, description, resolution, closed_at,
@@ -51,7 +54,7 @@ Deno.serve(async (req) => {
     let translatedResolution:  string   = resolution
 
     const apiKey = Deno.env.get('DEEPSEEK_API_KEY')
-    if (apiKey) {
+    if (apiKey && skip_translation !== true) {
       const hasContent = (
         translatedSymptoms.length > 0 ||
         translatedDescription.trim().length > 0 ||
@@ -104,6 +107,8 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
     const row = {
       local_id:        local_id        ?? null,
       user_id:         resolvedUserId.userId,
+      thread_url:      typeof thread_url === 'string' && thread_url.trim() ? thread_url.trim() : null,
+      source_ref:      typeof source_ref === 'string' && source_ref.trim() ? source_ref.trim() : null,
       vehicle_brand:   vehicle_brand   ?? null,
       vehicle_model,
       mileage:         mileage         ?? null,
@@ -120,8 +125,37 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
       .from('gearbrain_cases')
       .insert(row)
 
-    // Duplicita = případ byl již uložen dříve — to je OK
-    if (error && error.code !== '23505') {
+    if (error && error.code === '23505') {
+      const patch: Record<string, unknown> = {
+        vehicle_brand: row.vehicle_brand,
+        vehicle_model: row.vehicle_model,
+        mileage: row.mileage,
+        engine_power: row.engine_power,
+        symptoms: row.symptoms,
+        obd_codes: row.obd_codes,
+        description: row.description,
+        resolution: row.resolution,
+        closed_at: row.closed_at,
+      }
+      if (row.thread_url) patch.thread_url = row.thread_url
+      if (row.source_ref) patch.source_ref = row.source_ref
+
+      if (Object.keys(patch).length > 0) {
+        const { error: updateError } = await supabase
+          .from('gearbrain_cases')
+          .update(patch)
+          .eq('user_id', row.user_id)
+          .eq('local_id', row.local_id)
+
+        if (updateError) {
+          return json({ error: updateError.message }, 500)
+        }
+      }
+
+      return json({ ok: true, duplicate: true, updated: Object.keys(patch).length > 0 }, 200)
+    }
+
+    if (error) {
       return json({ error: error.message }, 500)
     }
 

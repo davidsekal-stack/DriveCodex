@@ -56,6 +56,8 @@ test("normalizeSeedPayload keeps importer alias and arrays", () => {
   const payload = normalizeSeedPayload({
     local_id: "seed_123",
     user_id: "ai_importer",
+    thread_url: "https://example.com/thread-123",
+    source_ref: "TSB_TEST / NHTSA 12345678",
     vehicle_brand: "Volkswagen",
     vehicle_model: "Golf VI (2008–2012)",
     symptoms: ["Noise"],
@@ -65,6 +67,9 @@ test("normalizeSeedPayload keeps importer alias and arrays", () => {
   });
 
   assert.equal(payload.user_id, "ai_importer");
+  assert.equal(payload.thread_url, "https://example.com/thread-123");
+  assert.equal(payload.source_ref, "TSB_TEST / NHTSA 12345678");
+  assert.equal(payload.skip_translation, false);
   assert.deepEqual(payload.symptoms, ["Noise"]);
   assert.deepEqual(payload.obd_codes, ["P0401"]);
 });
@@ -77,6 +82,40 @@ test("normalizeSeedPayload allows forcing a concrete user id", () => {
   );
 
   assert.equal(payload.user_id, "11111111-1111-4111-8111-111111111111");
+});
+
+test("normalizeSeedPayload reads thread_url from metadata when top-level url is missing", () => {
+  const payload = normalizeSeedPayload({
+    local_id: "seed_meta",
+    vehicle_model: "Scenic II",
+    resolution: "Fixed contact in fuse box",
+    metadata: {
+      thread_url: "https://example.com/from-metadata",
+      source_ref: "THREAD_META_01",
+    },
+  });
+
+  assert.equal(payload.thread_url, "https://example.com/from-metadata");
+  assert.equal(payload.source_ref, "THREAD_META_01");
+});
+
+test("normalizeSeedPayload reconstructs NHTSA source_ref and thread_url from metadata", () => {
+  const payload = normalizeSeedPayload({
+    local_id: "seed_nhtsa",
+    vehicle_model: "Sorento (2021–present)",
+    resolution: "Replace the clock spring assembly.",
+    metadata: {
+      source_type: "nhtsa_mfr_comm",
+      tsb_id: "TSB_ELE108_R1",
+      nhtsa_id: "11011945",
+      date_added: "20241218",
+      mfr_comm_date: "20241211",
+    },
+  });
+
+  assert.equal(payload.source_ref, "TSB_ELE108_R1 / NHTSA 11011945");
+  assert.equal(payload.thread_url, "https://static.nhtsa.gov/odi/tsbs/2024/MC-11011945-0001.pdf");
+  assert.equal(payload.skip_translation, true);
 });
 
 test("normalizeResolutionText trims long resolutions to database limit", () => {

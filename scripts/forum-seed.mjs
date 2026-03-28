@@ -1570,6 +1570,7 @@ async function main() {
       const rec = {
         local_id,
         user_id: args.userId,
+        thread_url: sourceUrl || null,
         vehicle_brand,
         vehicle_model,
         mileage: parseMileage(normalizedItem?.mileage),

@@ -1,10 +1,19 @@
 import { VEHICLE_CATALOG } from "./catalog.js";
 import { VEHICLE_CATALOG_US } from "./catalog-us.js";
 
-const US_BRAND_SECTION = new Set(
-  VEHICLE_CATALOG_US
-    .filter((entry) => entry.active)
-    .map((entry) => entry.brand),
+const ACTIVE_US_BRANDS = VEHICLE_CATALOG_US.filter((entry) => entry.active);
+const US_BRAND_SET = new Set(ACTIVE_US_BRANDS.map((entry) => entry.brand.toLowerCase()));
+const ACTIVE_EU_BRANDS = VEHICLE_CATALOG
+  .filter((entry) => entry.active)
+  .filter((entry) => !US_BRAND_SET.has(entry.brand.toLowerCase()));
+const EU_BRAND_SET = new Set(ACTIVE_EU_BRANDS.map((entry) => entry.brand.toLowerCase()));
+
+function isExplicitUsBrand(brand) {
+  return /\(us\)/i.test((brand ?? "").toString());
+}
+
+const ACTIVE_BRAND_BY_NAME = new Map(
+  [...ACTIVE_EU_BRANDS, ...ACTIVE_US_BRANDS].map((entry) => [entry.brand.toLowerCase(), entry]),
 );
 
 function compareBrandNames(a, b) {
@@ -12,17 +21,17 @@ function compareBrandNames(a, b) {
 }
 
 function getBrandSection(brand) {
-  return US_BRAND_SECTION.has(brand) ? "US" : "EU";
+  return US_BRAND_SET.has((brand ?? "").toString().toLowerCase()) || isExplicitUsBrand(brand) ? "US" : "EU";
 }
 
 /** Vyhledá záznam katalogu podle značky (case-insensitive) */
 export function getBrandEntry(brand) {
   if (!brand) return null;
-  return VEHICLE_CATALOG.find((entry) => entry.brand.toLowerCase() === brand.toLowerCase()) ?? null;
+  return ACTIVE_BRAND_BY_NAME.get(brand.toLowerCase()) ?? null;
 }
 
 /** Pouze aktivní značky — zobrazují se v GUI */
-export const ACTIVE_BRANDS = VEHICLE_CATALOG.filter((entry) => entry.active);
+export const ACTIVE_BRANDS = [...ACTIVE_EU_BRANDS, ...ACTIVE_US_BRANDS];
 
 /** Aktivní značky rozdělené pro dropdown do sekcí EU a US */
 export const ACTIVE_BRAND_SECTIONS = ["EU", "US"]
@@ -64,7 +73,7 @@ export function getBrandModels(brand) {
 export function getModelPowers(modelLabel) {
   if (!modelLabel) return [];
 
-  for (const brand of VEHICLE_CATALOG) {
+  for (const brand of ACTIVE_BRANDS) {
     const entry = brand.models.find((model) => model.label === modelLabel);
     if (entry?.powers) return entry.powers;
   }

@@ -23,7 +23,7 @@ globalThis.localStorage = {
 import { strictEqual, deepStrictEqual, ok } from 'node:assert'
 
 import { extractSignals } from '../web/src/lib/rag.js'
-import { smartRepair, checkTopicRelevance } from '../web/src/lib/ai.js'
+import { smartRepair, checkTopicRelevance, buildSystemPrompt } from '../web/src/lib/ai.js'
 import { loadInitialSession } from '../web/src/lib/auth-session.js'
 import { loadCasesCloudStatus, loadGlobalCaseCount } from '../web/src/lib/app-bootstrap.js'
 import { buildCaseIdentLabel } from '../web/src/lib/case-draft.js'
@@ -73,6 +73,8 @@ import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
 import { uid, urgColor, fmtDate, fmtMileage } from '../web/src/lib/utils.js'
 import { detectEngineTech, getObdCodes, BRAND_OBD_CODES } from '../web/src/constants/obd-codes.js'
+import { VEHICLE_CATALOG } from '../web/src/constants/catalog.js'
+import { VEHICLE_CATALOG_US } from '../web/src/constants/catalog-us.js'
 import {
   getBrandEntry, ACTIVE_BRAND_SECTIONS, ACTIVE_BRANDS, getBrandModels, getModelPowers,
   getDefaultBrand, setDefaultBrand, getStoredDefaultBrand, makeEmptyVehicle,
@@ -215,6 +217,25 @@ describe('diagnosis helpers — workflow extrakce', () => {
     ok(prompt.includes('Příznaky: Ztráta výkonu'))
     ok(prompt.includes('OBD: P0401'))
     ok(prompt.includes('Popis mechanika:\nMotor netáhne'))
+  })
+
+  test('buildSystemPrompt zahrne source_ref a link databázové shody', () => {
+    const prompt = buildSystemPrompt([{
+      ragScore: 9.4,
+      sourceRef: 'TSB_ELE108_R1 / NHTSA 11011945',
+      threadUrl: 'https://static.nhtsa.gov/odi/tsbs/2024/MC-11011945-0001.pdf',
+      resolution: 'Replace the clock spring assembly.',
+      vehicle: { brand: 'Kia (US)', model: 'Sorento (2011–2020)' },
+      messages: [{
+        type: 'input',
+        symptoms: ['sym.milLight'],
+        obdCodes: ['B1234'],
+        text: 'Airbag warning light on',
+      }],
+    }], { brand: 'Kia (US)' }, 'en')
+
+    ok(prompt.includes('Source: TSB_ELE108_R1 / NHTSA 11011945'))
+    ok(prompt.includes('Link: https://static.nhtsa.gov/odi/tsbs/2024/MC-11011945-0001.pdf'))
   })
 
   test('normalizeDiagnosisResult doplní chybějící závady a nastaví počet shod', () => {
@@ -795,6 +816,27 @@ describe('obd-codes', () => {
     const codes = getObdCodes('Suzuki', 'Vitara Hybrid (2024–dosud)', '95 kW - 1.4 BoosterJet Mild Hybrid')
     deepStrictEqual(codes.brand, BRAND_OBD_CODES.Suzuki)
   })
+
+  test('Hyundai nové elektrické a hybridní motorizace správně aktivují engine-tech OBD vrstvy', () => {
+    const insterTags = detectEngineTech('Hyundai', 'INSTER (2024–dosud)', '85.5 kW - Electric 49 kWh')
+    deepStrictEqual(insterTags, ['electric'])
+
+    const genesisCoupeTags = detectEngineTech('Hyundai', 'Genesis Coupe BK (2008–2012)', '154 kW - 2.0 Turbo')
+    ok(genesisCoupeTags.includes('turbo'))
+
+    const santaFeTags = detectEngineTech('Hyundai', 'Santa Fe V MX5 (2024–dosud)', '158 kW - 1.6 T-GDi HEV')
+    ok(santaFeTags.includes('turbo'))
+    ok(santaFeTags.includes('hybrid'))
+
+    const genesisCodes = getObdCodes('Hyundai', 'Genesis Coupe BK (2008–2012)', '154 kW - 2.0 Turbo')
+    deepStrictEqual(genesisCodes.brand, BRAND_OBD_CODES.Hyundai)
+    ok(genesisCodes.engine.some((code) => code === 'P0234'))
+
+    const hybridCodes = getObdCodes('Hyundai', 'Santa Fe V MX5 (2024–dosud)', '158 kW - 1.6 T-GDi HEV')
+    deepStrictEqual(hybridCodes.brand, BRAND_OBD_CODES.Hyundai)
+    ok(hybridCodes.engine.some((code) => code === 'P0234'))
+    ok(hybridCodes.engine.some((code) => code === 'P0A0F'))
+  })
 })
 
 describe('helpers — vehicle catalog', () => {
@@ -840,6 +882,15 @@ describe('helpers — vehicle catalog', () => {
     ok(usBrands.includes('Hyundai (US)'))
     ok(usBrands.includes('Kia (US)'))
     ok(!euBrands.includes('Ford (US)'))
+  })
+
+  test('getBrandEntry a getBrandModels fungují i pro US-only dropdown značky', () => {
+    const entry = getBrandEntry('Ford (US)')
+    ok(entry)
+    strictEqual(entry.brand, 'Ford (US)')
+
+    const models = getBrandModels('Ford (US)')
+    ok(models.length > 0)
   })
 
   test('getBrandModels vrátí modely pro Ford', () => {
@@ -975,11 +1026,11 @@ describe('helpers — vehicle catalog', () => {
   })
 
   test('Mazda katalog obsahuje ověřené současné EU modely a výkonové větve', () => {
-    const entry = getBrandEntry('Mazda')
+    const entry = VEHICLE_CATALOG.find((brand) => brand.brand === 'Mazda')
     ok(entry)
     ok(entry.expertise.includes('CX-60'))
 
-    const models = getBrandModels('Mazda')
+    const models = entry.models.filter(model => model.label)
     const mazda2Hybrid = models.find(m => m.label === 'Mazda2 Hybrid (2022–dosud)')
     ok(mazda2Hybrid)
     ok(mazda2Hybrid.powers.includes('85 kW – 1.5 Hybrid'))
@@ -1172,6 +1223,187 @@ describe('helpers — vehicle catalog', () => {
     ok(labels.includes('Boxer I (1994–2006)'))
   })
 
+  test('Hyundai katalog pokrývá ověřené post-2000 modely potřebné pro Hyundai Club crawler', () => {
+    const entry = getBrandEntry('Hyundai')
+    ok(entry)
+    ok(entry.expertise.includes('ix20'))
+    ok(entry.expertise.includes('INSTER'))
+    ok(entry.expertise.includes('Genesis'))
+
+    const labels = getBrandModels('Hyundai').map(m => m.label).filter(Boolean)
+    ok(labels.includes('i10 I PA (2008–2013)'))
+    ok(labels.includes('i20 I PB (2008–2014)'))
+    ok(labels.includes('Tucson I JM (2004–2010)'))
+    ok(labels.includes('Santa Fe I SM (2000–2006)'))
+    ok(labels.includes('Santa Fe II CM (2006–2012)'))
+    ok(labels.includes('ix20 (2010–2019)'))
+    ok(labels.includes('Coupe GK / Tuscani (2001–2009)'))
+    ok(labels.includes('Genesis Coupe BK (2008–2012)'))
+    ok(labels.includes('Genesis Sportlimousine DH (2015–2016)'))
+    ok(labels.includes('Veloster I FS (2011–2018)'))
+    ok(labels.includes('Santa Fe V MX5 (2024–dosud)'))
+    ok(labels.includes('INSTER (2024–dosud)'))
+
+    const ix20 = getBrandModels('Hyundai').find(m => m.label === 'ix20 (2010–2019)')
+    ok(ix20)
+    ok(ix20.powers.includes('66 kW – 1.4 MPI'))
+
+    const inster = getBrandModels('Hyundai').find(m => m.label === 'INSTER (2024–dosud)')
+    ok(inster)
+    ok(inster.powers.includes('85.5 kW – Electric 49 kWh'))
+  })
+
+  test('Mercedes-Benz katalog pokrývá ověřené post-2000 modely potřebné pro Mercedes Club crawler', () => {
+    const entry = getBrandEntry('Mercedes-Benz')
+    ok(entry)
+    ok(entry.expertise.includes('SLK/SLC'))
+    ok(entry.expertise.includes('Citan'))
+
+    const labels = getBrandModels('Mercedes-Benz').map(m => m.label).filter(Boolean)
+    ok(labels.includes('A-Class W169 (2004–2012)'))
+    ok(labels.includes('B-Class W245 (2005–2011)'))
+    ok(labels.includes('C-Class W203 (2000–2007)'))
+    ok(labels.includes('C-Class SportCoupé C203 (2001–2008)'))
+    ok(labels.includes('C-Class Coupé C204 (2011–2015)'))
+    ok(labels.includes('CLC CL203 (2008–2011)'))
+    ok(labels.includes('CLK W209 (2002–2009)'))
+    ok(labels.includes('CLE C/A236 (2023–dosud)'))
+    ok(labels.includes('SL R230 (2001–2011)'))
+    ok(labels.includes('SLK R171 (2004–2011)'))
+    ok(labels.includes('CLS C219 (2004–2010)'))
+    ok(labels.includes('R-Class W251 (2005–2013)'))
+    ok(labels.includes('E-Class W211 (2002–2009)'))
+    ok(labels.includes('GLA X156 (2013–2020)'))
+    ok(labels.includes('GLK X204 (2008–2015)'))
+    ok(labels.includes('ML-Class W164 (2005–2011)'))
+    ok(labels.includes('GL / GLS X166 (2012–2019)'))
+    ok(labels.includes('Vito / Viano W639 (2003–2014)'))
+    ok(labels.includes('Vaneo W414 (2001–2005)'))
+    ok(labels.includes('Citan I (2012–2021)'))
+    ok(labels.includes('EQB X243 (2021–současnost)'))
+
+    const gls = getBrandModels('Mercedes-Benz').find(m => m.label === 'GLS X167 (2019–současnost)')
+    ok(gls)
+    ok(!gls.powers.includes('110 kW – EQB 250 Electric'))
+
+    const eqb = getBrandModels('Mercedes-Benz').find(m => m.label === 'EQB X243 (2021–současnost)')
+    ok(eqb)
+    ok(eqb.powers.includes('215 kW – EQB 350 Electric'))
+  })
+
+  test('Renault katalog pokrývá post-2000 modely připravené pro Renault Club crawler', () => {
+    const entry = getBrandEntry('Renault')
+    ok(entry)
+    ok(entry.expertise.includes('po roce 2000'))
+    ok(entry.expertise.includes('Talisman'))
+
+    const labels = getBrandModels('Renault').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Twingo II (2007–2014)'))
+    ok(labels.includes('Thalia II (2008–2013)'))
+    ok(labels.includes('Megane II (2002–2009)'))
+    ok(labels.includes('Scenic II (2003–2009)'))
+    ok(labels.includes('Laguna II (2001–2007)'))
+    ok(labels.includes('Laguna III (2007–2015)'))
+    ok(labels.includes('Espace IV (2002–2014)'))
+    ok(labels.includes('Koleos I (2008–2016)'))
+    ok(labels.includes('Fluence (2009–2016)'))
+    ok(labels.includes('Latitude (2011–2015)'))
+    ok(labels.includes('Modus / Grand Modus (2004–2012)'))
+    ok(labels.includes('Talisman (2015–2022)'))
+    ok(labels.includes('Twizy (2011–dosud)'))
+    ok(labels.includes('Vel Satis (2001–2009)'))
+    ok(labels.includes('Wind (2010–2013)'))
+    ok(labels.includes('Renault 5 E-Tech Electric (2024–dosud)'))
+    ok(labels.includes('Alaskan (2017–2021)'))
+  })
+
+  test('Dacia katalog pokrývá post-2000 modely připravené pro Dacia Club crawler', () => {
+    const entry = getBrandEntry('Dacia')
+    ok(entry)
+    ok(entry.expertise.includes('Bigster'))
+    ok(entry.expertise.includes('od roku 2006'))
+
+    const labels = getBrandModels('Dacia').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Logan I (2006–2012)'))
+    ok(labels.includes('Logan II (2012–2020)'))
+    ok(labels.includes('Logan III (2021–)'))
+    ok(labels.includes('Sandero I (2008–2012)'))
+    ok(labels.includes('Sandero II (2012–2020)'))
+    ok(labels.includes('Sandero III (2021–)'))
+    ok(labels.includes('Duster I (2010–2017)'))
+    ok(labels.includes('Duster II (2018–2024)'))
+    ok(labels.includes('Duster III (2024–)'))
+    ok(labels.includes('Bigster (2025–dosud)'))
+    ok(labels.includes('Dokker (2012–2020)'))
+    ok(labels.includes('Lodgy (2012–2022)'))
+    ok(labels.includes('Jogger (2022–)'))
+    ok(labels.includes('Spring (2021–)'))
+  })
+
+  test('BMW katalog pokrývá post-2000 modely potřebné pro BMW Club crawler', () => {
+    const entry = getBrandEntry('BMW')
+    ok(entry)
+    ok(entry.expertise.includes('Z4'))
+    ok(entry.expertise.includes('od roku 2002'))
+
+    const labels = getBrandModels('BMW').map(m => m.label).filter(Boolean)
+    ok(labels.includes('6 E63/E64 (2003–2010)'))
+    ok(labels.includes('6 F06/F12/F13 (2011–2018)'))
+    ok(labels.includes('8 G14/G15/G16 (2018–dosud)'))
+    ok(labels.includes('Z4 E85/E86 (2002–2008)'))
+    ok(labels.includes('Z4 E89 (2009–2016)'))
+    ok(labels.includes('Z4 G29 (2019–dosud)'))
+    ok(labels.includes('X7 G07 (2018–dosud)'))
+  })
+
+  test('SEAT katalog pokrývá post-2000 modely potřebné pro SEAT Club crawler', () => {
+    const entry = getBrandEntry('SEAT')
+    ok(entry)
+    ok(entry.expertise.includes('Cordoba'))
+    ok(entry.expertise.includes('2002'))
+
+    const labels = getBrandModels('SEAT').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Ibiza III 6L (2002–2008)'))
+    ok(labels.includes('Leon II 1P (2005–2012)'))
+    ok(labels.includes('Cordoba II (2002–2009)'))
+    ok(labels.includes('Toledo III 5P (2004–2009)'))
+  })
+
+  test('Citroen katalog pokrývá post-2000 modely potřebné pro Citroen Club crawler', () => {
+    const entry = getBrandEntry('Citroën')
+    ok(entry)
+    ok(entry.expertise.includes('C2'))
+    ok(entry.expertise.includes('DS'))
+
+    const labels = getBrandModels('Citroën').map(m => m.label).filter(Boolean)
+    ok(labels.includes('C2 (2003–2009)'))
+    ok(labels.includes('C3 I (2002–2009)'))
+    ok(labels.includes('C4 I (2004–2010)'))
+    ok(labels.includes('C4 Picasso / Grand C4 Picasso I (2006–2013)'))
+    ok(labels.includes('C8 (2002–2014)'))
+    ok(labels.includes('C-Crosser (2007–2012)'))
+    ok(labels.includes('Nemo / Nemo Multispace (2008–2017)'))
+    ok(labels.includes('Jumpy II (2007–2016)'))
+    ok(labels.includes('DS3 (2010–2019)'))
+  })
+
+  test('Opel katalog pokrývá post-2000 modely potřebné pro Opel forum crawler', () => {
+    const entry = getBrandEntry('Opel')
+    ok(entry)
+    ok(entry.expertise.includes('Vectra'))
+    ok(entry.expertise.includes('od roku 2000'))
+
+    const labels = getBrandModels('Opel').map(m => m.label).filter(Boolean)
+    ok(labels.includes('Corsa C (2000–2006)'))
+    ok(labels.includes('Astra H (2004–2010)'))
+    ok(labels.includes('Vectra C (2002–2008)'))
+    ok(labels.includes('Meriva A (2003–2010)'))
+    ok(labels.includes('Combo C (2001–2011)'))
+    ok(labels.includes('Vivaro A (2001–2014)'))
+    ok(labels.includes('Zafira Tourer / Zafira C (2011–2019)'))
+    ok(labels.includes('Movano B 2.3 CDTI (2010–2021)'))
+  })
+
   test('getBrandModels vrátí prázdné pole pro neznámou značku', () => {
     deepStrictEqual(getBrandModels('Neznámá'), [])
     deepStrictEqual(getBrandModels(''), [])
@@ -1288,7 +1520,112 @@ describe('helpers — makeEmptyVehicle', () => {
   })
 })
 
-describe('utils', () => {
+  describe('catalog — Nissan coverage', () => {
+    test('obsahuje nové ověřené Nissan modely a zachovává OBD kódy značky', () => {
+      const nissanModels = getBrandModels('Nissan').map(model => model.label)
+
+    ok(nissanModels.includes('Almera N16 (2000–2006)'))
+    ok(nissanModels.includes('Micra K12 (2002–2010)'))
+    ok(nissanModels.includes('Note E11 (2006–2013)'))
+    ok(nissanModels.includes('X-Trail T30 (2001–2007)'))
+    ok(nissanModels.includes('350Z Z33 (2002–2009)'))
+    ok(nissanModels.includes('GT-R R35 (2007–současnost)'))
+
+      const codes = getObdCodes('Nissan', '350Z Z33 (2002–2009)', '206 kW – 3.5 V6 VQ35DE')
+      ok(codes.brand.includes('P1148'))
+    })
+  })
+
+  describe('catalog — Buick coverage', () => {
+    test('obsahuje ověřené US modely Envista a Regal', () => {
+      const buickModels = getBrandModels('Buick').map(model => model.label).filter(Boolean)
+
+      ok(buickModels.includes('Envista (2024–present)'))
+      ok(buickModels.includes('Regal (2018–2020)'))
+    })
+  })
+
+  describe('catalog — Bentley coverage', () => {
+    test('obsahuje ověřené US modely Continental GTC a správný rozsah Mulsanne', () => {
+      const bentleyEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Bentley')
+      ok(bentleyEntry)
+      ok(bentleyEntry.expertise.includes('Continental GTC'))
+
+      const bentleyModels = bentleyEntry.models.map(model => model.label).filter(Boolean)
+      ok(bentleyModels.includes('Mulsanne (2010–2020)'))
+      ok(bentleyModels.includes('Continental GTC (2005–2018)'))
+      ok(bentleyModels.includes('Continental GTC (2019–present)'))
+    })
+  })
+
+  describe('catalog — Infiniti coverage', () => {
+    test('obsahuje ověřené US modely QX55 a Q70', () => {
+      const infinitiEntry = getBrandEntry('Infiniti')
+      ok(infinitiEntry)
+      ok(infinitiEntry.expertise.includes('QX55'))
+      ok(infinitiEntry.expertise.includes('Q70'))
+
+      const infinitiModels = getBrandModels('Infiniti').map(model => model.label).filter(Boolean)
+      ok(infinitiModels.includes('QX55 (2022–present)'))
+      ok(infinitiModels.includes('Q70 (2011–2019)'))
+    })
+  })
+
+  describe('catalog — Lincoln coverage', () => {
+    test('obsahuje ověřené US modely MKC, MKX, Continental a MKT', () => {
+      const lincolnEntry = getBrandEntry('Lincoln')
+      ok(lincolnEntry)
+      ok(lincolnEntry.expertise.includes('MKC'))
+      ok(lincolnEntry.expertise.includes('MKX'))
+      ok(lincolnEntry.expertise.includes('Continental'))
+      ok(lincolnEntry.expertise.includes('MKT'))
+
+      const lincolnModels = getBrandModels('Lincoln').map(model => model.label).filter(Boolean)
+      ok(lincolnModels.includes('MKC (2015–2019)'))
+      ok(lincolnModels.includes('MKX (2016–2018)'))
+      ok(lincolnModels.includes('Continental (2017–2020)'))
+      ok(lincolnModels.includes('MKT (2013–2019)'))
+    })
+  })
+
+  describe('catalog — Lexus coverage', () => {
+    test('obsahuje ověřený US model TX a rozšířenou expertizu', () => {
+      const lexusEntry = getBrandEntry('Lexus')
+      ok(lexusEntry)
+      ok(lexusEntry.expertise.includes('TX'))
+
+      const lexusModels = getBrandModels('Lexus').map(model => model.label).filter(Boolean)
+      ok(lexusModels.includes('TX 350/500h/550h+ (2024–present)'))
+    })
+  })
+
+  describe('catalog — Cadillac coverage', () => {
+    test('obsahuje ověřené US modely Escalade ESV, CT6, XTS, ATS, CTS, SRX a nové EV řady', () => {
+      const cadillacEntry = getBrandEntry('Cadillac')
+      ok(cadillacEntry)
+      ok(cadillacEntry.expertise.includes('Escalade ESV'))
+      ok(cadillacEntry.expertise.includes('CT6'))
+      ok(cadillacEntry.expertise.includes('XTS'))
+      ok(cadillacEntry.expertise.includes('SRX'))
+      ok(cadillacEntry.expertise.includes('OPTIQ'))
+      ok(cadillacEntry.expertise.includes('VISTIQ'))
+
+      const cadillacModels = getBrandModels('Cadillac').map(model => model.label).filter(Boolean)
+      ok(cadillacModels.includes('Escalade ESV (2021–present)'))
+      ok(cadillacModels.includes('CT6 (2016–2020)'))
+      ok(cadillacModels.includes('XTS (2013–2019)'))
+      ok(cadillacModels.includes('ATS (2013–2019)'))
+      ok(cadillacModels.includes('ATS-V (2016–2019)'))
+      ok(cadillacModels.includes('CTS (2014–2019)'))
+      ok(cadillacModels.includes('CTS-V (2016–2019)'))
+      ok(cadillacModels.includes('SRX (2010–2016)'))
+      ok(cadillacModels.includes('Escalade IQ (2025–present)'))
+      ok(cadillacModels.includes('OPTIQ (2025–present)'))
+      ok(cadillacModels.includes('VISTIQ (2026–present)'))
+    })
+  })
+
+  describe('utils', () => {
   test('uid generuje 8-znakové ID', () => {
     const id = uid()
     strictEqual(id.length, 8)

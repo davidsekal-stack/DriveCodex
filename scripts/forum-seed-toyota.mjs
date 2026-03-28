@@ -348,9 +348,9 @@ function bestToyotaModelMatch(rawText) {
   return bestByScore(models, model => scoreModelLabel(model.label, normalizeToyotaForumMatchText(rawText)));
 }
 
-function pickToyotaModelLabelByExplicitAlias(rawText) {
+function getToyotaExplicitAliasLabels(rawText) {
   const normalized = normalizeToyotaForumMatchText(rawText);
-  if (!normalized?.trim()) return null;
+  if (!normalized?.trim()) return [];
 
   const models = (TOYOTA_ENTRY.models ?? []).filter(model => model?.label);
   const matches = [];
@@ -368,7 +368,7 @@ function pickToyotaModelLabelByExplicitAlias(rawText) {
     }
   }
 
-  if (matches.length === 0) return null;
+  if (matches.length === 0) return [];
 
   matches.sort((a, b) => (
     b.aliasTokens - a.aliasTokens ||
@@ -378,10 +378,13 @@ function pickToyotaModelLabelByExplicitAlias(rawText) {
 
   const best = matches[0];
   const tied = matches.filter(match => match.aliasTokens === best.aliasTokens && match.aliasLength === best.aliasLength);
-  const distinctLabels = [...new Set(tied.map(match => match.label))];
-  if (distinctLabels.length !== 1) return null;
+  return [...new Set(tied.map(match => match.label))];
+}
 
-  return best.label;
+function pickToyotaModelLabelByExplicitAlias(rawText) {
+  const distinctLabels = getToyotaExplicitAliasLabels(rawText);
+  if (distinctLabels.length !== 1) return null;
+  return distinctLabels[0];
 }
 
 function pickToyotaModelLabel(rawText) {
@@ -422,6 +425,23 @@ function resolveToyotaVehicleModel({ modelRaw = "", threadTitle = "", parentForu
       const best = bestByScore(yearCandidates, model => scoreModelLabel(model.label, combined));
       if (best && best.score >= 0.12) return best.it.label;
     }
+  }
+
+  const disambiguatingContexts = [
+    threadTitle,
+    parentForumTitle,
+    [threadTitle, parentForumTitle].filter(Boolean).join(" | "),
+  ]
+    .map(value => normalizeToyotaForumMatchText(value))
+    .filter(Boolean);
+
+  for (const context of disambiguatingContexts) {
+    const label = pickToyotaModelLabelByExplicitAlias(context);
+    if (label) return label;
+  }
+
+  if (getToyotaExplicitAliasLabels(modelRaw).length > 1) {
+    return null;
   }
 
   const contexts = [
@@ -1017,6 +1037,7 @@ async function processThreadFactory({ args, apiKey, outReady, outReview, discard
       const record = {
         local_id,
         user_id: args.userId,
+        thread_url: sourceUrl || null,
         vehicle_brand,
         vehicle_model,
         mileage: typeof normalizedItem?.mileage === "number" ? Math.trunc(normalizedItem.mileage) : null,

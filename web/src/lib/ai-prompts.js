@@ -50,7 +50,7 @@ Regeln: Du antwortest AUSSCHLIESSLICH auf Fragen zur Fahrzeugdiagnose und -repar
 const RAG_LABELS = {
   cs: {
     high: "🔴 VYSOKÁ SHODA", mid: "🟡 STŘEDNÍ SHODA", low: "🟢 ČÁSTEČNÁ SHODA",
-    score: "skóre", symptoms: "Příznaky", solution: "✅ Ověřené řešení",
+    score: "skóre", symptoms: "Příznaky", solution: "✅ Ověřené řešení", source: "Zdroj", link: "Odkaz",
     title: "OVĚŘENÉ OPRAVY Z DATABÁZE SERVISU",
     instrTitle: "INSTRUKCE K DATABÁZI",
     instrHigh:  "🔴 VYSOKÁ SHODA: Toto řešení MUSÍ být na 1. nebo 2. místě — má prokázaný výsledek na velmi podobném vozidle se shodnými OBD kódy i příznaky.",
@@ -60,7 +60,7 @@ const RAG_LABELS = {
   },
   en: {
     high: "🔴 HIGH MATCH", mid: "🟡 MEDIUM MATCH", low: "🟢 PARTIAL MATCH",
-    score: "score", symptoms: "Symptoms", solution: "✅ Verified solution",
+    score: "score", symptoms: "Symptoms", solution: "✅ Verified solution", source: "Source", link: "Link",
     title: "VERIFIED REPAIRS FROM SERVICE DATABASE",
     instrTitle: "DATABASE INSTRUCTIONS",
     instrHigh:  "🔴 HIGH MATCH: This solution MUST be ranked 1st or 2nd — it has a proven result on a very similar vehicle with matching OBD codes and symptoms.",
@@ -70,7 +70,7 @@ const RAG_LABELS = {
   },
   de: {
     high: "🔴 HOHE ÜBEREINSTIMMUNG", mid: "🟡 MITTLERE ÜBEREINSTIMMUNG", low: "🟢 TEILWEISE ÜBEREINSTIMMUNG",
-    score: "Punktzahl", symptoms: "Symptome", solution: "✅ Verifizierte Lösung",
+    score: "Punktzahl", symptoms: "Symptome", solution: "✅ Verifizierte Lösung", source: "Quelle", link: "Link",
     title: "VERIFIZIERTE REPARATUREN AUS DER SERVICEDATENBANK",
     instrTitle: "DATENBANK-ANWEISUNGEN",
     instrHigh:  "🔴 HOHE ÜBEREINSTIMMUNG: Diese Lösung MUSS auf Platz 1 oder 2 stehen — sie hat ein nachgewiesenes Ergebnis bei einem sehr ähnlichen Fahrzeug mit übereinstimmenden OBD-Codes und Symptomen.",
@@ -89,12 +89,16 @@ function buildRagBlock(cases, lang) {
     const score   = c.ragScore ?? 0
 
     const strength = score >= 8 ? L.high : score >= 5 ? L.mid : L.low
+    const sourceLines = []
+    if (c.sourceRef) sourceLines.push(`   ${L.source}: ${c.sourceRef}`)
+    if (c.threadUrl) sourceLines.push(`   ${L.link}: ${c.threadUrl}`)
 
     return (
       `[${i + 1}] ${strength} (${L.score}: ${score.toFixed(1)}) | ${vehicle}\n` +
       `   ${L.symptoms}: ${symptoms.join(", ") || "—"}\n` +
       `   OBD: ${obdCodes.join(", ") || "—"}\n` +
-      `   ${L.solution}: ${c.resolution}`
+      `   ${L.solution}: ${c.resolution}` +
+      (sourceLines.length ? `\n${sourceLines.join("\n")}` : "")
     )
   })
 

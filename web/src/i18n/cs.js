@@ -218,6 +218,9 @@ export const strings = {
   'diag.dbCases':             '{count} shod',
   'diag.recommendedTests':    'DOPORUČENÉ TESTY',
   'diag.notes':               'POZNÁMKY',
+  'diag.databaseSources':     'ZDROJOVÉ BULLETINY / PŘÍPADY',
+  'diag.openSource':          'Otevřít zdroj',
+  'diag.databaseSourceFallback': 'Databázový zdroj',
 
   // ConfirmModal
   'confirm.cancel':           'Zrušit',
