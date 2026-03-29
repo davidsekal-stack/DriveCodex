@@ -163,6 +163,12 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^MUSTANG MACH E$/i, values: ["Mustang Mach-E"] },
     { pattern: /^E TRANSIT$/i, values: ["E-Transit", "Transit"] },
   ],
+  JEEP: [
+    { pattern: /^WRANGLER!?4XE$/i, values: ["Wrangler 4xe", "Wrangler JL"] },
+    { pattern: /^GRAND CHEROKEE 4XE$/i, values: ["Grand Cherokee 4xe", "Grand Cherokee WL"] },
+    { pattern: /^GRAND CHEROKEE L$/i, values: ["Grand Cherokee L", "Grand Cherokee WL"] },
+    { pattern: /^RECON$/i, values: ["Recon"] },
+  ],
 };
 
 const MODEL_TRIM_TOKENS = new Set([
@@ -368,7 +374,7 @@ function normalizeComparableText(value) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\(US\)/gi, " ")
-    .replace(/[()]/g, " ")
+    .replace(/[()!]/g, " ")
     .replace(/[/,_-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()

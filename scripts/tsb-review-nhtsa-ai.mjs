@@ -609,6 +609,18 @@ export function parseDecisionLogLines(text) {
   };
 }
 
+export function enforceCatalogResolvedDecision(seed, decision) {
+  const resolved = seed?.metadata?.catalog_mapping?.resolved === true;
+  if (decision.decision === "accept" && !resolved) {
+    return {
+      ...decision,
+      decision: "review",
+      reason: "AI marked accept, but catalog mapping is unresolved and requires manual catalog confirmation first.",
+    };
+  }
+  return decision;
+}
+
 async function loadResumeState(outDir, model) {
   const decisionsPath = path.join(outDir, "ai_review_decisions.jsonl");
   try {
@@ -722,7 +734,10 @@ async function main() {
       maxTokens: 1200,
       messages: [{ role: "user", content: prompt }],
     });
-    const decision = normalizeAiDecision(safeParseJsonObject(content));
+    const decision = enforceCatalogResolvedDecision(
+      candidate.seed,
+      normalizeAiDecision(safeParseJsonObject(content)),
+    );
     const decisionRecord = {
       source_path: candidate.sourcePath,
       source_ref: candidate.seed.source_ref ?? null,

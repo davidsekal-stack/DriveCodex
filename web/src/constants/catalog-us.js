@@ -165,18 +165,21 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Jeep",
     active:    true,
-    expertise: "Jeep SUVs and trucks — Wrangler JK/JL, Grand Cherokee WK2/WL, Cherokee KL, Compass, Renegade, Gladiator — 3.6L Pentastar V6, 2.0L Hurricane Turbo, 5.7L/6.4L HEMI, 3.0L EcoDiesel, 4xe PHEV, Dana axles, NV transfer cases, Rock-Trac 4WD, 2007–present US spec",
+    expertise: "Jeep SUVs and trucks — Wrangler JK/JL and Wrangler 4xe, Grand Cherokee WK2/WL plus Grand Cherokee L and Grand Cherokee 4xe, Cherokee KL, Compass, Renegade, Gladiator, Wagoneer, Recon EV — 3.6L Pentastar V6, 2.0L Hurricane Turbo, 5.7L/6.4L HEMI, 3.0L EcoDiesel, 4xe PHEV, Dana axles, NV transfer cases, Rock-Trac 4WD, 2007–present US spec",
     models: [
       // ── Wrangler ─────────────────────────────────────────────────────────
       { group: "Wrangler" },
       { label: "Wrangler JK (2007–2011)", powers: ["202 hp – 3.8L V6"] },
       { label: "Wrangler JK (2012–2018)", powers: ["285 hp – 3.6L Pentastar V6"] },
       { label: "Wrangler JL (2018–)", powers: ["270 hp – 2.0L Hurricane Turbo I4", "285 hp – 3.6L Pentastar V6 eTorque", "260 hp – 3.0L EcoDiesel V6", "375 hp – 2.0L 4xe PHEV", "470 hp – 6.4L HEMI V8 392"] },
+      { label: "Wrangler 4xe (2021–present)", powers: ["375 hp – 2.0L 4xe PHEV"] },
 
       // ── Grand Cherokee ────────────────────────────────────────────────────
       { group: "Grand Cherokee" },
       { label: "Grand Cherokee WK2 (2011–2021)", powers: ["290 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "475 hp – 6.4L HEMI SRT V8", "707 hp – 6.2L Supercharged Trackhawk V8", "240 hp – 3.0L EcoDiesel V6"] },
       { label: "Grand Cherokee WL (2021–)", powers: ["270 hp – 2.0L Hurricane Turbo I4", "293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8", "375 hp – 2.0L 4xe PHEV", "510 hp – 6.2L Supercharged 4xe PHEV"] },
+      { label: "Grand Cherokee L (2021–present)", powers: ["293 hp – 3.6L Pentastar V6", "357 hp – 5.7L HEMI V8"] },
+      { label: "Grand Cherokee 4xe (2022–present)", powers: ["375 hp – 2.0L 4xe PHEV"] },
 
       // ── Cherokee ──────────────────────────────────────────────────────────
       { group: "Cherokee" },
@@ -198,6 +201,10 @@ export const VEHICLE_CATALOG_US = [
       { group: "Wagoneer / Grand Wagoneer" },
       { label: "Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
       { label: "Grand Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
+
+      // ── Recon ────────────────────────────────────────────────────────────
+      { group: "Recon" },
+      { label: "Recon (2026–present)", powers: ["650 hp – dual-motor EV"] },
     ],
   },
 

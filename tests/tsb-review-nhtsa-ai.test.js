@@ -4,6 +4,7 @@ import {
   augmentDtcOnlySymptoms,
   buildReviewPrompt,
   dedupeAcceptedSeeds,
+  enforceCatalogResolvedDecision,
   normalizeAiDecision,
   normalizeSymptomTags,
   parseDecisionLogLines,
@@ -294,6 +295,31 @@ test("parseDecisionLogLines restores processed paths and accepted decisions for 
   assert.equal(parsed.summary.review, 1);
   assert.equal(parsed.summary.rejected, 0);
   assert.deepEqual(parsed.acceptedDecisions[0].decision.cleanedSymptoms, ["Fuel door stuck"]);
+});
+
+test("enforceCatalogResolvedDecision downgrades unresolved accepted seed to review", () => {
+  const decision = enforceCatalogResolvedDecision(
+    {
+      metadata: {
+        catalog_mapping: {
+          resolved: false,
+        },
+      },
+    },
+    {
+      decision: "accept",
+      isRelevant: true,
+      hasClearSymptoms: true,
+      hasClearResolution: true,
+      matchesCaseStructure: true,
+      cleanedSymptoms: ["TBM battery fault"],
+      cleanedDescription: "MIL illuminated with DTC B1E21 stored.",
+      cleanedResolution: "Replace the TBM backup battery.",
+      reason: "Looks valid.",
+    },
+  );
+  assert.equal(decision.decision, "review");
+  assert.match(decision.reason, /catalog mapping is unresolved/i);
 });
 
 console.log(`\nResults: ${passed} passed, ${failed} failed`);

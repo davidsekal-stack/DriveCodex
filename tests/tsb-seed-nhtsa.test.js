@@ -673,6 +673,58 @@ test("resolveCatalogVehicle maps Lexus TX Hybrid to US catalog", () => {
   assert.equal(txHybrid.market, "US");
 });
 
+test("resolveCatalogVehicle maps Jeep 4xe and L variants to US catalog", () => {
+  const gc4xe = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "GRAND CHEROKEE 4XE",
+    model_year: "2025",
+  });
+  assert.equal(gc4xe.vehicle_brand, "Jeep");
+  assert.equal(gc4xe.vehicle_model, "Grand Cherokee 4xe (2022–present)");
+  assert.equal(gc4xe.market, "US");
+
+  const gcL = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "GRAND CHEROKEE L",
+    model_year: "2024",
+  });
+  assert.equal(gcL.vehicle_brand, "Jeep");
+  assert.equal(gcL.vehicle_model, "Grand Cherokee L (2021–present)");
+  assert.equal(gcL.market, "US");
+
+  const wrangler4xe = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "WRANGLER!4XE",
+    model_year: "2021",
+  });
+  assert.equal(wrangler4xe.vehicle_brand, "Jeep");
+  assert.equal(wrangler4xe.vehicle_model, "Wrangler 4xe (2021–present)");
+  assert.equal(wrangler4xe.market, "US");
+});
+
+test("resolveCatalogVehicle maps Jeep Recon and keeps unsupported Commander unresolved", () => {
+  const recon = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "RECON",
+    model_year: "2026",
+  });
+  assert.equal(recon.vehicle_brand, "Jeep");
+  assert.equal(recon.vehicle_model, "Recon (2026–present)");
+  assert.equal(recon.market, "US");
+
+  const commander = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "COMMANDER",
+    model_year: "2022",
+  });
+  assert.equal(commander.resolved, false);
+});
+
 test("hasSupportedCatalogBrand filters unsupported and non-catalog makes", () => {
   assert.equal(hasSupportedCatalogBrand("KIA"), true);
   assert.equal(hasSupportedCatalogBrand("MERCEDES-BENZ"), true);
