@@ -637,6 +637,18 @@ test("resolveCatalogVehicle maps Ford E-Transit to US catalog", () => {
   assert.equal(eTransit.market, "US");
 });
 
+test("resolveCatalogVehicle strips drivetrain suffixes like AWD when matching Dodge Charger", () => {
+  const chargerAwd = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "DODGE",
+    model: "CHARGER AWD",
+    model_year: "2023",
+  });
+  assert.equal(chargerAwd.vehicle_brand, "Dodge");
+  assert.equal(chargerAwd.vehicle_model, "Charger (2015–)");
+  assert.equal(chargerAwd.market, "US");
+});
+
 test("resolveCatalogVehicle maps Tesla Model Y to US catalog", () => {
   const modelY = resolveCatalogVehicle({
     ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),

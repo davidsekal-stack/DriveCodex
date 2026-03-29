@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 
 import {
+  augmentDtcOnlySymptoms,
   buildReviewPrompt,
   dedupeAcceptedSeeds,
   normalizeAiDecision,
-  pruneSymptomsAgainstObdCodes,
   normalizeSymptomTags,
   parseArgs,
+  pruneGenericSymptomTags,
+  pruneSymptomsAgainstObdCodes,
   safeParseJsonObject,
 } from "../scripts/tsb-review-nhtsa-ai.mjs";
 
@@ -112,7 +114,6 @@ test("normalizeAiDecision rewrites accepted long symptom prose into short tags",
   assert.equal(normalized.decision, "accept");
   assert.deepEqual(normalized.cleanedSymptoms, [
     "Uconnect service message",
-    "MIL on",
     "DTCs B1562/B1561/B1560/B22A9",
   ]);
   assert.equal(normalized.cleanedSymptoms.every(tag => tag.split(/\s+/).length <= 4), true);
@@ -124,6 +125,80 @@ test("pruneSymptomsAgainstObdCodes removes redundant DTC symptom tags when obd c
     ["B22A9", "B1560", "B1561", "B1562"],
   );
   assert.deepEqual(pruned, ["Uconnect service message", "MIL on"]);
+});
+
+test("pruneSymptomsAgainstObdCodes also removes 7-character manufacturer DTC symptom tags", () => {
+  const pruned = pruneSymptomsAgainstObdCodes(
+    ["Battery monitor fault", "DTC P162B87", "DTC P15AD87"],
+    ["P162B87", "P15AD87"],
+  );
+  assert.deepEqual(pruned, ["Battery monitor fault"]);
+});
+
+test("normalizeSymptomTags rewrites door-glass prose into a compact action-free tag", () => {
+  const normalized = normalizeSymptomTags([
+    "Door glass does not drop when opening the door.",
+  ]);
+  assert.deepEqual(normalized, ["Door glass won't drop"]);
+});
+
+test("normalizeSymptomTags prefers subsystem fault tag over generic MIL when TBM backup battery is explicit", () => {
+  const normalized = normalizeSymptomTags([
+    "Malfunction Indicator Lamp (MIL) is illuminated with DTC B1E21-96 stored, indicating a Telematics Box Module (TBM) backup battery internal failure.",
+  ]);
+  assert.deepEqual(normalized, ["TBM battery fault"]);
+});
+
+test("pruneGenericSymptomTags drops generic MIL when a more specific symptom remains", () => {
+  const pruned = pruneGenericSymptomTags(
+    ["MIL on", "Limp mode"],
+    "Malfunction Indicator Lamp (MIL) is illuminated with DTC P0606 stored. Vehicle may enter limp mode.",
+  );
+  assert.deepEqual(pruned, ["Limp mode"]);
+});
+
+test("pruneGenericSymptomTags derives specific TBM symptom from description when only MIL remains", () => {
+  const pruned = pruneGenericSymptomTags(
+    ["MIL on"],
+    "Malfunction Indicator Lamp (MIL) is illuminated with DTC B1E21-96 stored, indicating a Telematics Box Module (TBM) backup battery internal failure.",
+  );
+  assert.deepEqual(pruned, ["TBM battery fault"]);
+});
+
+test("normalizeSymptomTags derives 12V battery fault from warning-light prose", () => {
+  const normalized = normalizeSymptomTags([
+    "Vehicle exhibits a warning light with DTC P1BB20 (12V Lithium Battery Cell Voltage High) stored.",
+  ]);
+  assert.deepEqual(normalized, ["12V battery fault"]);
+});
+
+test("augmentDtcOnlySymptoms prepends specific fault tag when only DTC tags remain", () => {
+  const augmented = augmentDtcOnlySymptoms(
+    ["DTC P1BB20"],
+    "Vehicle exhibits a warning light with DTC P1BB20 (12V Lithium Battery Cell Voltage High).",
+  );
+  assert.deepEqual(augmented, ["12V battery fault", "DTC P1BB20"]);
+});
+
+test("normalizeSymptomTags derives battery monitor fault from Toyota DTC prose", () => {
+  const normalized = normalizeSymptomTags([
+    "Malfunction indicator lamp (MIL) is on with diagnostic trouble codes P162B87 (Lost Communication with Battery Monitor Module) and/or P15AD87 (Active Grille Air Shutter \"A\" Missing).",
+  ]);
+  assert.deepEqual(normalized, ["Battery monitor fault"]);
+});
+
+test("normalizeSymptomTags derives no-shift-out-of-park from park pawl prose", () => {
+  const normalized = normalizeSymptomTags([
+    "Malfunction Indicator Lamp (MIL) is illuminated with DTC P1E18 (Internal Control Module Electronic Park Performance) stored. The vehicle will not shift out of park.",
+  ]);
+  assert.deepEqual(normalized, ["Stuck in Park"]);
+});
+
+test("normalizeSymptomTags derives torque converter clutch fault from engagement prose", () => {
+  const normalized = normalizeSymptomTags([
+    "Lack of engagement of the torque converter damper clutch with MIL illumination and DTC P074100 stored.",
+  ]);
+  assert.deepEqual(normalized, ["Torque converter clutch fault"]);
 });
 
 test("buildReviewPrompt includes raw summary and current seed fields", () => {

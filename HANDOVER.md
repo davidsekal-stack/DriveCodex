@@ -20,7 +20,9 @@ Nepřípustné je:
 Pro NHTSA konkrétně:
 - `tsb-seed-nhtsa.mjs` je jen hrubý filtr a text normalizer
 - `tsb-review-nhtsa-ai.mjs` musí finální accepted seed přepsat do krátkých symptom tagů; `symptoms` mají být krátké labely, typicky `1-4` slova, ne celé věty
+- pokud seed obsahuje konkrétnější symptom, generic tagy typu `MIL on` nebo `Warning light` se mají odstranit, ne ponechat vedle něj
 - pokud seed obsahuje explicitní `obd_codes`, nesmí zároveň nechávat redundantní symptom tag typu `DTCs P1234/...`; DTC patří do `obd_codes`, ne do `symptoms`
+- pokud description explicitně uvádí konkrétní DTC a `obd_codes` jsou prázdné, mají se tyto kódy doplnit do `obd_codes` a následně z `symptoms` odstranit redundantní DTC tagy
 - finální import se má dělat až po **individuálním průchodu všech kandidátů**
 - pokud se po importu objeví nevalidní případ, má se:
   - smazat celé dotčené import okno ze Supabase
@@ -28,6 +30,7 @@ Pro NHTSA konkrétně:
   - nahrát jen ručně potvrzené případy
 - `push-case` nesmí u reviewed NHTSA seedů znovu text přeformulovat; importer proto pro NHTSA posílá `skip_translation: true`
 - `push-case` při duplicitě nesmí dělat jen no-op; musí přepsat celý case payload (`symptoms`, `obd_codes`, `description`, `resolution`, atd.), aby šel reviewed subset bezpečně reimportovat přes stejné `local_id`
+- když se z full-supported běhu vyřezává brand subset, subset extraction a `tsb-review-nhtsa-ai.mjs` se nesmí pouštět paralelně; reviewer pak uvidí jen část ještě zkopírovaných souborů a vznikne falešně krátký AI review běh
 
 ## Co je teď důležité
 
@@ -42,6 +45,7 @@ Nejčerstvější praktický stav:
 - existují hotové crawlery pro `VW`, `Toyota`, `Ford`, `Peugeot`, `Renault`, `Audi`, `Opel`, `BMW`, `SEAT`, `Citroën`
 - pro `Citroën/BMW/Opel/SEAT` je nově připravený sekvenční batch runner nad root fóry
 - Audi crawler byl po copy-paste chybě opraven a z druhého signals běhu bylo ručně potvrzeno `5 ready`
+- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď čistě importováno `488` unikátních případů; naposledy byly bezpečně doplněny `Ford (US)` `102`, `Ram` `6` a `Lexus` `9`, zatímco `Volkswagen (US)` po plném AI review nedal žádný bezpečný subset
 
 ## Stav větví a push do GitHubu
 

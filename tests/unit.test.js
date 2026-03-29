@@ -1588,6 +1588,17 @@ describe('helpers — makeEmptyVehicle', () => {
     })
   })
 
+  describe('catalog — Chrysler coverage', () => {
+    test('obsahuje ověřený US model Voyager', () => {
+      const chryslerEntry = getBrandEntry('Chrysler')
+      ok(chryslerEntry)
+      ok(chryslerEntry.expertise.includes('Voyager'))
+
+      const chryslerModels = getBrandModels('Chrysler').map(model => model.label).filter(Boolean)
+      ok(chryslerModels.includes('Voyager (2020–present)'))
+    })
+  })
+
   describe('catalog — Lexus coverage', () => {
     test('obsahuje ověřený US model TX a rozšířenou expertizu', () => {
       const lexusEntry = getBrandEntry('Lexus')
@@ -1622,6 +1633,29 @@ describe('helpers — makeEmptyVehicle', () => {
       ok(cadillacModels.includes('Escalade IQ (2025–present)'))
       ok(cadillacModels.includes('OPTIQ (2025–present)'))
       ok(cadillacModels.includes('VISTIQ (2026–present)'))
+    })
+  })
+
+  describe('catalog — Mazda US coverage', () => {
+    test('obsahuje ověřené US modely CX-3, starší CX-9 a MX-30', () => {
+      const mazdaEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Mazda')
+      ok(mazdaEntry)
+      ok(mazdaEntry.expertise.includes('CX-3'))
+      ok(mazdaEntry.expertise.includes('MX-30'))
+
+      const mazdaModels = (mazdaEntry.models ?? []).map(model => model.label).filter(Boolean)
+      ok(mazdaModels.includes('CX-3 (2016–2021)'))
+      ok(mazdaModels.includes('CX-9 (2007–2015)'))
+      ok(mazdaModels.includes('MX-30 (2022–2023)'))
+
+      const cx3 = mazdaEntry.models.find(model => model.label === 'CX-3 (2016–2021)')?.powers ?? []
+      ok(cx3.includes('146 hp – 2.0L SkyActiv-G I4'))
+
+      const cx9 = mazdaEntry.models.find(model => model.label === 'CX-9 (2007–2015)')?.powers ?? []
+      ok(cx9.includes('273 hp – 3.7L DOHC V6'))
+
+      const mx30 = mazdaEntry.models.find(model => model.label === 'MX-30 (2022–2023)')?.powers ?? []
+      ok(mx30.includes('143 hp – e-Skyactiv EV'))
     })
   })
 

@@ -121,7 +121,7 @@ function wordCount(text) {
 }
 
 function extractCodeTag(text) {
-  const matches = [...cleanText(text).matchAll(/\b([PCUB][0-9A-F]{4,5})(?:[-/][0-9A-F]{1,3})?\b/gi)]
+  const matches = [...cleanText(text).matchAll(/\b([PCUB][0-9A-F]{4,6})(?:[-/][0-9A-F]{1,3})?\b/gi)]
     .map(match => match[1].toUpperCase());
   const codes = [...new Set(matches)];
   if (codes.length === 0) return "";
@@ -152,6 +152,21 @@ export function normalizeSymptomTag(text) {
 
   const quotedMessage = normalizeQuotedMessage(normalized);
   if (quotedMessage) return quotedMessage;
+
+  if (/\bdoor glass\b.*\b(?:does not|won['’]?t)\s+drop\b/i.test(normalized)) return "Door glass won't drop";
+  if (/\bfuel(?:-filler)? lid\b.*\b(?:does not|won['’]?t)\s+lock\b/i.test(normalized)) return "Fuel lid won't lock";
+  if (/\bpower liftgate\b.*\b(?:does not|won['’]?t)\s+close\b/i.test(normalized)) return "Liftgate won't close";
+  if (/\bpower liftgate\b.*\b(?:does not|won['’]?t)\s+open\b/i.test(normalized)) return "Liftgate won't open";
+  if (/\btelematics box module\b|\bTBM\b/i.test(normalized) && /\bbackup battery\b/i.test(normalized)) return "TBM battery fault";
+  if (/\b12V\b.*\bbattery\b|\b12-volt\b.*\bbattery\b/i.test(normalized)) return "12V battery fault";
+  if (/\bintegrated thermal management\b|\bITM\b/i.test(normalized)) return "ITM fault";
+  if (/\bbattery monitor module\b/i.test(normalized)) return "Battery monitor fault";
+  if (/\bactive grille air shutter\b/i.test(normalized)) return "Active grille shutter fault";
+  if (/\bshift out of park\b/i.test(normalized)) return "Stuck in Park";
+  if (/\btorque converter(?: damper)? clutch\b/i.test(normalized) && /\b(?:lack of engagement|won['’]?t engage|does not engage|not engage)\b/i.test(normalized)) return "Torque converter clutch fault";
+  if (/\bcarbon fouling\b/i.test(normalized) && /\bmisfire\b/i.test(normalized)) return "Engine misfire";
+  if (/\bseat warmer\b.*\b(?:does not|won['’]?t)\s+operate\b/i.test(normalized)) return "Seat warmer inoperative";
+  if (/\bwindow\b.*\b(?:does not|won['’]?t)\s+open\b/i.test(normalized)) return "Window won't open";
 
   const codeTag = extractCodeTag(normalized);
   if (/^(?:diagnostic trouble codes?|dtcs?|fault codes?)/i.test(normalized) && codeTag) {
@@ -221,7 +236,44 @@ export function normalizeSymptomTags(values, fallbackDescription = "") {
 
 function isDtcLikeSymptomTag(text) {
   const normalized = cleanText(text);
-  return /^DTCs?\b/i.test(normalized) || /^[PCUB][0-9A-F]{4,5}\b/i.test(normalized);
+  return /^DTCs?\b/i.test(normalized) || /^[PCUB][0-9A-F]{4,6}\b/i.test(normalized);
+}
+
+function isGenericSymptomTag(text) {
+  const normalized = cleanText(text);
+  return normalized === "MIL on" || normalized === "Warning light";
+}
+
+export function pruneGenericSymptomTags(symptoms, description = "", rawSummary = "") {
+  const uniqueSymptoms = [...new Set(ensureArrayOfStrings(symptoms))];
+  if (uniqueSymptoms.length <= 1) {
+    if (uniqueSymptoms.length === 1 && !isGenericSymptomTag(uniqueSymptoms[0])) {
+      return uniqueSymptoms;
+    }
+    const derived = normalizeSymptomTags([description, rawSummary], description)
+      .filter(tag => !isGenericSymptomTag(tag));
+    return derived.length > 0 ? derived : uniqueSymptoms;
+  }
+
+  const nonGeneric = uniqueSymptoms.filter(tag => !isGenericSymptomTag(tag));
+  if (nonGeneric.length > 0) {
+    return nonGeneric;
+  }
+
+  const derived = normalizeSymptomTags([description, rawSummary], description)
+    .filter(tag => !isGenericSymptomTag(tag));
+  return derived.length > 0 ? derived : uniqueSymptoms;
+}
+
+export function augmentDtcOnlySymptoms(symptoms, description = "", rawSummary = "") {
+  const uniqueSymptoms = [...new Set(ensureArrayOfStrings(symptoms))];
+  if (uniqueSymptoms.length === 0 || !uniqueSymptoms.every(isDtcLikeSymptomTag)) {
+    return uniqueSymptoms;
+  }
+  const derived = normalizeSymptomTags([description, rawSummary], description)
+    .filter(tag => !isDtcLikeSymptomTag(tag))
+    .filter(tag => !isGenericSymptomTag(tag));
+  return derived.length > 0 ? [...new Set([...derived, ...uniqueSymptoms])] : uniqueSymptoms;
 }
 
 export function pruneSymptomsAgainstObdCodes(symptoms, obdCodes = []) {
@@ -354,6 +406,16 @@ export function normalizeAiDecision(value) {
     normalized.cleanedDescription = normalized.cleanedSymptoms[0];
   }
   normalized.cleanedSymptoms = normalizeSymptomTags(normalized.cleanedSymptoms, normalized.cleanedDescription);
+  normalized.cleanedSymptoms = pruneGenericSymptomTags(
+    normalized.cleanedSymptoms,
+    normalized.cleanedDescription,
+    normalized.cleanedDescription,
+  );
+  normalized.cleanedSymptoms = augmentDtcOnlySymptoms(
+    normalized.cleanedSymptoms,
+    normalized.cleanedDescription,
+    normalized.cleanedDescription,
+  );
 
   const structurallyAcceptable =
     normalized.isRelevant &&
@@ -399,7 +461,7 @@ export function buildReviewPrompt(candidate) {
     "- Do not include production ranges, VIN ranges, or extra bulletin framing unless essential.",
     "- Keep OBD/DTC references only if explicitly present.",
     "- cleaned_symptoms must be SHORT TAGS only, 1 to 4 words each.",
-    "- Examples of valid cleaned_symptoms: [\"MIL on\"], [\"Clicking noise\"], [\"BSM fault\", \"DTC C1AB413/C1AB513\"], [\"Uconnect service message\"].",
+    "- Examples of valid cleaned_symptoms: [\"Clicking noise\"], [\"Door glass won't drop\"], [\"TBM battery fault\"], [\"BSM fault\", \"DTC C1AB413/C1AB513\"], [\"Uconnect service message\"].",
     "- Never return full sentences in cleaned_symptoms.",
     "",
     'JSON schema:',

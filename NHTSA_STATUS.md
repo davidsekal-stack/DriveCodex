@@ -87,14 +87,62 @@ These brands were fully closed out after individual AI review of the remaining p
 - Latest live import log for Lexus + MINI/Rivian tail:
   - [C:\GB\seed_import_supabase_nhtsa_lexus_tail_live_20260328\results.jsonl](C:/GB/seed_import_supabase_nhtsa_lexus_tail_live_20260328/results.jsonl)
 
+## TSBS_RECEIVED_2025-2025.txt progress
+
+Source file:
+- [C:\Users\sekald\Downloads\TSBS_RECEIVED_2025-2025\TSBS_RECEIVED_2025-2025.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt)
+
+Current clean imported total from this file:
+- `488` unique cases
+
+Current imported breakdown:
+- `Ford (US)` `102`
+- `Mazda` `84`
+- `Dodge` `62`
+- `Kia (US)` `31`
+- `Bentley` `27`
+- `Genesis` `25`
+- `Alfa Romeo` `25`
+- `Lincoln` `25`
+- `Hyundai (US)` `24`
+- `Honda` `21`
+- `Chrysler` `15`
+- `Nissan (US)` `10`
+- `Lexus` `9`
+- `Infiniti` `8`
+- `Toyota (US)` `6`
+- `Ram` `6`
+- `Polestar` `4`
+- `Mitsubishi` `3`
+- `Tesla (US)` `1`
+
+Newly completed in the latest pass:
+- `Ford (US)` `102`
+- `Ram` `6`
+- `Lexus` `9`
+
+Closed with no safe subset in the latest pass:
+- `Volkswagen (US)` `0`
+
+Pending large backlogs from this file:
+- `Cadillac`
+- `Jeep`
+- `GMC`
+- `Chevrolet`
+- `Volvo`
+- `Mercedes-Benz`
+
 ## Key pipeline changes already in place
 
 - post-catalog canonical dedupe in parser
 - revision-aware dedupe (`REV. A`, `REV. B`, `_R1`, etc.)
 - AI review stage in `scripts/tsb-review-nhtsa-ai.mjs`
 - hard normalization of NHTSA symptom tags to short labels (`1-4` words max)
+- generic symptom tags like `MIL on` or `Warning light` must be dropped whenever a more specific symptom already exists
+- if a reviewed NHTSA case contains explicit DTCs in the description, those codes should be backfilled into `obd_codes`, and redundant DTC symptom tags should then be pruned
 - accepted NHTSA seeds now prune redundant DTC symptom tags whenever explicit `obd_codes` are present
 - `push-case` skips translation for NHTSA reviewed seeds, so short symptom tags are not expanded back into prose on import
 - `push-case` duplicate handling now overwrites the full case payload, not just `thread_url` / `source_ref`
 - stale EU/US mapping fixes for US imports
 - runtime/source metadata support in Supabase (`source_ref`, bulletin URL)
+- subset extraction and AI review must run sequentially; if they run in parallel, the reviewer may only see the first partially copied files and produce a false partial review result

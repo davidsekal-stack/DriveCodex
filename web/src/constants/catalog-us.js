@@ -342,7 +342,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Mazda",
     active:    true,
-    expertise: "Mazda vehicles — Mazda3, Mazda6, CX-5, CX-9, CX-50, MX-5 Miata — SkyActiv-G naturally aspirated, SkyActiv-X SPCCI, SkyActiv-D Diesel, Turbo variants, 6-speed AT/MT/manual, GVC torque vectoring, i-Activ AWD, 2012–present US spec",
+    expertise: "Mazda vehicles — Mazda3, Mazda6, CX-3, CX-5, CX-9, CX-30, CX-50, CX-70, CX-90, MX-30, MX-5 Miata — SkyActiv-G naturally aspirated, SkyActiv-X SPCCI, SkyActiv-D Diesel, Turbo variants, 6-speed AT/MT/manual, GVC torque vectoring, i-Activ AWD, EV variants, 2007–present US spec",
     models: [
       // ── Mazda3 ────────────────────────────────────────────────────────────
       { group: "Mazda3" },
@@ -353,6 +353,10 @@ export const VEHICLE_CATALOG_US = [
       // ── Mazda6 ────────────────────────────────────────────────────────────
       { group: "Mazda6" },
       { label: "Mazda6 (2014–2021)", powers: ["184 hp – 2.5L SkyActiv-G I4", "250 hp – 2.5L Turbo SkyActiv-G I4"] },
+
+      // ── CX-3 ──────────────────────────────────────────────────────────────
+      { group: "CX-3" },
+      { label: "CX-3 (2016–2021)", powers: ["146 hp – 2.0L SkyActiv-G I4", "148 hp – 2.0L SkyActiv-G I4"] },
 
       // ── CX-5 ──────────────────────────────────────────────────────────────
       { group: "CX-5" },
@@ -365,6 +369,7 @@ export const VEHICLE_CATALOG_US = [
 
       // ── CX-9 ──────────────────────────────────────────────────────────────
       { group: "CX-9" },
+      { label: "CX-9 (2007–2015)", powers: ["273 hp – 3.7L DOHC V6"] },
       { label: "CX-9 (2016–2023)", powers: ["227 hp – 2.5L Turbo SkyActiv-G I4", "250 hp – 2.5L Turbo SkyActiv-G (93 oct)"] },
 
       // ── CX-30 ────────────────────────────────────────────────────────────
@@ -378,6 +383,10 @@ export const VEHICLE_CATALOG_US = [
       // ── CX-90 ────────────────────────────────────────────────────────────
       { group: "CX-90" },
       { label: "CX-90 (2024–present)", powers: ["280 hp – 3.3L SkyActiv-G I6 Turbo", "323 hp – 3.3L SkyActiv-G I6 Turbo (93 oct)", "280 hp – 2.5L PHEV I4"] },
+
+      // ── MX-30 ─────────────────────────────────────────────────────────────
+      { group: "MX-30" },
+      { label: "MX-30 (2022–2023)", powers: ["143 hp – e-Skyactiv EV"] },
 
       // ── MX-5 Miata ────────────────────────────────────────────────────────
       { group: "MX-5 Miata" },
@@ -518,11 +527,15 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Chrysler",
     active:    true,
-    expertise: "Chrysler minivans and sedans — Pacifica, 300 — 3.6L Pentastar V6, 5.7L/6.4L HEMI V8, Pacifica Hybrid plug-in, ZF 9-speed/8-speed automatic, Stow 'n Go seating, 2011–present US spec",
+    expertise: "Chrysler minivans and sedans — Pacifica, Voyager, 300 — 3.6L Pentastar V6, 5.7L/6.4L HEMI V8, Pacifica Hybrid plug-in, ZF 9-speed/8-speed automatic, Stow 'n Go seating, 2011–present US spec",
     models: [
       // ── Pacifica ──────────────────────────────────────────────────────────
       { group: "Pacifica" },
       { label: "Pacifica (2017–)", powers: ["287 hp – 3.6L Pentastar V6", "260 hp – 3.6L Pentastar Hybrid PHEV"] },
+
+      // ── Voyager ───────────────────────────────────────────────────────────
+      { group: "Voyager" },
+      { label: "Voyager (2020–present)", powers: ["287 hp – 3.6L Pentastar V6"] },
 
       // ── Chrysler 300 ──────────────────────────────────────────────────────
       { group: "300" },

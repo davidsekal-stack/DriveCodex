@@ -172,6 +172,7 @@ const MODEL_TRIM_TOKENS = new Set([
   "SEL", "SE", "XSE", "XLE", "LARIAT", "KING", "RAPTOR", "RLINE", "R-LINE", "DENALI",
   "PRESTIGE", "ULTIMATE", "CALIGRAPHY", "TROFEO", "MODENA", "TRIDENTE", "SQUADRA", "Q4",
   "COMPETIZIONE", "QUADRIFOGLIO", "EDITION", "ANNIVERSARY", "HERITAGE",
+  "AWD", "FWD", "RWD", "4WD", "4X4",
 ]);
 
 function usage(exitCode = 1) {
