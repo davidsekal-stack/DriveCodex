@@ -89,7 +89,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "GMC",
     active:    true,
-    expertise: "GMC trucks and SUVs — Sierra 1500/HD, Canyon, Terrain, Acadia, Yukon/Yukon XL — EcoTec3 V6/V8, Duramax Diesel, 2.7L Turbo, GM 6L80/10L80/10L1000 transmissions, 2007–present US spec. Shares most platforms and powertrains with Chevrolet",
+    expertise: "GMC trucks, vans and SUVs — Sierra 1500/HD plus Sierra EV, Canyon, Savana, Terrain, Acadia, Yukon/Yukon XL — EcoTec3 V6/V8, Duramax Diesel, 2.7L Turbo, 4.3L V6, 6.6L V8, Ultium EV, GM 6L80/10L80/10L1000 transmissions, 2007–present US spec. Shares most platforms and powertrains with Chevrolet",
     models: [
       // ── Sierra 1500 ───────────────────────────────────────────────────────
       { group: "Sierra 1500" },
@@ -106,6 +106,10 @@ export const VEHICLE_CATALOG_US = [
       { group: "Canyon" },
       { label: "Canyon (2015–2022)", powers: ["200 hp – 2.5L I4", "308 hp – 3.6L V6", "186 hp – 2.8L Duramax Diesel I4"] },
       { label: "Canyon (2023–)", powers: ["237 hp – 2.7L Turbo I4", "310 hp – 2.7L Turbo High-Output I4"] },
+
+      // ── Savana ────────────────────────────────────────────────────────────
+      { group: "Savana" },
+      { label: "Savana (2003–present)", powers: ["276 hp – 4.3L V6", "401 hp – 6.6L V8"] },
 
       // ── Terrain ───────────────────────────────────────────────────────────
       { group: "Terrain" },
@@ -128,6 +132,10 @@ export const VEHICLE_CATALOG_US = [
       { group: "Hummer EV" },
       { label: "Hummer EV Pickup (2022–present)", powers: ["625 hp – Dual Motor Electric", "830 hp – Tri-Motor Electric Edition 1"] },
       { label: "Hummer EV SUV (2024–present)", powers: ["625 hp – Dual Motor Electric", "830 hp – Tri-Motor Electric"] },
+
+      // ── Sierra EV ────────────────────────────────────────────────────────
+      { group: "Sierra EV" },
+      { label: "Sierra EV (2024–present)", powers: ["645 hp – Dual Motor Electric", "760 hp – Dual Motor Electric Max Power"] },
     ],
   },
 

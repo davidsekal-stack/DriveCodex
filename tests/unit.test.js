@@ -1653,6 +1653,27 @@ describe('helpers — makeEmptyVehicle', () => {
     })
   })
 
+  describe('catalog — GMC coverage', () => {
+    test('obsahuje ověřené US modely Savana a Sierra EV', () => {
+      const gmcEntry = getBrandEntry('GMC')
+      ok(gmcEntry)
+      ok(gmcEntry.expertise.includes('Savana'))
+      ok(gmcEntry.expertise.includes('Sierra EV'))
+
+      const gmcModels = getBrandModels('GMC').map(model => model.label).filter(Boolean)
+      ok(gmcModels.includes('Savana (2003–present)'))
+      ok(gmcModels.includes('Sierra EV (2024–present)'))
+
+      const savana = gmcEntry.models.find(model => model.label === 'Savana (2003–present)')?.powers ?? []
+      ok(savana.includes('276 hp – 4.3L V6'))
+      ok(savana.includes('401 hp – 6.6L V8'))
+
+      const sierraEv = gmcEntry.models.find(model => model.label === 'Sierra EV (2024–present)')?.powers ?? []
+      ok(sierraEv.includes('645 hp – Dual Motor Electric'))
+      ok(sierraEv.includes('760 hp – Dual Motor Electric Max Power'))
+    })
+  })
+
   describe('catalog — Mazda US coverage', () => {
     test('obsahuje ověřené US modely CX-3, starší CX-9 a MX-30', () => {
       const mazdaEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Mazda')

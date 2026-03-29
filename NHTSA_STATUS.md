@@ -1,6 +1,6 @@
 # NHTSA TSB Status
 
-Aktualizováno: 2026-03-28
+Aktualizováno: 2026-03-29
 
 ## Scope note
 
@@ -93,11 +93,13 @@ Source file:
 - [C:\Users\sekald\Downloads\TSBS_RECEIVED_2025-2025\TSBS_RECEIVED_2025-2025.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt)
 
 Current clean imported total from this file:
-- `488` unique cases
+- `674` unique cases
 
 Current imported breakdown:
+- `Jeep` `121`
 - `Ford (US)` `102`
 - `Mazda` `84`
+- `Cadillac` `65`
 - `Dodge` `62`
 - `Kia (US)` `31`
 - `Bentley` `27`
@@ -117,16 +119,13 @@ Current imported breakdown:
 - `Tesla (US)` `1`
 
 Newly completed in the latest pass:
-- `Ford (US)` `102`
-- `Ram` `6`
-- `Lexus` `9`
+- `Cadillac` `65`
+- `Jeep` `121`
 
 Closed with no safe subset in the latest pass:
 - `Volkswagen (US)` `0`
 
 Pending large backlogs from this file:
-- `Cadillac`
-- `Jeep`
 - `GMC`
 - `Chevrolet`
 - `Volvo`

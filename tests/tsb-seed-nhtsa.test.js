@@ -725,6 +725,48 @@ test("resolveCatalogVehicle maps Jeep Recon and keeps unsupported Commander unre
   assert.equal(commander.resolved, false);
 });
 
+test("resolveCatalogVehicle maps GMC Savana, Yukon variants and Sierra EV to US catalog", () => {
+  const savana = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "GMC",
+    model: "SAVANA 3500",
+    model_year: "2025",
+  });
+  assert.equal(savana.vehicle_brand, "GMC");
+  assert.equal(savana.vehicle_model, "Savana (2003–present)");
+  assert.equal(savana.market, "US");
+
+  const yukonDenali = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "GMC",
+    model: "YUKON DENALI XL",
+    model_year: "2024",
+  });
+  assert.equal(yukonDenali.vehicle_brand, "GMC");
+  assert.equal(yukonDenali.vehicle_model, "Yukon/Yukon XL (2021–present)");
+  assert.equal(yukonDenali.market, "US");
+
+  const sierraEv = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "GMC",
+    model: "SIERRA EV",
+    model_year: "2025",
+  });
+  assert.equal(sierraEv.vehicle_brand, "GMC");
+  assert.equal(sierraEv.vehicle_model, "Sierra EV (2024–present)");
+  assert.equal(sierraEv.market, "US");
+
+  const sierraDenali = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "GMC",
+    model: "SIERRA DENALI",
+    model_year: "2020",
+  });
+  assert.equal(sierraDenali.vehicle_brand, "GMC");
+  assert.equal(sierraDenali.vehicle_model, "Sierra 1500 (2019–)");
+  assert.equal(sierraDenali.market, "US");
+});
+
 test("hasSupportedCatalogBrand filters unsupported and non-catalog makes", () => {
   assert.equal(hasSupportedCatalogBrand("KIA"), true);
   assert.equal(hasSupportedCatalogBrand("MERCEDES-BENZ"), true);

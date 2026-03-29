@@ -163,6 +163,12 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^MUSTANG MACH E$/i, values: ["Mustang Mach-E"] },
     { pattern: /^E TRANSIT$/i, values: ["E-Transit", "Transit"] },
   ],
+  GMC: [
+    { pattern: /^YUKON(?: DENALI)?(?: XL(?: 1500| 2500)?)?(?: HYBRID)?$/i, values: ["Yukon/Yukon XL"] },
+    { pattern: /^SAVANA(?: CUTAWAY VAN| 1500| 2500| 3500| 4500)?$/i, values: ["Savana"] },
+    { pattern: /^SIERRA EV$/i, values: ["Sierra EV"] },
+    { pattern: /^SIERRA DENALI$/i, values: ["Sierra 1500"] },
+  ],
   JEEP: [
     { pattern: /^WRANGLER!?4XE$/i, values: ["Wrangler 4xe", "Wrangler JL"] },
     { pattern: /^GRAND CHEROKEE 4XE$/i, values: ["Grand Cherokee 4xe", "Grand Cherokee WL"] },
