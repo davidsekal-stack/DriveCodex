@@ -46,8 +46,8 @@ Nejčerstvější praktický stav:
 - existují hotové crawlery pro `VW`, `Toyota`, `Ford`, `Peugeot`, `Renault`, `Audi`, `Opel`, `BMW`, `SEAT`, `Citroën`
 - pro `Citroën/BMW/Opel/SEAT` je nově připravený sekvenční batch runner nad root fóry
 - Audi crawler byl po copy-paste chybě opraven a z druhého signals běhu bylo ručně potvrzeno `5 ready`
-- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď čistě importováno `674` unikátních případů; naposledy byly bezpečně doplněny `Cadillac` `65` a `Jeep` `121`
-- aktuální velké backlogy z téhož souboru jsou `GMC`, `Chevrolet`, `Volvo` a `Mercedes-Benz`; před AI review je potřeba nejdřív ověřit a doplnit katalogové mapování, jinak se validní US varianty zbytečně shazují do unresolved review
+- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď čistě importováno `732` unikátních případů; naposledy byly bezpečně doplněny `Cadillac` `65`, `Jeep` `121` a `GMC` `58`
+- aktuální velké backlogy z téhož souboru jsou `Chevrolet`, `Volvo` a `Mercedes-Benz`; u `Volvo` je před AI review potřeba nejdřív doplnit US katalogové mapování pro současné PHEV/MHEV/BEV modely, jinak se validní kandidáti zbytečně shazují do unresolved review
 
 ## Stav větví a push do GitHubu
 

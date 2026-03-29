@@ -93,7 +93,7 @@ Source file:
 - [C:\Users\sekald\Downloads\TSBS_RECEIVED_2025-2025\TSBS_RECEIVED_2025-2025.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt)
 
 Current clean imported total from this file:
-- `674` unique cases
+- `732` unique cases
 
 Current imported breakdown:
 - `Jeep` `121`
@@ -101,6 +101,7 @@ Current imported breakdown:
 - `Mazda` `84`
 - `Cadillac` `65`
 - `Dodge` `62`
+- `GMC` `58`
 - `Kia (US)` `31`
 - `Bentley` `27`
 - `Genesis` `25`
@@ -119,14 +120,12 @@ Current imported breakdown:
 - `Tesla (US)` `1`
 
 Newly completed in the latest pass:
-- `Cadillac` `65`
-- `Jeep` `121`
+- `GMC` `58`
 
 Closed with no safe subset in the latest pass:
 - `Volkswagen (US)` `0`
 
 Pending large backlogs from this file:
-- `GMC`
 - `Chevrolet`
 - `Volvo`
 - `Mercedes-Benz`
