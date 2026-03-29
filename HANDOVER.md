@@ -1,6 +1,6 @@
 ﻿# Handover
 
-Aktualizováno: 2026-03-28
+Aktualizováno: 2026-03-29
 
 ## Nepřekročitelné pravidlo pro seed importy
 
@@ -46,66 +46,27 @@ Nejčerstvější praktický stav:
 - existují hotové crawlery pro `VW`, `Toyota`, `Ford`, `Peugeot`, `Renault`, `Audi`, `Opel`, `BMW`, `SEAT`, `Citroën`
 - pro `Citroën/BMW/Opel/SEAT` je nově připravený sekvenční batch runner nad root fóry
 - Audi crawler byl po copy-paste chybě opraven a z druhého signals běhu bylo ručně potvrzeno `5 ready`
-- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď čistě importováno `488` unikátních případů; naposledy byly bezpečně doplněny `Ford (US)` `102`, `Ram` `6` a `Lexus` `9`, zatímco `Volkswagen (US)` po plném AI review nedal žádný bezpečný subset
+- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď čistě importováno `674` unikátních případů; naposledy byly bezpečně doplněny `Cadillac` `65` a `Jeep` `121`
+- aktuální velké backlogy z téhož souboru jsou `GMC`, `Chevrolet`, `Volvo` a `Mercedes-Benz`; před AI review je potřeba nejdřív ověřit a doplnit katalogové mapování, jinak se validní US varianty zbytečně shazují do unresolved review
 
 ## Stav větví a push do GitHubu
 
 Aktuální branch:
-- `codex/prepare-main-merge`
+- `main`
 
 Aktuální `HEAD`:
-- `c4709c7` `Add Audi forum crawler and tests`
+- `b000774` `fix: map Jeep US NHTSA variants safely`
 
 Remote stav při poslední kontrole:
-- `origin/main` = `e82444d`
-- `origin/codex/prepare-main-merge` = `e82444d`
+- `origin/main` odpovídá lokálnímu `HEAD`
 
 To znamená:
-- branch je lokálně `ahead 1`
-- samotný Audi commit ještě není pushnutý na GitHub
-- navíc existuje větší množství necommitnutých změn v worktree, takže push do `main` teď není “jen jedním příkazem”, pokud se napřed nerozhodne, co přesně má jít do commitu
+- změny se teď commitují a pushují průběžně přímo do `main`
+- před dalším NHTSA během je dobré zkontrolovat čistý worktree přes `git status --short`
 
 ## Aktuální stav pracovního stromu
 
-Worktree je záměrně nečistý. Jsou v něm současně:
-- starší nepushnutý Audi commit
-- novější necommitnuté crawler a dokumentační změny
-- pracovní seed a deploy artefakty v rootu
-
-Kódové změny, které teď nejsou bezpečně zapsané v jednom commitu:
-- [package.json](/C:/GB/package.json)
-- [scripts/forum-seed.mjs](/C:/GB/scripts/forum-seed.mjs)
-- [scripts/forum-seed-vw.mjs](/C:/GB/scripts/forum-seed-vw.mjs)
-- [scripts/forum-seed-toyota.mjs](/C:/GB/scripts/forum-seed-toyota.mjs)
-- [scripts/forum-seed-audi.mjs](/C:/GB/scripts/forum-seed-audi.mjs)
-- [scripts/import-seeds-to-supabase.mjs](/C:/GB/scripts/import-seeds-to-supabase.mjs)
-- [supabase/functions/push-case/index.ts](/C:/GB/supabase/functions/push-case/index.ts)
-- [supabase/functions/search-cases/index.ts](/C:/GB/supabase/functions/search-cases/index.ts)
-- [web/src/constants/catalog.js](/C:/GB/web/src/constants/catalog.js)
-- [tests/unit.test.js](/C:/GB/tests/unit.test.js)
-- [tests/import-seeds-to-supabase.test.js](/C:/GB/tests/import-seeds-to-supabase.test.js)
-- [tests/supabase-integration.test.js](/C:/GB/tests/supabase-integration.test.js)
-- [tests/forum-seed-audi.test.js](/C:/GB/tests/forum-seed-audi.test.js)
-
-Nové necommitnuté crawler soubory:
-- [scripts/forum-seed-club-root.mjs](/C:/GB/scripts/forum-seed-club-root.mjs)
-- [scripts/forum-seed-batch.mjs](/C:/GB/scripts/forum-seed-batch.mjs)
-- [scripts/forum-seed-opel.mjs](/C:/GB/scripts/forum-seed-opel.mjs)
-- [scripts/forum-seed-bmw.mjs](/C:/GB/scripts/forum-seed-bmw.mjs)
-- [scripts/forum-seed-seat.mjs](/C:/GB/scripts/forum-seed-seat.mjs)
-- [scripts/forum-seed-citroen.mjs](/C:/GB/scripts/forum-seed-citroen.mjs)
-- plus starší rozpracované wrappery [forum-seed-ford.mjs](/C:/GB/scripts/forum-seed-ford.mjs), [forum-seed-peugeot.mjs](/C:/GB/scripts/forum-seed-peugeot.mjs), [forum-seed-renault.mjs](/C:/GB/scripts/forum-seed-renault.mjs)
-
-Nové necommitnuté testy:
-- [tests/forum-seed-batch.test.js](/C:/GB/tests/forum-seed-batch.test.js)
-- [tests/forum-seed-opel.test.js](/C:/GB/tests/forum-seed-opel.test.js)
-- [tests/forum-seed-bmw.test.js](/C:/GB/tests/forum-seed-bmw.test.js)
-- [tests/forum-seed-seat.test.js](/C:/GB/tests/forum-seed-seat.test.js)
-- [tests/forum-seed-citroen.test.js](/C:/GB/tests/forum-seed-citroen.test.js)
-- [tests/forum-seed-ford.test.js](/C:/GB/tests/forum-seed-ford.test.js)
-- [tests/forum-seed-peugeot.test.js](/C:/GB/tests/forum-seed-peugeot.test.js)
-- [tests/forum-seed-renault.test.js](/C:/GB/tests/forum-seed-renault.test.js)
-- nová složka [tests/supabase-live](/C:/GB/tests/supabase-live)
+Worktree má být při běžném postupu čistý nebo jen krátce rozpracovaný mezi testem a commitem. Zdrojové změny se teď dělají průběžně, testují a pushují přímo do `main`.
 
 Artefakty, které si neplést se source of truth:
 - [seed_*](/C:/GB) běhy a review adresáře
@@ -114,7 +75,7 @@ Artefakty, které si neplést se source of truth:
 - [\.tools](/C:/GB/.tools)
 
 Pozor:
-- `node.exe` i `npm.cmd` jsou v tomto Codex sandboxu blokované na `Přístup byl odepřen`; skutečné běhy testů a crawlerů se musí spouštět lokálně mimo sandbox
+- `node.exe` i `npm.cmd` jsou na tomto stroji dostupné; po každé změně parseru/katalogu se reálně pouští cílené `node tests/...` a před commitem i širší ověření tam, kde dává smysl
 
 ## Hlavní vstupní body projektu
 
