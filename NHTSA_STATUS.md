@@ -146,3 +146,4 @@ Pending large backlogs from this file:
 - stale EU/US mapping fixes for US imports
 - runtime/source metadata support in Supabase (`source_ref`, bulletin URL)
 - subset extraction and AI review must run sequentially; if they run in parallel, the reviewer may only see the first partially copied files and produce a false partial review result
+- `scripts/tsb-review-nhtsa-ai.mjs` now resumes from an existing `ai_review_decisions.jsonl`, so a network `fetch failed` no longer forces a full brand review restart

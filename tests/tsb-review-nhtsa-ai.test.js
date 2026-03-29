@@ -6,6 +6,7 @@ import {
   dedupeAcceptedSeeds,
   normalizeAiDecision,
   normalizeSymptomTags,
+  parseDecisionLogLines,
   parseArgs,
   pruneGenericSymptomTags,
   pruneSymptomsAgainstObdCodes,
@@ -255,6 +256,44 @@ test("dedupeAcceptedSeeds keeps latest revision variant", () => {
     "09-013-25 / NHTSA 11018862",
     "09-013-25 REV. B / NHTSA 11019431",
   ]);
+});
+
+test("parseDecisionLogLines restores processed paths and accepted decisions for resume", () => {
+  const parsed = parseDecisionLogLines(
+    [
+      JSON.stringify({
+        source_path: "C:/GB/tmp/case1.json",
+        decision: {
+          decision: "accept",
+          is_relevant: true,
+          has_clear_symptoms: true,
+          has_clear_resolution: true,
+          matches_case_structure: true,
+          cleaned_symptoms: ["Fuel door will not open with DTC P04CA."],
+          cleaned_description: "Fuel door will not open with DTC P04CA.",
+          cleaned_resolution: "Inspect circuit SBB05 and repair the circuit.",
+          reason: "Clear repair path.",
+        },
+      }),
+      JSON.stringify({
+        source_path: "C:/GB/tmp/case2.json",
+        decision: {
+          decision: "review",
+          reason: "Needs manual check.",
+        },
+      }),
+    ].join("\n"),
+  );
+  assert.deepEqual(parsed.processedPaths, [
+    "C:\\GB\\tmp\\case1.json",
+    "C:\\GB\\tmp\\case2.json",
+  ]);
+  assert.equal(parsed.acceptedDecisions.length, 1);
+  assert.equal(parsed.summary.reviewed, 2);
+  assert.equal(parsed.summary.accepted, 1);
+  assert.equal(parsed.summary.review, 1);
+  assert.equal(parsed.summary.rejected, 0);
+  assert.deepEqual(parsed.acceptedDecisions[0].decision.cleanedSymptoms, ["Fuel door stuck"]);
 });
 
 console.log(`\nResults: ${passed} passed, ${failed} failed`);

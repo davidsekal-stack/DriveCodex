@@ -31,6 +31,7 @@ Pro NHTSA konkrétně:
 - `push-case` nesmí u reviewed NHTSA seedů znovu text přeformulovat; importer proto pro NHTSA posílá `skip_translation: true`
 - `push-case` při duplicitě nesmí dělat jen no-op; musí přepsat celý case payload (`symptoms`, `obd_codes`, `description`, `resolution`, atd.), aby šel reviewed subset bezpečně reimportovat přes stejné `local_id`
 - když se z full-supported běhu vyřezává brand subset, subset extraction a `tsb-review-nhtsa-ai.mjs` se nesmí pouštět paralelně; reviewer pak uvidí jen část ještě zkopírovaných souborů a vznikne falešně krátký AI review běh
+- `tsb-review-nhtsa-ai.mjs` už umí resume z existujícího `ai_review_decisions.jsonl`; po síťovém failu proto navazuje od posledního zpracovaného kandidáta místo restartu celé značky
 
 ## Co je teď důležité
 

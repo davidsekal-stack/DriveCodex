@@ -572,6 +572,89 @@ export async function collectCandidatePaths(inputDirs, includeReview = false) {
   return out.sort((a, b) => a.localeCompare(b));
 }
 
+export function parseDecisionLogLines(text) {
+  const processedPaths = [];
+  const acceptedDecisions = [];
+  const summary = {
+    reviewed: 0,
+    accepted: 0,
+    review: 0,
+    rejected: 0,
+  };
+
+  for (const rawLine of (text ?? "").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const record = JSON.parse(line);
+    const decision = normalizeAiDecision(record?.decision ?? {});
+    if (record?.source_path) processedPaths.push(path.resolve(record.source_path));
+    summary.reviewed++;
+    if (decision.decision === "accept") {
+      acceptedDecisions.push({
+        sourcePath: path.resolve(record.source_path),
+        decision,
+      });
+    } else if (decision.decision === "review") {
+      summary.review++;
+    } else {
+      summary.rejected++;
+    }
+  }
+
+  summary.accepted = acceptedDecisions.length;
+  return {
+    processedPaths: [...new Set(processedPaths)],
+    acceptedDecisions,
+    summary,
+  };
+}
+
+async function loadResumeState(outDir, model) {
+  const decisionsPath = path.join(outDir, "ai_review_decisions.jsonl");
+  try {
+    const raw = await fs.readFile(decisionsPath, "utf8");
+    if (!raw.trim()) {
+      return {
+        processedPathSet: new Set(),
+        acceptedRecords: [],
+        summary: {
+          reviewed: 0,
+          accepted: 0,
+          review: 0,
+          rejected: 0,
+        },
+      };
+    }
+
+    const parsed = parseDecisionLogLines(raw);
+    const acceptedRecords = [];
+    for (const accepted of parsed.acceptedDecisions) {
+      const candidate = await loadCandidate(accepted.sourcePath);
+      acceptedRecords.push({
+        sourcePath: accepted.sourcePath,
+        seed: applyDecisionToSeed(candidate.seed, accepted.decision, model),
+      });
+    }
+
+    return {
+      processedPathSet: new Set(parsed.processedPaths),
+      acceptedRecords,
+      summary: parsed.summary,
+    };
+  } catch {
+    return {
+      processedPathSet: new Set(),
+      acceptedRecords: [],
+      summary: {
+        reviewed: 0,
+        accepted: 0,
+        review: 0,
+        rejected: 0,
+      },
+    };
+  }
+}
+
 function applyDecisionToSeed(seed, decision, model) {
   const updated = structuredClone(seed);
   updated.symptoms = pruneSymptomsAgainstObdCodes(decision.cleanedSymptoms, updated.obd_codes);
@@ -606,20 +689,29 @@ async function main() {
   await ensureDir(readyDir);
   await ensureDir(reviewDir);
   await ensureDir(rejectDir);
-  await fs.writeFile(decisionsPath, "", "utf8");
+  const resumeState = await loadResumeState(args.outDir, args.model);
+  if (resumeState.processedPathSet.size === 0) {
+    await fs.writeFile(decisionsPath, "", "utf8");
+  } else {
+    console.log(
+      `Resuming AI review from ${resumeState.processedPathSet.size} processed candidate(s) in ${args.outDir}`,
+    );
+  }
 
-  const candidatePaths = (await collectCandidatePaths(args.inputs, args.includeReview)).slice(0, args.maxCases);
+  const candidatePaths = (await collectCandidatePaths(args.inputs, args.includeReview))
+    .slice(0, args.maxCases)
+    .filter(candidatePath => !resumeState.processedPathSet.has(candidatePath));
   const summary = {
     input_dirs: args.inputs,
     include_review: args.includeReview,
     model: args.model,
-    reviewed: 0,
-    accepted: 0,
+    reviewed: resumeState.summary.reviewed,
+    accepted: resumeState.summary.accepted,
     deduped_accepted_duplicates: 0,
-    review: 0,
-    rejected: 0,
+    review: resumeState.summary.review,
+    rejected: resumeState.summary.rejected,
   };
-  const acceptedRecords = [];
+  const acceptedRecords = [...resumeState.acceptedRecords];
 
   for (let index = 0; index < candidatePaths.length; index++) {
     const candidate = await loadCandidate(candidatePaths[index]);
