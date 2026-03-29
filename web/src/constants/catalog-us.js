@@ -11,7 +11,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Chevrolet",
     active:    true,
-    expertise: "Chevrolet full lineup — Silverado, Colorado, Equinox, Traverse, Tahoe/Suburban, Camaro, Corvette, Malibu, Trailblazer — EcoTec3 V6/V8 engines, Duramax Diesel, 2.7L Turbo, LT1/LT2/LS engine family, GM 6L80/10L80 transmissions, stabilitrak, AFM/DFM cylinder deactivation, 2007–present US spec",
+    expertise: "Chevrolet full lineup — Silverado, Silverado EV, Colorado, Express, Equinox, Traverse, Tahoe/Suburban, Camaro, Corvette, Malibu, Trailblazer — EcoTec3 V6/V8 engines, Duramax Diesel, 2.7L Turbo, LT1/LT2/LS engine family, Ultium EV, GM 6L80/10L80 transmissions, stabilitrak, AFM/DFM cylinder deactivation, 2007–present US spec",
     models: [
       // ── Silverado 1500 ────────────────────────────────────────────────────
       { group: "Silverado 1500" },
@@ -28,6 +28,10 @@ export const VEHICLE_CATALOG_US = [
       { group: "Colorado" },
       { label: "Colorado (2015–2022)", powers: ["200 hp – 2.5L I4", "308 hp – 3.6L V6", "186 hp – 2.8L Duramax Diesel I4"] },
       { label: "Colorado (2023–)", powers: ["237 hp – 2.7L Turbo I4", "310 hp – 2.7L Turbo High-Output I4"] },
+
+      // ── Express ───────────────────────────────────────────────────────────
+      { group: "Express" },
+      { label: "Express (2003–present)", powers: ["276 hp – 4.3L V6", "401 hp – 6.6L V8"] },
 
       // ── Equinox ───────────────────────────────────────────────────────────
       { group: "Equinox" },
@@ -82,6 +86,10 @@ export const VEHICLE_CATALOG_US = [
       // ── Equinox EV ───────────────────────────────────────────────────────
       { group: "Equinox EV" },
       { label: "Equinox EV (2024–present)", powers: ["213 hp – Electric RWD eAWD", "288 hp – Electric AWD", "303 hp – Electric RS AWD"] },
+
+      // ── Silverado EV ─────────────────────────────────────────────────────
+      { group: "Silverado EV" },
+      { label: "Silverado EV (2024–present)", powers: ["510 hp – Dual Motor Electric WT", "645 hp – Dual Motor Electric LT/RST", "760 hp – Dual Motor Electric Max Power"] },
     ],
   },
 

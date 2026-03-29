@@ -767,6 +767,48 @@ test("resolveCatalogVehicle maps GMC Savana, Yukon variants and Sierra EV to US 
   assert.equal(sierraDenali.market, "US");
 });
 
+test("resolveCatalogVehicle maps Chevrolet Tahoe/Suburban, Express and Silverado EV to US catalog", () => {
+  const tahoe = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "CHEVROLET",
+    model: "TAHOE",
+    model_year: "2024",
+  });
+  assert.equal(tahoe.vehicle_brand, "Chevrolet");
+  assert.equal(tahoe.vehicle_model, "Tahoe/Suburban (2021–)");
+  assert.equal(tahoe.market, "US");
+
+  const suburban = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "CHEVROLET",
+    model: "SUBURBAN 1500",
+    model_year: "2018",
+  });
+  assert.equal(suburban.vehicle_brand, "Chevrolet");
+  assert.equal(suburban.vehicle_model, "Tahoe/Suburban (2015–2020)");
+  assert.equal(suburban.market, "US");
+
+  const express = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "CHEVROLET",
+    model: "EXPRESS CUTAWAY VAN",
+    model_year: "2024",
+  });
+  assert.equal(express.vehicle_brand, "Chevrolet");
+  assert.equal(express.vehicle_model, "Express (2003–present)");
+  assert.equal(express.market, "US");
+
+  const silveradoEv = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "CHEVROLET",
+    model: "SILVERADO EV",
+    model_year: "2025",
+  });
+  assert.equal(silveradoEv.vehicle_brand, "Chevrolet");
+  assert.equal(silveradoEv.vehicle_model, "Silverado EV (2024–present)");
+  assert.equal(silveradoEv.market, "US");
+});
+
 test("hasSupportedCatalogBrand filters unsupported and non-catalog makes", () => {
   assert.equal(hasSupportedCatalogBrand("KIA"), true);
   assert.equal(hasSupportedCatalogBrand("MERCEDES-BENZ"), true);

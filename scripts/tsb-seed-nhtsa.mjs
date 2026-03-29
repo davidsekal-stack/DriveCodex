@@ -159,6 +159,11 @@ const MODEL_ALIAS_RULES = {
   KIA: [
     { pattern: /^OPTIMA$/i, values: ["K5", "Optima"] },
   ],
+  CHEVROLET: [
+    { pattern: /^(?:TAHOE|SUBURBAN(?: 1500)?)$/i, values: ["Tahoe/Suburban"] },
+    { pattern: /^EXPRESS(?: CUTAWAY VAN| 2500| 3500)?$/i, values: ["Express"] },
+    { pattern: /^SILVERADO EV$/i, values: ["Silverado EV"] },
+  ],
   FORD: [
     { pattern: /^MUSTANG MACH E$/i, values: ["Mustang Mach-E"] },
     { pattern: /^E TRANSIT$/i, values: ["E-Transit", "Transit"] },

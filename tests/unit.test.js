@@ -1674,6 +1674,27 @@ describe('helpers — makeEmptyVehicle', () => {
     })
   })
 
+  describe('catalog — Chevrolet coverage', () => {
+    test('obsahuje ověřené US modely Express a Silverado EV', () => {
+      const chevroletEntry = getBrandEntry('Chevrolet')
+      ok(chevroletEntry)
+      ok(chevroletEntry.expertise.includes('Express'))
+      ok(chevroletEntry.expertise.includes('Silverado EV'))
+
+      const chevroletModels = getBrandModels('Chevrolet').map(model => model.label).filter(Boolean)
+      ok(chevroletModels.includes('Express (2003–present)'))
+      ok(chevroletModels.includes('Silverado EV (2024–present)'))
+
+      const express = chevroletEntry.models.find(model => model.label === 'Express (2003–present)')?.powers ?? []
+      ok(express.includes('276 hp – 4.3L V6'))
+      ok(express.includes('401 hp – 6.6L V8'))
+
+      const silveradoEv = chevroletEntry.models.find(model => model.label === 'Silverado EV (2024–present)')?.powers ?? []
+      ok(silveradoEv.includes('510 hp – Dual Motor Electric WT'))
+      ok(silveradoEv.includes('760 hp – Dual Motor Electric Max Power'))
+    })
+  })
+
   describe('catalog — Mazda US coverage', () => {
     test('obsahuje ověřené US modely CX-3, starší CX-9 a MX-30', () => {
       const mazdaEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Mazda')
