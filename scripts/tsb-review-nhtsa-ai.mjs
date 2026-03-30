@@ -7,6 +7,8 @@ import { pathToFileURL } from "node:url";
 const DEFAULT_MODEL = "deepseek-chat";
 const DEFAULT_MAX_CASES = Infinity;
 const DEFAULT_SLEEP_MS = 0;
+const DEFAULT_API_MAX_RETRIES = 5;
+const RETRYABLE_STATUS_CODES = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
 
 const GENERIC_RESOLUTION_PATTERNS = [
   /^follow the service procedure\b/i,
@@ -478,28 +480,54 @@ export function buildReviewPrompt(candidate) {
   ].join("\n");
 }
 
-async function deepseekChatJson({ apiKey, model, messages, maxTokens = 1200 }) {
-  const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      messages,
-      temperature: 0.1,
-    }),
-  });
+export async function deepseekChatJson({
+  apiKey,
+  model,
+  messages,
+  maxTokens = 1200,
+  fetchFn = fetch,
+  sleepFn = sleep,
+}) {
+  let lastError = null;
+  for (let attempt = 0; attempt < DEFAULT_API_MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetchFn("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          messages,
+          temperature: 0.1,
+        }),
+        signal: AbortSignal.timeout(90_000),
+      });
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`DeepSeek API error ${res.status}: ${body.slice(0, 400)}`);
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        const error = new Error(`DeepSeek API error ${res.status}: ${body.slice(0, 400)}`);
+        if (!RETRYABLE_STATUS_CODES.has(res.status) || attempt === DEFAULT_API_MAX_RETRIES - 1) {
+          throw error;
+        }
+        lastError = error;
+        await sleepFn(Math.min(20_000, 2_000 * (attempt + 1)));
+        continue;
+      }
+
+      const data = await res.json();
+      return (data?.choices?.[0]?.message?.content ?? "").toString();
+    } catch (error) {
+      lastError = error;
+      if (attempt === DEFAULT_API_MAX_RETRIES - 1) {
+        throw error;
+      }
+      await sleepFn(Math.min(20_000, 2_000 * (attempt + 1)));
+    }
   }
-
-  const data = await res.json();
-  return (data?.choices?.[0]?.message?.content ?? "").toString();
+  throw lastError ?? new Error("DeepSeek API request failed.");
 }
 
 function sleep(ms) {

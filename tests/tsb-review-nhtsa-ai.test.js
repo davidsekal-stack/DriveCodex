@@ -4,6 +4,7 @@ import {
   augmentDtcOnlySymptoms,
   buildReviewPrompt,
   dedupeAcceptedSeeds,
+  deepseekChatJson,
   enforceCatalogResolvedDecision,
   normalizeAiDecision,
   normalizeSymptomTags,
@@ -16,17 +17,10 @@ import {
 
 let passed = 0;
 let failed = 0;
+const tests = [];
 
 function test(name, fn) {
-  try {
-    fn();
-    console.log(`  OK ${name}`);
-    passed++;
-  } catch (error) {
-    console.error(`  FAIL ${name}`);
-    console.error(`    ${error.message}`);
-    failed++;
-  }
+  tests.push({ name, fn });
 }
 
 console.log("\n== tsb-review-nhtsa-ai ==");
@@ -259,6 +253,28 @@ test("dedupeAcceptedSeeds keeps latest revision variant", () => {
   ]);
 });
 
+test("deepseekChatJson retries transient fetch failures and returns content", async () => {
+  let calls = 0;
+  const result = await deepseekChatJson({
+    apiKey: "test-key",
+    model: "deepseek-chat",
+    messages: [{ role: "user", content: "x" }],
+    fetchFn: async () => {
+      calls++;
+      if (calls < 3) throw new TypeError("fetch failed");
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: "{\"decision\":\"reject\"}" } }],
+        }),
+      };
+    },
+    sleepFn: async () => {},
+  });
+  assert.equal(calls, 3);
+  assert.equal(result, "{\"decision\":\"reject\"}");
+});
+
 test("parseDecisionLogLines restores processed paths and accepted decisions for resume", () => {
   const parsed = parseDecisionLogLines(
     [
@@ -321,6 +337,18 @@ test("enforceCatalogResolvedDecision downgrades unresolved accepted seed to revi
   assert.equal(decision.decision, "review");
   assert.match(decision.reason, /catalog mapping is unresolved/i);
 });
+
+for (const { name, fn } of tests) {
+  try {
+    await fn();
+    console.log(`  OK ${name}`);
+    passed++;
+  } catch (error) {
+    console.error(`  FAIL ${name}`);
+    console.error(`    ${error.message}`);
+    failed++;
+  }
+}
 
 console.log(`\nResults: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
