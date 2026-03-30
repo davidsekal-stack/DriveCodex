@@ -183,3 +183,18 @@ export async function searchCases(ragInput) {
     return makeStorageErrorResult(error, "Search cases failed", { cases: [], count: 0 });
   }
 }
+
+export async function lookupManual({ brand, model, enginePower, components, faultNames }) {
+  try {
+    const result = await edgeFetch("manual-lookup", {
+      brand,
+      model,
+      engine_power: enginePower,
+      components,
+      fault_names: faultNames,
+    });
+    return { ok: true, results: result.results ?? [], count: result.count ?? 0 };
+  } catch (error) {
+    return { ok: false, error: error.message || "Manual lookup failed", results: [], count: 0 };
+  }
+}

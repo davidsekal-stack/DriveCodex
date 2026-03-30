@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { useI18n } from "../i18n/index.jsx";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import { ObdChip } from "./Chip.jsx";
+import { lookupManual } from "../lib/storage-edge.js";
 
 // ── Source-based colors ──────────────────────────────────────────────────────
 // Green = from database (verified), Blue = AI-generated
@@ -128,9 +130,92 @@ function FaultCard({ fault: f, isPrimary, tr, mobile }) {
   );
 }
 
+// ── Workshop Manual References ───────────────────────────────────────────────
+
+function ManualRefSection({ vehicle, faults, tr }) {
+  const { t } = useTheme();
+  const [refs, setRefs] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!vehicle?.brand || !faults?.length) return;
+
+    // Collect all component names + fault names for search
+    const components = faults.flatMap((f) => f.díly || []).filter(Boolean);
+    const faultNames = faults.map((f) => f.název).filter(Boolean);
+    if (components.length === 0 && faultNames.length === 0) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    // Send raw vehicle + fault data — server does all normalization
+    lookupManual({
+      brand: vehicle.brand,
+      model: vehicle.model,
+      enginePower: vehicle.enginePower,
+      components,
+      faultNames,
+    }).then((res) => {
+      if (!cancelled) {
+        setRefs(res.ok ? res.results : []);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setRefs([]);
+        setLoading(false);
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [vehicle?.brand, vehicle?.model, vehicle?.enginePower, faults]);
+
+  if (!vehicle?.model || !faults?.length) return null;
+  if (refs !== null && refs.length === 0 && !loading) return null;
+
+  return (
+    <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2, marginBottom: 12 }}>
+      <SectionLabel>{tr('diag.workshopManual')}</SectionLabel>
+      {loading && (
+        <div style={{ fontSize: "0.76rem", color: t.textFaint, fontStyle: "italic" }}>
+          {tr('diag.loadingManual')}
+        </div>
+      )}
+      {refs && refs.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {refs.slice(0, 5).map((ref, i) => (
+            <div key={i} style={{ borderLeft: `2px solid ${t.accent}`, paddingLeft: 10 }}>
+              <div style={{ fontSize: "0.78rem", color: t.text, fontWeight: 600 }}>
+                {ref.section}
+              </div>
+              <div style={{ fontSize: "0.68rem", color: t.textFaint, marginTop: 2 }}>
+                {ref.manual} {ref.page != null ? `· ${tr('diag.manualPage')} ${ref.page}` : ""}
+              </div>
+              {ref.subsections?.length > 0 && (
+                <div style={{ marginTop: 4 }}>
+                  {ref.subsections.slice(0, 4).map((sub, j) => (
+                    <div key={j} style={{ fontSize: "0.72rem", color: t.textMuted, padding: "1px 0" }}>
+                      {sub.number} {sub.title}
+                    </div>
+                  ))}
+                  {ref.subsections.length > 4 && (
+                    <div style={{ fontSize: "0.66rem", color: t.textFaint }}>
+                      +{ref.subsections.length - 4} {tr('diag.moreProcedures')}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Hlavní komponenta ─────────────────────────────────────────────────────────
 
-export default function DiagCard({ result, ragMatches = [] }) {
+export default function DiagCard({ result, ragMatches = [], vehicle }) {
   const { t } = useTheme();
   const { tr } = useI18n();
   const mobile = useIsMobile();
@@ -190,6 +275,9 @@ export default function DiagCard({ result, ragMatches = [] }) {
           </div>
         </div>
       )}
+
+      {/* Workshop Manual References */}
+      {vehicle && <ManualRefSection vehicle={vehicle} faults={result.závady} tr={tr} />}
 
       {/* Závady */}
       {result.závady?.map((f, i) => (

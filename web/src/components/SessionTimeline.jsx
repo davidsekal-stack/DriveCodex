@@ -68,7 +68,7 @@ export default function SessionTimeline({
                   <div style={{ fontSize: "0.65rem", color: t.accentText, marginBottom: 4, letterSpacing: "0.06em" }}>
                     ◈ GearBrain · {fmtDate(message.timestamp, lang)}
                   </div>
-                  <DiagCard result={message.result} ragMatches={ragSessions} />
+                  <DiagCard result={message.result} ragMatches={ragSessions} vehicle={activeCase?.vehicle} />
                 </div>
               </div>
             );

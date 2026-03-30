@@ -221,6 +221,10 @@ export const strings = {
   'diag.databaseSources':     'QUELLBULLETINS / FÄLLE',
   'diag.openSource':          'Quelle öffnen',
   'diag.databaseSourceFallback': 'Datenbankquelle',
+  'diag.workshopManual':      'WERKSTATTHANDBUCH',
+  'diag.loadingManual':       'Suche in Werkstatthandbüchern...',
+  'diag.manualPage':          'S.',
+  'diag.moreProcedures':      'weitere Verfahren',
 
   // ConfirmModal
   'confirm.cancel':           'Abbrechen',
