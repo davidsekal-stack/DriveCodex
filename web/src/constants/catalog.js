@@ -159,10 +159,19 @@ export const VEHICLE_CATALOG = [
 
       // ── Golf ──────────────────────────────────────────────────────────────────
       { group: "Golf" },
-      { label: "Golf V (2006–2008)", powers: ["55 kW – 1.4", "75 kW – 1.6", "103 kW – 1.4 TSI", "66 kW – 1.9 TDI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI", "147 kW – 2.0 TFSI GTI", "184 kW – 3.2 VR6 R32"] },
-      { label: "Golf VI (2008–2012)", powers: ["77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "118 kW – 1.4 TSI", "66 kW – 1.6 TDI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI", "155 kW – 2.0 TSI GTI"] },
+      { label: "Golf V (2006–2008)", powers: ["55 kW – 1.4", "75 kW – 1.6", "85 kW – 1.6 FSI", "90 kW – 1.4 TSI", "103 kW – 1.4 TSI", "118 kW – 1.8 TSI", "66 kW – 1.9 TDI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI", "147 kW – 2.0 TFSI GTI", "184 kW – 3.2 VR6 R32"] },
+      { label: "Golf VI (2008–2012)", powers: ["77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "118 kW – 1.4 TSI", "118 kW – 1.8 TSI", "66 kW – 1.6 TDI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI", "155 kW – 2.0 TSI GTI"] },
       { label: "Golf VII (2012–2020)", powers: ["63 kW – 1.0 TSI", "85 kW – 1.0 TSI", "63 kW – 1.2 TSI", "77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "103 kW – 1.4 TSI", "96 kW – 1.5 TSI", "110 kW – 1.5 TSI", "66 kW – 1.6 TDI", "81 kW – 1.6 TDI", "110 kW – 2.0 TDI", "135 kW – 2.0 TDI GTD", "162 kW – 2.0 TSI GTI", "169 kW – 2.0 TSI GTI", "221 kW – 2.0 TSI R", "228 kW – 2.0 TSI R"] },
       { label: "Golf VIII (2020–)", powers: ["81 kW – 1.0 TSI", "96 kW – 1.5 TSI", "110 kW – 1.5 TSI", "85 kW – 2.0 TDI", "110 kW – 2.0 TDI", "180 kW – 2.0 TSI GTI", "235 kW – 2.0 TSI R"] },
+
+      // ── Golf Plus ────────────────────────────────────────────────────────────
+      { group: "Golf Plus" },
+      { label: "Golf Plus (2005–2014)", powers: ["55 kW – 1.4", "75 kW – 1.6 MPI", "85 kW – 1.6 FSI", "90 kW – 1.4 TSI", "118 kW – 1.8 TSI", "66 kW – 1.9 TDI", "77 kW – 1.9 TDI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI"] },
+
+      // ── Golf Variant ─────────────────────────────────────────────────────────
+      { group: "Golf Variant" },
+      { label: "Golf Variant V (2007–2009)", powers: ["55 kW – 1.4", "75 kW – 1.6", "90 kW – 1.4 TSI", "77 kW – 1.9 TDI", "103 kW – 2.0 TDI"] },
+      { label: "Golf Variant VI (2009–2013)", powers: ["77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "118 kW – 1.4 TSI", "66 kW – 1.6 TDI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI"] },
 
       // ── Jetta ─────────────────────────────────────────────────────────────────
       { group: "Jetta" },
@@ -172,10 +181,23 @@ export const VEHICLE_CATALOG = [
 
       // ── Passat ────────────────────────────────────────────────────────────────
       { group: "Passat" },
-      { label: "Passat B6 (2006–2010)", powers: ["85 kW – 1.6 FSI", "118 kW – 1.8 TSI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "147 kW – 2.0 TFSI", "220 kW – 3.6 VR6"] },
+      { label: "Passat B6 (2006–2010)", powers: ["75 kW – 1.6 MPI", "85 kW – 1.6 FSI", "90 kW – 1.4 TSI", "92 kW – 1.4 TSI", "77 kW – 1.9 TDI", "118 kW – 1.8 TSI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "147 kW – 2.0 TFSI", "220 kW – 3.6 VR6"] },
       { label: "Passat B7 (2010–2014)", powers: ["90 kW – 1.4 TSI", "110 kW – 1.4 TSI", "118 kW – 1.8 TSI", "132 kW – 1.8 TSI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "130 kW – 2.0 TDI", "155 kW – 2.0 TSI", "220 kW – 3.6 VR6"] },
       { label: "Passat B8 (2014–2023)", powers: ["110 kW – 1.5 TSI", "140 kW – 2.0 TSI", "200 kW – 2.0 TSI", "110 kW – 2.0 TDI", "140 kW – 2.0 TDI", "176 kW – 2.0 TDI"] },
       { label: "Passat B9 (2023–)", powers: ["110 kW – 1.5 TSI", "150 kW – 1.5 TSI eHybrid", "200 kW – 1.5 TSI eHybrid", "110 kW – 2.0 TDI", "142 kW – 2.0 TDI"] },
+
+      // ── Passat CC / CC ─────────────────────────────────────────────────────
+      { group: "CC" },
+      { label: "Passat CC (2008–2012)", powers: ["118 kW – 1.8 TSI", "147 kW – 2.0 TFSI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "220 kW – 3.6 VR6"] },
+      { label: "CC (2012–2017)", powers: ["118 kW – 1.8 TSI", "155 kW – 2.0 TSI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "130 kW – 2.0 TDI", "220 kW – 3.6 VR6"] },
+
+      // ── Eos ──────────────────────────────────────────────────────────────────
+      { group: "Eos" },
+      { label: "Eos (2006–2016)", powers: ["90 kW – 1.4 TSI", "118 kW – 1.8 TSI", "147 kW – 2.0 TFSI", "155 kW – 2.0 TSI", "103 kW – 2.0 TDI"] },
+
+      // ── Scirocco ─────────────────────────────────────────────────────────────
+      { group: "Scirocco" },
+      { label: "Scirocco III (2008–2017)", powers: ["90 kW – 1.4 TSI", "118 kW – 1.4 TSI", "118 kW – 1.8 TSI", "147 kW – 2.0 TFSI", "155 kW – 2.0 TSI", "195 kW – 2.0 TSI R", "103 kW – 2.0 TDI"] },
 
       // ── Arteon ────────────────────────────────────────────────────────────────
       { group: "Arteon" },
@@ -184,7 +206,7 @@ export const VEHICLE_CATALOG = [
 
       // ── Tiguan ────────────────────────────────────────────────────────────────
       { group: "Tiguan" },
-      { label: "Tiguan I (2007–2016)", powers: ["110 kW – 1.4 TSI", "118 kW – 1.4 TSI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "135 kW – 2.0 TDI", "125 kW – 2.0 TSI", "147 kW – 2.0 TSI", "155 kW – 2.0 TSI"] },
+      { label: "Tiguan I (2007–2016)", powers: ["90 kW – 1.4 TSI", "110 kW – 1.4 TSI", "118 kW – 1.4 TSI", "118 kW – 1.8 TSI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI", "135 kW – 2.0 TDI", "125 kW – 2.0 TSI", "147 kW – 2.0 TSI", "155 kW – 2.0 TSI"] },
       { label: "Tiguan II (2016–2023)", powers: ["96 kW – 1.5 TSI", "110 kW – 1.5 TSI", "132 kW – 2.0 TSI", "180 kW – 2.0 TSI", "110 kW – 2.0 TDI", "147 kW – 2.0 TDI", "235 kW – 2.0 TSI R"] },
       { label: "Tiguan III (2023–)", powers: ["96 kW – 1.5 TSI", "110 kW – 1.5 TSI", "150 kW – 1.5 TSI eHybrid", "200 kW – 1.5 TSI eHybrid", "110 kW – 2.0 TDI", "142 kW – 2.0 TDI"] },
 
@@ -207,7 +229,7 @@ export const VEHICLE_CATALOG = [
 
       // ── Touran ────────────────────────────────────────────────────────────────
       { group: "Touran" },
-      { label: "Touran I (2006–2015)", powers: ["75 kW – 1.6", "77 kW – 1.2 TSI", "103 kW – 1.4 TSI", "110 kW – 1.4 TSI", "66 kW – 1.6 TDI", "77 kW – 1.9 TDI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI"] },
+      { label: "Touran I (2006–2015)", powers: ["75 kW – 1.6", "77 kW – 1.2 TSI", "90 kW – 1.4 TSI", "103 kW – 1.4 TSI", "110 kW – 1.4 TSI", "66 kW – 1.6 TDI", "77 kW – 1.9 TDI", "81 kW – 2.0 TDI", "103 kW – 2.0 TDI", "125 kW – 2.0 TDI"] },
       { label: "Touran II (2015–dosud)", powers: ["81 kW – 1.2 TSI", "110 kW – 1.4 TSI", "110 kW – 1.5 TSI", "81 kW – 1.6 TDI", "110 kW – 2.0 TDI", "140 kW – 2.0 TDI"] },
 
       // ── Sharan ────────────────────────────────────────────────────────────────

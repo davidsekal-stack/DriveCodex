@@ -89,7 +89,7 @@ export async function sendFeedback(message, lang) {
 export async function fetchReviewCases(status = "pending") {
   const { data: { session } } = await supabase.auth.getSession();
   const token = getEdgeFunctionToken(session, RUNTIME_CONFIG.supabaseAnonKey);
-  const res = await fetch(`${RUNTIME_CONFIG.edgeFunctionsUrl}/review-cases?status=${status}&limit=50`, {
+  const res = await fetch(`${RUNTIME_CONFIG.edgeFunctionsUrl}/review-cases?status=${status}&limit=500`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -181,5 +181,20 @@ export async function searchCases(ragInput) {
     return normalizeSearchCasesResult(result);
   } catch (error) {
     return makeStorageErrorResult(error, "Search cases failed", { cases: [], count: 0 });
+  }
+}
+
+export async function lookupManual({ brand, model, enginePower, components, faultNames }) {
+  try {
+    const result = await edgeFetch("manual-lookup", {
+      brand,
+      model,
+      engine_power: enginePower,
+      components,
+      fault_names: faultNames,
+    });
+    return { ok: true, results: result.results ?? [], count: result.count ?? 0 };
+  } catch (error) {
+    return { ok: false, error: error.message || "Manual lookup failed", results: [], count: 0 };
   }
 }

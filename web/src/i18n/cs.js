@@ -221,6 +221,10 @@ export const strings = {
   'diag.databaseSources':     'ZDROJOVÉ BULLETINY / PŘÍPADY',
   'diag.openSource':          'Otevřít zdroj',
   'diag.databaseSourceFallback': 'Databázový zdroj',
+  'diag.workshopManual':      'DÍLENSKÁ PŘÍRUČKA',
+  'diag.loadingManual':       'Hledám v dílenských příručkách...',
+  'diag.manualPage':          'str.',
+  'diag.moreProcedures':      'dalších postupů',
 
   // ConfirmModal
   'confirm.cancel':           'Zrušit',

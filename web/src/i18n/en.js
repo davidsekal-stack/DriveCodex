@@ -221,6 +221,10 @@ export const strings = {
   'diag.databaseSources':     'SOURCE BULLETINS / CASES',
   'diag.openSource':          'Open source',
   'diag.databaseSourceFallback': 'Database source',
+  'diag.workshopManual':      'WORKSHOP MANUAL',
+  'diag.loadingManual':       'Searching workshop manuals...',
+  'diag.manualPage':          'p.',
+  'diag.moreProcedures':      'more procedures',
 
   // ConfirmModal
   'confirm.cancel':           'Cancel',
