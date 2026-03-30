@@ -239,6 +239,74 @@ const BUICK_FALSE_DTC_LINE = [
   "This Preliminary Information communicates the DTC's setting in the SDGM are false, steps to resolve and not to replace the module.",
 ].join("\t");
 
+const CHEVROLET_TAC_ADMIN_LINE = [
+  "11030001",
+  "",
+  "20250620",
+  "PIT9999",
+  "20250619",
+  "",
+  "Service Bulletin/Repair Instructions",
+  "CHEVROLET",
+  "SILVERADO 1500",
+  "2024",
+  "ELECTRICAL SYSTEM",
+  "ELE",
+  "",
+  "This Preliminary Information communicates to GM technicians to submit GDS session logs and diagnostic data to TAC before further repairs. Use the following labor code for warranty transaction submission.",
+].join("\t");
+
+const CHEVROLET_FLOOR_MAT_LINE = [
+  "11030002",
+  "",
+  "20250620",
+  "PI9998",
+  "20250619",
+  "",
+  "Service Bulletin/Repair Instructions",
+  "CHEVROLET",
+  "EQUINOX",
+  "2024",
+  "STRUCTURE",
+  "BODY",
+  "",
+  "This bulletin provides information about proper floor mat use and retention clip inspection to prevent pedal interference. This is preventive information and not a repair for a specific fault.",
+].join("\t");
+
+const CHEVROLET_TAC_PICO_LINE = [
+  "11030003",
+  "",
+  "20250620",
+  "PIP5601C",
+  "20250619",
+  "",
+  "Service Bulletin/Repair Instructions",
+  "CHEVROLET",
+  "SILVERADO 1500",
+  "2024",
+  "ELECTRICAL SYSTEM",
+  "ELE",
+  "",
+  "This PI communicates the requirement to provide a pico file to receive diagnostic assistance from TAC.",
+].join("\t");
+
+const CHEVROLET_NORMAL_OPERATION_LINE = [
+  "11030004",
+  "",
+  "20250620",
+  "23-NA-153",
+  "20250619",
+  "",
+  "Service Bulletin/Repair Instructions",
+  "CHEVROLET",
+  "CAPTIVA",
+  "2014",
+  "POWER TRAIN",
+  "TRANS",
+  "",
+  "The service bulletin advises the tech of a normal transmission shift condition and the delay in throttle response when the throttle plate is opened rapidly and advises the customer that it is normal for the delay.",
+].join("\t");
+
 const SUBARU_VDC_REFLASH_LINE = [
   "11022303",
   "",
@@ -496,6 +564,34 @@ test("classifyTsbRecord sends false-positive DTC bulletin to review", () => {
   const result = classifyTsbRecord(record);
   assert.equal(result.stage, "to_review");
   assert.match(result.reason, /preventive|false-positive|investigation/i);
+});
+
+test("classifyTsbRecord discards GM TAC workflow bulletin noise", () => {
+  const record = mergeTsbRecords(null, parseTsbLine(CHEVROLET_TAC_ADMIN_LINE));
+  const result = classifyTsbRecord(record);
+  assert.equal(result.stage, "discarded");
+  assert.match(result.reason, /administrative|TAC|generic service guidance/i);
+});
+
+test("classifyTsbRecord discards GM floor-mat preventive guidance", () => {
+  const record = mergeTsbRecords(null, parseTsbLine(CHEVROLET_FLOOR_MAT_LINE));
+  const result = classifyTsbRecord(record);
+  assert.equal(result.stage, "discarded");
+  assert.match(result.reason, /administrative|generic service guidance/i);
+});
+
+test("classifyTsbRecord discards GM TAC pico-file workflow bulletin", () => {
+  const record = mergeTsbRecords(null, parseTsbLine(CHEVROLET_TAC_PICO_LINE));
+  const result = classifyTsbRecord(record);
+  assert.equal(result.stage, "discarded");
+  assert.match(result.reason, /administrative|TAC|generic service guidance/i);
+});
+
+test("classifyTsbRecord discards GM normal-operation bulletin", () => {
+  const record = mergeTsbRecords(null, parseTsbLine(CHEVROLET_NORMAL_OPERATION_LINE));
+  const result = classifyTsbRecord(record);
+  assert.equal(result.stage, "discarded");
+  assert.match(result.reason, /administrative|generic service guidance/i);
 });
 
 test("classifyTsbRecord keeps specific Subaru VDC DTC reflash case ready", () => {

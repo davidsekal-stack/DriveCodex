@@ -127,6 +127,33 @@ const DISCARD_PATTERNS = [
   /\bpolicy\b/i,
 ];
 
+const GM_MAKES = new Set(["CHEVROLET", "GMC", "CADILLAC", "BUICK"]);
+const GM_ADMIN_DISCARD_PATTERNS = [
+  /\b(?:submit|send|upload)\b[\s\S]{0,120}\b(?:gds|snapshot|session logs?|diagnostic data|data log|log file|pictures?|photos?)\b[\s\S]{0,120}\b(?:tac|technical assistance center)\b/i,
+  /\bprovide a pico file to receive diagnostic assistance from tac\b/i,
+  /\bemail gds2 session logs into technical assistance\b/i,
+  /\b(?:contact|call)\s+tac\b/i,
+  /\buse the following labor code\b/i,
+  /\blabor code\b[\s\S]{0,80}\b(?:warranty|claim|transaction)\b/i,
+  /\bproper floor mat use\b/i,
+  /\bfloor mat\b[\s\S]{0,80}\b(?:retention|usage|interference)\b/i,
+  /\bunderbody component corrosion\b/i,
+  /\bfluid testing procedures?\b/i,
+  /\bhow to recover the image processing module\b/i,
+  /\buse of j-35616-64b\b/i,
+  /\bmultiple repair attempts\b[\s\S]{0,220}\btechnical assistance center\b/i,
+  /\btire sidewall irregularities\b/i,
+  /\bnormal transmission shift condition\b/i,
+  /\bbefore being sold\b[\s\S]{0,80}\bfull inspection\b/i,
+  /\bvehicle stock on hand\b[\s\S]{0,120}\bprepping\b/i,
+  /\bdiagnose batteries that have set for a long period of time\b/i,
+  /\bcold weather climates and testing those batteries\b/i,
+  /\bwhen the engine is replaced after severe internal engine damage\b/i,
+  /\bparts catalog assistance\b/i,
+  /\btool usage\b/i,
+  /\bdo not replace any parts at this time\b/i,
+];
+
 const GENERIC_RESOLUTION_PATTERNS = [
   /^follow the service procedure\b/i,
   /^follow the bulletin(?: repair)? procedure\b/i,
@@ -729,6 +756,11 @@ function isDiscardLike(text) {
   return DISCARD_PATTERNS.some(pattern => pattern.test(text));
 }
 
+function isGmAdminDiscard(record, text) {
+  return GM_MAKES.has(cleanText(record?.make).toUpperCase()) &&
+    GM_ADMIN_DISCARD_PATTERNS.some(pattern => pattern.test(text));
+}
+
 function looksLikeBulletinProse(text) {
   const normalized = cleanText(text);
   if (!normalized) return false;
@@ -1046,6 +1078,9 @@ export function classifyTsbRecord(record) {
   }
   if (discardLike) {
     return { stage: "discarded", reason: "Looks like a campaign/notice rather than a concrete repair case.", extracted };
+  }
+  if (isGmAdminDiscard(record, mergedText)) {
+    return { stage: "discarded", reason: "GM bulletin looks administrative, TAC/workflow, or generic service guidance rather than a concrete diagnostic repair case.", extracted };
   }
   if (!hasRepair && !hasSymptom) {
     return { stage: "discarded", reason: "No concrete symptom or repair language in summary.", extracted };
