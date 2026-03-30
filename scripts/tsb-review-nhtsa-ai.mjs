@@ -714,6 +714,10 @@ function applyDecisionToSeed(seed, decision, model) {
   return updated;
 }
 
+async function writeProgressSummary(outDir, summary) {
+  await writeJson(path.join(outDir, "summary.json"), summary);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const apiKey = process.env.DEEPSEEK_API_KEY;
@@ -726,9 +730,11 @@ async function main() {
   const reviewDir = path.join(args.outDir, "to_review");
   const rejectDir = path.join(args.outDir, "manual_review", "rejected_ai");
   const decisionsPath = path.join(args.outDir, "ai_review_decisions.jsonl");
+  const reviewErrorDir = path.join(args.outDir, "manual_review", "review_errors");
   await ensureDir(readyDir);
   await ensureDir(reviewDir);
   await ensureDir(rejectDir);
+  await ensureDir(reviewErrorDir);
   const resumeState = await loadResumeState(args.outDir, args.model);
   if (resumeState.processedPathSet.size === 0) {
     await fs.writeFile(decisionsPath, "", "utf8");
@@ -754,55 +760,88 @@ async function main() {
   const acceptedRecords = [...resumeState.acceptedRecords];
 
   for (let index = 0; index < candidatePaths.length; index++) {
-    const candidate = await loadCandidate(candidatePaths[index]);
-    const prompt = buildReviewPrompt(candidate);
-    const content = await deepseekChatJson({
-      apiKey,
-      model: args.model,
-      maxTokens: 1200,
-      messages: [{ role: "user", content: prompt }],
-    });
-    const decision = enforceCatalogResolvedDecision(
-      candidate.seed,
-      normalizeAiDecision(safeParseJsonObject(content)),
-    );
-    const decisionRecord = {
-      source_path: candidate.sourcePath,
-      source_ref: candidate.seed.source_ref ?? null,
-      vehicle_brand: candidate.seed.vehicle_brand ?? null,
-      vehicle_model: candidate.seed.vehicle_model ?? null,
-      raw_summary: candidate.summaryRaw,
-      decision,
-    };
-    await appendJsonLine(decisionsPath, decisionRecord);
-
-    if (decision.decision === "accept") {
-      const updatedSeed = applyDecisionToSeed(candidate.seed, decision, args.model);
-      acceptedRecords.push({
-        sourcePath: candidate.sourcePath,
-        seed: updatedSeed,
+    const candidatePath = candidatePaths[index];
+    try {
+      const candidate = await loadCandidate(candidatePath);
+      const prompt = buildReviewPrompt(candidate);
+      const content = await deepseekChatJson({
+        apiKey,
+        model: args.model,
+        maxTokens: 1200,
+        messages: [{ role: "user", content: prompt }],
       });
-    } else if (decision.decision === "review") {
-      await writeJson(path.join(reviewDir, `${makeDecisionId(candidate.sourcePath)}.json`), {
+      const decision = enforceCatalogResolvedDecision(
+        candidate.seed,
+        normalizeAiDecision(safeParseJsonObject(content)),
+      );
+      const decisionRecord = {
         source_path: candidate.sourcePath,
-        seed: candidate.seed,
-        source_record: candidate.sourceRecord,
+        source_ref: candidate.seed.source_ref ?? null,
+        vehicle_brand: candidate.seed.vehicle_brand ?? null,
+        vehicle_model: candidate.seed.vehicle_model ?? null,
         raw_summary: candidate.summaryRaw,
-        ai_decision: decision,
+        decision,
+      };
+      await appendJsonLine(decisionsPath, decisionRecord);
+
+      if (decision.decision === "accept") {
+        const updatedSeed = applyDecisionToSeed(candidate.seed, decision, args.model);
+        acceptedRecords.push({
+          sourcePath: candidate.sourcePath,
+          seed: updatedSeed,
+        });
+      } else if (decision.decision === "review") {
+        await writeJson(path.join(reviewDir, `${makeDecisionId(candidate.sourcePath)}.json`), {
+          source_path: candidate.sourcePath,
+          seed: candidate.seed,
+          source_record: candidate.sourceRecord,
+          raw_summary: candidate.summaryRaw,
+          ai_decision: decision,
+        });
+        summary.review++;
+      } else {
+        await writeJson(path.join(rejectDir, path.basename(candidate.sourcePath)), {
+          source_path: candidate.sourcePath,
+          seed: candidate.seed,
+          source_record: candidate.sourceRecord,
+          raw_summary: candidate.summaryRaw,
+          ai_decision: decision,
+        });
+        summary.rejected++;
+      }
+    } catch (error) {
+      const errorMessage = cleanText(error?.stack || String(error));
+      const errorDecision = {
+        decision: "review",
+        isRelevant: false,
+        hasClearSymptoms: false,
+        hasClearResolution: false,
+        matchesCaseStructure: false,
+        cleanedSymptoms: [],
+        cleanedDescription: "",
+        cleanedResolution: "",
+        reason: `AI review failed: ${errorMessage.slice(0, 500)}`,
+      };
+      await appendJsonLine(decisionsPath, {
+        source_path: candidatePath,
+        source_ref: null,
+        vehicle_brand: null,
+        vehicle_model: null,
+        raw_summary: "",
+        decision: errorDecision,
+      });
+      await writeJson(path.join(reviewErrorDir, `${makeDecisionId(candidatePath)}.json`), {
+        source_path: candidatePath,
+        ai_decision: errorDecision,
+        error: errorMessage,
       });
       summary.review++;
-    } else {
-      await writeJson(path.join(rejectDir, path.basename(candidate.sourcePath)), {
-        source_path: candidate.sourcePath,
-        seed: candidate.seed,
-        source_record: candidate.sourceRecord,
-        raw_summary: candidate.summaryRaw,
-        ai_decision: decision,
-      });
-      summary.rejected++;
     }
 
     summary.reviewed++;
+    if (summary.reviewed % 25 === 0) {
+      await writeProgressSummary(args.outDir, summary);
+    }
     if (args.sleepMs > 0 && index < candidatePaths.length - 1) {
       await sleep(args.sleepMs);
     }
@@ -825,7 +864,7 @@ async function main() {
   summary.deduped_accepted_duplicates = deduped.dropped.length;
   summary.rejected += deduped.dropped.length;
 
-  await writeJson(path.join(args.outDir, "summary.json"), summary);
+  await writeProgressSummary(args.outDir, summary);
   console.log(
     `AI-reviewed ${summary.reviewed} candidate(s). Accepted ${summary.accepted}, review ${summary.review}, rejected ${summary.rejected} into: ${args.outDir}`,
   );
