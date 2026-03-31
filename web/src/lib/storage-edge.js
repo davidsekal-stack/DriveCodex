@@ -198,3 +198,16 @@ export async function lookupManual({ brand, model, enginePower, components, faul
     return { ok: false, error: error.message || "Manual lookup failed", results: [], count: 0 };
   }
 }
+
+export async function fetchManualText({ manual, section, sectionId }) {
+  try {
+    const body = sectionId
+      ? { section_id: sectionId }
+      : { manual, section };
+    const result = await edgeFetch("manual-text", body);
+    if (result?.error) return { ok: false, error: result.error, content: null };
+    return { ok: true, ...result };
+  } catch (error) {
+    return { ok: false, error: error.message || "Manual text fetch failed", content: null };
+  }
+}

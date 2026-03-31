@@ -232,6 +232,8 @@ export const strings = {
   'diag.manualComponents':    'SOUVISEJÍCÍ DÍLY',
   'diag.manualRepairGroup':   'Skupina oprav',
   'diag.manualNoContent':     'Obsah sekce není k dispozici. Podívejte se do tištěné příručky.',
+  'diag.manualFullText':      'OBSAH KAPITOLY',
+  'diag.manualPages':         'stran',
 
   // ConfirmModal
   'confirm.cancel':           'Zrušit',

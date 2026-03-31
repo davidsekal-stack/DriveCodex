@@ -1,20 +1,55 @@
+import { useState, useEffect } from "react";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 import { useI18n } from "../i18n/index.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
+import { fetchManualText } from "../lib/storage-edge.js";
 
 // ── ManualChapterView ────────────────────────────────────────────────────────
-// Full-screen panel showing workshop manual section details.
-// Receives a `section` object (from manual-lookup edge function) + onBack callback.
+// Full-screen panel showing workshop manual section details + full text.
+// Fetches text on-demand from Supabase (only when user opens this view).
 
 export default function ManualChapterView({ section, onBack }) {
   const { t } = useTheme();
   const { tr } = useI18n();
   const mobile = useIsMobile();
+  const [textData, setTextData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch full text on mount
+  useEffect(() => {
+    if (!section) return;
+    let cancelled = false;
+    setLoading(true);
+
+    // Build section ID from manual filename + repair group (matches Neo4j/Supabase ID)
+    const manualId = section.manual?.replace('.pdf', '') ?? '';
+    const rg = section.repair_group ?? '';
+    const sectionId = rg ? `${manualId}_RG${rg}` : null;
+
+    fetchManualText({
+      sectionId,
+      manual: section.manual,
+      section: section.section,
+    }).then((res) => {
+      if (!cancelled) {
+        setTextData(res.ok ? res : null);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setTextData(null);
+        setLoading(false);
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [section?.manual, section?.section, section?.repair_group]);
 
   if (!section) return null;
 
   const hasSubsections = section.subsections?.length > 0;
   const hasComponents = section.components?.length > 0;
+  const hasText = textData?.content?.length > 0;
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -115,6 +150,18 @@ export default function ManualChapterView({ section, onBack }) {
                 {tr('diag.manualRepairGroup')} {section.repair_group}
               </span>
             )}
+            {textData?.extracted_pages && (
+              <span style={{
+                fontSize: "0.7rem",
+                color: t.textFaint,
+                background: t.bgCardAlt,
+                border: `1px solid ${t.border}`,
+                padding: "3px 10px",
+                borderRadius: 10,
+              }}>
+                {textData.extracted_pages} {tr('diag.manualPages')}
+              </span>
+            )}
           </div>
 
           {/* Components */}
@@ -152,7 +199,7 @@ export default function ManualChapterView({ section, onBack }) {
             </div>
           )}
 
-          {/* Subsections / procedures */}
+          {/* Subsections / procedures (table of contents) */}
           {hasSubsections && (
             <div style={{
               background: t.bgCard,
@@ -200,19 +247,91 @@ export default function ManualChapterView({ section, onBack }) {
             </div>
           )}
 
-          {/* Note about full content */}
-          <div style={{
-            fontSize: "0.74rem",
-            color: t.textFaint,
-            fontStyle: "italic",
-            borderLeft: `2px solid ${t.border}`,
-            paddingLeft: 10,
-            marginTop: 8,
-          }}>
-            {tr('diag.manualNoContent')}
-          </div>
+          {/* Full text content */}
+          {loading && (
+            <div style={{
+              padding: "20px 0",
+              textAlign: "center",
+              color: t.textFaint,
+              fontSize: "0.78rem",
+              fontStyle: "italic",
+            }}>
+              {tr('diag.loadingManual')}
+            </div>
+          )}
+
+          {!loading && hasText && (
+            <div style={{
+              background: t.bgCard,
+              border: `1px solid ${t.border}`,
+              padding: mobile ? "14px" : "20px 24px",
+              borderRadius: 2,
+              marginBottom: 16,
+            }}>
+              <div style={{
+                fontSize: "0.58rem",
+                color: t.textFaint,
+                letterSpacing: "0.12em",
+                marginBottom: 12,
+              }}>
+                {tr('diag.manualFullText')}
+              </div>
+              <ManualTextContent text={textData.content} t={t} mobile={mobile} />
+            </div>
+          )}
+
+          {!loading && !hasText && (
+            <div style={{
+              fontSize: "0.74rem",
+              color: t.textFaint,
+              fontStyle: "italic",
+              borderLeft: `2px solid ${t.border}`,
+              paddingLeft: 10,
+              marginTop: 8,
+            }}>
+              {tr('diag.manualNoContent')}
+            </div>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Render manual text with basic formatting ────────────────────────────────
+
+function ManualTextContent({ text, t, mobile }) {
+  // Split on section dividers (---) which we inserted for page breaks
+  const pages = text.split('\n---\n').filter(Boolean);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {pages.map((pageText, i) => (
+        <div key={i}>
+          {i > 0 && (
+            <div style={{
+              borderTop: `1px dashed ${t.border}`,
+              marginBottom: 12,
+              paddingTop: 4,
+              fontSize: "0.58rem",
+              color: t.textVeryFaint,
+              letterSpacing: "0.1em",
+            }}>
+              — {i + 1} —
+            </div>
+          )}
+          <div style={{
+            fontSize: mobile ? "0.78rem" : "0.84rem",
+            color: t.text,
+            lineHeight: 1.8,
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            fontFamily: "'IBM Plex Mono','Courier New',monospace",
+          }}>
+            {pageText.trim()}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
