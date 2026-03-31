@@ -232,6 +232,8 @@ export const strings = {
   'diag.manualComponents':    'RELATED COMPONENTS',
   'diag.manualRepairGroup':   'Repair group',
   'diag.manualNoContent':     'Section content not available. Refer to the printed manual.',
+  'diag.manualFullText':      'CHAPTER CONTENT',
+  'diag.manualPages':         'pages',
 
   // ConfirmModal
   'confirm.cancel':           'Cancel',

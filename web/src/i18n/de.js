@@ -232,6 +232,8 @@ export const strings = {
   'diag.manualComponents':    'ZUGEHÖRIGE KOMPONENTEN',
   'diag.manualRepairGroup':   'Reparaturgruppe',
   'diag.manualNoContent':     'Abschnittsinhalt nicht verfügbar. Siehe gedrucktes Handbuch.',
+  'diag.manualFullText':      'KAPITELINHALT',
+  'diag.manualPages':         'Seiten',
 
   // ConfirmModal
   'confirm.cancel':           'Abbrechen',
