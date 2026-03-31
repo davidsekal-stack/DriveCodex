@@ -234,6 +234,8 @@ export const strings = {
   'diag.manualNoContent':     'Abschnittsinhalt nicht verfügbar. Siehe gedrucktes Handbuch.',
   'diag.manualFullText':      'KAPITELINHALT',
   'diag.manualPages':         'Seiten',
+  'diag.aiFormat':            '✦ AI-Format',
+  'diag.aiFormatting':        'Formatierung...',
 
   // ConfirmModal
   'confirm.cancel':           'Abbrechen',
