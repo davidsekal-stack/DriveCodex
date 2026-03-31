@@ -234,6 +234,8 @@ export const strings = {
   'diag.manualNoContent':     'Section content not available. Refer to the printed manual.',
   'diag.manualFullText':      'CHAPTER CONTENT',
   'diag.manualPages':         'pages',
+  'diag.aiFormat':            '✦ AI format',
+  'diag.aiFormatting':        'Formatting...',
 
   // ConfirmModal
   'confirm.cancel':           'Cancel',

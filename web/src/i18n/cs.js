@@ -234,6 +234,8 @@ export const strings = {
   'diag.manualNoContent':     'Obsah sekce není k dispozici. Podívejte se do tištěné příručky.',
   'diag.manualFullText':      'OBSAH KAPITOLY',
   'diag.manualPages':         'stran',
+  'diag.aiFormat':            '✦ AI formát',
+  'diag.aiFormatting':        'Formátuji...',
 
   // ConfirmModal
   'confirm.cancel':           'Zrušit',
