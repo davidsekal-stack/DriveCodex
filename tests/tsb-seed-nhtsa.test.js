@@ -821,6 +821,29 @@ test("resolveCatalogVehicle maps Jeep Recon and keeps unsupported Commander unre
   assert.equal(commander.resolved, false);
 });
 
+test("resolveCatalogVehicle maps Jeep Wagoneer S exactly and via EV summary hint", () => {
+  const wagoneerS = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "WAGONEER S",
+    model_year: "2025",
+  });
+  assert.equal(wagoneerS.vehicle_brand, "Jeep");
+  assert.equal(wagoneerS.vehicle_model, "Wagoneer S (2025–present)");
+  assert.equal(wagoneerS.market, "US");
+
+  const hinted = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "WAGONEER",
+    model_year: "2025",
+    summary: "Customers may comment on unable to charge at Level-1, Level-2 or DC Fast Charge stations and 12 volt battery lamp on. Reprogram the IDCM, BPCM, MCP A, MCP B and EVCU.",
+  });
+  assert.equal(hinted.vehicle_brand, "Jeep");
+  assert.equal(hinted.vehicle_model, "Wagoneer S (2025–present)");
+  assert.equal(hinted.market, "US");
+});
+
 test("resolveCatalogVehicle maps GMC Savana, Yukon variants and Sierra EV to US catalog", () => {
   const savana = resolveCatalogVehicle({
     ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),

@@ -209,6 +209,15 @@ const MODEL_ALIAS_RULES = {
   ],
 };
 
+const JEEP_WAGONEER_S_HINT_PATTERNS = [
+  /\bwagoneer s\b/i,
+  /\b(?:level[- ]1|level[- ]2|dc fast charge|high voltage charging station)\b/i,
+  /\b(?:idcm|bpcm|mcp a|mcp b|evcu|wheel end disconnect)\b/i,
+  /\bdrive ready mode\b/i,
+  /\b12 ?volt battery lamp\b/i,
+  /\bcharge module\b/i,
+];
+
 const MODEL_TRIM_TOKENS = new Set([
   "BASE", "SPORT", "LIMITED", "LUXURY", "PLATINUM", "PREMIUM", "SIGNATURE", "RESERVE",
   "TOURING", "GT", "GT2", "GT3", "GT4", "GTS", "GTX", "RS", "R", "S", "SRT", "N",
@@ -546,6 +555,13 @@ function buildModelKeyCandidates(make, model) {
   return [...candidates];
 }
 
+function prefersJeepWagoneerS(record) {
+  if (normalizeComparableText(record?.make) !== "JEEP") return false;
+  if (normalizeComparableText(record?.model) !== "WAGONEER") return false;
+  const summary = String(record?.summary ?? "");
+  return JEEP_WAGONEER_S_HINT_PATTERNS.some(pattern => pattern.test(summary));
+}
+
 function tokenizeModelKey(value) {
   return normalizeComparableText(value)
     .split(" ")
@@ -577,6 +593,9 @@ export function resolveCatalogVehicle(record) {
   const year = Number(record.model_year);
   const brandCandidates = getCandidateBrandNames(record.make);
   const modelCandidates = buildModelKeyCandidates(record.make, record.model);
+  if (prefersJeepWagoneerS(record)) {
+    modelCandidates.unshift(normalizeComparableText("Wagoneer S"));
+  }
   const modelTokenCandidates = modelCandidates.map(candidate => tokenizeModelKey(candidate));
   const rawBrand = formatMake(record.make);
   const rawModel = formatVehicleModel(record.model, record.model_year);

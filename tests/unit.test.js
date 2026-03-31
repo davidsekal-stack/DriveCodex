@@ -1572,18 +1572,20 @@ describe('helpers — makeEmptyVehicle', () => {
   })
 
   describe('catalog — Jeep US coverage', () => {
-    test('obsahuje ověřené US varianty Wrangler 4xe, Grand Cherokee L, Grand Cherokee 4xe a Recon', () => {
+    test('obsahuje ověřené US varianty Wrangler 4xe, Grand Cherokee L, Grand Cherokee 4xe, Wagoneer S a Recon', () => {
       const jeepEntry = getBrandEntry('Jeep')
       ok(jeepEntry)
       ok(jeepEntry.expertise.includes('Wrangler 4xe'))
       ok(jeepEntry.expertise.includes('Grand Cherokee L'))
       ok(jeepEntry.expertise.includes('Grand Cherokee 4xe'))
+      ok(jeepEntry.expertise.includes('Wagoneer S'))
       ok(jeepEntry.expertise.includes('Recon'))
 
       const jeepModels = getBrandModels('Jeep').map(model => model.label).filter(Boolean)
       ok(jeepModels.includes('Wrangler 4xe (2021–present)'))
       ok(jeepModels.includes('Grand Cherokee L (2021–present)'))
       ok(jeepModels.includes('Grand Cherokee 4xe (2022–present)'))
+      ok(jeepModels.includes('Wagoneer S (2025–present)'))
       ok(jeepModels.includes('Recon (2026–present)'))
     })
   })

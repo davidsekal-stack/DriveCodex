@@ -181,7 +181,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Jeep",
     active:    true,
-    expertise: "Jeep SUVs and trucks — Wrangler JK/JL and Wrangler 4xe, Grand Cherokee WK2/WL plus Grand Cherokee L and Grand Cherokee 4xe, Cherokee KL, Compass, Renegade, Gladiator, Wagoneer, Recon EV — 3.6L Pentastar V6, 2.0L Hurricane Turbo, 5.7L/6.4L HEMI, 3.0L EcoDiesel, 4xe PHEV, Dana axles, NV transfer cases, Rock-Trac 4WD, 2007–present US spec",
+    expertise: "Jeep SUVs and trucks — Wrangler JK/JL and Wrangler 4xe, Grand Cherokee WK2/WL plus Grand Cherokee L and Grand Cherokee 4xe, Cherokee KL, Compass, Renegade, Gladiator, Wagoneer, Wagoneer S, Recon EV — 3.6L Pentastar V6, 2.0L Hurricane Turbo, 5.7L/6.4L HEMI, 3.0L EcoDiesel, 4xe PHEV, dual-motor EV, Dana axles, NV transfer cases, Rock-Trac 4WD, 2007–present US spec",
     models: [
       // ── Wrangler ─────────────────────────────────────────────────────────
       { group: "Wrangler" },
@@ -217,6 +217,7 @@ export const VEHICLE_CATALOG_US = [
       { group: "Wagoneer / Grand Wagoneer" },
       { label: "Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
       { label: "Grand Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
+      { label: "Wagoneer S (2025–present)", powers: ["600 hp – dual-motor EV"] },
 
       // ── Recon ────────────────────────────────────────────────────────────
       { group: "Recon" },
