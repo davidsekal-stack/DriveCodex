@@ -1572,19 +1572,59 @@ describe('helpers — makeEmptyVehicle', () => {
   })
 
   describe('catalog — Jeep US coverage', () => {
-    test('obsahuje ověřené US varianty Wrangler 4xe, Grand Cherokee L, Grand Cherokee 4xe a Recon', () => {
+    test('obsahuje ověřené US varianty Wrangler 4xe, Grand Cherokee L, Grand Cherokee 4xe, Wagoneer S a Recon', () => {
       const jeepEntry = getBrandEntry('Jeep')
       ok(jeepEntry)
       ok(jeepEntry.expertise.includes('Wrangler 4xe'))
       ok(jeepEntry.expertise.includes('Grand Cherokee L'))
       ok(jeepEntry.expertise.includes('Grand Cherokee 4xe'))
+      ok(jeepEntry.expertise.includes('Wagoneer S'))
       ok(jeepEntry.expertise.includes('Recon'))
 
       const jeepModels = getBrandModels('Jeep').map(model => model.label).filter(Boolean)
       ok(jeepModels.includes('Wrangler 4xe (2021–present)'))
       ok(jeepModels.includes('Grand Cherokee L (2021–present)'))
       ok(jeepModels.includes('Grand Cherokee 4xe (2022–present)'))
+      ok(jeepModels.includes('Wagoneer S (2024–present)'))
       ok(jeepModels.includes('Recon (2026–present)'))
+    })
+  })
+
+  describe('catalog — Volvo US coverage', () => {
+    test('obsahuje ověřené US modely XC60, XC90, XC40/EX40, EC40, EX30, EX90, V90 a cross-country řady', () => {
+      const volvoEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Volvo (US)')
+      ok(volvoEntry)
+      ok(volvoEntry.expertise.includes('EX30'))
+      ok(volvoEntry.expertise.includes('EX90'))
+      ok(volvoEntry.expertise.includes('V90'))
+      ok(volvoEntry.expertise.includes('V60 Cross Country'))
+      ok(volvoEntry.expertise.includes('V90 Cross Country'))
+
+      const volvoModels = volvoEntry.models.map(model => model.label).filter(Boolean)
+      ok(volvoModels.includes('XC60 (2018–present)'))
+      ok(volvoModels.includes('XC90 (2016–present)'))
+      ok(volvoModels.includes('XC40 Recharge / EX40 (2021–present)'))
+      ok(volvoModels.includes('C40 Recharge / EC40 (2022–present)'))
+      ok(volvoModels.includes('EX30 (2025–present)'))
+      ok(volvoModels.includes('EX90 (2025–present)'))
+      ok(volvoModels.includes('V90 (2017–present)'))
+      ok(volvoModels.includes('V60 Cross Country (2020–present)'))
+      ok(volvoModels.includes('V90 Cross Country (2018–present)'))
+    })
+  })
+
+  describe('catalog — Mercedes-Benz coverage', () => {
+    test('obsahuje ověřené G-Class a SL R232 gapy pro NHTSA trim mapping', () => {
+      const mercedesEntry = getBrandEntry('Mercedes-Benz')
+      ok(mercedesEntry)
+      ok(mercedesEntry.expertise.includes('Mercedes-Benz'))
+
+      const mercedesModels = getBrandModels('Mercedes-Benz').map(model => model.label).filter(Boolean)
+      ok(mercedesModels.includes('G-Class W463 (2000–2018)'))
+      ok(mercedesModels.includes('G-Class W463A (2018–současnost)'))
+      ok(mercedesModels.includes('SL R232 (2022–současnost)'))
+      ok(mercedesModels.includes('EQB X243 (2021–současnost)'))
+      ok(mercedesModels.includes('EQS V297 (2021–současnost)'))
     })
   })
 

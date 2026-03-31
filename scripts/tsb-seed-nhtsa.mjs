@@ -202,12 +202,86 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^SIERRA DENALI$/i, values: ["Sierra 1500"] },
   ],
   JEEP: [
+    { pattern: /^WRANGLER$/i, values: ["Wrangler JL"] },
     { pattern: /^WRANGLER!?4XE$/i, values: ["Wrangler 4xe", "Wrangler JL"] },
+    { pattern: /^GRAND CHEROKEE$/i, values: ["Grand Cherokee WL"] },
     { pattern: /^GRAND CHEROKEE 4XE$/i, values: ["Grand Cherokee 4xe", "Grand Cherokee WL"] },
     { pattern: /^GRAND CHEROKEE L$/i, values: ["Grand Cherokee L", "Grand Cherokee WL"] },
+    { pattern: /^WAGONEER$/i, values: ["Wagoneer"] },
     { pattern: /^RECON$/i, values: ["Recon"] },
   ],
+  "MERCEDES BENZ": [
+    { pattern: /^(?:A ?\d+|AMG A ?\d+)/i, values: ["A-Class"] },
+    { pattern: /^(?:B ?\d+|AMG B ?\d+)/i, values: ["B-Class"] },
+    { pattern: /^(?:C ?\d+|AMG C ?\d+)/i, values: ["C-Class"] },
+    { pattern: /^(?:CLA ?\d+|AMG CLA ?\d+)/i, values: ["CLA"] },
+    { pattern: /^(?:CLS ?\d+|AMG CLS ?\d+)/i, values: ["CLS C257", "CLS C218 / X218"] },
+    { pattern: /^(?:E ?\d+|AMG E ?\d+)/i, values: ["E-Class"] },
+    { pattern: /^(?:S ?\d+|AMG S ?\d+)/i, values: ["S-Class"] },
+    { pattern: /^(?:GLA ?\d+|AMG GLA ?\d+)/i, values: ["GLA"] },
+    { pattern: /^(?:GLB ?\d+|AMG GLB ?\d+)/i, values: ["GLB"] },
+    { pattern: /^(?:GLC ?\d+|AMG GLC ?\d+)/i, values: ["GLC"] },
+    { pattern: /^(?:GLE ?\d+|AMG GLE ?\d+)/i, values: ["GLE"] },
+    { pattern: /^(?:GLS ?\d+|AMG GLS ?\d+)/i, values: ["GLS"] },
+    { pattern: /^(?:G ?550|G ?580(?: WITH EQ TECHNOLOGY)?|G ?63|AMG G ?(?:55|63|65))$/i, values: ["G-Class W463A", "G-Class W463"] },
+    { pattern: /^(?:ML ?\d+|AMG ML ?\d+)/i, values: ["ML-Class W166", "ML-Class W164"] },
+    { pattern: /^(?:GL ?\d+)$/i, values: ["GL / GLS X166", "GL-Class X164"] },
+    { pattern: /^GLK ?\d+$/i, values: ["GLK X204"] },
+    { pattern: /^R ?\d+$/i, values: ["R-Class W251"] },
+    { pattern: /^CL ?(?:550|600|63|65)$/i, values: ["CL C216"] },
+    { pattern: /^(?:CLE ?(?:300|450)|AMG CLE ?53)$/i, values: ["CLE C/A236"] },
+    { pattern: /^SPRINTER ?(?:\(VS30\)|1500|2500|3500|4500)$/i, values: ["Sprinter W907/W910 2.1 CDI"] },
+    { pattern: /^(?:SL ?(?:450|550|63|65)|AMG SL ?(?:43|55|63(?: S E)?|65))$/i, values: ["SL R232", "SL R231", "SL R230"] },
+    { pattern: /^SLK ?\d+$/i, values: ["SLK R172", "SLK R171"] },
+    { pattern: /^(?:SLC ?300|AMG SLC ?43)$/i, values: ["SLC R172"] },
+    { pattern: /^METRIS$/i, values: ["Vito W447"] },
+    { pattern: /^EQA\b/i, values: ["EQA H243"] },
+    { pattern: /^(?:EQB|AMG EQB)\b/i, values: ["EQB X243"] },
+    { pattern: /^EQC\b/i, values: ["EQC N293"] },
+    { pattern: /^(?:EQE|AMG EQE)\b/i, values: ["EQE V295"] },
+    { pattern: /(?:^| )EQS\b|redundant EQS 450/i, values: ["EQS V297"] },
+  ],
+  VOLVO: [
+    { pattern: /^XC60PHEV$/i, values: ["XC60"] },
+    { pattern: /^XC60MHEV$/i, values: ["XC60"] },
+    { pattern: /^XC90PHEV$/i, values: ["XC90"] },
+    { pattern: /^XC90MHEV$/i, values: ["XC90"] },
+    { pattern: /^XC90E$/i, values: ["XC90"] },
+    { pattern: /^S60PHEV$/i, values: ["S60"] },
+    { pattern: /^S60MHEV$/i, values: ["S60"] },
+    { pattern: /^S90PHEV$/i, values: ["S90"] },
+    { pattern: /^S90MHEV$/i, values: ["S90"] },
+    { pattern: /^V60PHEV$/i, values: ["V60"] },
+    { pattern: /^V60MHEV$/i, values: ["V60"] },
+    { pattern: /^V60CCMHEV$/i, values: ["V60 Cross Country"] },
+    { pattern: /^V90CCMHEV$/i, values: ["V90 Cross Country"] },
+    { pattern: /^XC40MHEV$/i, values: ["XC40"] },
+    { pattern: /^XC40BEV$/i, values: ["EX40", "XC40 Recharge / EX40"] },
+    { pattern: /^C40BEV$/i, values: ["EC40", "C40 Recharge / EC40"] },
+    { pattern: /^DUPLICATE C40BEV$/i, values: ["EC40", "C40 Recharge / EC40"] },
+    { pattern: /^EX40$/i, values: ["EX40", "XC40 Recharge / EX40"] },
+    { pattern: /^EC40$/i, values: ["EC40", "C40 Recharge / EC40"] },
+  ],
 };
+
+const JEEP_WAGONEER_S_HINT_PATTERNS = [
+  /\bwagoneer s\b/i,
+  /\b(?:level[- ]1|level[- ]2|dc fast charge|high voltage charging station)\b/i,
+  /\b(?:idcm|bpcm|mcp a|mcp b|evcu|wheel end disconnect)\b/i,
+  /\bdrive ready mode\b/i,
+  /\b12 ?volt battery lamp\b/i,
+  /\bcharge module\b/i,
+];
+
+const VOLVO_COMMERCIAL_MODEL_PATTERNS = [
+  /^VN$/i,
+  /^VNL(?: \(\d+\))?$/i,
+  /^VNR(?: \(\d+\))?$/i,
+  /^VNRE(?: \(ELECTRIC\))?$/i,
+  /^VHD$/i,
+  /^VAH$/i,
+  /^VT$/i,
+];
 
 const MODEL_TRIM_TOKENS = new Set([
   "BASE", "SPORT", "LIMITED", "LUXURY", "PLATINUM", "PREMIUM", "SIGNATURE", "RESERVE",
@@ -321,8 +395,18 @@ function isWarrantyExtension(record) {
 function shouldKeepByFilter(record, args) {
   if (args.make && record.make.toLowerCase() !== args.make.toLowerCase()) return false;
   if (args.model && record.model.toLowerCase() !== args.model.toLowerCase()) return false;
+  if (isExcludedCommercialModel(record)) return false;
   if (!hasSupportedCatalogBrand(record.make)) return false;
   return true;
+}
+
+export function isExcludedCommercialModel(record) {
+  const make = normalizeComparableText(record?.make);
+  const model = cleanText(record?.model);
+  if (make === "VOLVO") {
+    return VOLVO_COMMERCIAL_MODEL_PATTERNS.some((pattern) => pattern.test(model));
+  }
+  return false;
 }
 
 function makeGroupKey(record) {
@@ -546,6 +630,25 @@ function buildModelKeyCandidates(make, model) {
   return [...candidates];
 }
 
+function prefersJeepWagoneerS(record) {
+  if (normalizeComparableText(record?.make) !== "JEEP") return false;
+  if (normalizeComparableText(record?.model) !== "WAGONEER") return false;
+  const summary = String(record?.summary ?? "");
+  return JEEP_WAGONEER_S_HINT_PATTERNS.some(pattern => pattern.test(summary));
+}
+
+function getForcedJeepCatalogMatch(record) {
+  if (normalizeComparableText(record?.make) !== "JEEP") return null;
+  const model = normalizeComparableText(record?.model);
+  if (model === "WRANGLER") {
+    return { brand: "Jeep", market: "US", label: "Wrangler JL (2018–)", group: "Wrangler" };
+  }
+  if (model === "GRAND CHEROKEE") {
+    return { brand: "Jeep", market: "US", label: "Grand Cherokee WL (2021–)", group: "Grand Cherokee" };
+  }
+  return null;
+}
+
 function tokenizeModelKey(value) {
   return normalizeComparableText(value)
     .split(" ")
@@ -574,9 +677,27 @@ function compareScores(a, b) {
 }
 
 export function resolveCatalogVehicle(record) {
+  const forcedJeep = getForcedJeepCatalogMatch(record);
+  if (forcedJeep) {
+    return {
+      resolved: true,
+      market: forcedJeep.market,
+      vehicle_brand: forcedJeep.brand,
+      vehicle_model: forcedJeep.label,
+      raw_brand: formatMake(record.make),
+      raw_model: formatVehicleModel(record.model, record.model_year),
+      matched_group: forcedJeep.group,
+      candidate_brands: getCandidateBrandNames(record.make),
+      candidate_model_keys: buildModelKeyCandidates(record.make, record.model),
+    };
+  }
+
   const year = Number(record.model_year);
   const brandCandidates = getCandidateBrandNames(record.make);
   const modelCandidates = buildModelKeyCandidates(record.make, record.model);
+  if (prefersJeepWagoneerS(record)) {
+    modelCandidates.unshift(normalizeComparableText("Wagoneer S"));
+  }
   const modelTokenCandidates = modelCandidates.map(candidate => tokenizeModelKey(candidate));
   const rawBrand = formatMake(record.make);
   const rawModel = formatVehicleModel(record.model, record.model_year);
@@ -607,8 +728,8 @@ export function resolveCatalogVehicle(record) {
         const rangeSpan = modelEntry.year_range ? modelEntry.year_range.end - modelEntry.year_range.start : 9999;
         const score = [
           brandPriority,
+          exactLabelMatch ? 0 : exactGroupMatch ? 1 : fuzzyLabelMatch ? 2 : 3,
           modelPriority,
-          exactGroupMatch ? 0 : exactLabelMatch ? 1 : fuzzyGroupMatch ? 2 : 3,
           rangeSpan,
           modelEntry.label.length,
         ];

@@ -11,6 +11,7 @@ import {
   extractSeedParts,
   finalizeStageForSeed,
   hasSupportedCatalogBrand,
+  isExcludedCommercialModel,
   mergeTsbRecords,
   makePatternKey,
   parseArgs,
@@ -799,6 +800,26 @@ test("resolveCatalogVehicle maps Jeep 4xe and L variants to US catalog", () => {
   assert.equal(wrangler4xe.vehicle_brand, "Jeep");
   assert.equal(wrangler4xe.vehicle_model, "Wrangler 4xe (2021–present)");
   assert.equal(wrangler4xe.market, "US");
+
+  const wrangler = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "WRANGLER",
+    model_year: "2025",
+  });
+  assert.equal(wrangler.vehicle_brand, "Jeep");
+  assert.equal(wrangler.vehicle_model, "Wrangler JL (2018–)");
+  assert.equal(wrangler.market, "US");
+
+  const gc = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "GRAND CHEROKEE",
+    model_year: "2025",
+  });
+  assert.equal(gc.vehicle_brand, "Jeep");
+  assert.equal(gc.vehicle_model, "Grand Cherokee WL (2021–)");
+  assert.equal(gc.market, "US");
 });
 
 test("resolveCatalogVehicle maps Jeep Recon and keeps unsupported Commander unresolved", () => {
@@ -819,6 +840,29 @@ test("resolveCatalogVehicle maps Jeep Recon and keeps unsupported Commander unre
     model_year: "2022",
   });
   assert.equal(commander.resolved, false);
+});
+
+test("resolveCatalogVehicle maps Jeep Wagoneer S exactly and via EV summary hint", () => {
+  const wagoneerS = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "WAGONEER S",
+    model_year: "2024",
+  });
+  assert.equal(wagoneerS.vehicle_brand, "Jeep");
+  assert.equal(wagoneerS.vehicle_model, "Wagoneer S (2024–present)");
+  assert.equal(wagoneerS.market, "US");
+
+  const hinted = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "WAGONEER",
+    model_year: "2025",
+    summary: "Customers may comment on unable to charge at Level-1, Level-2 or DC Fast Charge stations and 12 volt battery lamp on. Reprogram the IDCM, BPCM, MCP A, MCP B and EVCU.",
+  });
+  assert.equal(hinted.vehicle_brand, "Jeep");
+  assert.equal(hinted.vehicle_model, "Wagoneer S (2024–present)");
+  assert.equal(hinted.market, "US");
 });
 
 test("resolveCatalogVehicle maps GMC Savana, Yukon variants and Sierra EV to US catalog", () => {
@@ -919,8 +963,142 @@ test("hasSupportedCatalogBrand filters unsupported and non-catalog makes", () =>
   assert.equal(hasSupportedCatalogBrand("MINI"), true);
   assert.equal(hasSupportedCatalogBrand("RIVIAN"), true);
   assert.equal(hasSupportedCatalogBrand("LUCID"), true);
+  assert.equal(hasSupportedCatalogBrand("VOLVO"), true);
   assert.equal(hasSupportedCatalogBrand("HARLEY-DAVIDSON"), false);
   assert.equal(hasSupportedCatalogBrand("SEAT COVER UNLIMITED"), false);
+});
+
+test("resolveCatalogVehicle maps Volvo US passenger-car aliases to US catalog", () => {
+  const xc60Phev = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "XC60PHEV",
+    model_year: "2025",
+  });
+  assert.equal(xc60Phev.vehicle_brand, "Volvo (US)");
+  assert.equal(xc60Phev.vehicle_model, "XC60 (2018–present)");
+  assert.equal(xc60Phev.market, "US");
+
+  const c40Bev = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "C40BEV",
+    model_year: "2025",
+  });
+  assert.equal(c40Bev.vehicle_brand, "Volvo (US)");
+  assert.equal(c40Bev.vehicle_model, "C40 Recharge / EC40 (2022–present)");
+  assert.equal(c40Bev.market, "US");
+
+  const ex90 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "EX90",
+    model_year: "2025",
+  });
+  assert.equal(ex90.vehicle_brand, "Volvo (US)");
+  assert.equal(ex90.vehicle_model, "EX90 (2025–present)");
+  assert.equal(ex90.market, "US");
+
+  const v90 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "V90",
+    model_year: "2021",
+  });
+  assert.equal(v90.vehicle_brand, "Volvo (US)");
+  assert.equal(v90.vehicle_model, "V90 (2017–present)");
+  assert.equal(v90.market, "US");
+});
+
+test("isExcludedCommercialModel filters Volvo Trucks entries out of the passenger-car slice", () => {
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "VN" }), true);
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "VNL (4)" }), true);
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "VNRE (ELECTRIC)" }), true);
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "XC60PHEV" }), false);
+  assert.equal(isExcludedCommercialModel({ make: "JEEP", model: "WRANGLER" }), false);
+});
+
+test("resolveCatalogVehicle maps Mercedes-Benz trim-like NHTSA models to catalog families", () => {
+  const s580 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "S 580",
+    model_year: "2022",
+  });
+  assert.equal(s580.vehicle_brand, "Mercedes-Benz");
+  assert.equal(s580.vehicle_model, "S-Class W223 (2020–současnost)");
+
+  const eqb = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "EQB 350 4MATIC",
+    model_year: "2025",
+  });
+  assert.equal(eqb.vehicle_brand, "Mercedes-Benz");
+  assert.equal(eqb.vehicle_model, "EQB X243 (2021–současnost)");
+
+  const sprinter = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "SPRINTER 2500",
+    model_year: "2025",
+  });
+  assert.equal(sprinter.vehicle_brand, "Mercedes-Benz");
+  assert.equal(sprinter.vehicle_model, "Sprinter W907/W910 2.1 CDI (2018–současnost)");
+
+  const gClass = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "AMG G63",
+    model_year: "2025",
+  });
+  assert.equal(gClass.vehicle_brand, "Mercedes-Benz");
+  assert.equal(gClass.vehicle_model, "G-Class W463A (2018–současnost)");
+
+  const cls = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "CLS450",
+    model_year: "2023",
+  });
+  assert.equal(cls.vehicle_brand, "Mercedes-Benz");
+  assert.equal(cls.vehicle_model, "CLS C257 (2018–2023)");
+
+  const sl = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "AMG SL63",
+    model_year: "2025",
+  });
+  assert.equal(sl.vehicle_brand, "Mercedes-Benz");
+  assert.equal(sl.vehicle_model, "SL R232 (2022–současnost)");
+
+  const glk = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "GLK350",
+    model_year: "2015",
+  });
+  assert.equal(glk.vehicle_brand, "Mercedes-Benz");
+  assert.equal(glk.vehicle_model, "GLK X204 (2008–2015)");
+
+  const cle = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "CLE 450",
+    model_year: "2025",
+  });
+  assert.equal(cle.vehicle_brand, "Mercedes-Benz");
+  assert.equal(cle.vehicle_model, "CLE C/A236 (2023–dosud)");
+
+  const metris = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "METRIS",
+    model_year: "2023",
+  });
+  assert.equal(metris.vehicle_brand, "Mercedes-Benz");
+  assert.equal(metris.vehicle_model, "Vito W447 (2014–současnost)");
 });
 
 test("finalizeStageForSeed downgrades unresolved ready candidates to review", () => {

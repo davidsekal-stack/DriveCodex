@@ -181,7 +181,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Jeep",
     active:    true,
-    expertise: "Jeep SUVs and trucks — Wrangler JK/JL and Wrangler 4xe, Grand Cherokee WK2/WL plus Grand Cherokee L and Grand Cherokee 4xe, Cherokee KL, Compass, Renegade, Gladiator, Wagoneer, Recon EV — 3.6L Pentastar V6, 2.0L Hurricane Turbo, 5.7L/6.4L HEMI, 3.0L EcoDiesel, 4xe PHEV, Dana axles, NV transfer cases, Rock-Trac 4WD, 2007–present US spec",
+    expertise: "Jeep SUVs and trucks — Wrangler JK/JL and Wrangler 4xe, Grand Cherokee WK2/WL plus Grand Cherokee L and Grand Cherokee 4xe, Cherokee KL, Compass, Renegade, Gladiator, Wagoneer, Wagoneer S, Recon EV — 3.6L Pentastar V6, 2.0L Hurricane Turbo, 5.7L/6.4L HEMI, 3.0L EcoDiesel, 4xe PHEV, dual-motor EV, Dana axles, NV transfer cases, Rock-Trac 4WD, 2007–present US spec",
     models: [
       // ── Wrangler ─────────────────────────────────────────────────────────
       { group: "Wrangler" },
@@ -217,6 +217,7 @@ export const VEHICLE_CATALOG_US = [
       { group: "Wagoneer / Grand Wagoneer" },
       { label: "Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
       { label: "Grand Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
+      { label: "Wagoneer S (2024–present)", powers: ["600 hp – dual-motor EV"] },
 
       // ── Recon ────────────────────────────────────────────────────────────
       { group: "Recon" },
@@ -1242,6 +1243,49 @@ export const VEHICLE_CATALOG_US = [
       { label: "GranTurismo (2008–2019)" },
       { label: "GranTurismo (2024–present)" },
       { label: "MC20 (2022–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Volvo (US)",
+    active:    false,
+      expertise: "Volvo Cars US passenger lineup — S60, S90, V60, V60 Cross Country, V90, V90 Cross Country, XC40, XC60, XC90, EX30, EX40, EC40 and EX90 — B5/B6 mild hybrid, T8 plug-in hybrid and newer BEV drivetrains, 2016–present US spec",
+    models: [
+      { group: "S60" },
+      { label: "S60 (2019–2025)", powers: ["247 hp – B5 AWD mild hybrid", "455 hp – T8 AWD plug-in hybrid"] },
+
+      { group: "S90" },
+      { label: "S90 (2017–present)", powers: ["295 hp – B6 AWD mild hybrid", "455 hp – T8 AWD plug-in hybrid"] },
+
+        { group: "V60" },
+        { label: "V60 (2019–2024)", powers: ["455 hp – T8 AWD plug-in hybrid"] },
+        { label: "V60 Cross Country (2020–present)", powers: ["247 hp – B5 AWD mild hybrid"] },
+
+        { group: "V90" },
+        { label: "V90 (2017–present)", powers: ["295 hp – B6 AWD mild hybrid", "455 hp – T8 AWD plug-in hybrid"] },
+
+        { group: "V90 Cross Country" },
+        { label: "V90 Cross Country (2018–present)", powers: ["295 hp – B6 AWD mild hybrid"] },
+
+      { group: "XC40" },
+      { label: "XC40 (2019–present)", powers: ["247 hp – B5 AWD mild hybrid"] },
+      { label: "XC40 Recharge / EX40 (2021–present)", powers: ["248 hp – Single Motor EV", "402 hp – Twin Motor EV AWD"] },
+
+      { group: "EC40" },
+      { label: "C40 Recharge / EC40 (2022–present)", powers: ["248 hp – Single Motor EV", "402 hp – Twin Motor EV AWD"] },
+
+      { group: "XC60" },
+      { label: "XC60 (2018–present)", powers: ["247 hp – B5 AWD mild hybrid", "455 hp – T8 AWD plug-in hybrid"] },
+
+      { group: "XC90" },
+      { label: "XC90 (2016–present)", powers: ["247 hp – B5 AWD mild hybrid", "455 hp – T8 AWD plug-in hybrid"] },
+
+      { group: "EX30" },
+      { label: "EX30 (2025–present)", powers: ["268 hp – Single Motor Extended Range EV", "422 hp – Twin Motor Performance EV"] },
+
+      { group: "EX90" },
+      { label: "EX90 (2025–present)", powers: ["402 hp – Twin Motor EV AWD", "510 hp – Twin Motor Performance EV AWD"] },
     ],
   },
 
