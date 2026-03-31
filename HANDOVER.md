@@ -56,7 +56,7 @@ Aktuální branch:
 - `main`
 
 Aktuální `HEAD`:
-- `b000774` `fix: map Jeep US NHTSA variants safely`
+- `c9a4c33` `feat: add Volvo US NHTSA mapping and reviewed import`
 
 Remote stav při poslední kontrole:
 - `origin/main` odpovídá lokálnímu `HEAD`
