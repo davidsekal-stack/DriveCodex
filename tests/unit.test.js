@@ -1585,7 +1585,7 @@ describe('helpers — makeEmptyVehicle', () => {
       ok(jeepModels.includes('Wrangler 4xe (2021–present)'))
       ok(jeepModels.includes('Grand Cherokee L (2021–present)'))
       ok(jeepModels.includes('Grand Cherokee 4xe (2022–present)'))
-      ok(jeepModels.includes('Wagoneer S (2025–present)'))
+      ok(jeepModels.includes('Wagoneer S (2024–present)'))
       ok(jeepModels.includes('Recon (2026–present)'))
     })
   })

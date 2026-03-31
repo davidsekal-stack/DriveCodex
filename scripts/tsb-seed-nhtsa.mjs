@@ -202,9 +202,12 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^SIERRA DENALI$/i, values: ["Sierra 1500"] },
   ],
   JEEP: [
+    { pattern: /^WRANGLER$/i, values: ["Wrangler JL"] },
     { pattern: /^WRANGLER!?4XE$/i, values: ["Wrangler 4xe", "Wrangler JL"] },
+    { pattern: /^GRAND CHEROKEE$/i, values: ["Grand Cherokee WL"] },
     { pattern: /^GRAND CHEROKEE 4XE$/i, values: ["Grand Cherokee 4xe", "Grand Cherokee WL"] },
     { pattern: /^GRAND CHEROKEE L$/i, values: ["Grand Cherokee L", "Grand Cherokee WL"] },
+    { pattern: /^WAGONEER$/i, values: ["Wagoneer"] },
     { pattern: /^RECON$/i, values: ["Recon"] },
   ],
 };
@@ -562,6 +565,18 @@ function prefersJeepWagoneerS(record) {
   return JEEP_WAGONEER_S_HINT_PATTERNS.some(pattern => pattern.test(summary));
 }
 
+function getForcedJeepCatalogMatch(record) {
+  if (normalizeComparableText(record?.make) !== "JEEP") return null;
+  const model = normalizeComparableText(record?.model);
+  if (model === "WRANGLER") {
+    return { brand: "Jeep", market: "US", label: "Wrangler JL (2018–)", group: "Wrangler" };
+  }
+  if (model === "GRAND CHEROKEE") {
+    return { brand: "Jeep", market: "US", label: "Grand Cherokee WL (2021–)", group: "Grand Cherokee" };
+  }
+  return null;
+}
+
 function tokenizeModelKey(value) {
   return normalizeComparableText(value)
     .split(" ")
@@ -590,6 +605,21 @@ function compareScores(a, b) {
 }
 
 export function resolveCatalogVehicle(record) {
+  const forcedJeep = getForcedJeepCatalogMatch(record);
+  if (forcedJeep) {
+    return {
+      resolved: true,
+      market: forcedJeep.market,
+      vehicle_brand: forcedJeep.brand,
+      vehicle_model: forcedJeep.label,
+      raw_brand: formatMake(record.make),
+      raw_model: formatVehicleModel(record.model, record.model_year),
+      matched_group: forcedJeep.group,
+      candidate_brands: getCandidateBrandNames(record.make),
+      candidate_model_keys: buildModelKeyCandidates(record.make, record.model),
+    };
+  }
+
   const year = Number(record.model_year);
   const brandCandidates = getCandidateBrandNames(record.make);
   const modelCandidates = buildModelKeyCandidates(record.make, record.model);
@@ -626,8 +656,8 @@ export function resolveCatalogVehicle(record) {
         const rangeSpan = modelEntry.year_range ? modelEntry.year_range.end - modelEntry.year_range.start : 9999;
         const score = [
           brandPriority,
+          exactLabelMatch ? 0 : exactGroupMatch ? 1 : fuzzyLabelMatch ? 2 : 3,
           modelPriority,
-          exactGroupMatch ? 0 : exactLabelMatch ? 1 : fuzzyGroupMatch ? 2 : 3,
           rangeSpan,
           modelEntry.label.length,
         ];

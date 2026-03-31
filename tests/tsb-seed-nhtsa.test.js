@@ -799,6 +799,26 @@ test("resolveCatalogVehicle maps Jeep 4xe and L variants to US catalog", () => {
   assert.equal(wrangler4xe.vehicle_brand, "Jeep");
   assert.equal(wrangler4xe.vehicle_model, "Wrangler 4xe (2021–present)");
   assert.equal(wrangler4xe.market, "US");
+
+  const wrangler = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "WRANGLER",
+    model_year: "2025",
+  });
+  assert.equal(wrangler.vehicle_brand, "Jeep");
+  assert.equal(wrangler.vehicle_model, "Wrangler JL (2018–)");
+  assert.equal(wrangler.market, "US");
+
+  const gc = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "GRAND CHEROKEE",
+    model_year: "2025",
+  });
+  assert.equal(gc.vehicle_brand, "Jeep");
+  assert.equal(gc.vehicle_model, "Grand Cherokee WL (2021–)");
+  assert.equal(gc.market, "US");
 });
 
 test("resolveCatalogVehicle maps Jeep Recon and keeps unsupported Commander unresolved", () => {
@@ -826,10 +846,10 @@ test("resolveCatalogVehicle maps Jeep Wagoneer S exactly and via EV summary hint
     ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
     make: "JEEP",
     model: "WAGONEER S",
-    model_year: "2025",
+    model_year: "2024",
   });
   assert.equal(wagoneerS.vehicle_brand, "Jeep");
-  assert.equal(wagoneerS.vehicle_model, "Wagoneer S (2025–present)");
+  assert.equal(wagoneerS.vehicle_model, "Wagoneer S (2024–present)");
   assert.equal(wagoneerS.market, "US");
 
   const hinted = resolveCatalogVehicle({
@@ -840,7 +860,7 @@ test("resolveCatalogVehicle maps Jeep Wagoneer S exactly and via EV summary hint
     summary: "Customers may comment on unable to charge at Level-1, Level-2 or DC Fast Charge stations and 12 volt battery lamp on. Reprogram the IDCM, BPCM, MCP A, MCP B and EVCU.",
   });
   assert.equal(hinted.vehicle_brand, "Jeep");
-  assert.equal(hinted.vehicle_model, "Wagoneer S (2025–present)");
+  assert.equal(hinted.vehicle_model, "Wagoneer S (2024–present)");
   assert.equal(hinted.market, "US");
 });
 

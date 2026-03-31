@@ -217,7 +217,7 @@ export const VEHICLE_CATALOG_US = [
       { group: "Wagoneer / Grand Wagoneer" },
       { label: "Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
       { label: "Grand Wagoneer (2022–present)", powers: ["420 hp – 3.0L Hurricane I6 Turbo", "510 hp – 3.0L Hurricane I6 HO Turbo"] },
-      { label: "Wagoneer S (2025–present)", powers: ["600 hp – dual-motor EV"] },
+      { label: "Wagoneer S (2024–present)", powers: ["600 hp – dual-motor EV"] },
 
       // ── Recon ────────────────────────────────────────────────────────────
       { group: "Recon" },
