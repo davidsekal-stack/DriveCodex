@@ -225,6 +225,13 @@ export const strings = {
   'diag.loadingManual':       'Suche in Werkstatthandbüchern...',
   'diag.manualPage':          'S.',
   'diag.moreProcedures':      'weitere Verfahren',
+  'diag.openProcedure':       'Verfahren anzeigen',
+  'diag.manualViewTitle':     'WERKSTATTHANDBUCH',
+  'diag.manualViewBack':      'Zurück zur Diagnose',
+  'diag.manualSubsections':   'VERFAHREN',
+  'diag.manualComponents':    'ZUGEHÖRIGE KOMPONENTEN',
+  'diag.manualRepairGroup':   'Reparaturgruppe',
+  'diag.manualNoContent':     'Abschnittsinhalt nicht verfügbar. Siehe gedrucktes Handbuch.',
 
   // ConfirmModal
   'confirm.cancel':           'Abbrechen',

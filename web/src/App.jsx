@@ -17,6 +17,7 @@ import ConsentGate                          from "./components/ConsentBanner.jsx
 import WelcomeView                          from "./components/WelcomeView.jsx";
 import ReviewPanel                          from "./components/ReviewPanel.jsx";
 import AnalyticsPanel                       from "./components/AnalyticsPanel.jsx";
+import ManualChapterView                    from "./components/ManualChapterView.jsx";
 import useAdminData                         from "./hooks/useAdminData.js";
 import useAppBootstrapData                  from "./hooks/useAppBootstrapData.js";
 import useAuthSession                       from "./hooks/useAuthSession.js";
@@ -45,6 +46,8 @@ function App() {
   const { appReady, session, setSession } = useAuthSession();
 
   const [view,       setView]       = useState("welcome");
+  const [manualSection, setManualSection] = useState(null);
+  const [prevView,   setPrevView]   = useState("welcome");
 
   const {
     cases, activeCase, activeId, setActiveId,
@@ -132,6 +135,17 @@ function App() {
     setView("welcome");
   }, [setSession, setView]);
 
+  const handleOpenManual = useCallback((section) => {
+    setPrevView(view);
+    setManualSection(section);
+    setView("manual");
+  }, [view]);
+
+  const handleBackFromManual = useCallback(() => {
+    setView(prevView === "manual" ? "session" : prevView);
+    setManualSection(null);
+  }, [prevView]);
+
   // ── Loading ───────────────────────────────────────────────────────────────
   if (!appReady) {
     return <LoadingScreen message={tr("app.loading")} />;
@@ -185,6 +199,14 @@ function App() {
 
         {/* MAIN */}
         <main style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+
+          {/* Manual chapter view */}
+          {view === "manual" && manualSection && (
+            <ManualChapterView
+              section={manualSection}
+              onBack={handleBackFromManual}
+            />
+          )}
 
           {/* Admin analytics */}
           {view === "analytics" && isAdmin && (
@@ -245,6 +267,7 @@ function App() {
               lang={lang}
               loading={loading}
               mobile={mobile}
+              onOpenManual={handleOpenManual}
               onRequestCloseCase={openCloseModal}
               onRequestDelete={requestDeleteCase}
               onRunDiag={runDiag}

@@ -15,6 +15,7 @@ export default function SessionView({
   mobile,
   onRequestCloseCase,
   onRequestDelete,
+  onOpenManual,
   onRunDiag,
   tr,
 }) {
@@ -50,6 +51,7 @@ export default function SessionView({
         lang={lang}
         loading={loading}
         mobile={mobile}
+        onOpenManual={onOpenManual}
         tr={tr}
       />
 
