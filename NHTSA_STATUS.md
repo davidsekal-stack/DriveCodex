@@ -1,6 +1,6 @@
 # NHTSA TSB Status
 
-Aktualizováno: 2026-03-29
+Aktualizováno: 2026-03-31
 
 ## Scope note
 
@@ -93,7 +93,12 @@ Source file:
 - [C:\Users\sekald\Downloads\TSBS_RECEIVED_2025-2025\TSBS_RECEIVED_2025-2025.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt)
 
 Current clean imported total from this file:
-- `732` unique cases
+- `at least 764` unique cases
+
+Note:
+- The previous verified total was `732`.
+- The latest fully reviewed Volvo pass added `32/32` clean imports.
+- The detailed per-brand breakdown below has not yet been fully recomputed after the March 31 cleanup/reimport passes, so treat it as a lower-fidelity snapshot except where explicitly updated.
 
 Current imported breakdown:
 - `Jeep` `121`
@@ -118,17 +123,23 @@ Current imported breakdown:
 - `Polestar` `4`
 - `Mitsubishi` `3`
 - `Tesla (US)` `1`
+- `Volvo` `32`
 
 Newly completed in the latest pass:
 - `GMC` `58`
+- `Volvo` `32`
 
 Closed with no safe subset in the latest pass:
 - `Volkswagen (US)` `0`
 
 Pending large backlogs from this file:
-- `Chevrolet`
-- `Volvo`
 - `Mercedes-Benz`
+
+Latest Volvo review artifacts:
+- reviewed subset: [C:\GB\tmp\nhtsa_2025_volvo_ai_reviewed_full_20260331](C:/GB/tmp/nhtsa_2025_volvo_ai_reviewed_full_20260331)
+- audit: [C:\GB\tmp\nhtsa_2025_volvo_ai_reviewed_full_20260331\MANUAL_REVIEW.md](C:/GB/tmp/nhtsa_2025_volvo_ai_reviewed_full_20260331/MANUAL_REVIEW.md)
+- dry import: [C:\GB\seed_import_supabase_nhtsa_2025_volvo_dry_20260331\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2025_volvo_dry_20260331/results.jsonl)
+- live import: [C:\GB\seed_import_supabase_nhtsa_2025_volvo_live_20260331\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2025_volvo_live_20260331/results.jsonl)
 
 ## Key pipeline changes already in place
 

@@ -11,6 +11,7 @@ import {
   extractSeedParts,
   finalizeStageForSeed,
   hasSupportedCatalogBrand,
+  isExcludedCommercialModel,
   mergeTsbRecords,
   makePatternKey,
   parseArgs,
@@ -962,8 +963,59 @@ test("hasSupportedCatalogBrand filters unsupported and non-catalog makes", () =>
   assert.equal(hasSupportedCatalogBrand("MINI"), true);
   assert.equal(hasSupportedCatalogBrand("RIVIAN"), true);
   assert.equal(hasSupportedCatalogBrand("LUCID"), true);
+  assert.equal(hasSupportedCatalogBrand("VOLVO"), true);
   assert.equal(hasSupportedCatalogBrand("HARLEY-DAVIDSON"), false);
   assert.equal(hasSupportedCatalogBrand("SEAT COVER UNLIMITED"), false);
+});
+
+test("resolveCatalogVehicle maps Volvo US passenger-car aliases to US catalog", () => {
+  const xc60Phev = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "XC60PHEV",
+    model_year: "2025",
+  });
+  assert.equal(xc60Phev.vehicle_brand, "Volvo (US)");
+  assert.equal(xc60Phev.vehicle_model, "XC60 (2018–present)");
+  assert.equal(xc60Phev.market, "US");
+
+  const c40Bev = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "C40BEV",
+    model_year: "2025",
+  });
+  assert.equal(c40Bev.vehicle_brand, "Volvo (US)");
+  assert.equal(c40Bev.vehicle_model, "C40 Recharge / EC40 (2022–present)");
+  assert.equal(c40Bev.market, "US");
+
+  const ex90 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "EX90",
+    model_year: "2025",
+  });
+  assert.equal(ex90.vehicle_brand, "Volvo (US)");
+  assert.equal(ex90.vehicle_model, "EX90 (2025–present)");
+  assert.equal(ex90.market, "US");
+
+  const v90 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "VOLVO",
+    model: "V90",
+    model_year: "2021",
+  });
+  assert.equal(v90.vehicle_brand, "Volvo (US)");
+  assert.equal(v90.vehicle_model, "V90 (2017–present)");
+  assert.equal(v90.market, "US");
+});
+
+test("isExcludedCommercialModel filters Volvo Trucks entries out of the passenger-car slice", () => {
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "VN" }), true);
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "VNL (4)" }), true);
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "VNRE (ELECTRIC)" }), true);
+  assert.equal(isExcludedCommercialModel({ make: "VOLVO", model: "XC60PHEV" }), false);
+  assert.equal(isExcludedCommercialModel({ make: "JEEP", model: "WRANGLER" }), false);
 });
 
 test("finalizeStageForSeed downgrades unresolved ready candidates to review", () => {

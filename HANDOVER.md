@@ -1,6 +1,6 @@
 ﻿# Handover
 
-Aktualizováno: 2026-03-29
+Aktualizováno: 2026-03-31
 
 ## Nepřekročitelné pravidlo pro seed importy
 
@@ -46,8 +46,9 @@ Nejčerstvější praktický stav:
 - existují hotové crawlery pro `VW`, `Toyota`, `Ford`, `Peugeot`, `Renault`, `Audi`, `Opel`, `BMW`, `SEAT`, `Citroën`
 - pro `Citroën/BMW/Opel/SEAT` je nově připravený sekvenční batch runner nad root fóry
 - Audi crawler byl po copy-paste chybě opraven a z druhého signals běhu bylo ručně potvrzeno `5 ready`
-- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď čistě importováno `732` unikátních případů; naposledy byly bezpečně doplněny `Cadillac` `65`, `Jeep` `121` a `GMC` `58`
-- aktuální velké backlogy z téhož souboru jsou `Chevrolet`, `Volvo` a `Mercedes-Benz`; u `Volvo` je před AI review potřeba nejdřív doplnit US katalogové mapování pro současné PHEV/MHEV/BEV modely, jinak se validní kandidáti zbytečně shazují do unresolved review
+- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď bezpečně importováno `at least 764` unikátních případů; poslední čistě uzavřený brand pass je `Volvo` `32/32`
+- Volvo pass už má doplněný US katalog pro `V90` a současné `MHEV/PHEV/BEV` aliasy; `V60CCPHEV` zůstal vědomě mimo katalog, protože pro US podporu nebyla dost silná oficiální opora
+- aktuální velký backlog z téhož souboru je hlavně `Mercedes-Benz`
 
 ## Stav větví a push do GitHubu
 
@@ -163,7 +164,27 @@ Poznámka k aktuálnímu stavu:
 - při prvním batch discovery běhu byl nalezen a opraven blocker v root discovery: kategorie se předávaly do inventory pod špatnými klíči `forum_url/forum_title` místo `forumUrl/forumTitle`
 - po tomto fixu je potřeba discovery nad těmito čtyřmi kluby pustit znovu
 
-### 5. Live Supabase testy jsou rozdělené do procesních suite
+### 5. NHTSA 2025 pipeline je aktuálně dotažená pro Volvo
+
+Nové nebo změněné soubory:
+- [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
+- [web/src/constants/catalog-us.js](/C:/GB/web/src/constants/catalog-us.js)
+- [tests/tsb-seed-nhtsa.test.js](/C:/GB/tests/tsb-seed-nhtsa.test.js)
+- [tests/unit.test.js](/C:/GB/tests/unit.test.js)
+- [NHTSA_STATUS.md](/C:/GB/NHTSA_STATUS.md)
+
+Co se udělalo:
+- Volvo parser nově odfiltruje truck řady `VN/VNL/VNR/VHD/VAH/VT` ze passenger-car slice.
+- US katalog se rozšířil o bezpečně ověřený `V90 (2017–present)`.
+- Alias resolver teď bezpečně mapuje `XC40MHEV/XC40BEV/EX40/EC40`, `XC60/90 MHEV/PHEV`, `S60/S90 MHEV/PHEV`, `V60/V90` a cross-country varianty tam, kde je pro ně oficiální US opora.
+- Finální Volvo subset po individuálním AI + manual review skončil na `32 ready`, `0 to_review`, `7 rejected_review`.
+- Rejected byly hlavně:
+  - `V60CCPHEV` unresolved případy bez dost pevné US katalogové opory
+  - navigation map bulletiny, kde Volvo samo píše, že jde jen o dočasný reset/workaround a teprve připravuje budoucí countermeasure
+- Import log:
+  - [seed_import_supabase_nhtsa_2025_volvo_live_20260331/results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_volvo_live_20260331/results.jsonl)
+
+### 6. Live Supabase testy jsou rozdělené do procesních suite
 
 Původní monolitický live test v [tests/supabase-integration.test.js](/C:/GB/tests/supabase-integration.test.js) byl rozdělen na harness + suite:
 

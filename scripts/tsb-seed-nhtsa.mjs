@@ -210,6 +210,27 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^WAGONEER$/i, values: ["Wagoneer"] },
     { pattern: /^RECON$/i, values: ["Recon"] },
   ],
+  VOLVO: [
+    { pattern: /^XC60PHEV$/i, values: ["XC60"] },
+    { pattern: /^XC60MHEV$/i, values: ["XC60"] },
+    { pattern: /^XC90PHEV$/i, values: ["XC90"] },
+    { pattern: /^XC90MHEV$/i, values: ["XC90"] },
+    { pattern: /^XC90E$/i, values: ["XC90"] },
+    { pattern: /^S60PHEV$/i, values: ["S60"] },
+    { pattern: /^S60MHEV$/i, values: ["S60"] },
+    { pattern: /^S90PHEV$/i, values: ["S90"] },
+    { pattern: /^S90MHEV$/i, values: ["S90"] },
+    { pattern: /^V60PHEV$/i, values: ["V60"] },
+    { pattern: /^V60MHEV$/i, values: ["V60"] },
+    { pattern: /^V60CCMHEV$/i, values: ["V60 Cross Country"] },
+    { pattern: /^V90CCMHEV$/i, values: ["V90 Cross Country"] },
+    { pattern: /^XC40MHEV$/i, values: ["XC40"] },
+    { pattern: /^XC40BEV$/i, values: ["EX40", "XC40 Recharge / EX40"] },
+    { pattern: /^C40BEV$/i, values: ["EC40", "C40 Recharge / EC40"] },
+    { pattern: /^DUPLICATE C40BEV$/i, values: ["EC40", "C40 Recharge / EC40"] },
+    { pattern: /^EX40$/i, values: ["EX40", "XC40 Recharge / EX40"] },
+    { pattern: /^EC40$/i, values: ["EC40", "C40 Recharge / EC40"] },
+  ],
 };
 
 const JEEP_WAGONEER_S_HINT_PATTERNS = [
@@ -219,6 +240,16 @@ const JEEP_WAGONEER_S_HINT_PATTERNS = [
   /\bdrive ready mode\b/i,
   /\b12 ?volt battery lamp\b/i,
   /\bcharge module\b/i,
+];
+
+const VOLVO_COMMERCIAL_MODEL_PATTERNS = [
+  /^VN$/i,
+  /^VNL(?: \(\d+\))?$/i,
+  /^VNR(?: \(\d+\))?$/i,
+  /^VNRE(?: \(ELECTRIC\))?$/i,
+  /^VHD$/i,
+  /^VAH$/i,
+  /^VT$/i,
 ];
 
 const MODEL_TRIM_TOKENS = new Set([
@@ -333,8 +364,18 @@ function isWarrantyExtension(record) {
 function shouldKeepByFilter(record, args) {
   if (args.make && record.make.toLowerCase() !== args.make.toLowerCase()) return false;
   if (args.model && record.model.toLowerCase() !== args.model.toLowerCase()) return false;
+  if (isExcludedCommercialModel(record)) return false;
   if (!hasSupportedCatalogBrand(record.make)) return false;
   return true;
+}
+
+export function isExcludedCommercialModel(record) {
+  const make = normalizeComparableText(record?.make);
+  const model = cleanText(record?.model);
+  if (make === "VOLVO") {
+    return VOLVO_COMMERCIAL_MODEL_PATTERNS.some((pattern) => pattern.test(model));
+  }
+  return false;
 }
 
 function makeGroupKey(record) {

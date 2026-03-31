@@ -1590,6 +1590,29 @@ describe('helpers — makeEmptyVehicle', () => {
     })
   })
 
+  describe('catalog — Volvo US coverage', () => {
+    test('obsahuje ověřené US modely XC60, XC90, XC40/EX40, EC40, EX30, EX90, V90 a cross-country řady', () => {
+      const volvoEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Volvo (US)')
+      ok(volvoEntry)
+      ok(volvoEntry.expertise.includes('EX30'))
+      ok(volvoEntry.expertise.includes('EX90'))
+      ok(volvoEntry.expertise.includes('V90'))
+      ok(volvoEntry.expertise.includes('V60 Cross Country'))
+      ok(volvoEntry.expertise.includes('V90 Cross Country'))
+
+      const volvoModels = volvoEntry.models.map(model => model.label).filter(Boolean)
+      ok(volvoModels.includes('XC60 (2018–present)'))
+      ok(volvoModels.includes('XC90 (2016–present)'))
+      ok(volvoModels.includes('XC40 Recharge / EX40 (2021–present)'))
+      ok(volvoModels.includes('C40 Recharge / EC40 (2022–present)'))
+      ok(volvoModels.includes('EX30 (2025–present)'))
+      ok(volvoModels.includes('EX90 (2025–present)'))
+      ok(volvoModels.includes('V90 (2017–present)'))
+      ok(volvoModels.includes('V60 Cross Country (2020–present)'))
+      ok(volvoModels.includes('V90 Cross Country (2018–present)'))
+    })
+  })
+
   describe('catalog — Lincoln coverage', () => {
     test('obsahuje ověřené US modely MKC, MKX, Continental a MKT', () => {
       const lincolnEntry = getBrandEntry('Lincoln')
