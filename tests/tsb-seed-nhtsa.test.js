@@ -1018,6 +1018,89 @@ test("isExcludedCommercialModel filters Volvo Trucks entries out of the passenge
   assert.equal(isExcludedCommercialModel({ make: "JEEP", model: "WRANGLER" }), false);
 });
 
+test("resolveCatalogVehicle maps Mercedes-Benz trim-like NHTSA models to catalog families", () => {
+  const s580 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "S 580",
+    model_year: "2022",
+  });
+  assert.equal(s580.vehicle_brand, "Mercedes-Benz");
+  assert.equal(s580.vehicle_model, "S-Class W223 (2020–současnost)");
+
+  const eqb = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "EQB 350 4MATIC",
+    model_year: "2025",
+  });
+  assert.equal(eqb.vehicle_brand, "Mercedes-Benz");
+  assert.equal(eqb.vehicle_model, "EQB X243 (2021–současnost)");
+
+  const sprinter = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "SPRINTER 2500",
+    model_year: "2025",
+  });
+  assert.equal(sprinter.vehicle_brand, "Mercedes-Benz");
+  assert.equal(sprinter.vehicle_model, "Sprinter W907/W910 2.1 CDI (2018–současnost)");
+
+  const gClass = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "AMG G63",
+    model_year: "2025",
+  });
+  assert.equal(gClass.vehicle_brand, "Mercedes-Benz");
+  assert.equal(gClass.vehicle_model, "G-Class W463A (2018–současnost)");
+
+  const cls = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "CLS450",
+    model_year: "2023",
+  });
+  assert.equal(cls.vehicle_brand, "Mercedes-Benz");
+  assert.equal(cls.vehicle_model, "CLS C257 (2018–2023)");
+
+  const sl = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "AMG SL63",
+    model_year: "2025",
+  });
+  assert.equal(sl.vehicle_brand, "Mercedes-Benz");
+  assert.equal(sl.vehicle_model, "SL R232 (2022–současnost)");
+
+  const glk = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "GLK350",
+    model_year: "2015",
+  });
+  assert.equal(glk.vehicle_brand, "Mercedes-Benz");
+  assert.equal(glk.vehicle_model, "GLK X204 (2008–2015)");
+
+  const cle = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "CLE 450",
+    model_year: "2025",
+  });
+  assert.equal(cle.vehicle_brand, "Mercedes-Benz");
+  assert.equal(cle.vehicle_model, "CLE C/A236 (2023–dosud)");
+
+  const metris = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "METRIS",
+    model_year: "2023",
+  });
+  assert.equal(metris.vehicle_brand, "Mercedes-Benz");
+  assert.equal(metris.vehicle_model, "Vito W447 (2014–současnost)");
+});
+
 test("finalizeStageForSeed downgrades unresolved ready candidates to review", () => {
   const classification = {
     stage: "ready",

@@ -1126,11 +1126,12 @@ export const VEHICLE_CATALOG = [
       { group: "CLK / CLE / roadsters" },
       { label: "CLK W209 (2002–2009)" },
       { label: "CLE C/A236 (2023–dosud)" },
-      { label: "SL R230 (2001–2011)" },
-      { label: "SL R231 (2012–2020)" },
-      { label: "SLK R171 (2004–2011)" },
-      { label: "SLK R172 (2011–2016)" },
-      { label: "SLC R172 (2016–2020)" },
+        { label: "SL R230 (2001–2011)" },
+        { label: "SL R231 (2012–2020)" },
+        { label: "SL R232 (2022–současnost)", powers: ["280 kW – SL 43 2.0 (M139)", "350 kW – SL 55 AMG 4.0 V8 (M177)", "430 kW – SL 63 AMG 4.0 V8 (M177)", "600 kW – SL 63 S E Performance 4.0 PHEV (M177)"] },
+        { label: "SLK R171 (2004–2011)" },
+        { label: "SLK R172 (2011–2016)" },
+        { label: "SLC R172 (2016–2020)" },
 
       // ── CLS / CL / S-Class Coupé ────────────────────────────────────────────
       { group: "CLS / CL / S-Class Coupé" },
@@ -1140,17 +1141,22 @@ export const VEHICLE_CATALOG = [
       { label: "CLS C257 (2018–2023)" },
       { label: "S-Class Coupé / Cabrio C/A217 (2014–2020)" },
 
-      // ── R-Class / ML / GL / GLK ────────────────────────────────────────────
-      { group: "R-Class / ML / GL / GLK" },
-      { label: "R-Class W251 (2005–2013)" },
-      { label: "ML-Class W164 (2005–2011)" },
-      { label: "ML-Class W166 (2011–2015)" },
-      { label: "GL-Class X164 (2006–2012)" },
-      { label: "GLK X204 (2008–2015)" },
+        // ── R-Class / ML / GL / GLK ────────────────────────────────────────────
+        { group: "R-Class / ML / GL / GLK" },
+        { label: "R-Class W251 (2005–2013)" },
+        { label: "ML-Class W164 (2005–2011)" },
+        { label: "ML-Class W166 (2011–2015)" },
+        { label: "GL-Class X164 (2006–2012)" },
+        { label: "GLK X204 (2008–2015)" },
 
-      // ── GLE ────────────────────────────────────────────────────────────────────
-      { group: "GLE" },
-      { label: "GLE W166/C292 (2015–2019)", powers: ["155 kW – GLE 250d 2.1 (OM651)", "150 kW – GLE 300d 2.0 (OM654)", "190 kW – GLE 350d 3.0 (OM642)", "200 kW – GLE 400 3.0 (M276)", "270 kW – GLE 43 AMG 3.0 (M276)", "375 kW – GLE 63 AMG 5.5 (M157)", "410 kW – GLE 63 S AMG 5.5 (M157)"] },
+        // ── G-Class ───────────────────────────────────────────────────────────────
+        { group: "G-Class" },
+        { label: "G-Class W463 (2000–2018)" },
+        { label: "G-Class W463A (2018–současnost)", powers: ["310 kW – G 500 / G 550 4.0 V8 (M176)", "430 kW – G 63 AMG 4.0 V8 (M177)", "432 kW – G 580 EQ Electric"] },
+
+        // ── GLE ────────────────────────────────────────────────────────────────────
+        { group: "GLE" },
+        { label: "GLE W166/C292 (2015–2019)", powers: ["155 kW – GLE 250d 2.1 (OM651)", "150 kW – GLE 300d 2.0 (OM654)", "190 kW – GLE 350d 3.0 (OM642)", "200 kW – GLE 400 3.0 (M276)", "270 kW – GLE 43 AMG 3.0 (M276)", "375 kW – GLE 63 AMG 5.5 (M157)", "410 kW – GLE 63 S AMG 5.5 (M157)"] },
       { label: "GLE V167/C167 (2019–současnost)", powers: ["190 kW – GLE 300d 2.0 (OM654)", "210 kW – GLE 350d 3.0 (OM656)", "243 kW – GLE 400d 3.0 (OM656)", "200 kW – GLE 350 2.0 (M264)", "270 kW – GLE 450 3.0 (M256)", "280 kW – GLE 53 AMG 3.0 (M256)", "420 kW – GLE 63 S AMG 4.0 (M177)", "245 kW – GLE 350de PHEV (OM654)"] },
 
       // ── GLS ────────────────────────────────────────────────────────────────────

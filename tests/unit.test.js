@@ -1613,6 +1613,21 @@ describe('helpers — makeEmptyVehicle', () => {
     })
   })
 
+  describe('catalog — Mercedes-Benz coverage', () => {
+    test('obsahuje ověřené G-Class a SL R232 gapy pro NHTSA trim mapping', () => {
+      const mercedesEntry = getBrandEntry('Mercedes-Benz')
+      ok(mercedesEntry)
+      ok(mercedesEntry.expertise.includes('Mercedes-Benz'))
+
+      const mercedesModels = getBrandModels('Mercedes-Benz').map(model => model.label).filter(Boolean)
+      ok(mercedesModels.includes('G-Class W463 (2000–2018)'))
+      ok(mercedesModels.includes('G-Class W463A (2018–současnost)'))
+      ok(mercedesModels.includes('SL R232 (2022–současnost)'))
+      ok(mercedesModels.includes('EQB X243 (2021–současnost)'))
+      ok(mercedesModels.includes('EQS V297 (2021–současnost)'))
+    })
+  })
+
   describe('catalog — Lincoln coverage', () => {
     test('obsahuje ověřené US modely MKC, MKX, Continental a MKT', () => {
       const lincolnEntry = getBrandEntry('Lincoln')
