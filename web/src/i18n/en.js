@@ -225,6 +225,13 @@ export const strings = {
   'diag.loadingManual':       'Searching workshop manuals...',
   'diag.manualPage':          'p.',
   'diag.moreProcedures':      'more procedures',
+  'diag.openProcedure':       'View procedure',
+  'diag.manualViewTitle':     'WORKSHOP MANUAL',
+  'diag.manualViewBack':      'Back to diagnosis',
+  'diag.manualSubsections':   'PROCEDURES',
+  'diag.manualComponents':    'RELATED COMPONENTS',
+  'diag.manualRepairGroup':   'Repair group',
+  'diag.manualNoContent':     'Section content not available. Refer to the printed manual.',
 
   // ConfirmModal
   'confirm.cancel':           'Cancel',

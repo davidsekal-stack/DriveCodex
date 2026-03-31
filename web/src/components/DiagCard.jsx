@@ -65,9 +65,123 @@ function getUniqueRagSources(ragMatches = []) {
   return unique;
 }
 
+// ── Per-fault manual references (inline in each FaultCard) ──────────────────
+
+function FaultManualRef({ vehicle, fault, tr, onOpenManual }) {
+  const { t } = useTheme();
+  const [refs, setRefs] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!vehicle?.brand) return;
+
+    const components = (fault.díly || []).filter(Boolean);
+    const faultNames = [fault.název].filter(Boolean);
+    if (components.length === 0 && faultNames.length === 0) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    lookupManual({
+      brand: vehicle.brand,
+      model: vehicle.model,
+      enginePower: vehicle.enginePower,
+      components,
+      faultNames,
+    }).then((res) => {
+      if (!cancelled) {
+        setRefs(res.ok ? res.results : []);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setRefs([]);
+        setLoading(false);
+      }
+    });
+
+    return () => { cancelled = true; };
+  }, [vehicle?.brand, vehicle?.model, vehicle?.enginePower, fault.název]);
+
+  if (!vehicle?.model) return null;
+  if (refs !== null && refs.length === 0 && !loading) return null;
+
+  return (
+    <div style={{
+      background: t.bgCardAlt,
+      border: `1px solid ${t.border}`,
+      padding: "10px 12px",
+      borderRadius: 2,
+      marginTop: 10,
+    }}>
+      <SectionLabel>{tr('diag.workshopManual')}</SectionLabel>
+      {loading && (
+        <div style={{ fontSize: "0.72rem", color: t.textFaint, fontStyle: "italic" }}>
+          {tr('diag.loadingManual')}
+        </div>
+      )}
+      {refs && refs.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {refs.slice(0, 3).map((ref, i) => (
+            <div
+              key={i}
+              onClick={() => onOpenManual?.(ref)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && onOpenManual?.(ref)}
+              style={{
+                borderLeft: `2px solid ${t.accent}`,
+                paddingLeft: 10,
+                cursor: onOpenManual ? "pointer" : "default",
+                borderRadius: 2,
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { if (onOpenManual) e.currentTarget.style.background = `${t.accent}10`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <div style={{ fontSize: "0.74rem", color: t.text, fontWeight: 600, flex: 1 }}>
+                  {ref.section}
+                </div>
+                {onOpenManual && (
+                  <span style={{
+                    fontSize: "0.62rem",
+                    color: t.accent,
+                    textDecoration: "underline",
+                    flexShrink: 0,
+                  }}>
+                    {tr('diag.openProcedure')} &rarr;
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: "0.64rem", color: t.textFaint, marginTop: 2 }}>
+                {ref.manual} {ref.page != null ? `· ${tr('diag.manualPage')} ${ref.page}` : ""}
+              </div>
+              {ref.subsections?.length > 0 && (
+                <div style={{ marginTop: 3 }}>
+                  {ref.subsections.slice(0, 3).map((sub, j) => (
+                    <div key={j} style={{ fontSize: "0.68rem", color: t.textMuted, padding: "1px 0" }}>
+                      {sub.number} {sub.title}
+                    </div>
+                  ))}
+                  {ref.subsections.length > 3 && (
+                    <div style={{ fontSize: "0.62rem", color: t.textFaint }}>
+                      +{ref.subsections.length - 3} {tr('diag.moreProcedures')}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Jedna závada ──────────────────────────────────────────────────────────────
 
-function FaultCard({ fault: f, isPrimary, tr, mobile }) {
+function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual }) {
   const { t } = useTheme();
   const sc = sourceColor(f);
   return (
@@ -122,92 +236,14 @@ function FaultCard({ fault: f, isPrimary, tr, mobile }) {
 
       {/* Poznámka */}
       {f.poznámka && (
-        <div style={{ fontSize: "0.76rem", color: t.noteColor, fontStyle: "italic", borderLeft: `2px solid ${t.noteBorder}`, paddingLeft: 8 }}>
+        <div style={{ fontSize: "0.76rem", color: t.noteColor, fontStyle: "italic", borderLeft: `2px solid ${t.noteBorder}`, paddingLeft: 8, marginBottom: 8 }}>
           {f.poznámka}
         </div>
       )}
-    </div>
-  );
-}
 
-// ── Workshop Manual References ───────────────────────────────────────────────
-
-function ManualRefSection({ vehicle, faults, tr }) {
-  const { t } = useTheme();
-  const [refs, setRefs] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!vehicle?.brand || !faults?.length) return;
-
-    // Collect all component names + fault names for search
-    const components = faults.flatMap((f) => f.díly || []).filter(Boolean);
-    const faultNames = faults.map((f) => f.název).filter(Boolean);
-    if (components.length === 0 && faultNames.length === 0) return;
-
-    let cancelled = false;
-    setLoading(true);
-
-    // Send raw vehicle + fault data — server does all normalization
-    lookupManual({
-      brand: vehicle.brand,
-      model: vehicle.model,
-      enginePower: vehicle.enginePower,
-      components,
-      faultNames,
-    }).then((res) => {
-      if (!cancelled) {
-        setRefs(res.ok ? res.results : []);
-        setLoading(false);
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setRefs([]);
-        setLoading(false);
-      }
-    });
-
-    return () => { cancelled = true; };
-  }, [vehicle?.brand, vehicle?.model, vehicle?.enginePower, faults]);
-
-  if (!vehicle?.model || !faults?.length) return null;
-  if (refs !== null && refs.length === 0 && !loading) return null;
-
-  return (
-    <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, padding: "12px", borderRadius: 2, marginBottom: 12 }}>
-      <SectionLabel>{tr('diag.workshopManual')}</SectionLabel>
-      {loading && (
-        <div style={{ fontSize: "0.76rem", color: t.textFaint, fontStyle: "italic" }}>
-          {tr('diag.loadingManual')}
-        </div>
-      )}
-      {refs && refs.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {refs.slice(0, 5).map((ref, i) => (
-            <div key={i} style={{ borderLeft: `2px solid ${t.accent}`, paddingLeft: 10 }}>
-              <div style={{ fontSize: "0.78rem", color: t.text, fontWeight: 600 }}>
-                {ref.section}
-              </div>
-              <div style={{ fontSize: "0.68rem", color: t.textFaint, marginTop: 2 }}>
-                {ref.manual} {ref.page != null ? `· ${tr('diag.manualPage')} ${ref.page}` : ""}
-              </div>
-              {ref.subsections?.length > 0 && (
-                <div style={{ marginTop: 4 }}>
-                  {ref.subsections.slice(0, 4).map((sub, j) => (
-                    <div key={j} style={{ fontSize: "0.72rem", color: t.textMuted, padding: "1px 0" }}>
-                      {sub.number} {sub.title}
-                    </div>
-                  ))}
-                  {ref.subsections.length > 4 && (
-                    <div style={{ fontSize: "0.66rem", color: t.textFaint }}>
-                      +{ref.subsections.length - 4} {tr('diag.moreProcedures')}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+      {/* Workshop Manual Reference — per-fault, interactive */}
+      {vehicle && (
+        <FaultManualRef vehicle={vehicle} fault={f} tr={tr} onOpenManual={onOpenManual} />
       )}
     </div>
   );
@@ -215,7 +251,7 @@ function ManualRefSection({ vehicle, faults, tr }) {
 
 // ── Hlavní komponenta ─────────────────────────────────────────────────────────
 
-export default function DiagCard({ result, ragMatches = [], vehicle }) {
+export default function DiagCard({ result, ragMatches = [], vehicle, onOpenManual }) {
   const { t } = useTheme();
   const { tr } = useI18n();
   const mobile = useIsMobile();
@@ -276,12 +312,9 @@ export default function DiagCard({ result, ragMatches = [], vehicle }) {
         </div>
       )}
 
-      {/* Workshop Manual References */}
-      {vehicle && <ManualRefSection vehicle={vehicle} faults={result.závady} tr={tr} />}
-
-      {/* Závady */}
+      {/* Závady — each with its own manual reference */}
       {result.závady?.map((f, i) => (
-        <FaultCard key={i} fault={f} isPrimary={i === 0} tr={tr} mobile={mobile} />
+        <FaultCard key={i} fault={f} isPrimary={i === 0} tr={tr} mobile={mobile} vehicle={vehicle} onOpenManual={onOpenManual} />
       ))}
 
       {/* Doporučené testy + poznámky */}

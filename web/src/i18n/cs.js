@@ -225,6 +225,13 @@ export const strings = {
   'diag.loadingManual':       'Hledám v dílenských příručkách...',
   'diag.manualPage':          'str.',
   'diag.moreProcedures':      'dalších postupů',
+  'diag.openProcedure':       'Zobrazit postup',
+  'diag.manualViewTitle':     'DÍLENSKÁ PŘÍRUČKA',
+  'diag.manualViewBack':      'Zpět na diagnostiku',
+  'diag.manualSubsections':   'POSTUPY',
+  'diag.manualComponents':    'SOUVISEJÍCÍ DÍLY',
+  'diag.manualRepairGroup':   'Skupina oprav',
+  'diag.manualNoContent':     'Obsah sekce není k dispozici. Podívejte se do tištěné příručky.',
 
   // ConfirmModal
   'confirm.cancel':           'Zrušit',
