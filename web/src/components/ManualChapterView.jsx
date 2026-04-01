@@ -123,7 +123,7 @@ export default function ManualChapterView({ section, onBack }) {
         flexShrink: 0,
       }}>
         <div style={{
-          fontFamily: "'Rajdhani',sans-serif",
+          fontFamily: "'Exo 2',sans-serif",
           fontSize: mobile ? "1.1rem" : "1.3rem", fontWeight: 700,
           color: t.text, letterSpacing: "0.04em",
         }}>

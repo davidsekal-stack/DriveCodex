@@ -50,7 +50,7 @@ export default function ConsentGate({ children }) {
           <div style={{ width: 34, height: 34, background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", clipPath: "polygon(10% 0%,90% 0%,100% 10%,100% 90%,90% 100%,10% 100%,0% 90%,0% 10%)", flexShrink: 0 }}>
             <span style={{ fontSize: "17px" }}>🔧</span>
           </div>
-          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "1.6rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em" }}>
+          <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: "1.6rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em" }}>
             GEAR<span style={{ color: t.accent }}>Brain</span>
           </div>
         </div>

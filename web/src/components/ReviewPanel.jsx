@@ -167,7 +167,7 @@ export default function ReviewPanel({ lang, tr, fetchCases, updateStatus }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em" }}>
+            <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em" }}>
               {tr("review.title")}
             </div>
             <div style={{ fontSize: SMALL, color: t.textFaint, marginTop: 2 }}>

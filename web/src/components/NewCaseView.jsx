@@ -72,7 +72,7 @@ export default function NewCaseView({
     <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "14px 10px" : "24px", background: t.bg }}>
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
         <div style={{ marginBottom: mobile ? 14 : 20 }}>
-          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: mobile ? "1.2rem" : "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em", marginBottom: 4 }}>{tr("app.newCaseTitle")}</div>
+          <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: mobile ? "1.2rem" : "1.5rem", fontWeight: 700, color: t.accent, letterSpacing: "0.05em", marginBottom: 4 }}>{tr("app.newCaseTitle")}</div>
           <div style={{ fontSize: "0.78rem", color: t.textFaint }}>{tr("app.newCaseSubtitle")}</div>
         </div>
 
