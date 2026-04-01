@@ -1109,6 +1109,7 @@ export const VEHICLE_CATALOG = [
       { group: "Sprinter" },
       { label: "Sprinter W906 2.1 CDI (2006–2018)", powers: ["65 kW – 209/211 CDI (OM646)", "80 kW – 213 CDI (OM646)", "95 kW – 214/216 CDI (OM651)", "105 kW – 216 CDI (OM651)", "120 kW – 219/316 CDI (OM651)", "140 kW – 319/519 CDI (OM642)", "65 kW – 210/211 CDI (OM651)", "84 kW – 214 CDI (OM651)", "105 kW – 311/314 CDI (OM651)", "120 kW – 316 CDI (OM651)"] },
       { label: "Sprinter W906 3.0 CDI V6 (2006–2018)", powers: ["135 kW – 318/418 CDI (OM642)", "140 kW – 319/519 CDI (OM642)", "142 kW – 324 (M272)"] },
+      { label: "Sprinter VS30 (2018–současnost)" },
       { label: "Sprinter W907/W910 2.1 CDI (2018–současnost)", powers: ["84 kW – 211/311/411/511 CDI (OM651)", "105 kW – 214/314/414/514 CDI (OM651)", "120 kW – 216/316/416/516 CDI (OM651)", "140 kW – 219/319/419/519 CDI (OM651)"] },
       { label: "eSprinter Electric (2023–současnost)", powers: ["85 kW – eSprinter Electric", "100 kW – eSprinter Electric"] },
 
@@ -1126,6 +1127,8 @@ export const VEHICLE_CATALOG = [
       { group: "CLK / CLE / roadsters" },
       { label: "CLK W209 (2002–2009)" },
       { label: "CLE C/A236 (2023–dosud)" },
+        { label: "AMG GT C190 / R190 (2014–2021)" },
+        { label: "AMG GT X290 (2018–současnost)" },
         { label: "SL R230 (2001–2011)" },
         { label: "SL R231 (2012–2020)" },
         { label: "SL R232 (2022–současnost)", powers: ["280 kW – SL 43 2.0 (M139)", "350 kW – SL 55 AMG 4.0 V8 (M177)", "430 kW – SL 63 AMG 4.0 V8 (M177)", "600 kW – SL 63 S E Performance 4.0 PHEV (M177)"] },

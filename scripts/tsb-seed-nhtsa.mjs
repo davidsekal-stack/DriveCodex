@@ -230,8 +230,13 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^R ?\d+$/i, values: ["R-Class W251"] },
     { pattern: /^CL ?(?:550|600|63|65)$/i, values: ["CL C216"] },
     { pattern: /^(?:CLE ?(?:300|450)|AMG CLE ?53)$/i, values: ["CLE C/A236"] },
-    { pattern: /^SPRINTER ?(?:\(VS30\)|1500|2500|3500|4500)$/i, values: ["Sprinter W907/W910 2.1 CDI"] },
+    { pattern: /^SPRINTER ?\(VS30\)$/i, values: ["Sprinter VS30"] },
+    { pattern: /^SPRINTER ?(?:1500|2500|3500|4500)$/i, values: ["Sprinter VS30"], minYear: 2019 },
+    { pattern: /^ESPRINTER$/i, values: ["eSprinter Electric"] },
+    { pattern: /^(?:AMG GT ?(?:43|53|53E|55|63|63S|63 S|63 S E|63 S E COUPE)|AMG GT 63 S E COUPE)$/i, values: ["AMG GT X290"] },
+    { pattern: /^(?:AMG GT(?: ?[CSR])?|AMG GTS|AMG GTR|AMG GTC)$/i, values: ["AMG GT C190 / R190"] },
     { pattern: /^(?:SL ?(?:450|550|63|65)|AMG SL ?(?:43|55|63(?: S E)?|65))$/i, values: ["SL R232", "SL R231", "SL R230"] },
+    { pattern: /^SL400$/i, values: ["SL R231"] },
     { pattern: /^SLK ?\d+$/i, values: ["SLK R172", "SLK R171"] },
     { pattern: /^(?:SLC ?300|AMG SLC ?43)$/i, values: ["SLC R172"] },
     { pattern: /^METRIS$/i, values: ["Vito W447"] },
@@ -598,9 +603,10 @@ export function hasSupportedCatalogBrand(make) {
   return getCandidateBrandNames(make).length > 0;
 }
 
-function buildModelKeyCandidates(make, model) {
+function buildModelKeyCandidates(make, model, modelYear) {
   const normalizedMake = normalizeComparableText(make);
   const raw = normalizeComparableText(model);
+  const year = Number(modelYear);
   const candidates = new Set();
   if (raw) candidates.add(raw);
   const deTrimmed = tokenizeModelKey(raw).join(" ");
@@ -622,6 +628,8 @@ function buildModelKeyCandidates(make, model) {
 
   for (const rule of MODEL_ALIAS_RULES[normalizedMake] ?? []) {
     if (!rule.pattern.test(raw)) continue;
+    if (Number.isFinite(rule.minYear) && (!Number.isFinite(year) || year < rule.minYear)) continue;
+    if (Number.isFinite(rule.maxYear) && (!Number.isFinite(year) || year > rule.maxYear)) continue;
     for (const value of rule.values) {
       candidates.add(normalizeComparableText(value));
     }
@@ -688,13 +696,13 @@ export function resolveCatalogVehicle(record) {
       raw_model: formatVehicleModel(record.model, record.model_year),
       matched_group: forcedJeep.group,
       candidate_brands: getCandidateBrandNames(record.make),
-      candidate_model_keys: buildModelKeyCandidates(record.make, record.model),
+      candidate_model_keys: buildModelKeyCandidates(record.make, record.model, record.model_year),
     };
   }
 
   const year = Number(record.model_year);
   const brandCandidates = getCandidateBrandNames(record.make);
-  const modelCandidates = buildModelKeyCandidates(record.make, record.model);
+  const modelCandidates = buildModelKeyCandidates(record.make, record.model, record.model_year);
   if (prefersJeepWagoneerS(record)) {
     modelCandidates.unshift(normalizeComparableText("Wagoneer S"));
   }

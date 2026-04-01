@@ -1044,7 +1044,24 @@ test("resolveCatalogVehicle maps Mercedes-Benz trim-like NHTSA models to catalog
     model_year: "2025",
   });
   assert.equal(sprinter.vehicle_brand, "Mercedes-Benz");
-  assert.equal(sprinter.vehicle_model, "Sprinter W907/W910 2.1 CDI (2018–současnost)");
+  assert.equal(sprinter.vehicle_model, "Sprinter VS30 (2018–současnost)");
+
+  const sprinterVs30 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "SPRINTER (VS30)",
+    model_year: "2020",
+  });
+  assert.equal(sprinterVs30.vehicle_brand, "Mercedes-Benz");
+  assert.equal(sprinterVs30.vehicle_model, "Sprinter VS30 (2018–současnost)");
+
+  const oldSprinter2500 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "SPRINTER 2500",
+    model_year: "2016",
+  });
+  assert.equal(oldSprinter2500.resolved, false);
 
   const gClass = resolveCatalogVehicle({
     ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
@@ -1099,6 +1116,33 @@ test("resolveCatalogVehicle maps Mercedes-Benz trim-like NHTSA models to catalog
   });
   assert.equal(metris.vehicle_brand, "Mercedes-Benz");
   assert.equal(metris.vehicle_model, "Vito W447 (2014–současnost)");
+
+  const gt63 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "AMG GT63",
+    model_year: "2025",
+  });
+  assert.equal(gt63.vehicle_brand, "Mercedes-Benz");
+  assert.equal(gt63.vehicle_model, "AMG GT X290 (2018–současnost)");
+
+  const gtr = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "AMG GT R",
+    model_year: "2020",
+  });
+  assert.equal(gtr.vehicle_brand, "Mercedes-Benz");
+  assert.equal(gtr.vehicle_model, "AMG GT C190 / R190 (2014–2021)");
+
+  const sl400 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-BENZ",
+    model: "SL400",
+    model_year: "2018",
+  });
+  assert.equal(sl400.vehicle_brand, "Mercedes-Benz");
+  assert.equal(sl400.vehicle_model, "SL R231 (2012–2020)");
 });
 
 test("finalizeStageForSeed downgrades unresolved ready candidates to review", () => {
