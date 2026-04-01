@@ -95,7 +95,7 @@ export default function ManualChapterView({ section, onBack }) {
         <button onClick={onBack} style={{
           background: "none", border: `1px solid ${t.border}`, color: t.accent,
           padding: "6px 14px", borderRadius: 2, cursor: "pointer", fontSize: "0.72rem",
-          fontFamily: "'IBM Plex Mono','Courier New',monospace", letterSpacing: "0.06em",
+          fontFamily: "'Exo 2',sans-serif", letterSpacing: "0.06em",
           display: "flex", alignItems: "center", gap: 6,
         }}>
           <span style={{ fontSize: "0.9rem" }}>&larr;</span>
@@ -224,6 +224,6 @@ function zoomBtnStyle(t) {
     borderRadius: 2,
     cursor: "pointer",
     fontSize: "0.72rem",
-    fontFamily: "'IBM Plex Mono','Courier New',monospace",
+    fontFamily: "'Exo 2',sans-serif",
   };
 }

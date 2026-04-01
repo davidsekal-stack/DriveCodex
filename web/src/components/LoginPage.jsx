@@ -80,7 +80,7 @@ function LoginPageInner({ onAuth }) {
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace", padding: mobile ? 12 : 24 }}>
+    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'Exo 2',sans-serif", padding: mobile ? 12 : 24 }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
 
         {/* Logo */}

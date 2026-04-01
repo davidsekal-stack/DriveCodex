@@ -159,7 +159,7 @@ function App() {
   // ── Hlavní render ─────────────────────────────────────────────────────────
   return (
     <ConsentGate>
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: t.bg, color: t.text, fontFamily: "'IBM Plex Mono','Courier New',monospace", overflow: "hidden", transition: "background 0.2s, color 0.2s" }}>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: t.bg, color: t.text, fontFamily: "'Exo 2',sans-serif", overflow: "hidden", transition: "background 0.2s, color 0.2s" }}>
       <GlobalStyles />
 
       <AppHeader

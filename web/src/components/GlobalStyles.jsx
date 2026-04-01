@@ -4,7 +4,7 @@ export default function GlobalStyles() {
   const { t, darkMode } = useTheme();
   return (
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Exo+2:wght@400;600;700;800&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap');
       html { font-size: 17px; }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       ::-webkit-scrollbar { width: 5px; }

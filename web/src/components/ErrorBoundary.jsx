@@ -22,7 +22,7 @@ export default class ErrorBoundary extends Component {
     const t = DARK;
     const s = getStrings();
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono',monospace", padding: 40 }}>
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'Exo 2',sans-serif", padding: 40 }}>
         <div style={{ maxWidth: 500, textAlign: "center" }}>
           <div style={{ fontSize: "2rem", marginBottom: 16, opacity: 0.15 }}>🔧</div>
           <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: "#dc2626", marginBottom: 12 }}>

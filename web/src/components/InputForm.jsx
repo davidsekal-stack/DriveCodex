@@ -119,7 +119,7 @@ export default function InputForm({ onSubmit, loading, label, vehicle }) {
           <div style={{ display: "flex", gap: 7, marginBottom: 10 }}>
             <input value={obdInput} onChange={(e) => setObdInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addObdFromInput()}
               placeholder={tr('input.obdPlaceholder')}
-              style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "8px 10px", fontSize: "0.78rem", fontFamily: "'IBM Plex Mono',monospace", borderRadius: 2, outline: "none" }} />
+              style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "8px 10px", fontSize: "0.78rem", fontFamily: "'Exo 2',sans-serif", borderRadius: 2, outline: "none" }} />
             <button onClick={addObdFromInput}
               style={{ background: t.accent, color: "#fff", border: "none", cursor: "pointer", padding: "8px 14px", fontSize: "0.7rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2 }}>
               +
@@ -189,7 +189,7 @@ export default function InputForm({ onSubmit, loading, label, vehicle }) {
       {tab === "text" && (
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4}
           placeholder={tr('input.describeFault')}
-          style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.8rem", lineHeight: 1.7, fontFamily: "'IBM Plex Mono',monospace", resize: "vertical", outline: "none", borderRadius: 2 }} />
+          style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.8rem", lineHeight: 1.7, fontFamily: "'Exo 2',sans-serif", resize: "vertical", outline: "none", borderRadius: 2 }} />
       )}
 
       {/* Spodní lišta: souhrn + odeslat */}
@@ -232,7 +232,7 @@ export function FollowUpPrompt({ onSubmit, loading }) {
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
         placeholder={tr('input.followupPlaceholder')}
         rows={2}
-        style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.88rem", lineHeight: 1.6, fontFamily: "'IBM Plex Mono',monospace", resize: "none", outline: "none", borderRadius: 2 }}
+        style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.88rem", lineHeight: 1.6, fontFamily: "'Exo 2',sans-serif", resize: "none", outline: "none", borderRadius: 2 }}
       />
       <button
         disabled={!text.trim() || loading}

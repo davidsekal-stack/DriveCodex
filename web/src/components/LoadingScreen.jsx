@@ -10,7 +10,7 @@ export default function LoadingScreen({ message }) {
         justifyContent: "center",
         background: DARK.bg,
         color: DARK.textFaint,
-        fontFamily: "'IBM Plex Mono',monospace",
+        fontFamily: "'Exo 2',sans-serif",
         fontSize: "0.85rem",
         letterSpacing: "0.1em",
       }}
