@@ -49,7 +49,7 @@ function SharedCaseViewInner({ shareId }) {
   // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace" }}>
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'Exo 2',sans-serif" }}>
         <GlobalStyles />
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em" }}>GEARBRAIN</div>
@@ -62,7 +62,7 @@ function SharedCaseViewInner({ shareId }) {
   // ── Error state ────────────────────────────────────────────────────────────
   if (error || !data) {
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace" }}>
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'Exo 2',sans-serif" }}>
         <GlobalStyles />
         <div style={{ textAlign: "center", maxWidth: 400, padding: 20 }}>
           <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em", marginBottom: 16 }}>GEARBRAIN</div>
@@ -78,7 +78,7 @@ function SharedCaseViewInner({ shareId }) {
   const messages = snapshot.messages ?? [];
 
   return (
-    <div style={{ minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "'IBM Plex Mono','Courier New',monospace", transition: "background 0.2s, color 0.2s" }}>
+    <div style={{ minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "'Exo 2',sans-serif", transition: "background 0.2s, color 0.2s" }}>
       <GlobalStyles />
 
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}

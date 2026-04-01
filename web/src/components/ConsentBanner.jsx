@@ -37,7 +37,7 @@ export default function ConsentGate({ children }) {
   return (
     <div style={{
       height: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: t.bg, fontFamily: "'IBM Plex Mono','Courier New',monospace",
+      background: t.bg, fontFamily: "'Exo 2',sans-serif",
       padding: 20,
     }}>
       <div style={{

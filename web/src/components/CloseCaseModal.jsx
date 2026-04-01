@@ -160,7 +160,7 @@ export default function CloseCaseModal({
                 <textarea ref={customRef} value={customText} onChange={(e) => handleCustomChange(e.target.value)}
                   placeholder={tr("app.closeCustomPlaceholder")} rows={1}
                   onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
-                  style={{ width: "calc(100% - 28px)", marginTop: 6, marginLeft: 28, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "6px 10px", fontSize: FONT, fontFamily: "'IBM Plex Mono',monospace", outline: "none", borderRadius: 2, boxSizing: "border-box", resize: "none", overflow: "hidden", lineHeight: 1.6 }} />
+                  style={{ width: "calc(100% - 28px)", marginTop: 6, marginLeft: 28, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "6px 10px", fontSize: FONT, fontFamily: "'Exo 2',sans-serif", outline: "none", borderRadius: 2, boxSizing: "border-box", resize: "none", overflow: "hidden", lineHeight: 1.6 }} />
               )}
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function CloseCaseModal({
             <div style={{ fontSize: "0.7rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr("app.repairLabel")}</div>
             <textarea ref={textareaRef} value={resolution} onChange={(event) => onChangeResolution(event.target.value)} rows={5}
               placeholder={tr("app.repairPlaceholder")}
-              style={{ width: "100%", background: t.bgInput, border: `1px solid ${closeError ? "#dc2626" : t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: FONT, lineHeight: 1.7, marginBottom: closeError ? 8 : 16, fontFamily: "'IBM Plex Mono',monospace", resize: "vertical", outline: "none", borderRadius: 2 }} />
+              style={{ width: "100%", background: t.bgInput, border: `1px solid ${closeError ? "#dc2626" : t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: FONT, lineHeight: 1.7, marginBottom: closeError ? 8 : 16, fontFamily: "'Exo 2',sans-serif", resize: "vertical", outline: "none", borderRadius: 2 }} />
           </>
         )}
 
