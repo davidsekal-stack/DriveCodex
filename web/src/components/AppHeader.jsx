@@ -25,7 +25,7 @@ export default function AppHeader({
           <span style={{ fontSize: "15px" }}>🔧</span>
         </div>
         <div>
-          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.2rem" : "1.5rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em", lineHeight: 1 }}>
+          <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: mobile ? "1.2rem" : "1.5rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em", lineHeight: 1 }}>
             GEAR<span style={{ color: t.accent }}>Brain</span>
           </div>
           {!mobile && <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.1em", lineHeight: 1, marginTop: 1 }}>{tr("app.subtitle")}</div>}

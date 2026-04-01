@@ -131,7 +131,7 @@ export default function CloseCaseModal({
   return (
     <ModalShell onClose={onCancel} width={540}>
       <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: mobile ? "16px" : "26px", boxShadow: "0 20px 60px rgba(0,0,0,0.35)", maxHeight: "85vh", overflowY: "auto" }}>
-        <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 8 }}>{tr("app.closeCaseTitle")}</div>
+        <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 8 }}>{tr("app.closeCaseTitle")}</div>
         <p style={{ fontSize: FONT, color: t.textMuted, marginBottom: 16, lineHeight: 1.7 }}>
           {hasSmartOptions ? tr("app.closeCaseHelpSmart") : tr("app.closeCaseHelp")}
         </p>

@@ -25,7 +25,7 @@ export default class ErrorBoundary extends Component {
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'IBM Plex Mono',monospace", padding: 40 }}>
         <div style={{ maxWidth: 500, textAlign: "center" }}>
           <div style={{ fontSize: "2rem", marginBottom: 16, opacity: 0.15 }}>🔧</div>
-          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: "#dc2626", marginBottom: 12 }}>
+          <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: "#dc2626", marginBottom: 12 }}>
             {s['error.title']}
           </div>
           <div style={{ fontSize: "0.82rem", color: t.textMuted, lineHeight: 1.7, marginBottom: 20 }}>

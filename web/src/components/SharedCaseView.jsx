@@ -196,7 +196,7 @@ function ShareCTA({ tr }) {
   const { t } = useTheme();
   return (
     <div style={{ textAlign: "center", padding: "16px 0" }}>
-      <div style={{ fontSize: "0.95rem", fontWeight: 700, color: t.text, marginBottom: 6, fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: "0.06em" }}>
+      <div style={{ fontSize: "0.95rem", fontWeight: 700, color: t.text, marginBottom: 6, fontFamily: "'Exo 2',sans-serif", letterSpacing: "0.06em" }}>
         {tr("share.cta.title")}
       </div>
       <div style={{ fontSize: "0.78rem", color: t.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
