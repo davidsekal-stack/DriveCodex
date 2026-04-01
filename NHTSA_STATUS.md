@@ -1,6 +1,6 @@
 # NHTSA TSB Status
 
-Aktualizováno: 2026-03-31
+Aktualizováno: 2026-04-01
 
 ## Scope note
 
@@ -93,11 +93,11 @@ Source file:
 - [C:\Users\sekald\Downloads\TSBS_RECEIVED_2025-2025\TSBS_RECEIVED_2025-2025.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt)
 
 Current clean imported total from this file:
-- `at least 764` unique cases
+- `at least 949` unique cases
 
 Note:
-- The previous verified total was `732`.
-- The latest fully reviewed Volvo pass added `32/32` clean imports.
+- The previous verified lower bound was `764`.
+- The latest fully reviewed Mercedes pass added `185/185` clean imports.
 - The detailed per-brand breakdown below has not yet been fully recomputed after the March 31 cleanup/reimport passes, so treat it as a lower-fidelity snapshot except where explicitly updated.
 
 Current imported breakdown:
@@ -124,16 +124,39 @@ Current imported breakdown:
 - `Mitsubishi` `3`
 - `Tesla (US)` `1`
 - `Volvo` `32`
+- `Mercedes-Benz` `185`
 
 Newly completed in the latest pass:
 - `GMC` `58`
 - `Volvo` `32`
+- `Mercedes-Benz` `185`
 
 Closed with no safe subset in the latest pass:
 - `Volkswagen (US)` `0`
 
-Pending large backlogs from this file:
-- `Mercedes-Benz`
+Supported-slice backlog status:
+- no remaining large backlog inside the currently catalog-supported slice
+- the remaining work on `TSBS_RECEIVED_2025-2025.txt` is primarily catalog expansion for additional automotive makes not yet supported in the app catalog
+
+Likely next unsupported automotive makes from this file (not yet added to catalog):
+- `Mercedes-Maybach` / `Maybach` / `Mercedes` alias rows
+- `McLaren`
+- `Pontiac`
+- `Saturn`
+- `Saab`
+- `Smart`
+- `Scion`
+- `Isuzu`
+- `BrightDrop`
+- `Workhorse`
+- `Karma`
+- `Ineos`
+- `Lotus`
+- `Rolls-Royce`
+- `Lamborghini`
+- `Koenigsegg`
+- `Hummer`
+- `Geo`
 
 Latest Volvo review artifacts:
 - reviewed subset: [C:\GB\tmp\nhtsa_2025_volvo_ai_reviewed_full_20260331](C:/GB/tmp/nhtsa_2025_volvo_ai_reviewed_full_20260331)
