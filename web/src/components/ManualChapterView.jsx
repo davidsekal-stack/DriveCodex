@@ -31,12 +31,15 @@ export default function ManualChapterView({ section, onBack }) {
   const [pdfError, setPdfError] = useState(false);
   const [scale, setScale] = useState(mobile ? 0.6 : 1.0);
   const [totalPdfPages, setTotalPdfPages] = useState(null);
+  const [resolvedStartPage, setResolvedStartPage] = useState(section?.page ?? 1);
   const containerRef = useRef(null);
 
-  // Fetch section metadata to get page_count
+  // Fetch section metadata to get page_count and authoritative pdf_page
   useEffect(() => {
     if (!section) return;
     let cancelled = false;
+
+    setResolvedStartPage(section?.page ?? 1);
 
     const manualId = section.manual?.replace(".pdf", "") ?? "";
     const rg = section.repair_group ?? "";
@@ -46,6 +49,9 @@ export default function ManualChapterView({ section, onBack }) {
       .then((res) => {
         if (!cancelled && res.ok) {
           setPageCount(res.page_count || res.extracted_pages || 10);
+          if (res.pdf_page && res.pdf_page > 0) {
+            setResolvedStartPage(res.pdf_page);
+          }
         }
       })
       .catch(() => {});
@@ -53,7 +59,7 @@ export default function ManualChapterView({ section, onBack }) {
     return () => { cancelled = true; };
   }, [section?.manual, section?.section, section?.repair_group]);
 
-  const startPage = section?.page ?? 1;
+  const startPage = resolvedStartPage;
   const endPage = pageCount ? Math.min(startPage + pageCount - 1, totalPdfPages || 9999) : startPage + 9;
   const pages = [];
   for (let p = startPage; p <= endPage; p++) pages.push(p);
@@ -126,7 +132,7 @@ export default function ManualChapterView({ section, onBack }) {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
           {[
             section.manual,
-            section.page != null && `${tr('diag.manualPage')} ${section.page}`,
+            resolvedStartPage != null && `${tr('diag.manualPage')} ${resolvedStartPage}`,
             section.repair_group && `${tr('diag.manualRepairGroup')} ${section.repair_group}`,
             pageCount && `${pageCount} ${tr('diag.manualPages')}`,
           ].filter(Boolean).map((label, i) => (
