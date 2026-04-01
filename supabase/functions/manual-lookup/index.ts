@@ -333,8 +333,10 @@ async function qComponent(model: string, eng: EngineHints, terms: string[], rgHi
            sec.pdf_page AS page,
            collect(DISTINCT [sub.number, sub.title]) AS subs,
            collect(DISTINCT c.name) AS comps,
-           CASE WHEN $rgHints <> [] AND sec.repair_group IN $rgHints THEN 0 ELSE 1 END AS rg_rank
-    ORDER BY rg_rank, rg LIMIT 15
+           CASE WHEN $rgHints <> [] AND sec.repair_group IN $rgHints THEN 0 ELSE 1 END AS rg_rank,
+           CASE WHEN any(term IN $terms WHERE toLower(sec.title) CONTAINS toLower(term)) THEN 0 ELSE 1 END AS title_rank,
+           count(DISTINCT sub) AS sub_count
+    ORDER BY rg_rank, title_rank, sub_count DESC, rg LIMIT 15
   `, { terms, rgHints, ...baseParams(model, eng) })
   return rows.map(toHit)
 }
