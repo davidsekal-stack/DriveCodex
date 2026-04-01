@@ -201,6 +201,12 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^SIERRA EV$/i, values: ["Sierra EV"] },
     { pattern: /^SIERRA DENALI$/i, values: ["Sierra 1500"] },
   ],
+  HUMMER: [
+    { pattern: /^H2$/i, values: ["H2"], minYear: 2003, maxYear: 2010 },
+    { pattern: /^H2 SUT$/i, values: ["H2 SUT"], minYear: 2005, maxYear: 2009 },
+    { pattern: /^H3$/i, values: ["H3"], minYear: 2006, maxYear: 2010 },
+    { pattern: /^H3 SUT$/i, values: ["H3T / H3 SUT"], minYear: 2009, maxYear: 2010 },
+  ],
   JEEP: [
     { pattern: /^WRANGLER$/i, values: ["Wrangler JL"] },
     { pattern: /^WRANGLER!?4XE$/i, values: ["Wrangler 4xe", "Wrangler JL"] },
@@ -245,6 +251,27 @@ const MODEL_ALIAS_RULES = {
     { pattern: /^EQC\b/i, values: ["EQC N293"] },
     { pattern: /^(?:EQE|AMG EQE)\b/i, values: ["EQE V295"] },
     { pattern: /(?:^| )EQS\b|redundant EQS 450/i, values: ["EQS V297"] },
+  ],
+  "MERCEDES MAYBACH": [
+    { pattern: /^GLS ?600(?: 4MATIC)?$/i, values: ["GLS"] },
+    { pattern: /^S ?(?:550|560|580|600|650|680)(?: 4MATIC)?$/i, values: ["S-Class"] },
+    { pattern: /^EQS SUV ?680(?: 4MATIC)?$/i, values: ["EQS SUV X296"] },
+  ],
+  MERCEDES: [
+    { pattern: /^EQA\b/i, values: ["EQA H243"] },
+  ],
+  MAYBACH: [
+    { pattern: /^MAYBACH$/i, values: ["57 / 62"], minYear: 2002, maxYear: 2012 },
+  ],
+  SCION: [
+    { pattern: /^IA$/i, values: ["iA / Yaris iA"], minYear: 2016, maxYear: 2018 },
+    { pattern: /^IM$/i, values: ["iM / Corolla iM"], minYear: 2016, maxYear: 2018 },
+  ],
+  SMART: [
+    { pattern: /^FORTWO(?: COUPE| CONVERTIBLE)?$/i, values: ["fortwo 451"], minYear: 2008, maxYear: 2015 },
+    { pattern: /^FORTWO(?: COUPE| CONVERTIBLE| CABRIOLET)?$/i, values: ["fortwo 453"], minYear: 2016, maxYear: 2019 },
+    { pattern: /^FORTWO COUPE ELECTRIC$/i, values: ["fortwo Electric Drive"], minYear: 2013, maxYear: 2015 },
+    { pattern: /^FORTWO CONVERTIBLE ELECTR$/i, values: ["fortwo Electric Drive"], minYear: 2013, maxYear: 2015 },
   ],
   VOLVO: [
     { pattern: /^XC60PHEV$/i, values: ["XC60"] },
@@ -557,6 +584,14 @@ function buildCatalogModelIndex() {
 
 const CATALOG_MODEL_INDEX = buildCatalogModelIndex();
 const ALL_CATALOG_BRANDS = [...VEHICLE_CATALOG, ...VEHICLE_CATALOG_US];
+const CATALOG_BRAND_ALIASES = new Map([
+  ["HUMMER", ["Hummer"]],
+  ["MAYBACH", ["Maybach"]],
+  ["MERCEDES", ["Mercedes-Benz"]],
+  ["MERCEDES MAYBACH", ["Mercedes-Benz"]],
+  ["SCION", ["Scion"]],
+  ["SMART", ["Smart"]],
+]);
 
 function buildCatalogBrandIndex() {
   const index = new Map();
@@ -590,6 +625,9 @@ function getCandidateBrandNames(make) {
   const normalized = normalizeComparableText(make);
   const direct = CATALOG_BRAND_INDEX.get(normalized) ?? [];
   if (direct.length > 0) return sortBrandCandidates(direct);
+
+  const alias = CATALOG_BRAND_ALIASES.get(normalized) ?? [];
+  if (alias.length > 0) return sortBrandCandidates(alias);
 
   const formatted = formatMake(make);
   const fallback = [];

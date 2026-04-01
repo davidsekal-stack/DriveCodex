@@ -1614,10 +1614,10 @@ describe('helpers — makeEmptyVehicle', () => {
   })
 
   describe('catalog — Mercedes-Benz coverage', () => {
-    test('obsahuje ověřené G-Class a SL R232 gapy pro NHTSA trim mapping', () => {
+    test('obsahuje ověřené G-Class, SL R232 a EQS SUV gapy pro NHTSA trim mapping', () => {
       const mercedesEntry = getBrandEntry('Mercedes-Benz')
       ok(mercedesEntry)
-      ok(mercedesEntry.expertise.includes('Mercedes-Benz'))
+      ok(mercedesEntry.expertise.includes('EQS SUV'))
 
       const mercedesModels = getBrandModels('Mercedes-Benz').map(model => model.label).filter(Boolean)
       ok(mercedesModels.includes('G-Class W463 (2000–2018)'))
@@ -1628,6 +1628,29 @@ describe('helpers — makeEmptyVehicle', () => {
       ok(mercedesModels.includes('Sprinter VS30 (2018–současnost)'))
       ok(mercedesModels.includes('EQB X243 (2021–současnost)'))
       ok(mercedesModels.includes('EQS V297 (2021–současnost)'))
+      ok(mercedesModels.includes('EQS SUV X296 (2022–současnost)'))
+    })
+  })
+
+  describe('catalog — unsupported-make expansion coverage', () => {
+    test('obsahuje opatrně doplněné US legacy značky Maybach, Scion, Hummer a Smart', () => {
+      const maybachModels = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Maybach').models.map(model => model.label).filter(Boolean)
+      ok(maybachModels.includes('57 / 62 (2002–2012)'))
+
+      const scionModels = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Scion').models.map(model => model.label).filter(Boolean)
+      ok(scionModels.includes('iA / Yaris iA (2016–2018)'))
+      ok(scionModels.includes('iM / Corolla iM (2016–2018)'))
+
+      const hummerModels = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Hummer').models.map(model => model.label).filter(Boolean)
+      ok(hummerModels.includes('H2 (2003–2010)'))
+      ok(hummerModels.includes('H2 SUT (2005–2009)'))
+      ok(hummerModels.includes('H3 (2006–2010)'))
+      ok(hummerModels.includes('H3T / H3 SUT (2009–2010)'))
+
+      const smartModels = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Smart').models.map(model => model.label).filter(Boolean)
+      ok(smartModels.includes('fortwo 451 (2008–2015)'))
+      ok(smartModels.includes('fortwo Electric Drive (2013–2015)'))
+      ok(smartModels.includes('fortwo 453 (2016–2019)'))
     })
   })
 

@@ -952,7 +952,13 @@ test("resolveCatalogVehicle maps Chevrolet Tahoe/Suburban, Express and Silverado
 test("hasSupportedCatalogBrand filters unsupported and non-catalog makes", () => {
   assert.equal(hasSupportedCatalogBrand("KIA"), true);
   assert.equal(hasSupportedCatalogBrand("MERCEDES-BENZ"), true);
+  assert.equal(hasSupportedCatalogBrand("MERCEDES-MAYBACH"), true);
+  assert.equal(hasSupportedCatalogBrand("MAYBACH"), true);
+  assert.equal(hasSupportedCatalogBrand("MERCEDES"), true);
   assert.equal(hasSupportedCatalogBrand("PORSCHE"), true);
+  assert.equal(hasSupportedCatalogBrand("SCION"), true);
+  assert.equal(hasSupportedCatalogBrand("HUMMER"), true);
+  assert.equal(hasSupportedCatalogBrand("SMART"), true);
   assert.equal(hasSupportedCatalogBrand("LAND ROVER"), true);
   assert.equal(hasSupportedCatalogBrand("JAGUAR"), true);
   assert.equal(hasSupportedCatalogBrand("MITSUBISHI"), true);
@@ -1143,6 +1149,116 @@ test("resolveCatalogVehicle maps Mercedes-Benz trim-like NHTSA models to catalog
   });
   assert.equal(sl400.vehicle_brand, "Mercedes-Benz");
   assert.equal(sl400.vehicle_model, "SL R231 (2012–2020)");
+});
+
+test("resolveCatalogVehicle maps Mercedes-Maybach, Maybach, Scion, Hummer and Smart safely", () => {
+  const maybachS = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-MAYBACH",
+    model: "S 680",
+    model_year: "2024",
+  });
+  assert.equal(maybachS.vehicle_brand, "Mercedes-Benz");
+  assert.equal(maybachS.vehicle_model, "S-Class W223 (2020–současnost)");
+
+  const maybachS550 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-MAYBACH",
+    model: "S550",
+    model_year: "2017",
+  });
+  assert.equal(maybachS550.vehicle_brand, "Mercedes-Benz");
+  assert.equal(maybachS550.vehicle_model, "S-Class W222 (2013–2020)");
+
+  const maybachEqsSuv = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES-MAYBACH",
+    model: "EQS SUV 680 4MATIC",
+    model_year: "2025",
+  });
+  assert.equal(maybachEqsSuv.vehicle_brand, "Mercedes-Benz");
+  assert.equal(maybachEqsSuv.vehicle_model, "EQS SUV X296 (2022–současnost)");
+
+  const mercedesEqa = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MERCEDES",
+    model: "EQA",
+    model_year: "2021",
+  });
+  assert.equal(mercedesEqa.vehicle_brand, "Mercedes-Benz");
+  assert.equal(mercedesEqa.vehicle_model, "EQA H243 (2021–současnost)");
+
+  const legacyMaybach = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "MAYBACH",
+    model: "MAYBACH",
+    model_year: "2010",
+  });
+  assert.equal(legacyMaybach.vehicle_brand, "Maybach");
+  assert.equal(legacyMaybach.vehicle_model, "57 / 62 (2002–2012)");
+  assert.equal(legacyMaybach.market, "US");
+
+  const scionIa = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SCION",
+    model: "IA",
+    model_year: "2018",
+  });
+  assert.equal(scionIa.vehicle_brand, "Scion");
+  assert.equal(scionIa.vehicle_model, "iA / Yaris iA (2016–2018)");
+  assert.equal(scionIa.market, "US");
+
+  const scionIm = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SCION",
+    model: "IM",
+    model_year: "2017",
+  });
+  assert.equal(scionIm.vehicle_brand, "Scion");
+  assert.equal(scionIm.vehicle_model, "iM / Corolla iM (2016–2018)");
+
+  const hummerH3 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "HUMMER",
+    model: "H3",
+    model_year: "2008",
+  });
+  assert.equal(hummerH3.vehicle_brand, "Hummer");
+  assert.equal(hummerH3.vehicle_model, "H3 (2006–2010)");
+
+  const earlyHummerH3 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "HUMMER",
+    model: "H3",
+    model_year: "2004",
+  });
+  assert.equal(earlyHummerH3.resolved, false);
+
+  const smartFortwo = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SMART",
+    model: "FORTWO",
+    model_year: "2014",
+  });
+  assert.equal(smartFortwo.vehicle_brand, "Smart");
+  assert.equal(smartFortwo.vehicle_model, "fortwo 451 (2008–2015)");
+
+  const smartCabrio = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SMART",
+    model: "FORTWO CABRIOLET",
+    model_year: "2017",
+  });
+  assert.equal(smartCabrio.vehicle_brand, "Smart");
+  assert.equal(smartCabrio.vehicle_model, "fortwo 453 (2016–2019)");
+
+  const earlySmart = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SMART",
+    model: "FORTWO",
+    model_year: "2005",
+  });
+  assert.equal(earlySmart.resolved, false);
 });
 
 test("finalizeStageForSeed downgrades unresolved ready candidates to review", () => {

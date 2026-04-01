@@ -1061,7 +1061,7 @@ export const VEHICLE_CATALOG = [
   {
     brand:     "Mercedes-Benz",
     active:    true,
-    expertise: "Mercedes-Benz osobní a užitková vozidla hlavních post-2000 modelových řad (A, B, C, E, CLA, CLS, SLK/SLC, GLA, GLK, GLC, ML/GLE, Sprinter, Vito, Citan) — motory M111/M271/M270/M260/M264/M282/M133/M139 benzín, OM611/OM646/OM651/OM654/OM656 diesel, elektrické pohony od roku 2000, EU spec (BlueTEC, AdBlue, DPF Euro 5/6, SCR)",
+    expertise: "Mercedes-Benz osobní a užitková vozidla hlavních post-2000 modelových řad (A, B, C, E, CLA, CLS, SLK/SLC, GLA, GLK, GLC, ML/GLE, Sprinter, Vito, Citan, EQS SUV) — motory M111/M271/M270/M260/M264/M282/M133/M139 benzín, OM611/OM646/OM651/OM654/OM656 diesel, elektrické pohony od roku 2000, EU spec (BlueTEC, AdBlue, DPF Euro 5/6, SCR)",
     models: [
       // ── A-Class ────────────────────────────────────────────────────────────────
       { group: "A-Class" },
@@ -1193,6 +1193,7 @@ export const VEHICLE_CATALOG = [
       { label: "EQC N293 (2019–2023)", powers: ["300 kW – EQC 400 4MATIC"] },
       { label: "EQE V295 (2022–současnost)", powers: ["215 kW – EQE 300", "292 kW – EQE 350+", "460 kW – EQE 53 AMG 4MATIC+"] },
       { label: "EQS V297 (2021–současnost)", powers: ["245 kW – EQS 350+", "265 kW – EQS 450+", "360 kW – EQS 580 4MATIC", "484 kW – EQS 53 AMG 4MATIC+"] },
+      { label: "EQS SUV X296 (2022–současnost)", powers: ["265 kW – EQS SUV 450+", "400 kW – EQS SUV 580 4MATIC", "484 kW – Mercedes-Maybach EQS SUV 680 4MATIC"] },
     ],
   },
 

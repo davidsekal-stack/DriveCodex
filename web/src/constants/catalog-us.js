@@ -149,6 +149,20 @@ export const VEHICLE_CATALOG_US = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   {
+    brand:     "Hummer",
+    active:    false,
+    expertise: "Legacy HUMMER US SUVs and trucks — H2, H2 SUT, H3 and H3T/H3 SUT — GM Vortec V8 and Atlas I5 platforms, transfer-case and 4WD driveline diagnostics, 2003–2010 US spec",
+    models: [
+      { group: "H2 / H3" },
+      { label: "H2 (2003–2010)", powers: ["316 hp – 6.0L Vortec V8", "393 hp – 6.2L Vortec V8"] },
+      { label: "H2 SUT (2005–2009)", powers: ["316 hp – 6.0L Vortec V8", "393 hp – 6.2L Vortec V8"] },
+      { label: "H3 (2006–2010)", powers: ["220 hp – 3.5L Atlas I5", "242 hp – 3.7L Atlas I5", "300 hp – 5.3L Vortec V8 Alpha"] },
+      { label: "H3T / H3 SUT (2009–2010)", powers: ["239 hp – 3.7L Atlas I5", "300 hp – 5.3L Vortec V8 Alpha"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
     brand:     "Ram",
     active:    true,
     expertise: "Ram trucks and vans — 1500, 2500, 3500, ProMaster — HEMI 5.7L/6.4L/6.2L, 6.7L Cummins Diesel, 3.6L Pentastar V6, 3.0L EcoDiesel, 3.0L Hurricane I6 Turbo, ZF 8HP/TorqueFlite 8 transmissions, MDS cylinder deactivation, 2009–present US spec",
@@ -929,6 +943,18 @@ export const VEHICLE_CATALOG_US = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   {
+    brand:     "Scion",
+    active:    false,
+    expertise: "Legacy Scion US sub-brand — iA and iM transition models later sold as Toyota Yaris iA and Corolla iM — Skyactiv-G and Toyota 2ZR-FE platforms, 2016–2018 US spec",
+    models: [
+      { group: "iA / iM" },
+      { label: "iA / Yaris iA (2016–2018)", powers: ["106 hp – 1.5L Skyactiv-G I4"] },
+      { label: "iM / Corolla iM (2016–2018)", powers: ["137 hp – 1.8L 2ZR-FAE I4"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
     brand:     "Nissan (US)",
     active:    true,
     expertise: "Nissan US market — Altima, Rogue, Pathfinder, Frontier, Titan, Sentra, Kicks, Murano, Armada, Z — VQ/QR/MR engines, Xtronic CVT, e-POWER, ProPILOT Assist, 2007–present US spec",
@@ -1316,6 +1342,30 @@ export const VEHICLE_CATALOG_US = [
       { label: "Clubman (2016–2024)" },
       { label: "Countryman (2017–2024)" },
       { label: "Countryman (2025–present)" },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Maybach",
+    active:    false,
+    expertise: "Legacy standalone Maybach luxury sedans — 57 and 62 plus S variants — twin-turbo V12 powertrains, ABC suspension and comfort electronics, 2002–2012 US spec",
+    models: [
+      { group: "57 / 62" },
+      { label: "57 / 62 (2002–2012)", powers: ["543 hp – 5.5L twin-turbo V12", "604 hp – 6.0L twin-turbo V12 S"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Smart",
+    active:    false,
+    expertise: "smart US microcars — fortwo coupe/cabrio and electric drive — rear-mounted 1.0L/0.9L petrol engines and ED EV drivetrains, 2008–2019 US spec",
+    models: [
+      { group: "fortwo" },
+      { label: "fortwo 451 (2008–2015)", powers: ["70 hp – 1.0L M132 I3", "84 hp – 1.0L turbo I3"] },
+      { label: "fortwo Electric Drive (2013–2015)", powers: ["74 hp – Electric Drive"] },
+      { label: "fortwo 453 (2016–2019)", powers: ["89 hp – 0.9L turbo I3"] },
     ],
   },
 
