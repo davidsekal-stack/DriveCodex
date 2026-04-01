@@ -190,7 +190,7 @@ function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual }) {
       {/* Název + pravděpodobnost */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 8, flexWrap: "wrap" }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.1rem" : "1.3rem", fontWeight: 700, color: isPrimary ? sc.accent : t.text, letterSpacing: "0.04em" }}>
+          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: mobile ? "1.1rem" : "1.3rem", fontWeight: 700, color: isPrimary ? sc.accent : t.text, letterSpacing: "0.04em" }}>
             {isPrimary && "◈ "}{f.název}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
@@ -203,7 +203,7 @@ function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual }) {
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: mobile ? "1.2rem" : "1.5rem", fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 800, color: sc.accent }}>
+          <div style={{ fontSize: mobile ? "1.2rem" : "1.5rem", fontFamily: "'Rajdhani',sans-serif", fontWeight: 800, color: sc.accent }}>
             {f.pravděpodobnost}%
           </div>
           <div style={{ fontSize: "0.5rem", color: t.textFaint, letterSpacing: "0.08em" }}>{tr('diag.probability')}</div>

@@ -89,7 +89,7 @@ function LoginPageInner({ onAuth }) {
             <span style={{ fontSize: "18px" }}>🔧</span>
           </div>
           <div>
-            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: mobile ? "1.4rem" : "1.8rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em" }}>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: mobile ? "1.4rem" : "1.8rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em" }}>
               GEAR<span style={{ color: t.accent }}>Brain</span>
             </div>
             <div style={{ fontSize: "0.6rem", color: t.textFaint, letterSpacing: "0.12em" }}>{tr('login.subtitle')}</div>
@@ -110,7 +110,7 @@ function LoginPageInner({ onAuth }) {
         {mode === "verify" && (
           <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: mobile ? 18 : 28, textAlign: "center" }}>
             <div style={{ fontSize: "2rem", marginBottom: 16 }}>📧</div>
-            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.2rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 12 }}>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "1.2rem", fontWeight: 700, color: t.doneStatusColor, marginBottom: 12 }}>
               {tr('login.verifyTitle')}
             </div>
             <div style={{ fontSize: "0.85rem", color: t.textMuted, lineHeight: 1.7, marginBottom: 20 }}>
@@ -130,7 +130,7 @@ function LoginPageInner({ onAuth }) {
         {/* Login / Register form */}
         {mode !== "verify" && (
           <div style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: mobile ? 18 : 28 }}>
-            <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.3rem", fontWeight: 700, color: t.text, marginBottom: 20, letterSpacing: "0.05em", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "1.3rem", fontWeight: 700, color: t.text, marginBottom: 20, letterSpacing: "0.05em", textAlign: "center" }}>
               {mode === "login" ? tr('login.loginTitle') : tr('login.registerTitle')}
             </div>
 

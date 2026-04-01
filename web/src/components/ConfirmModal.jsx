@@ -10,7 +10,7 @@ export default function ConfirmModal({ title, message, onConfirm, onCancel, conf
   return (
     <div onClick={onCancel} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
       <div onClick={(e) => e.stopPropagation()} style={{ background: t.bgModal, border: `1px solid ${t.border}`, borderRadius: 4, padding: "26px", width: 400, maxWidth: "92vw", boxShadow: "0 20px 60px rgba(0,0,0,0.35)" }}>
-        <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.3rem", fontWeight: 700, color: danger ? "#dc2626" : t.text, marginBottom: 10 }}>
+        <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "1.3rem", fontWeight: 700, color: danger ? "#dc2626" : t.text, marginBottom: 10 }}>
           {title}
         </div>
         <p style={{ fontSize: "0.85rem", color: t.textMuted, marginBottom: 20, lineHeight: 1.6 }}>

@@ -21,7 +21,7 @@ export default function TosModal({ onAccept, onDecline, tr }) {
 
         {/* Title */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: t.text }}>
+          <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: "1.4rem", fontWeight: 700, color: t.text }}>
             {tr("tos.title")}
           </div>
         </div>
