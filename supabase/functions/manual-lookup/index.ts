@@ -220,23 +220,23 @@ async function lookup(
 
   if (terms.length) {
     // 1a. Component match — full filters (model + engine)
-    let r = await qComponent(model, eng, terms)
+    let r = await qComponent(model, eng, terms, rgHints)
     if (r.length) return r
 
     // 1b. Relax: drop model, keep engine (model name may not match graph exactly)
     if (model && (eng.displacement || eng.fuelHint)) {
-      r = await qComponent('', eng, terms)
+      r = await qComponent('', eng, terms, rgHints)
       if (r.length) return r
     }
 
     // 1c. Relax: keep model, drop engine
     if (model) {
-      r = await qComponent(model, noEng, terms)
+      r = await qComponent(model, noEng, terms, rgHints)
       if (r.length) return r
     }
 
     // 1d. Relax: drop both — just find the component anywhere
-    r = await qComponent('', noEng, terms)
+    r = await qComponent('', noEng, terms, rgHints)
     if (r.length) return r
 
     // 2. Fulltext search (same relaxation cascade)
@@ -317,8 +317,9 @@ function toHit(row: Record<string, unknown>): ManualHit {
 
 // ── Queries ─────────────────────────────────────────────────────────────────
 
-async function qComponent(model: string, eng: EngineHints, terms: string[]): Promise<ManualHit[]> {
-  // Pass terms as parameter list — safe against injection
+async function qComponent(model: string, eng: EngineHints, terms: string[], rgHints: string[] = []): Promise<ManualHit[]> {
+  // Pass terms as parameter list — safe against injection.
+  // Sections whose repair_group matches the expected RG for the component are ranked first.
   const rows = await cypher(`
     UNWIND $terms AS term
     MATCH (c:Component) WHERE toLower(c.name) CONTAINS toLower(term)
@@ -331,9 +332,10 @@ async function qComponent(model: string, eng: EngineHints, terms: string[]): Pro
     RETURN m.filename AS manual, sec.title AS section, sec.repair_group AS rg,
            sec.pdf_page AS page,
            collect(DISTINCT [sub.number, sub.title]) AS subs,
-           collect(DISTINCT c.name) AS comps
-    ORDER BY rg LIMIT 15
-  `, { terms, ...baseParams(model, eng) })
+           collect(DISTINCT c.name) AS comps,
+           CASE WHEN $rgHints <> [] AND sec.repair_group IN $rgHints THEN 0 ELSE 1 END AS rg_rank
+    ORDER BY rg_rank, rg LIMIT 15
+  `, { terms, rgHints, ...baseParams(model, eng) })
   return rows.map(toHit)
 }
 
