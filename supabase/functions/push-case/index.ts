@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: push-case
+ * DriveCodex — Edge Function: push-case
  *
  * Přijme uzavřený případ, přeloží textová pole do angličtiny
  * a uloží do sdílené RAG databáze gearbrain_cases.

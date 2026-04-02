@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: review-cases
+ * DriveCodex — Edge Function: review-cases
  *
  * Admin endpoint pro review workflow:
  * - GET:  Vrátí pending případy s emailem uživatele a časem uzavření

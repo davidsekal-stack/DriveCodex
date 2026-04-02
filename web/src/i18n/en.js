@@ -1,4 +1,4 @@
-// ── GearBrain i18n — English (EN) ────────────────────────────────────────────
+// ── DriveCodex i18n — English (EN) ────────────────────────────────────────────
 
 export const strings = {
   // App — general
@@ -99,7 +99,7 @@ export const strings = {
 
   // Feedback
   'app.feedback':         '✉ Feedback',
-  'app.feedbackSubject':  'GearBrain — Feedback',
+  'app.feedbackSubject':  'DriveCodex — Feedback',
   'app.feedbackPlaceholder': 'Feedback...',
   'app.feedbackSend':     'Send',
   'app.feedbackSent':     'Sent, thank you!',
@@ -173,12 +173,12 @@ export const strings = {
 
   // Terms of Service
   'tos.title':               'Terms of Service',
-  'tos.intro':               'Please review and accept the GearBrain Terms of Service before registering.',
+  'tos.intro':               'Please review and accept the DriveCodex Terms of Service before registering.',
   'tos.keyPoints':           'Key Points:',
   'tos.aiDisclaimer':        'AI Diagnostics',
   'tos.aiDisclaimerDesc':    'Diagnostic results are indicative and serve as a support tool for mechanics. They do not replace a professional vehicle inspection. Always verify recommendations with your own diagnostics.',
   'tos.liability':           'Limitation of Liability',
-  'tos.liabilityDesc':       'GearBrain is not liable for any damages resulting from repairs based on AI recommendations. The service is provided "as is" without warranty of accuracy or completeness.',
+  'tos.liabilityDesc':       'DriveCodex is not liable for any damages resulting from repairs based on AI recommendations. The service is provided "as is" without warranty of accuracy or completeness.',
   'tos.dataUsage':           'Data Usage',
   'tos.dataUsageDesc':       'Closed diagnostic cases may be anonymized and used to improve service quality (similar cases database). Personal data is not included in anonymized data.',
   'tos.privacy':             'Privacy',

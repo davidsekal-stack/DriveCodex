@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: manual-lookup
+ * DriveCodex — Edge Function: manual-lookup
  *
  * General-purpose workshop manual lookup via Neo4j graph.
  * Accepts raw vehicle + fault data, normalizes server-side, queries graph.

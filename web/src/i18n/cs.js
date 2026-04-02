@@ -1,4 +1,4 @@
-// ── GearBrain i18n — Čeština (CS) ────────────────────────────────────────────
+// ── DriveCodex i18n — Čeština (CS) ────────────────────────────────────────────
 
 export const strings = {
   // App — general
@@ -99,7 +99,7 @@ export const strings = {
 
   // Feedback
   'app.feedback':         '✉ Zpětná vazba',
-  'app.feedbackSubject':  'GearBrain — Zpětná vazba',
+  'app.feedbackSubject':  'DriveCodex — Zpětná vazba',
   'app.feedbackPlaceholder': 'Zpětná vazba...',
   'app.feedbackSend':     'Odeslat',
   'app.feedbackSent':     'Odesláno, děkujeme!',
@@ -173,12 +173,12 @@ export const strings = {
 
   // Terms of Service
   'tos.title':               'Podmínky služby',
-  'tos.intro':               'Před registrací si prosím přečtěte a odsouhlaste podmínky služby GearBrain.',
+  'tos.intro':               'Před registrací si prosím přečtěte a odsouhlaste podmínky služby DriveCodex.',
   'tos.keyPoints':           'Hlavní body:',
   'tos.aiDisclaimer':        'AI diagnostika',
   'tos.aiDisclaimerDesc':    'Výsledky diagnostiky jsou orientační a slouží jako podpůrný nástroj pro mechaniky. Nenahrazují odbornou prohlídku vozidla. Vždy ověřte doporučení vlastní diagnostikou.',
   'tos.liability':           'Odpovědnost',
-  'tos.liabilityDesc':       'GearBrain nenese odpovědnost za škody vzniklé opravami provedenými na základě AI doporučení. Služba je poskytována „tak jak je" bez záruky přesnosti nebo úplnosti.',
+  'tos.liabilityDesc':       'DriveCodex nenese odpovědnost za škody vzniklé opravami provedenými na základě AI doporučení. Služba je poskytována „tak jak je" bez záruky přesnosti nebo úplnosti.',
   'tos.dataUsage':           'Využití dat',
   'tos.dataUsageDesc':       'Uzavřené diagnostické případy mohou být anonymizovány a použity ke zlepšení kvality služby (databáze podobných případů). Osobní údaje nejsou součástí anonymizovaných dat.',
   'tos.privacy':             'Ochrana osobních údajů',

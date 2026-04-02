@@ -1,4 +1,4 @@
-// ── GearBrain i18n — Deutsch (DE) ────────────────────────────────────────────
+// ── DriveCodex i18n — Deutsch (DE) ────────────────────────────────────────────
 
 export const strings = {
   // App — general
@@ -99,7 +99,7 @@ export const strings = {
 
   // Feedback
   'app.feedback':         '✉ Feedback',
-  'app.feedbackSubject':  'GearBrain — Feedback',
+  'app.feedbackSubject':  'DriveCodex — Feedback',
   'app.feedbackPlaceholder': 'Feedback...',
   'app.feedbackSend':     'Senden',
   'app.feedbackSent':     'Gesendet, vielen Dank!',
@@ -173,12 +173,12 @@ export const strings = {
 
   // Terms of Service
   'tos.title':               'Nutzungsbedingungen',
-  'tos.intro':               'Bitte lesen und akzeptieren Sie die GearBrain-Nutzungsbedingungen vor der Registrierung.',
+  'tos.intro':               'Bitte lesen und akzeptieren Sie die DriveCodex-Nutzungsbedingungen vor der Registrierung.',
   'tos.keyPoints':           'Wichtige Punkte:',
   'tos.aiDisclaimer':        'AI-Diagnose',
   'tos.aiDisclaimerDesc':    'Diagnoseergebnisse sind orientierend und dienen als Hilfsmittel für Mechaniker. Sie ersetzen keine fachgerechte Fahrzeuginspektion. Überprüfen Sie Empfehlungen immer mit eigener Diagnostik.',
   'tos.liability':           'Haftungsbeschränkung',
-  'tos.liabilityDesc':       'GearBrain haftet nicht für Schäden, die durch Reparaturen auf Basis von AI-Empfehlungen entstehen. Der Dienst wird ohne Gewährleistung der Genauigkeit oder Vollständigkeit bereitgestellt.',
+  'tos.liabilityDesc':       'DriveCodex haftet nicht für Schäden, die durch Reparaturen auf Basis von AI-Empfehlungen entstehen. Der Dienst wird ohne Gewährleistung der Genauigkeit oder Vollständigkeit bereitgestellt.',
   'tos.dataUsage':           'Datennutzung',
   'tos.dataUsageDesc':       'Abgeschlossene Diagnosefälle können anonymisiert und zur Verbesserung der Servicequalität verwendet werden (Datenbank ähnlicher Fälle). Personenbezogene Daten sind nicht in anonymisierten Daten enthalten.',
   'tos.privacy':             'Datenschutz',

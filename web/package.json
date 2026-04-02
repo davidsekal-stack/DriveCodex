@@ -1,8 +1,8 @@
 {
-  "name": "gearbrain-web",
+  "name": "drivecodex-web",
   "version": "1.0.0",
   "type": "module",
-  "description": "GearBrain – AI Diagnostika Ford Transit (web verze)",
+  "description": "DriveCodex – AI Diagnostika (web verze)",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: send-feedback
+ * DriveCodex — Edge Function: send-feedback
  *
  * Přijme zpětnou vazbu od uživatele a uloží ji do tabulky gearbrain_feedback.
  * Volitelně přepošle na email přes Resend API (pokud je RESEND_API_KEY nastaven).
@@ -46,9 +46,9 @@ Deno.serve(async (req) => {
             'Authorization': `Bearer ${resendKey}`,
           },
           body: JSON.stringify({
-            from:    'GearBrain <noreply@resend.dev>',
+            from:    'DriveCodex <noreply@resend.dev>',
             to:      [FEEDBACK_EMAIL],
-            subject: `GearBrain Feedback${userEmail ? ` od ${userEmail}` : ''}`,
+            subject: `DriveCodex Feedback${userEmail ? ` od ${userEmail}` : ''}`,
             text:    `Nový feedback:\n\n${message.trim()}\n\n---\nOd: ${userEmail || 'neznámý'}\nJazyk: ${lang || 'cs'}`,
           }),
         })

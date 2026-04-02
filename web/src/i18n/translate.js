@@ -1,4 +1,4 @@
-// ── GearBrain i18n — pure JS helpers (no React, no JSX) ──────────────────────
+// ── DriveCodex i18n — pure JS helpers (no React, no JSX) ──────────────────────
 // Used by ai.js, validation.js, ErrorBoundary, and unit tests.
 
 import { strings as cs } from './cs.js'

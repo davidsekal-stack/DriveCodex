@@ -1,5 +1,5 @@
 /**
- * Shared CORS headers for all GearBrain edge functions.
+ * Shared CORS headers for all DriveCodex edge functions.
  */
 
 export const CORS_HEADERS: Record<string, string> = {
