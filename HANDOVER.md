@@ -1,6 +1,6 @@
 ﻿# Handover
 
-Aktualizováno: 2026-03-31
+Aktualizováno: 2026-04-02
 
 ## Nepřekročitelné pravidlo pro seed importy
 
@@ -47,6 +47,7 @@ Nejčerstvější praktický stav:
 - pro `Citroën/BMW/Opel/SEAT` je nově připravený sekvenční batch runner nad root fóry
 - Audi crawler byl po copy-paste chybě opraven a z druhého signals běhu bylo ručně potvrzeno `5 ready`
 - z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď bezpečně importováno `at least 764` unikátních případů; poslední čistě uzavřený brand pass je `Volvo` `32/32`
+- z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď bezpečně importováno `at least 1027` unikátních případů; nově je uzavřený i `Mercedes-Maybach` blok (`64/64`), plus malý safe alias blok `Maybach 2`, `Mercedes 6`, `Smart 6`
 - Volvo pass už má doplněný US katalog pro `V90` a současné `MHEV/PHEV/BEV` aliasy; `V60CCPHEV` zůstal vědomě mimo katalog, protože pro US podporu nebyla dost silná oficiální opora
 - aktuální velký backlog z téhož souboru je hlavně `Mercedes-Benz`
 
@@ -98,7 +99,54 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
-### 1. Seed metadata teď nesou původní URL vlákna
+### 0. Mercedes-Maybach / Maybach / Mercedes / Smart unsupported block byl uzavřen
+
+Nové nebo změněné soubory:
+- [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
+- [web/src/constants/catalog.js](/C:/GB/web/src/constants/catalog.js)
+- [web/src/constants/catalog-us.js](/C:/GB/web/src/constants/catalog-us.js)
+- [tests/tsb-seed-nhtsa.test.js](/C:/GB/tests/tsb-seed-nhtsa.test.js)
+- [tests/unit.test.js](/C:/GB/tests/unit.test.js)
+- [NHTSA_STATUS.md](/C:/GB/NHTSA_STATUS.md)
+
+Co se uzavřelo:
+- do katalogu/resolveru byly bezpečně přidané aliasy pro `Mercedes-Maybach`, `Maybach`, `Mercedes`, `Smart`, `Scion`, `Hummer`
+- `Scion` a `Hummer` po individuálním review skončily na `0` safe seed
+- malý safe alias blok byl naimportovaný:
+  - `Maybach` `2`
+  - `Mercedes` alias `6`
+  - `Smart` `6`
+- finální přísný individuální pass nad `Mercedes-Maybach` skončil na `64 ready`
+- před live importem byly ještě odstraněny `2` semantické překryvy s dřívějším Mercedes blokem
+- finální Mercedes-Maybach live import prošel `64/64`
+
+Artefakty:
+- finální reviewed subset: [nhtsa_2025_mercedes_maybach_reviewed_final_20260402](/C:/GB/tmp/nhtsa_2025_mercedes_maybach_reviewed_final_20260402)
+- audit: [MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_mercedes_maybach_reviewed_final_20260402/MANUAL_REVIEW.md)
+- dry import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_dry_20260402_r2/results.jsonl)
+- live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_live_20260402/results.jsonl)
+
+### 1. Mercedes NHTSA mapping a safe subset byly zpřísněny
+
+Nové nebo změněné soubory:
+- [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
+- [web/src/constants/catalog.js](/C:/GB/web/src/constants/catalog.js)
+- [tests/tsb-seed-nhtsa.test.js](/C:/GB/tests/tsb-seed-nhtsa.test.js)
+- [tests/unit.test.js](/C:/GB/tests/unit.test.js)
+
+Co je nové:
+- do Mercedes katalogu byly doplněny `Sprinter VS30`, `AMG GT C190 / R190` a `AMG GT X290`
+- NHTSA resolver už nemapuje US fleet názvy `SPRINTER 1500/2500/3500/4500` slepě na `VS30`; alias je nově year-gated jen pro `MY2019+`
+- explicitní `SPRINTER (VS30)` se dál mapuje přímo na `Sprinter VS30`
+- tím se omezuje chybné přemapování starších US Sprinter bulletinů do nové generace
+
+Aktuální Mercedes NHTSA stav:
+- po přísném individuálním třetím passu vznikl high-confidence subset `185 ready`
+- working subset je v [nhtsa_2025_mercedes_thirdpass_safe_20260401](/C:/GB/tmp/nhtsa_2025_mercedes_thirdpass_safe_20260401)
+- audit je v [MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_mercedes_thirdpass_safe_20260401/MANUAL_REVIEW.md)
+- tenhle subset ještě nebyl z tohoto shellu importovaný; před live importem je potřeba suchý import a až potom Supabase
+
+### 2. Seed metadata teď nesou původní URL vlákna
 
 Do seed recordů bylo doplněno `thread_url`, takže každá nová položka jde zpětně ručně zkontrolovat proti originálnímu vláknu.
 
@@ -109,7 +157,7 @@ Dotčené vrstvy:
 - edge `search-cases` [search-cases/index.ts](/C:/GB/supabase/functions/search-cases/index.ts)
 - migrace [009_add_thread_url_to_cases.sql](/C:/GB/supabase/migrations/009_add_thread_url_to_cases.sql)
 
-### 2. Audi crawler byl dokončen a opraven
+### 3. Audi crawler byl dokončen a opraven
 
 Nové nebo změněné soubory:
 - [scripts/forum-seed-audi.mjs](/C:/GB/scripts/forum-seed-audi.mjs)
@@ -123,7 +171,7 @@ Po opravě:
 - signals retry běh `seed_audi_full_signals_retry_20260321_204709` po ruční kontrole skončil na `5 ready`
 - audit je v [MANUAL_REVIEW.md](/C:/GB/seed_audi_full_signals_retry_20260321_204709/MANUAL_REVIEW.md)
 
-### 3. Připraveny nové root crawlery pro Opel, BMW, SEAT a Citroën
+### 4. Připraveny nové root crawlery pro Opel, BMW, SEAT a Citroën
 
 Sdílený základ:
 - [scripts/forum-seed-club-root.mjs](/C:/GB/scripts/forum-seed-club-root.mjs)
@@ -146,7 +194,7 @@ Pravidla těchto crawlerů:
 - generické family fórum radši vrací `model_family` než agresivní konkrétní generaci
 - nové modely v katalogu se nemají přidávat jen podle názvu fóra; musí být ověřené z více důvěryhodných zdrojů
 
-### 4. Připraven sekvenční batch runner pro více klubů
+### 5. Připraven sekvenční batch runner pro více klubů
 
 Nové soubory:
 - [scripts/forum-seed-batch.mjs](/C:/GB/scripts/forum-seed-batch.mjs)
@@ -164,7 +212,7 @@ Poznámka k aktuálnímu stavu:
 - při prvním batch discovery běhu byl nalezen a opraven blocker v root discovery: kategorie se předávaly do inventory pod špatnými klíči `forum_url/forum_title` místo `forumUrl/forumTitle`
 - po tomto fixu je potřeba discovery nad těmito čtyřmi kluby pustit znovu
 
-### 5. NHTSA 2025 pipeline je aktuálně dotažená pro Volvo
+### 6. NHTSA 2025 pipeline je aktuálně dotažená pro Volvo
 
 Nové nebo změněné soubory:
 - [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
@@ -184,7 +232,7 @@ Co se udělalo:
 - Import log:
   - [seed_import_supabase_nhtsa_2025_volvo_live_20260331/results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_volvo_live_20260331/results.jsonl)
 
-### 6. Live Supabase testy jsou rozdělené do procesních suite
+### 7. Live Supabase testy jsou rozdělené do procesních suite
 
 Původní monolitický live test v [tests/supabase-integration.test.js](/C:/GB/tests/supabase-integration.test.js) byl rozdělen na harness + suite:
 

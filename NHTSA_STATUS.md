@@ -1,6 +1,6 @@
 # NHTSA TSB Status
 
-Aktualizováno: 2026-04-01
+Aktualizováno: 2026-04-02
 
 ## Scope note
 
@@ -93,11 +93,12 @@ Source file:
 - [C:\Users\sekald\Downloads\TSBS_RECEIVED_2025-2025\TSBS_RECEIVED_2025-2025.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt)
 
 Current clean imported total from this file:
-- `at least 949` unique cases
+- `at least 1027` unique cases
 
 Note:
 - The previous verified lower bound was `764`.
-- The latest fully reviewed Mercedes pass added `185/185` clean imports.
+- The fully reviewed Mercedes pass added `185/185` clean imports.
+- The follow-up unsupported-make block added `64/64` reviewed `Mercedes-Maybach` cases plus the earlier small safe block `Maybach 2`, `Mercedes alias 6`, `Smart 6`.
 - The detailed per-brand breakdown below has not yet been fully recomputed after the March 31 cleanup/reimport passes, so treat it as a lower-fidelity snapshot except where explicitly updated.
 
 Current imported breakdown:
@@ -124,28 +125,33 @@ Current imported breakdown:
 - `Mitsubishi` `3`
 - `Tesla (US)` `1`
 - `Volvo` `32`
-- `Mercedes-Benz` `185`
+- `Mercedes-Benz` `255`
+- `Maybach` `2`
+- `Smart` `6`
 
 Newly completed in the latest pass:
 - `GMC` `58`
 - `Volvo` `32`
 - `Mercedes-Benz` `185`
+- `Mercedes-Maybach` block `64`
+- `Mercedes` alias block `6`
+- `Maybach` `2`
+- `Smart` `6`
 
 Closed with no safe subset in the latest pass:
 - `Volkswagen (US)` `0`
+- `Scion` `0`
+- `Hummer` `0`
 
 Supported-slice backlog status:
 - no remaining large backlog inside the currently catalog-supported slice
 - the remaining work on `TSBS_RECEIVED_2025-2025.txt` is primarily catalog expansion for additional automotive makes not yet supported in the app catalog
 
 Likely next unsupported automotive makes from this file (not yet added to catalog):
-- `Mercedes-Maybach` / `Maybach` / `Mercedes` alias rows
 - `McLaren`
 - `Pontiac`
 - `Saturn`
 - `Saab`
-- `Smart`
-- `Scion`
 - `Isuzu`
 - `BrightDrop`
 - `Workhorse`
@@ -155,8 +161,13 @@ Likely next unsupported automotive makes from this file (not yet added to catalo
 - `Rolls-Royce`
 - `Lamborghini`
 - `Koenigsegg`
-- `Hummer`
 - `Geo`
+
+Latest Mercedes-Maybach review artifacts:
+- reviewed subset: [C:\GB\tmp\nhtsa_2025_mercedes_maybach_reviewed_final_20260402](C:/GB/tmp/nhtsa_2025_mercedes_maybach_reviewed_final_20260402)
+- audit: [C:\GB\tmp\nhtsa_2025_mercedes_maybach_reviewed_final_20260402\MANUAL_REVIEW.md](C:/GB/tmp/nhtsa_2025_mercedes_maybach_reviewed_final_20260402/MANUAL_REVIEW.md)
+- dry import: [C:\GB\seed_import_supabase_nhtsa_2025_mercedes_maybach_dry_20260402_r2\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_dry_20260402_r2/results.jsonl)
+- live import: [C:\GB\seed_import_supabase_nhtsa_2025_mercedes_maybach_live_20260402\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_live_20260402/results.jsonl)
 
 Latest Volvo review artifacts:
 - reviewed subset: [C:\GB\tmp\nhtsa_2025_volvo_ai_reviewed_full_20260331](C:/GB/tmp/nhtsa_2025_volvo_ai_reviewed_full_20260331)
