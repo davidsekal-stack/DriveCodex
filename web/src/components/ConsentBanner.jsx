@@ -51,7 +51,7 @@ export default function ConsentGate({ children }) {
             <span style={{ fontSize: "17px" }}>🔧</span>
           </div>
           <div style={{ fontFamily: "'Exo 2',sans-serif", fontSize: "1.6rem", fontWeight: 800, color: t.text, letterSpacing: "0.05em" }}>
-            GEAR<span style={{ color: t.accent }}>Brain</span>
+            DRIVE<span style={{ color: t.accent }}>Codex</span>
           </div>
         </div>
 
