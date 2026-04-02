@@ -130,7 +130,13 @@
       "WebFetch(domain:axonik.com)",
       "WebFetch(domain:mycelnet.com)",
       "Bash(grep -rn \"GearBrain\\\\|gearbrain\\\\|Gear Brain\\\\|gear-brain\" /c/GB/.claude/worktrees/hardcore-goldstine --include=*.jsx --include=*.js --include=*.ts --include=*.html --include=*.json --include=*.md)",
-      "Bash(grep -rn \"GearBrain\\\\|gearbrain\" /c/GB/.claude/worktrees/hardcore-goldstine/web/src --include=*.jsx --include=*.js --include=*.ts --include=*.html)"
+      "Bash(grep -rn \"GearBrain\\\\|gearbrain\" /c/GB/.claude/worktrees/hardcore-goldstine/web/src --include=*.jsx --include=*.js --include=*.ts --include=*.html)",
+      "Bash(node tests/unit.test.js)",
+      "Bash(node tests/supabase-integration.test.js)",
+      "Bash(Select-Object FullName)",
+      "Bash(find /c/GB -maxdepth 3 -name *.env* -o -name .env)",
+      "Bash(TEST_SUPABASE_URL=\"https://nmvjthfezyjcwuzphiuu.supabase.co\" TEST_SUPABASE_ANON_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo\" TEST_USER_EMAIL=\"socialpilotbot@gmail.com\" TEST_USER_PASSWORD=\"claude\" node tests/supabase-integration.test.js)",
+      "Bash(TEST_SUPABASE_URL=\"https://nmvjthfezyjcwuzphiuu.supabase.co\" TEST_SUPABASE_ANON_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo\" node -e \":*)"
     ]
   },
   "hooks": {

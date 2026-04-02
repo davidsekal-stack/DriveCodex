@@ -72,6 +72,7 @@ import {
 import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
 import { uid, urgColor, fmtDate, fmtMileage } from '../web/src/lib/utils.js'
+import { filterManualRefs, RELEVANT_TIERS } from '../web/src/lib/manual-refs.js'
 import { detectEngineTech, getObdCodes, BRAND_OBD_CODES } from '../web/src/constants/obd-codes.js'
 import { VEHICLE_CATALOG } from '../web/src/constants/catalog.js'
 import { VEHICLE_CATALOG_US } from '../web/src/constants/catalog-us.js'
@@ -1863,6 +1864,79 @@ describe('helpers — makeEmptyVehicle', () => {
     strictEqual(fmtMileage('', 'cs'), '')
     strictEqual(fmtMileage(0, 'cs'), '')
     strictEqual(fmtMileage(null, 'cs'), '')
+  })
+})
+
+describe('filterManualRefs — relevance tier filtering', () => {
+  test('vrátí null pro null vstup', () => {
+    strictEqual(filterManualRefs(null), null)
+  })
+
+  test('vrátí null pro undefined vstup', () => {
+    strictEqual(filterManualRefs(undefined), null)
+  })
+
+  test('vrátí prázdné pole pro prázdné pole', () => {
+    deepStrictEqual(filterManualRefs([]), [])
+  })
+
+  test('zachová tier 1a (model + motor + component)', () => {
+    const input = [{ title: 'T1', match_tier: '1a' }]
+    const result = filterManualRefs(input)
+    strictEqual(result.length, 1)
+    strictEqual(result[0].match_tier, '1a')
+  })
+
+  test('zachová tier 1b (motor + component, bez modelu)', () => {
+    const input = [{ title: 'T2', match_tier: '1b' }]
+    strictEqual(filterManualRefs(input).length, 1)
+  })
+
+  test('zachová tier 1c (model + component, bez motoru)', () => {
+    const input = [{ title: 'T3', match_tier: '1c' }]
+    strictEqual(filterManualRefs(input).length, 1)
+  })
+
+  test('odfiltruje tier 1d (jen component, bez vozidla)', () => {
+    const input = [{ title: 'T4', match_tier: '1d' }]
+    deepStrictEqual(filterManualRefs(input), [])
+  })
+
+  test('odfiltruje tier 2 (fulltext fallback)', () => {
+    deepStrictEqual(filterManualRefs([{ match_tier: '2' }]), [])
+  })
+
+  test('odfiltruje tier 3 (repair group browse)', () => {
+    deepStrictEqual(filterManualRefs([{ match_tier: '3' }]), [])
+  })
+
+  test('odfiltruje tier 4 (generic vehicle list)', () => {
+    deepStrictEqual(filterManualRefs([{ match_tier: '4' }]), [])
+  })
+
+  test('smíšené tiery — zachová jen 1a/1b/1c', () => {
+    const input = [
+      { title: 'A', match_tier: '1a' },
+      { title: 'B', match_tier: '1b' },
+      { title: 'C', match_tier: '1c' },
+      { title: 'D', match_tier: '1d' },
+      { title: 'E', match_tier: '2' },
+      { title: 'F', match_tier: '4' },
+    ]
+    const result = filterManualRefs(input)
+    strictEqual(result.length, 3)
+    ok(result.every(r => RELEVANT_TIERS.has(r.match_tier)))
+  })
+
+  test('RELEVANT_TIERS obsahuje přesně 1a, 1b, 1c', () => {
+    ok(RELEVANT_TIERS.has('1a'))
+    ok(RELEVANT_TIERS.has('1b'))
+    ok(RELEVANT_TIERS.has('1c'))
+    ok(!RELEVANT_TIERS.has('1d'))
+    ok(!RELEVANT_TIERS.has('2'))
+    ok(!RELEVANT_TIERS.has('3'))
+    ok(!RELEVANT_TIERS.has('4'))
+    strictEqual(RELEVANT_TIERS.size, 3)
   })
 })
 

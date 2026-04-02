@@ -4,6 +4,7 @@ import { useTheme } from "../contexts/ThemeContext.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import { ObdChip } from "./Chip.jsx";
 import { lookupManual } from "../lib/storage-edge.js";
+import { filterManualRefs } from "../lib/manual-refs.js";
 
 // ── Source-based colors ──────────────────────────────────────────────────────
 // Green = from database (verified), Blue = AI-generated
@@ -106,8 +107,7 @@ function FaultManualRef({ vehicle, fault, tr, onOpenManual }) {
   if (!vehicle?.model) return null;
   // Only show if results are vehicle-constrained (model or engine matched).
   // Tiers 1d/2/3/4 drop all vehicle filters — result may be from a different car's manual.
-  const RELEVANT_TIERS = new Set(['1a', '1b', '1c']);
-  const relevantRefs = refs ? refs.filter(r => RELEVANT_TIERS.has(r.match_tier)) : null;
+  const relevantRefs = filterManualRefs(refs);
   if (relevantRefs !== null && relevantRefs.length === 0 && !loading) return null;
 
   return (
