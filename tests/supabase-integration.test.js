@@ -17,6 +17,7 @@ const { createHarness } = require('./supabase-live/harness.js')
 const { runWebSessionsSuite } = require('./supabase-live/suites/web-sessions.js')
 const { runRlsSuite } = require('./supabase-live/suites/rls.js')
 const { runEdgeFunctionsSuite } = require('./supabase-live/suites/edge-functions.js')
+const { runManualLookupSuite } = require('./supabase-live/suites/manual-lookup.js')
 
 async function run() {
   const harness = createHarness()
@@ -35,6 +36,7 @@ async function run() {
     const webFixtures = await runWebSessionsSuite(harness)
     await runRlsSuite(harness, webFixtures)
     await runEdgeFunctionsSuite(harness)
+    await runManualLookupSuite(harness)
   } finally {
     if (harness.state.accessToken) {
       await harness.runCleanup()
