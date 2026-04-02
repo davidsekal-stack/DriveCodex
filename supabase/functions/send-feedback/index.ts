@@ -13,7 +13,7 @@ import { json } from '../_shared/response.ts'
 import { getServiceClient } from '../_shared/client.ts'
 
 // Configurable via env var — fallback for backwards compatibility
-const FEEDBACK_EMAIL = Deno.env.get('FEEDBACK_EMAIL') || 'davidsekal@gmail.com'
+const FEEDBACK_EMAIL = Deno.env.get('FEEDBACK_EMAIL') || 'support@drivecodex.com'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return optionsResponse()
