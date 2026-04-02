@@ -192,6 +192,7 @@ interface ManualHit {
   page: number | null
   subsections: { number: string; title: string }[]
   components: string[]
+  match_tier: string   // "1a"|"1b"|"1c"|"1d"|"2"|"3"|"4" — how constrained the match is
 }
 
 // ── Handler ─────────────────────────────────────────────────────────────────
@@ -233,6 +234,10 @@ Deno.serve(async (req) => {
 
 // ── Query strategies (cascade: stop at first non-empty result) ──────────────
 
+function tag(results: ManualHit[], tier: string): ManualHit[] {
+  return results.map(r => ({ ...r, match_tier: tier }))
+}
+
 async function lookup(
   model: string,
   eng: EngineHints,
@@ -244,46 +249,46 @@ async function lookup(
   if (terms.length) {
     // 1a. Component match — full filters (model + engine)
     let r = await qComponent(model, eng, terms, rgHints)
-    if (r.length) return r
+    if (r.length) return tag(r, '1a')
 
     // 1b. Relax: drop model, keep engine (model name may not match graph exactly)
     if (model && (eng.displacement || eng.fuelHint)) {
       r = await qComponent('', eng, terms, rgHints)
-      if (r.length) return r
+      if (r.length) return tag(r, '1b')
     }
 
     // 1c. Relax: keep model, drop engine
     if (model) {
       r = await qComponent(model, noEng, terms, rgHints)
-      if (r.length) return r
+      if (r.length) return tag(r, '1c')
     }
 
-    // 1d. Relax: drop both — just find the component anywhere
+    // 1d. Relax: drop both — just find the component anywhere (vehicle unverified)
     r = await qComponent('', noEng, terms, rgHints)
-    if (r.length) return r
+    if (r.length) return tag(r, '1d')
 
     // 2. Fulltext search (same relaxation cascade)
     const ftq = terms.slice(0, 4).join(' ')
     r = await qFulltext(model, eng, ftq)
-    if (r.length) return r
+    if (r.length) return tag(r, '2')
     r = await qFulltext('', eng, ftq)
-    if (r.length) return r
+    if (r.length) return tag(r, '2')
     r = await qFulltext('', noEng, ftq)
-    if (r.length) return r
+    if (r.length) return tag(r, '2')
   }
 
   // 3. Repair-group browse
   if (rgHints.length) {
     let r = await qRepairGroup(model, eng, rgHints)
-    if (r.length) return r
+    if (r.length) return tag(r, '3')
     if (model) {
       r = await qRepairGroup(model, noEng, rgHints)
-      if (r.length) return r
+      if (r.length) return tag(r, '3')
     }
   }
 
   // 4. List all sections for vehicle
-  if (model) return qVehicle(model, eng)
+  if (model) return tag(await qVehicle(model, eng), '4')
   return []
 }
 
@@ -335,6 +340,7 @@ function toHit(row: Record<string, unknown>): ManualHit {
                     .filter(s => s?.[0] && s?.[1])
                     .map(s => ({ number: String(s[0]), title: String(s[1]) })),
     components:   (row.comps as string[]) ?? [],
+    match_tier:   '',   // overwritten by tag() in lookup()
   }
 }
 

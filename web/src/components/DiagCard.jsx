@@ -104,7 +104,11 @@ function FaultManualRef({ vehicle, fault, tr, onOpenManual }) {
   }, [vehicle?.brand, vehicle?.model, vehicle?.enginePower, fault.název]);
 
   if (!vehicle?.model) return null;
-  if (refs !== null && refs.length === 0 && !loading) return null;
+  // Only show if results are vehicle-constrained (model or engine matched).
+  // Tiers 1d/2/3/4 drop all vehicle filters — result may be from a different car's manual.
+  const RELEVANT_TIERS = new Set(['1a', '1b', '1c']);
+  const relevantRefs = refs ? refs.filter(r => RELEVANT_TIERS.has(r.match_tier)) : null;
+  if (relevantRefs !== null && relevantRefs.length === 0 && !loading) return null;
 
   return (
     <div style={{
@@ -120,9 +124,9 @@ function FaultManualRef({ vehicle, fault, tr, onOpenManual }) {
           {tr('diag.loadingManual')}
         </div>
       )}
-      {refs && refs.length > 0 && (
+      {relevantRefs && relevantRefs.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {refs.slice(0, 3).map((ref, i) => (
+          {relevantRefs.slice(0, 3).map((ref, i) => (
             <div
               key={i}
               onClick={() => onOpenManual?.(ref)}
