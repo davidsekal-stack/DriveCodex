@@ -20,6 +20,7 @@ Nepřípustné je:
 Pro NHTSA konkrétně:
 - `tsb-seed-nhtsa.mjs` je jen hrubý filtr a text normalizer
 - `tsb-review-nhtsa-ai.mjs` musí finální accepted seed přepsat do krátkých symptom tagů; `symptoms` mají být krátké labely, typicky `1-4` slova, ne celé věty
+- pokud je first-pass AI review pořád příliš široký, musí následovat druhý přísný per-case pass nad `ready + to_review`; na to je teď [scripts/tsb-second-pass-nhtsa-ai.mjs](/C:/GB/scripts/tsb-second-pass-nhtsa-ai.mjs)
 - pokud seed obsahuje konkrétnější symptom, generic tagy typu `MIL on` nebo `Warning light` se mají odstranit, ne ponechat vedle něj
 - pokud seed obsahuje explicitní `obd_codes`, nesmí zároveň nechávat redundantní symptom tag typu `DTCs P1234/...`; DTC patří do `obd_codes`, ne do `symptoms`
 - pokud description explicitně uvádí konkrétní DTC a `obd_codes` jsou prázdné, mají se tyto kódy doplnit do `obd_codes` a následně z `symptoms` odstranit redundantní DTC tagy
@@ -51,6 +52,10 @@ Nejčerstvější praktický stav:
 - na stejném souboru je nově uzavřený i poslední legacy mainstream unsupported block `Pontiac + Saturn + Saab`; po individuálním AI review skončil na `0 safe`, `Geo` zůstal mimo scope jako pre-2000 a `Isuzu` jako commercial-only
 - Volvo pass už má doplněný US katalog pro `V90` a současné `MHEV/PHEV/BEV` aliasy; `V60CCPHEV` zůstal vědomě mimo katalog, protože pro US podporu nebyla dost silná oficiální opora
 - další backlog na tom souboru už není legacy mainstream; zbývají hlavně unsupported niche/commercial makes jako `McLaren`, `BrightDrop`, `Workhorse`, `Karma`, `Ineos`, `Lotus`, `Rolls-Royce`, `Lamborghini`, `Koenigsegg`
+- na [TSBS_RECEIVED_2020-2024.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2020-2024/TSBS_RECEIVED_2020-2024.txt) jsou zatím čistě uzavřené první 3 značky:
+  - `Lincoln` `139`
+  - `Genesis` `46`
+  - `Polestar` `2`
 
 ## Stav větví a push do GitHubu
 
@@ -168,7 +173,28 @@ Aktuální Mercedes NHTSA stav:
 - po přísném individuálním třetím passu vznikl high-confidence subset `185 ready`
 - working subset je v [nhtsa_2025_mercedes_thirdpass_safe_20260401](/C:/GB/tmp/nhtsa_2025_mercedes_thirdpass_safe_20260401)
 - audit je v [MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_mercedes_thirdpass_safe_20260401/MANUAL_REVIEW.md)
-- tenhle subset ještě nebyl z tohoto shellu importovaný; před live importem je potřeba suchý import a až potom Supabase
+- subset už byl čistě naimportovaný `185/185`
+
+### 2b. Lincoln 2020-2024 byl uzavřen druhým přísným AI passem
+
+Nové nebo změněné soubory:
+- [scripts/tsb-second-pass-nhtsa-ai.mjs](/C:/GB/scripts/tsb-second-pass-nhtsa-ai.mjs)
+- [tests/tsb-second-pass-nhtsa-ai.test.js](/C:/GB/tests/tsb-second-pass-nhtsa-ai.test.js)
+- [NHTSA_STATUS.md](/C:/GB/NHTSA_STATUS.md)
+
+Co je nové:
+- nový druhý-pass skript znovu reviewuje už AI-vyčištěné `ready + to_review`
+- explicitně shazuje:
+  - generic symptom tagy
+  - conditional/decision-tree opravy
+  - slabé software-only comfort/convenience bulletiny
+- Lincoln 2020-2024 tak spadl z prvního AI výsledku `368 accepted` na finální safe subset `139`
+
+Artefakty:
+- finální Lincoln subset: [nhtsa_2020_2024_lincoln_reviewed_final_20260402](/C:/GB/tmp/nhtsa_2020_2024_lincoln_reviewed_final_20260402)
+- audit: [MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2020_2024_lincoln_reviewed_final_20260402/MANUAL_REVIEW.md)
+- dry import: [results.jsonl](/C:/GB/tmp/nhtsa_2020_2024_lincoln_dry_20260402/results.jsonl)
+- live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2020_2024_lincoln_live_20260402/results.jsonl)
 
 ### 3. Seed metadata teď nesou původní URL vlákna
 

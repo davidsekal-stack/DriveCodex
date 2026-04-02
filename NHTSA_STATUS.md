@@ -130,6 +130,33 @@ Current imported breakdown:
 - `Maybach` `2`
 - `Smart` `6`
 
+## TSBS_RECEIVED_2020-2024.txt progress
+
+Source file:
+- [C:\Users\sekald\Downloads\TSBS_RECEIVED_2020-2024\TSBS_RECEIVED_2020-2024.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2020-2024/TSBS_RECEIVED_2020-2024.txt)
+
+Current clean imported total from this file:
+- `187` unique cases
+
+Imported breakdown so far:
+- `Lincoln` `139`
+- `Genesis` `46`
+- `Polestar` `2`
+
+Notes:
+- `Lincoln` required a second stricter AI pass over the already AI-reviewed set; first-pass `368 accepted` was reduced to a final safe subset `139`.
+- `Genesis` was individually reviewed and reduced to `46` clean imports after rejecting ICCU conditional repair trees and weak comfort/software cases.
+- `Polestar` yielded only `2` safe imports after full individual AI review.
+- `Infiniti` and `Lexus` still have coarse subsets prepared, but they have not yet been closed into a final safe import subset for this file.
+
+Review artifacts:
+- Lincoln final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_lincoln_reviewed_final_20260402](C:/GB/tmp/nhtsa_2020_2024_lincoln_reviewed_final_20260402)
+- Lincoln audit: [C:\GB\tmp\nhtsa_2020_2024_lincoln_reviewed_final_20260402\MANUAL_REVIEW.md](C:/GB/tmp/nhtsa_2020_2024_lincoln_reviewed_final_20260402/MANUAL_REVIEW.md)
+- Lincoln dry import: [C:\GB\tmp\nhtsa_2020_2024_lincoln_dry_20260402\results.jsonl](C:/GB/tmp/nhtsa_2020_2024_lincoln_dry_20260402/results.jsonl)
+- Lincoln live import: [C:\GB\seed_import_supabase_nhtsa_2020_2024_lincoln_live_20260402\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2020_2024_lincoln_live_20260402/results.jsonl)
+- Genesis final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_genesis_reviewed_final_20260402](C:/GB/tmp/nhtsa_2020_2024_genesis_reviewed_final_20260402)
+- Polestar final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_polestar_reviewed_final_20260402](C:/GB/tmp/nhtsa_2020_2024_polestar_reviewed_final_20260402)
+
 Newly completed in the latest pass:
 - `GMC` `58`
 - `Volvo` `32`
@@ -198,3 +225,4 @@ Latest Volvo review artifacts:
 - runtime/source metadata support in Supabase (`source_ref`, bulletin URL)
 - subset extraction and AI review must run sequentially; if they run in parallel, the reviewer may only see the first partially copied files and produce a false partial review result
 - `scripts/tsb-review-nhtsa-ai.mjs` now resumes from an existing `ai_review_decisions.jsonl`, so a network `fetch failed` no longer forces a full brand review restart
+- `scripts/tsb-second-pass-nhtsa-ai.mjs` provides a stricter per-case safety pass over already AI-reviewed `ready + to_review` sets; use it when first-pass acceptance is still too broad for production import
