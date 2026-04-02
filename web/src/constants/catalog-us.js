@@ -163,6 +163,64 @@ export const VEHICLE_CATALOG_US = [
 
   // ─────────────────────────────────────────────────────────────────────────────
   {
+    brand:     "Pontiac",
+    active:    false,
+    expertise: "Legacy Pontiac passenger cars and crossover — Vibe, G6, G5, G8, GTO, Solstice, Torrent, G3 — GM Delta/Epsilon/Kappa/Zeta platforms plus Toyota co-developed Vibe, Ecotec I4, 3.4L/3.5L/3.6L V6 and LS-series V8, 2003–2010 North America spec",
+    models: [
+      { group: "Vibe / G-series" },
+      { label: "Vibe (2003–2008)", powers: ["126 hp – 1.8L 1ZZ-FE I4", "180 hp – 1.8L 2ZZ-GE I4"] },
+      { label: "Vibe (2009–2010)", powers: ["132 hp – 1.8L 2ZR-FE I4", "158 hp – 2.4L 2AZ-FE I4"] },
+      { label: "G6 (2005–2010)", powers: ["164 hp – 2.4L Ecotec I4", "219 hp – 3.5L V6", "252 hp – 3.6L V6"] },
+      { label: "G5 (2007–2010)", powers: ["148 hp – 2.2L Ecotec I4", "155 hp – 2.2L Ecotec I4 VVT", "171 hp – 2.4L Ecotec I4"] },
+      { label: "G8 (2008–2009)", powers: ["256 hp – 3.6L V6", "361 hp – 6.0L V8", "402 hp – 6.2L V8"] },
+      { label: "GTO (2004–2006)", powers: ["350 hp – 5.7L LS1 V8", "400 hp – 6.0L LS2 V8"] },
+      { label: "G3 (2009–2010)", powers: ["106 hp – 1.6L I4"] },
+
+      { group: "Solstice / Torrent" },
+      { label: "Solstice (2006–2010)", powers: ["177 hp – 2.4L Ecotec I4", "260 hp – 2.0L Turbo Ecotec I4"] },
+      { label: "Torrent (2006–2009)", powers: ["185 hp – 3.4L V6", "264 hp – 3.6L V6"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Saturn",
+    active:    false,
+    expertise: "Legacy Saturn passenger cars, roadster and crossovers — Vue, Outlook, Aura, Sky, Astra, Relay, Ion — Ecotec I4, Green Line hybrid, Honda-sourced 3.5L V6, GM 3.6L V6 and Kappa roadster platforms, 2002–2010 North America spec",
+    models: [
+      { group: "Ion / Aura / Astra" },
+      { label: "Ion (2003–2007)", powers: ["140 hp – 2.2L Ecotec I4", "175 hp – 2.4L Ecotec I4", "205 hp – 2.0L Supercharged Ecotec I4"] },
+      { label: "Aura (2007–2010)", powers: ["169 hp – 2.4L Ecotec I4", "219 hp – 3.5L V6", "252 hp – 3.6L V6"] },
+      { label: "Aura Hybrid (2007–2009)", powers: ["169 hp – 2.4L Hybrid I4"] },
+      { label: "Astra (2008–2009)", powers: ["138 hp – 1.8L Ecotec I4"] },
+
+      { group: "Vue / Outlook / Relay" },
+      { label: "Vue (2002–2007)", powers: ["143 hp – 2.2L Ecotec I4", "250 hp – 3.5L V6"] },
+      { label: "Vue (2008–2010)", powers: ["169 hp – 2.4L Ecotec I4", "257 hp – 3.6L V6"] },
+      { label: "Vue Hybrid (2007–2009)", powers: ["170 hp – 2.4L Green Line Hybrid I4"] },
+      { label: "Outlook (2007–2010)", powers: ["281 hp – 3.6L V6", "288 hp – 3.6L V6 dual-exhaust"] },
+      { label: "Relay (2005–2007)", powers: ["240 hp – 3.9L V6"] },
+
+      { group: "Sky" },
+      { label: "Sky (2007–2010)", powers: ["177 hp – 2.4L Ecotec I4", "260 hp – 2.0L Turbo Ecotec I4"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    brand:     "Saab",
+    active:    false,
+    expertise: "Legacy Saab US post-2000 niche models under the strict GearBrain cutoff — 9-2X, 9-4X and 9-7X — Subaru boxer and GM-derived V6/V8 platforms, AWD driveline and premium crossover diagnostics, 2005–2012 US spec",
+    models: [
+      { group: "9-2X / 9-4X / 9-7X" },
+      { label: "9-2X (2005–2006)", powers: ["173 hp – 2.5L Boxer I4", "230 hp – 2.5L Turbo Boxer I4"] },
+      { label: "9-7X (2005–2009)", powers: ["285 hp – 4.2L I6", "300 hp – 5.3L V8", "390 hp – 6.0L V8"] },
+      { label: "9-4X (2011–2012)", powers: ["265 hp – 3.0L V6", "300 hp – 2.8L Turbo V6"] },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
     brand:     "Ram",
     active:    true,
     expertise: "Ram trucks and vans — 1500, 2500, 3500, ProMaster — HEMI 5.7L/6.4L/6.2L, 6.7L Cummins Diesel, 3.6L Pentastar V6, 3.0L EcoDiesel, 3.0L Hurricane I6 Turbo, ZF 8HP/TorqueFlite 8 transmissions, MDS cylinder deactivation, 2009–present US spec",

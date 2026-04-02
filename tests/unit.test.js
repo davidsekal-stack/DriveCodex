@@ -1654,6 +1654,55 @@ describe('helpers — makeEmptyVehicle', () => {
     })
   })
 
+  describe('catalog — legacy US Pontiac/Saturn/Saab coverage', () => {
+    test('obsahuje ověřené post-2000 legacy modely a GM OBD canonical mapping pro Pontiac/Saturn', () => {
+      const pontiacEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Pontiac')
+      ok(pontiacEntry)
+      ok(pontiacEntry.expertise.includes('Vibe'))
+      ok(pontiacEntry.expertise.includes('G8'))
+
+      const pontiacModels = pontiacEntry.models.map(model => model.label).filter(Boolean)
+      ok(pontiacModels.includes('Vibe (2003–2008)'))
+      ok(pontiacModels.includes('Vibe (2009–2010)'))
+      ok(pontiacModels.includes('G6 (2005–2010)'))
+      ok(pontiacModels.includes('G8 (2008–2009)'))
+      ok(pontiacModels.includes('Solstice (2006–2010)'))
+      ok(pontiacModels.includes('Torrent (2006–2009)'))
+
+      const saturnEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Saturn')
+      ok(saturnEntry)
+      ok(saturnEntry.expertise.includes('Vue'))
+      ok(saturnEntry.expertise.includes('Sky'))
+
+      const saturnModels = saturnEntry.models.map(model => model.label).filter(Boolean)
+      ok(saturnModels.includes('Ion (2003–2007)'))
+      ok(saturnModels.includes('Vue (2002–2007)'))
+      ok(saturnModels.includes('Vue (2008–2010)'))
+      ok(saturnModels.includes('Vue Hybrid (2007–2009)'))
+      ok(saturnModels.includes('Outlook (2007–2010)'))
+      ok(saturnModels.includes('Sky (2007–2010)'))
+
+      const saabEntry = VEHICLE_CATALOG_US.find((entry) => entry.brand === 'Saab')
+      ok(saabEntry)
+      ok(saabEntry.expertise.includes('9-4X'))
+      ok(saabEntry.expertise.includes('9-7X'))
+
+      const saabModels = saabEntry.models.map(model => model.label).filter(Boolean)
+      ok(saabModels.includes('9-2X (2005–2006)'))
+      ok(saabModels.includes('9-7X (2005–2009)'))
+      ok(saabModels.includes('9-4X (2011–2012)'))
+
+      const pontiacCodes = getObdCodes('Pontiac', 'G8 (2008–2009)', '361 hp – 6.0L V8')
+      deepStrictEqual(pontiacCodes.brand, BRAND_OBD_CODES.Chevrolet)
+
+      const saturnCodes = getObdCodes('Saturn', 'Aura (2007–2010)', '252 hp – 3.6L V6')
+      deepStrictEqual(saturnCodes.brand, BRAND_OBD_CODES.Chevrolet)
+
+      const saabCodes = getObdCodes('Saab', '9-4X (2011–2012)', '300 hp – 2.8L Turbo V6')
+      deepStrictEqual(saabCodes.brand, [])
+    })
+  })
+
   describe('catalog — Lincoln coverage', () => {
     test('obsahuje ověřené US modely MKC, MKX, Continental a MKT', () => {
       const lincolnEntry = getBrandEntry('Lincoln')

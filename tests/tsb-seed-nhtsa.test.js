@@ -1261,6 +1261,61 @@ test("resolveCatalogVehicle maps Mercedes-Maybach, Maybach, Scion, Hummer and Sm
   assert.equal(earlySmart.resolved, false);
 });
 
+test("resolveCatalogVehicle maps Pontiac, Saturn and Saab post-2000 legacy models conservatively", () => {
+  const pontiac = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "PONTIAC",
+    model: "G8",
+    model_year: "2009",
+  });
+  assert.equal(pontiac.vehicle_brand, "Pontiac");
+  assert.equal(pontiac.vehicle_model, "G8 (2008–2009)");
+  assert.equal(pontiac.market, "US");
+
+  const saturn = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SATURN",
+    model: "VUE HYBRID",
+    model_year: "2008",
+  });
+  assert.equal(saturn.vehicle_brand, "Saturn");
+  assert.equal(saturn.vehicle_model, "Vue Hybrid (2007–2009)");
+  assert.equal(saturn.market, "US");
+
+  const saab = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SAAB",
+    model: "9-4X",
+    model_year: "2011",
+  });
+  assert.equal(saab.vehicle_brand, "Saab");
+  assert.equal(saab.vehicle_model, "9-4X (2011–2012)");
+  assert.equal(saab.market, "US");
+
+  const unsupportedSaab93 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "SAAB",
+    model: "9-3",
+    model_year: "2008",
+  });
+  assert.equal(unsupportedSaab93.resolved, false);
+});
+
+test("isExcludedCommercialModel excludes Isuzu truck-series records", () => {
+  assert.equal(
+    isExcludedCommercialModel({ make: "ISUZU", model: "N-SERIES" }),
+    true,
+  );
+  assert.equal(
+    isExcludedCommercialModel({ make: "ISUZU", model: "F-SERIES" }),
+    true,
+  );
+  assert.equal(
+    isExcludedCommercialModel({ make: "SAAB", model: "9-7X" }),
+    false,
+  );
+});
+
 test("finalizeStageForSeed downgrades unresolved ready candidates to review", () => {
   const classification = {
     stage: "ready",

@@ -521,6 +521,8 @@ const BRAND_CANONICAL_FOR_OBD = {
   "Hyundai (US)": "Hyundai",
   "Kia (US)": "Kia",
   "Volkswagen (US)": "Volkswagen",
+  "Pontiac": "Chevrolet",
+  "Saturn": "Chevrolet",
   "SEAT": "Volkswagen",
   "Seat": "Volkswagen",
   "Cupra": "Volkswagen",

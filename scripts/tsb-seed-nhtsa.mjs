@@ -263,6 +263,32 @@ const MODEL_ALIAS_RULES = {
   MAYBACH: [
     { pattern: /^MAYBACH$/i, values: ["57 / 62"], minYear: 2002, maxYear: 2012 },
   ],
+  PONTIAC: [
+    { pattern: /^VIBE$/i, values: ["Vibe"] },
+    { pattern: /^G6$/i, values: ["G6"] },
+    { pattern: /^G5$/i, values: ["G5"] },
+    { pattern: /^G8$/i, values: ["G8"] },
+    { pattern: /^GTO$/i, values: ["GTO"] },
+    { pattern: /^G3$/i, values: ["G3"] },
+    { pattern: /^SOLSTICE$/i, values: ["Solstice"] },
+    { pattern: /^TORRENT$/i, values: ["Torrent"] },
+  ],
+  SATURN: [
+    { pattern: /^ION$/i, values: ["Ion"] },
+    { pattern: /^AURA$/i, values: ["Aura"] },
+    { pattern: /^AURA HYBRID$/i, values: ["Aura Hybrid"] },
+    { pattern: /^ASTRA$/i, values: ["Astra"] },
+    { pattern: /^VUE$/i, values: ["Vue"] },
+    { pattern: /^VUE HYBRID$/i, values: ["Vue Hybrid"] },
+    { pattern: /^OUTLOOK$/i, values: ["Outlook"] },
+    { pattern: /^RELAY$/i, values: ["Relay"] },
+    { pattern: /^SKY$/i, values: ["Sky"] },
+  ],
+  SAAB: [
+    { pattern: /^9-2X$/i, values: ["9-2X"] },
+    { pattern: /^9-4X$/i, values: ["9-4X"] },
+    { pattern: /^9-7X$/i, values: ["9-7X"] },
+  ],
   SCION: [
     { pattern: /^IA$/i, values: ["iA / Yaris iA"], minYear: 2016, maxYear: 2018 },
     { pattern: /^IM$/i, values: ["iM / Corolla iM"], minYear: 2016, maxYear: 2018 },
@@ -313,6 +339,14 @@ const VOLVO_COMMERCIAL_MODEL_PATTERNS = [
   /^VHD$/i,
   /^VAH$/i,
   /^VT$/i,
+];
+
+const ISUZU_COMMERCIAL_MODEL_PATTERNS = [
+  /^N-SERIES$/i,
+  /^F-SERIES$/i,
+  /^F SERIES$/i,
+  /^H SERIES$/i,
+  /^T SERIES$/i,
 ];
 
 const MODEL_TRIM_TOKENS = new Set([
@@ -437,6 +471,9 @@ export function isExcludedCommercialModel(record) {
   const model = cleanText(record?.model);
   if (make === "VOLVO") {
     return VOLVO_COMMERCIAL_MODEL_PATTERNS.some((pattern) => pattern.test(model));
+  }
+  if (make === "ISUZU") {
+    return ISUZU_COMMERCIAL_MODEL_PATTERNS.some((pattern) => pattern.test(model));
   }
   return false;
 }
