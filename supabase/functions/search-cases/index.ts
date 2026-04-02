@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: search-cases
+ * DriveCodex — Edge Function: search-cases
  *
  * Přijme diagnostický vstup, provede RAG scoring nad gearbrain_cases
  * a vrátí max 5 nejrelevantnějších výsledků.

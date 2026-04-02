@@ -1,5 +1,5 @@
 /**
- * Shared response helpers for all GearBrain edge functions.
+ * Shared response helpers for all DriveCodex edge functions.
  */
 
 import { CORS_HEADERS } from './cors.ts'

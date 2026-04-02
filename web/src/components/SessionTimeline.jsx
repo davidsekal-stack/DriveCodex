@@ -67,7 +67,7 @@ export default function SessionTimeline({
               <div key={message.id} style={{ display: "flex", justifyContent: "flex-start" }}>
                 <div style={{ maxWidth: "92%" }}>
                   <div style={{ fontSize: "0.65rem", color: t.accentText, marginBottom: 4, letterSpacing: "0.06em" }}>
-                    ◈ GearBrain · {fmtDate(message.timestamp, lang)}
+                    ◈ DriveCodex · {fmtDate(message.timestamp, lang)}
                   </div>
                   <DiagCard result={message.result} ragMatches={ragSessions} vehicle={activeCase?.vehicle} onOpenManual={onOpenManual} />
                 </div>

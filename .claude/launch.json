@@ -3,14 +3,16 @@
   "configurations": [
     {
       "name": "GearBrain Web (Vite)",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["./.claude/dev.mjs"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5180", "--host"],
+      "cwd": "./web",
       "port": 5180
     },
     {
       "name": "GearBrain Preview (Vite)",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["./.claude/preview.mjs"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5180", "--host"],
+      "cwd": "./web",
       "port": 5180
     }
   ]

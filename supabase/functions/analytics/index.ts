@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: analytics
+ * DriveCodex — Edge Function: analytics
  *
  * Admin endpoint — aggregovaná analytika:
  * - Denní AI volání + tokeny

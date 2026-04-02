@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: deepseek-proxy
+ * DriveCodex — Edge Function: deepseek-proxy
  *
  * Proxy pro DeepSeek API. Klient posílá diagnostický request,
  * Edge Function přidá API klíč a přepošle na DeepSeek.

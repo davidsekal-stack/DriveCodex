@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: share-case
+ * DriveCodex — Edge Function: share-case
  *
  * POST: Create a shareable snapshot of a diagnostic case.
  * GET:  Return an HTML page with OG meta tags + redirect to SPA.
@@ -18,7 +18,7 @@ import { optionsResponse } from '../_shared/cors.ts'
 import { json, html } from '../_shared/response.ts'
 import { getServiceClient } from '../_shared/client.ts'
 
-const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://gearbrain.vercel.app'
+const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://drivecodex.com'
 const OG_IMAGE = `${FRONTEND_URL}/og-image.png`
 
 // ── Nanoid-style short ID generator ──────────────────────────────────────────
@@ -49,11 +49,11 @@ async function handleGet(req: Request): Promise<Response> {
 
   if (error || !data) {
     return html(`<!DOCTYPE html>
-<html><head><title>GearBrain — Not Found</title></head>
+<html><head><title>DriveCodex — Not Found</title></head>
 <body><p>This shared diagnosis was not found or has expired.</p></body></html>`, 404)
   }
 
-  const title = `GearBrain — ${data.vehicle_summary || 'Diagnostika'}`
+  const title = `DriveCodex — ${data.vehicle_summary || 'Diagnostika'}`
   const description = data.fault_summary || 'AI-powered vehicle diagnostic report'
   const shareUrl = `${FRONTEND_URL}/share/${id}`
 
@@ -67,7 +67,7 @@ async function handleGet(req: Request): Promise<Response> {
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:image" content="${OG_IMAGE}" />
   <meta property="og:url" content="${escapeHtml(shareUrl)}" />
-  <meta property="og:site_name" content="GearBrain" />
+  <meta property="og:site_name" content="DriveCodex" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
@@ -75,7 +75,7 @@ async function handleGet(req: Request): Promise<Response> {
   <script>window.location.replace("${shareUrl}")</script>
 </head>
 <body style="font-family:monospace;padding:40px;color:#333">
-  <p>Redirecting to GearBrain diagnostics...</p>
+  <p>Redirecting to DriveCodex diagnostics...</p>
   <p><a href="${shareUrl}">Click here if not redirected</a></p>
 </body>
 </html>`)

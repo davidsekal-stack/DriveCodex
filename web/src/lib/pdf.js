@@ -146,14 +146,14 @@ function savePdf(doc, activeCase) {
   const brand = activeCase.vehicle?.brand || "";
   const model = (activeCase.vehicle?.model || "").split(" ").slice(0, 2).join("-");
   const slug = [brand, model].filter(Boolean).join("-").replace(/[^a-zA-Z0-9-]/g, "") || "case";
-  doc.save(`GearBrain-${slug}-${activeCase.id}.pdf`);
+  doc.save(`DriveCodex-${slug}-${activeCase.id}.pdf`);
 }
 
 function addPageFooter(doc, tr, activeCase, pageNum, pageCount, font) {
   doc.setFont(font, "normal");
   doc.setFontSize(FS.footer);
   doc.setTextColor(C.light);
-  doc.text("GearBrain", PAGE.mx, PAGE.h - 10);
+  doc.text("DriveCodex", PAGE.mx, PAGE.h - 10);
   doc.text(`${tr("pdf.page")} ${pageNum} / ${pageCount}`, PAGE.w / 2, PAGE.h - 10, { align: "center" });
   doc.text(activeCase.id, PAGE.w - PAGE.mx, PAGE.h - 10, { align: "right" });
 }
@@ -230,7 +230,7 @@ function renderService(activeCase, lang, tr, fonts) {
 
   // ── Header ──
   doc.setFont(F, "bold"); doc.setFontSize(16); doc.setTextColor(C.black);
-  doc.text("GearBrain", PAGE.mx, ctx.y);
+  doc.text("DriveCodex", PAGE.mx, ctx.y);
   doc.setFont(F, "normal"); doc.setFontSize(FS.subtitle); doc.setTextColor(C.mid);
   doc.text(tr("pdf.title"), PAGE.w - PAGE.mx, ctx.y, { align: "right" });
   ctx.y += 4;
@@ -292,7 +292,7 @@ function renderTechnical(activeCase, lang, tr, fonts) {
 
   // ── Header ──
   doc.setFont(F, "bold"); doc.setFontSize(FS.title); doc.setTextColor(C.black);
-  doc.text("GearBrain", PAGE.mx, ctx.y);
+  doc.text("DriveCodex", PAGE.mx, ctx.y);
   ctx.y += 5.5;
   doc.setFont(F, "normal"); doc.setFontSize(FS.subtitle); doc.setTextColor(C.mid);
   doc.text(tr("pdf.title"), PAGE.mx, ctx.y);
@@ -394,7 +394,7 @@ function renderMinimalist(activeCase, lang, tr, fonts) {
     doc.setDrawColor(C.rule); doc.setLineWidth(0.3);
     doc.line(PAGE.mx, PAGE.h - 13, PAGE.w - PAGE.mx, PAGE.h - 13);
     doc.setFont(F, "normal"); doc.setFontSize(FS.footer); doc.setTextColor(C.light);
-    doc.text(`GearBrain  ·  ${i}/${total}  ·  ${activeCase.id}`, PAGE.w / 2, PAGE.h - 9, { align: "center" });
+    doc.text(`DriveCodex  ·  ${i}/${total}  ·  ${activeCase.id}`, PAGE.w / 2, PAGE.h - 9, { align: "center" });
   }
 
   savePdf(doc, activeCase);

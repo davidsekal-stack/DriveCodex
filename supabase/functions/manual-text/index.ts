@@ -1,5 +1,5 @@
 /**
- * GearBrain — Edge Function: manual-text
+ * DriveCodex — Edge Function: manual-text
  *
  * Returns full extracted text for a workshop manual section.
  * Lightweight endpoint — just queries Supabase table, no Neo4j needed.
