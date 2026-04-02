@@ -99,6 +99,7 @@ Note:
 - The previous verified lower bound was `764`.
 - The fully reviewed Mercedes pass added `185/185` clean imports.
 - The follow-up unsupported-make block added `64/64` reviewed `Mercedes-Maybach` cases plus the earlier small safe block `Maybach 2`, `Mercedes alias 6`, `Smart 6`.
+- The final legacy mainstream unsupported block (`Pontiac + Saturn + Saab`) was individually AI-reviewed on 2026-04-02 and yielded `0` safe imports.
 - The detailed per-brand breakdown below has not yet been fully recomputed after the March 31 cleanup/reimport passes, so treat it as a lower-fidelity snapshot except where explicitly updated.
 
 Current imported breakdown:
@@ -142,6 +143,13 @@ Closed with no safe subset in the latest pass:
 - `Volkswagen (US)` `0`
 - `Scion` `0`
 - `Hummer` `0`
+- `Pontiac` `0`
+- `Saturn` `0`
+- `Saab` `0`
+
+Explicitly excluded from this file's current passenger-car scope:
+- `Geo` — all observed rows are pre-2000 legacy models (`Metro/Prizm/Tracker`)
+- `Isuzu` — observed rows are commercial truck lines (`N/F/H/T-Series`), not passenger-car scope
 
 Supported-slice backlog status:
 - no remaining large backlog inside the currently catalog-supported slice
@@ -149,10 +157,6 @@ Supported-slice backlog status:
 
 Likely next unsupported automotive makes from this file (not yet added to catalog):
 - `McLaren`
-- `Pontiac`
-- `Saturn`
-- `Saab`
-- `Isuzu`
 - `BrightDrop`
 - `Workhorse`
 - `Karma`
@@ -161,7 +165,11 @@ Likely next unsupported automotive makes from this file (not yet added to catalo
 - `Rolls-Royce`
 - `Lamborghini`
 - `Koenigsegg`
-- `Geo`
+
+Latest legacy mainstream review artifacts:
+- Pontiac reviewed subset: [C:\GB\tmp\nhtsa_2025_pontiac_ai_reviewed_20260402](C:/GB/tmp/nhtsa_2025_pontiac_ai_reviewed_20260402)
+- Saturn reviewed subset: [C:\GB\tmp\nhtsa_2025_saturn_ai_reviewed_20260402](C:/GB/tmp/nhtsa_2025_saturn_ai_reviewed_20260402)
+- Saab reviewed subset: [C:\GB\tmp\nhtsa_2025_saab_ai_reviewed_20260402](C:/GB/tmp/nhtsa_2025_saab_ai_reviewed_20260402)
 
 Latest Mercedes-Maybach review artifacts:
 - reviewed subset: [C:\GB\tmp\nhtsa_2025_mercedes_maybach_reviewed_final_20260402](C:/GB/tmp/nhtsa_2025_mercedes_maybach_reviewed_final_20260402)

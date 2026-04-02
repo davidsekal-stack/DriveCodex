@@ -48,23 +48,16 @@ Nejčerstvější praktický stav:
 - Audi crawler byl po copy-paste chybě opraven a z druhého signals běhu bylo ručně potvrzeno `5 ready`
 - z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď bezpečně importováno `at least 764` unikátních případů; poslední čistě uzavřený brand pass je `Volvo` `32/32`
 - z [TSBS_RECEIVED_2025-2025.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2025-2025/TSBS_RECEIVED_2025-2025.txt) je teď bezpečně importováno `at least 1027` unikátních případů; nově je uzavřený i `Mercedes-Maybach` blok (`64/64`), plus malý safe alias blok `Maybach 2`, `Mercedes 6`, `Smart 6`
+- na stejném souboru je nově uzavřený i poslední legacy mainstream unsupported block `Pontiac + Saturn + Saab`; po individuálním AI review skončil na `0 safe`, `Geo` zůstal mimo scope jako pre-2000 a `Isuzu` jako commercial-only
 - Volvo pass už má doplněný US katalog pro `V90` a současné `MHEV/PHEV/BEV` aliasy; `V60CCPHEV` zůstal vědomě mimo katalog, protože pro US podporu nebyla dost silná oficiální opora
-- aktuální velký backlog z téhož souboru je hlavně `Mercedes-Benz`
+- další backlog na tom souboru už není legacy mainstream; zbývají hlavně unsupported niche/commercial makes jako `McLaren`, `BrightDrop`, `Workhorse`, `Karma`, `Ineos`, `Lotus`, `Rolls-Royce`, `Lamborghini`, `Koenigsegg`
 
 ## Stav větví a push do GitHubu
 
-Aktuální branch:
-- `main`
-
-Aktuální `HEAD`:
-- `c9a4c33` `feat: add Volvo US NHTSA mapping and reviewed import`
-
-Remote stav při poslední kontrole:
-- `origin/main` odpovídá lokálnímu `HEAD`
-
-To znamená:
-- změny se teď commitují a pushují průběžně přímo do `main`
+Aktuální workflow:
+- změny se commitují a pushují průběžně přímo do `main`
 - před dalším NHTSA během je dobré zkontrolovat čistý worktree přes `git status --short`
+- pokud je potřeba přesná reference, ověř ji přímo přes `git rev-parse --short HEAD` a `git status --short`; tenhle handover se neudržuje po každém jednotlivém commitu s absolutně přesným SHA
 
 ## Aktuální stav pracovního stromu
 
@@ -99,7 +92,38 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
-### 0. Mercedes-Maybach / Maybach / Mercedes / Smart unsupported block byl uzavřen
+### 0. Pontiac / Saturn / Saab legacy block byl uzavřen bez safe subsetu
+
+Nové nebo změněné soubory:
+- [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
+- [web/src/constants/catalog-us.js](/C:/GB/web/src/constants/catalog-us.js)
+- [web/src/constants/obd-codes.js](/C:/GB/web/src/constants/obd-codes.js)
+- [tests/tsb-seed-nhtsa.test.js](/C:/GB/tests/tsb-seed-nhtsa.test.js)
+- [tests/unit.test.js](/C:/GB/tests/unit.test.js)
+- [NHTSA_STATUS.md](/C:/GB/NHTSA_STATUS.md)
+
+Co se udělalo:
+- do US katalogu byly opatrně přidané legacy passenger značky `Pontiac`, `Saturn` a `Saab`
+- `Pontiac` a `Saturn` používají GM canonical OBD lookup přes `Chevrolet`
+- `Saab` zůstává bez agresivního brand-specific OBD remapu; bere jen common/engine-tech vrstvu
+- `Isuzu` truck řady `N/F/H/T-Series` jsou explicitně odfiltrované jako commercial-only
+- `Geo` zůstal mimo katalog, protože celé observed modely (`Metro/Prizm/Tracker`) jsou pre-2000
+
+Výsledek review:
+- Pontiac: `240 reviewed`, `0 safe`
+- Saturn: `111 reviewed`, `0 safe`
+- Saab: `73 reviewed`, `0 safe`
+
+Artefakty:
+- [Pontiac MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_pontiac_ai_reviewed_20260402/MANUAL_REVIEW.md)
+- [Saturn MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_saturn_ai_reviewed_20260402/MANUAL_REVIEW.md)
+- [Saab MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_saab_ai_reviewed_20260402/MANUAL_REVIEW.md)
+
+Verdikt:
+- tenhle legacy mainstream blok je uzavřený
+- žádný live import se nedělal, protože nevznikl bezpečný subset
+
+### 1. Mercedes-Maybach / Maybach / Mercedes / Smart unsupported block byl uzavřen
 
 Nové nebo změněné soubory:
 - [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
@@ -126,7 +150,7 @@ Artefakty:
 - dry import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_dry_20260402_r2/results.jsonl)
 - live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_live_20260402/results.jsonl)
 
-### 1. Mercedes NHTSA mapping a safe subset byly zpřísněny
+### 2. Mercedes NHTSA mapping a safe subset byly zpřísněny
 
 Nové nebo změněné soubory:
 - [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
@@ -146,7 +170,7 @@ Aktuální Mercedes NHTSA stav:
 - audit je v [MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_mercedes_thirdpass_safe_20260401/MANUAL_REVIEW.md)
 - tenhle subset ještě nebyl z tohoto shellu importovaný; před live importem je potřeba suchý import a až potom Supabase
 
-### 2. Seed metadata teď nesou původní URL vlákna
+### 3. Seed metadata teď nesou původní URL vlákna
 
 Do seed recordů bylo doplněno `thread_url`, takže každá nová položka jde zpětně ručně zkontrolovat proti originálnímu vláknu.
 
@@ -157,7 +181,7 @@ Dotčené vrstvy:
 - edge `search-cases` [search-cases/index.ts](/C:/GB/supabase/functions/search-cases/index.ts)
 - migrace [009_add_thread_url_to_cases.sql](/C:/GB/supabase/migrations/009_add_thread_url_to_cases.sql)
 
-### 3. Audi crawler byl dokončen a opraven
+### 4. Audi crawler byl dokončen a opraven
 
 Nové nebo změněné soubory:
 - [scripts/forum-seed-audi.mjs](/C:/GB/scripts/forum-seed-audi.mjs)
@@ -171,7 +195,7 @@ Po opravě:
 - signals retry běh `seed_audi_full_signals_retry_20260321_204709` po ruční kontrole skončil na `5 ready`
 - audit je v [MANUAL_REVIEW.md](/C:/GB/seed_audi_full_signals_retry_20260321_204709/MANUAL_REVIEW.md)
 
-### 4. Připraveny nové root crawlery pro Opel, BMW, SEAT a Citroën
+### 5. Připraveny nové root crawlery pro Opel, BMW, SEAT a Citroën
 
 Sdílený základ:
 - [scripts/forum-seed-club-root.mjs](/C:/GB/scripts/forum-seed-club-root.mjs)
@@ -194,7 +218,7 @@ Pravidla těchto crawlerů:
 - generické family fórum radši vrací `model_family` než agresivní konkrétní generaci
 - nové modely v katalogu se nemají přidávat jen podle názvu fóra; musí být ověřené z více důvěryhodných zdrojů
 
-### 5. Připraven sekvenční batch runner pro více klubů
+### 6. Připraven sekvenční batch runner pro více klubů
 
 Nové soubory:
 - [scripts/forum-seed-batch.mjs](/C:/GB/scripts/forum-seed-batch.mjs)
@@ -212,7 +236,7 @@ Poznámka k aktuálnímu stavu:
 - při prvním batch discovery běhu byl nalezen a opraven blocker v root discovery: kategorie se předávaly do inventory pod špatnými klíči `forum_url/forum_title` místo `forumUrl/forumTitle`
 - po tomto fixu je potřeba discovery nad těmito čtyřmi kluby pustit znovu
 
-### 6. NHTSA 2025 pipeline je aktuálně dotažená pro Volvo
+### 7. NHTSA 2025 pipeline je aktuálně dotažená pro Volvo
 
 Nové nebo změněné soubory:
 - [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
@@ -232,7 +256,7 @@ Co se udělalo:
 - Import log:
   - [seed_import_supabase_nhtsa_2025_volvo_live_20260331/results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_volvo_live_20260331/results.jsonl)
 
-### 7. Live Supabase testy jsou rozdělené do procesních suite
+### 8. Live Supabase testy jsou rozdělené do procesních suite
 
 Původní monolitický live test v [tests/supabase-integration.test.js](/C:/GB/tests/supabase-integration.test.js) byl rozdělen na harness + suite:
 
