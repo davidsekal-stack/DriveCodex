@@ -1,6 +1,6 @@
 # NHTSA TSB Status
 
-Aktualizováno: 2026-04-02
+Aktualizováno: 2026-04-03
 
 ## Scope note
 
@@ -151,6 +151,7 @@ Notes:
 - `Infiniti` needed a catalog expansion for legacy `G/M/QX` rows before the final second-pass safe subset could be closed; final import is `30`.
 - `Audi` coarse parser output was highly inflated (`210 ready`, `100829 to_review`), but a ready-only AI pass plus strict second pass reduced it to a clean `25`.
 - `Polestar` yielded only `2` safe imports after full individual AI review.
+- `Toyota` ready-only AI review over the coarse subset collapsed to `1` safe case after manual review; dry import passed, but live import is currently blocked by missing `IMPORTER_USER_ID` configuration in `push-case`, so the imported total above is unchanged.
 - `Lexus` still has a coarse subset prepared, but has not yet been closed into a final safe import subset for this file.
 
 Review artifacts:
@@ -168,6 +169,10 @@ Review artifacts:
 - Audi audit: [C:\GB\tmp\nhtsa_2020_2024_audi_second_pass_20260402\MANUAL_REVIEW.md](C:/GB/tmp/nhtsa_2020_2024_audi_second_pass_20260402/MANUAL_REVIEW.md)
 - Audi dry import: [C:\GB\tmp\nhtsa_2020_2024_audi_dry_20260402\results.jsonl](C:/GB/tmp/nhtsa_2020_2024_audi_dry_20260402/results.jsonl)
 - Audi live import: [C:\GB\seed_import_supabase_nhtsa_2020_2024_audi_live_20260402\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2020_2024_audi_live_20260402/results.jsonl)
+- Toyota final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_toyota_reviewed_final_20260403](C:/GB/tmp/nhtsa_2020_2024_toyota_reviewed_final_20260403)
+- Toyota audit: [C:\GB\tmp\nhtsa_2020_2024_toyota_reviewed_final_20260403\MANUAL_REVIEW.md](C:/GB/tmp/nhtsa_2020_2024_toyota_reviewed_final_20260403/MANUAL_REVIEW.md)
+- Toyota dry import: [C:\GB\tmp\nhtsa_2020_2024_toyota_dry_20260403\results.jsonl](C:/GB/tmp/nhtsa_2020_2024_toyota_dry_20260403/results.jsonl)
+- Toyota live import attempt: [C:\GB\seed_import_supabase_nhtsa_2020_2024_toyota_live_20260403\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2020_2024_toyota_live_20260403/results.jsonl)
 
 Newly completed in the latest pass:
 - `GMC` `58`

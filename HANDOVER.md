@@ -1,6 +1,6 @@
 ﻿# Handover
 
-Aktualizováno: 2026-04-02
+Aktualizováno: 2026-04-03
 
 ## Nepřekročitelné pravidlo pro seed importy
 
@@ -59,6 +59,7 @@ Nejčerstvější praktický stav:
   - `Infiniti` `30`
   - `Audi` `25`
   - `Polestar` `2`
+- `Toyota` na stejném souboru prošla ready-only AI review + manuálním průchodem; z broad ready subsetu zůstal jen `1` safe případ, ale live import je teď zablokovaný chybějícím `IMPORTER_USER_ID` v edge `push-case`, takže stav DB se zatím nezměnil
 
 ## Stav větví a push do GitHubu
 
@@ -100,7 +101,28 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
-### 0. Pontiac / Saturn / Saab legacy block byl uzavřen bez safe subsetu
+### 0. Toyota 2020-2024 byla dotažená do final reviewed subsetu, ale live import blokuje edge config
+
+Nové artefakty:
+- [nhtsa_2020_2024_toyota_ready_ai_reviewed_20260403](/C:/GB/tmp/nhtsa_2020_2024_toyota_ready_ai_reviewed_20260403)
+- [nhtsa_2020_2024_toyota_reviewed_final_20260403](/C:/GB/tmp/nhtsa_2020_2024_toyota_reviewed_final_20260403)
+- [nhtsa_2020_2024_toyota_dry_20260403](/C:/GB/tmp/nhtsa_2020_2024_toyota_dry_20260403)
+- [seed_import_supabase_nhtsa_2020_2024_toyota_live_20260403](/C:/GB/seed_import_supabase_nhtsa_2020_2024_toyota_live_20260403)
+
+Co se uzavřelo:
+- Toyota coarse subset měl `356 ready` a `13851 to_review`, takže bezpečný postup byl jen ready-only individual AI review a pak ruční průchod accepted subsetu
+- manuální review vyhodilo DCM/telematics firmware případy (`B15A804`, SOS LED, Toyota App, remote services, Wi-Fi) jako slabé software-only connected-services guidance
+- infotainment / voice-recognition software update bulletiny byly vyhozené jako convenience guidance
+- hybrid over-current MIL bulletin zůstal mimo final ready subset, protože seed pořád končil na generickém `follow the repair procedure`
+- zůstala jediná čistá closed-case položka: Highlander Hybrid brake actuator internal leak (`C1391/C1252/C1256/C1253`)
+- dry import prošel čistě `1/1`
+- live import spadl na edge chybě `Alias ai_importer vyžaduje nastavený IMPORTER_USER_ID.`
+
+Verdikt:
+- Toyota reviewed subset je připravený
+- před dalším live import retry je potřeba opravit `IMPORTER_USER_ID` konfiguraci v nasazené edge funkci `push-case` nebo import pustit s platným konkrétním UUID existujícího uživatele
+
+### 1. Pontiac / Saturn / Saab legacy block byl uzavřen bez safe subsetu
 
 Nové nebo změněné soubory:
 - [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
@@ -131,7 +153,7 @@ Verdikt:
 - tenhle legacy mainstream blok je uzavřený
 - žádný live import se nedělal, protože nevznikl bezpečný subset
 
-### 1. Mercedes-Maybach / Maybach / Mercedes / Smart unsupported block byl uzavřen
+### 2. Mercedes-Maybach / Maybach / Mercedes / Smart unsupported block byl uzavřen
 
 Nové nebo změněné soubory:
 - [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
@@ -158,7 +180,7 @@ Artefakty:
 - dry import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_dry_20260402_r2/results.jsonl)
 - live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2025_mercedes_maybach_live_20260402/results.jsonl)
 
-### 2. Mercedes NHTSA mapping a safe subset byly zpřísněny
+### 3. Mercedes NHTSA mapping a safe subset byly zpřísněny
 
 Nové nebo změněné soubory:
 - [scripts/tsb-seed-nhtsa.mjs](/C:/GB/scripts/tsb-seed-nhtsa.mjs)
@@ -178,7 +200,7 @@ Aktuální Mercedes NHTSA stav:
 - audit je v [MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2025_mercedes_thirdpass_safe_20260401/MANUAL_REVIEW.md)
 - subset už byl čistě naimportovaný `185/185`
 
-### 2b. Lincoln 2020-2024 byl uzavřen druhým přísným AI passem
+### 3b. Lincoln 2020-2024 byl uzavřen druhým přísným AI passem
 
 Nové nebo změněné soubory:
 - [scripts/tsb-second-pass-nhtsa-ai.mjs](/C:/GB/scripts/tsb-second-pass-nhtsa-ai.mjs)
@@ -199,7 +221,7 @@ Artefakty:
 - dry import: [results.jsonl](/C:/GB/tmp/nhtsa_2020_2024_lincoln_dry_20260402/results.jsonl)
 - live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2020_2024_lincoln_live_20260402/results.jsonl)
 
-### 2c. Infiniti a Audi 2020-2024 byly dotažené do čistého importu
+### 3c. Infiniti a Audi 2020-2024 byly dotažené do čistého importu
 
 Nové nebo změněné soubory:
 - [web/src/constants/catalog-us.js](/C:/GB/web/src/constants/catalog-us.js)
@@ -228,7 +250,7 @@ Artefakty:
 - Audi final subset: [nhtsa_2020_2024_audi_second_pass_20260402](/C:/GB/tmp/nhtsa_2020_2024_audi_second_pass_20260402)
 - Audi live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2020_2024_audi_live_20260402/results.jsonl)
 
-### 3. Seed metadata teď nesou původní URL vlákna
+### 4. Seed metadata teď nesou původní URL vlákna
 
 Do seed recordů bylo doplněno `thread_url`, takže každá nová položka jde zpětně ručně zkontrolovat proti originálnímu vláknu.
 
@@ -239,7 +261,7 @@ Dotčené vrstvy:
 - edge `search-cases` [search-cases/index.ts](/C:/GB/supabase/functions/search-cases/index.ts)
 - migrace [009_add_thread_url_to_cases.sql](/C:/GB/supabase/migrations/009_add_thread_url_to_cases.sql)
 
-### 4. Audi crawler byl dokončen a opraven
+### 5. Audi crawler byl dokončen a opraven
 
 Nové nebo změněné soubory:
 - [scripts/forum-seed-audi.mjs](/C:/GB/scripts/forum-seed-audi.mjs)
