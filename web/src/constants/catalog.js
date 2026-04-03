@@ -90,6 +90,9 @@ export const VEHICLE_CATALOG = [
 
       // ── Transit (velká dodávka) ──────────────────────────────────────────
       { group: "Transit (velká dodávka)" },
+      { label: "Transit MK5 2.5 Diesel (1994–2000)",      powers: ["2.5 DI", "2.5 TD", "2.5 TDI / EPIC"] },
+      { label: "Transit MK6 2.0/2.4 Diesel (2000–2006)",  powers: ["2.0 TDDi/TDCi", "2.4 TDDi/TDCi"] },
+      { label: "Transit MK6 2.3 Duratec (2001–2006)",     powers: ["2.3 Duratec HE"] },
       { label: "Transit MK7 2.2 TDCi (2006–2011)",        powers: ["63 kW (85 k)", "81 kW (110 k)", "85 kW (115 k)", "96 kW (130 k)", "103 kW (140 k)"] },
       { label: "Transit MK7 2.4 TDCi (2006–2011)",        powers: ["74 kW (100 k)", "85 kW (115 k)", "103 kW (140 k)"] },
       { label: "Transit MK7 3.2 TDCi (2006–2011)",        powers: ["147 kW (200 k)"] },
@@ -114,16 +117,23 @@ export const VEHICLE_CATALOG = [
       { label: "Tourneo Custom I FL 2.0 EcoBlue (2016–2023)",    powers: ["77 kW (105 k)", "96 kW (130 k)", "125 kW (170 k)", "136 kW (185 k)"] },
       { label: "Tourneo Custom II 2.0 EcoBlue (2023–současnost)", powers: ["81 kW (110 k)", "100 kW (136 k)", "110 kW (150 k)", "125 kW (170 k)"] },
       { label: "Tourneo Custom II 2.5 Duratec PHEV (2023–současnost)", powers: ["171 kW (232 k)"] },
+      { label: "E-Tourneo Custom Elektro (2024–současnost)",     powers: ["160 kW (218 k)"] },
 
       // ── 3. Transit Connect (kompaktní dodávka) ─────────────────────────────
       { group: "Transit Connect" },
-      { label: "Transit Connect I 1.8 TDCi (2006–2013)",         powers: ["55 kW (75 k)", "66 kW (90 k)", "81 kW (110 k)"] },
+      { label: "Transit Connect I 1.8 TDDi/TDCi (2002–2013)",    powers: ["55 kW (75 k)", "66 kW (90 k)", "81 kW (110 k)"] },
       { label: "Transit Connect II 1.6 TDCi (2013–2015)",        powers: ["55 kW (75 k)", "70 kW (95 k)", "85 kW (115 k)"] },
       { label: "Transit Connect II 1.0 EcoBoost (2013–2018)",    powers: ["74 kW (100 k)"] },
       { label: "Transit Connect II 1.5 TDCi (2015–2018)",        powers: ["55 kW (75 k)", "74 kW (100 k)", "88 kW (120 k)"] },
       { label: "Transit Connect II FL 1.5 EcoBlue (2018–2024)",  powers: ["55 kW (75 k)", "74 kW (100 k)", "88 kW (120 k)"] },
       { label: "Transit Connect III 2.0 EcoBlue (2024–současnost)", powers: ["75 kW (102 k)", "90 kW (122 k)"] },
       { label: "Transit Connect III 1.5 EcoBoost PHEV (2024–současnost)", powers: ["110 kW (150 k)"] },
+
+      // ── Tourneo Connect (osobní varianta) ─────────────────────────────────
+      { group: "Tourneo Connect" },
+      { label: "Tourneo Connect III 1.5 EcoBoost (2022–současnost)", powers: ["85 kW (115 k)"] },
+      { label: "Tourneo Connect III 2.0 EcoBlue (2022–současnost)", powers: ["90 kW (122 k)"] },
+      { label: "Tourneo Connect III 1.5 EcoBoost PHEV (2022–současnost)", powers: ["110 kW (150 k)"] },
 
       // ── 4. Transit Courier (nejmenší dodávka) ──────────────────────────────
       { group: "Transit Courier" },
@@ -139,6 +149,7 @@ export const VEHICLE_CATALOG = [
       { label: "Tourneo Courier I 1.0 EcoBoost (2014–2023)",    powers: ["74 kW (100 k)"] },
       { label: "Tourneo Courier II 1.0 EcoBoost (2023–současnost)", powers: ["74 kW (100 k)", "92 kW (125 k)"] },
       { label: "Tourneo Courier II 1.5 EcoBlue (2023–současnost)", powers: ["74 kW (100 k)"] },
+      { label: "E-Tourneo Courier Elektro (2024–současnost)",    powers: ["100 kW (136 k)"] },
     ],
   },
 

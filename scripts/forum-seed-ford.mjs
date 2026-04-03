@@ -125,6 +125,9 @@ const MODEL_ALIAS_BY_LABEL = new Map([
   ["Ka+ (2016–2021)", ["Ka+", "KA+"]],
   ["C-MAX II (2010–2019)", ["C-MAX II", "C MAX II"]],
   ["Grand C-MAX (2010–2019)", ["Grand C-MAX", "Grand C MAX"]],
+  ["Transit MK5 2.5 Diesel (1994–2000)", ["Transit MK5 2.5 Diesel", "Transit 1995 Diesel", "Transit 95 Diesel", "Transit MK5", "Transit Mk5", "Transit 2.5 DI", "Transit 2.5 TD", "Transit EPIC diesel", "Transit ESOS"]],
+  ["Transit MK6 2.0/2.4 Diesel (2000–2006)", ["Transit MK6 2.0/2.4 Diesel", "Transit 2000.5 Diesel", "Transit MK6", "Transit Mk6", "Transit 2000 Diesel", "Transit 2.0 TDDi", "Transit 2.0 TDCi", "Transit 2.4 TDDi", "Transit 2.4 TDCi"]],
+  ["Transit MK6 2.3 Duratec (2001–2006)", ["Transit MK6 2.3 Duratec", "Transit 2000.5 Petrol", "Transit Mk6 petrol", "Transit 2.3 Duratec HE"]],
   ["Transit MK7 2.2 TDCi (2006–2011)", ["Transit VII 2.2 TDCi", "Transit V347 2.2 TDCi", "Transit V348 2.2 TDCi"]],
   ["Transit MK7 2.4 TDCi (2006–2011)", ["Transit VII 2.4 TDCi", "Transit V347 2.4 TDCi", "Transit V348 2.4 TDCi"]],
   ["Transit MK7 3.2 TDCi (2006–2011)", ["Transit VII 3.2 TDCi"]],
@@ -137,7 +140,7 @@ const MODEL_ALIAS_BY_LABEL = new Map([
   ["Transit Custom I 1.0 EcoBoost PHEV (2019–2023)", ["Transit Custom PHEV", "Transit Custom 1.0 EcoBoost PHEV"]],
   ["Transit Custom II 2.0 EcoBlue (2023–současnost)", ["Transit Custom II 2.0 EcoBlue", "Transit Custom 2023 2.0 EcoBlue"]],
   ["Transit Custom II 2.5 Duratec PHEV (2023–současnost)", ["Transit Custom II 2.5 Duratec PHEV", "Transit Custom 2023 PHEV"]],
-  ["Transit Connect I 1.8 TDCi (2006–2013)", ["Transit Connect I 1.8 TDCi"]],
+  ["Transit Connect I 1.8 TDDi/TDCi (2002–2013)", ["Transit Connect I 1.8 TDDi/TDCi", "Transit Connect I 1.8 TDCi", "Transit Connect I 1.8 TDDi", "Transit Connect 2005", "Transit Connect 2004", "Transit Tourneo Connect diesel"]],
   ["Transit Connect II 1.6 TDCi (2013–2015)", ["Transit Connect II 1.6 TDCi"]],
   ["Transit Connect II 1.0 EcoBoost (2013–2018)", ["Transit Connect II 1.0 EcoBoost"]],
   ["Transit Connect II 1.5 TDCi (2015–2018)", ["Transit Connect II 1.5 TDCi"]],
@@ -152,10 +155,15 @@ const MODEL_ALIAS_BY_LABEL = new Map([
   ["Tourneo Custom I FL 2.0 EcoBlue (2016–2023)", ["Tourneo Custom I FL 2.0 EcoBlue", "Tourneo Custom 2.0 EcoBlue", "Transit / Tourneo Custom 2.0 EcoBlue"]],
   ["Tourneo Custom II 2.0 EcoBlue (2023–současnost)", ["Tourneo Custom II 2.0 EcoBlue", "Tourneo Custom 2023 2.0 EcoBlue"]],
   ["Tourneo Custom II 2.5 Duratec PHEV (2023–současnost)", ["Tourneo Custom II 2.5 Duratec PHEV", "Tourneo Custom 2023 PHEV"]],
+  ["E-Tourneo Custom Elektro (2024–současnost)", ["E-Tourneo Custom", "E Tourneo Custom", "All-Electric Tourneo Custom"]],
+  ["Tourneo Connect III 1.5 EcoBoost (2022–současnost)", ["Tourneo Connect III 1.5 EcoBoost", "Tourneo Connect 1.5 EcoBoost", "Tourneo Connect petrol"]],
+  ["Tourneo Connect III 2.0 EcoBlue (2022–současnost)", ["Tourneo Connect III 2.0 EcoBlue", "Tourneo Connect 2.0 EcoBlue", "Tourneo Connect diesel"]],
+  ["Tourneo Connect III 1.5 EcoBoost PHEV (2022–současnost)", ["Tourneo Connect PHEV", "Tourneo Connect 1.5 EcoBoost PHEV", "Tourneo Connect plug-in hybrid"]],
   ["Tourneo Courier I 1.5/1.6 TDCi (2014–2023)", ["Tourneo Courier I diesel", "Transit / Tourneo Courier diesel"]],
   ["Tourneo Courier I 1.0 EcoBoost (2014–2023)", ["Tourneo Courier I 1.0 EcoBoost", "Transit / Tourneo Courier 1.0 EcoBoost"]],
   ["Tourneo Courier II 1.0 EcoBoost (2023–současnost)", ["Tourneo Courier II 1.0 EcoBoost", "Tourneo Courier 2023 1.0 EcoBoost"]],
   ["Tourneo Courier II 1.5 EcoBlue (2023–současnost)", ["Tourneo Courier II 1.5 EcoBlue", "Tourneo Courier 2023 1.5 EcoBlue"]],
+  ["E-Tourneo Courier Elektro (2024–současnost)", ["E-Tourneo Courier", "E Tourneo Courier", "All-Electric Tourneo Courier"]],
 ]);
 
 const { catalog: EU_CATALOG } = selectCatalogForMarket("eu");
@@ -448,6 +456,9 @@ function normalizeFordForumMatchText(value) {
     [/\bs[\s-]*max\s+i\b/gi, "S-MAX I"],
     [/\bs[\s-]*max\s+ii\b/gi, "S-MAX II"],
     [/\bka\s+ii\b/gi, "Ka II"],
+    [/\btransit\s+mk\s*5\b/gi, "Transit MK5"],
+    [/\btransit\s+mk\s*6\b/gi, "Transit MK6"],
+    [/\btransit\s+mk\s*7\b/gi, "Transit MK7"],
     [/\btransit\s+vii\b/gi, "Transit MK7"],
     [/\btransit\s+viii\b/gi, "Transit MK8"],
     [/\bv347\b/gi, "Transit MK7"],
@@ -456,6 +467,9 @@ function normalizeFordForumMatchText(value) {
     [/\becosport\s+ii\b/gi, "EcoSport"],
     [/\btransit\s*\/\s*tourneo\s+courier\b/gi, "Transit Tourneo Courier"],
     [/\btransit\s*\/\s*tourneo\s+custom\b/gi, "Transit Tourneo Custom"],
+    [/\bbanana\s+engine\b/gi, "Transit MK5 2.5 Diesel"],
+    [/\bepic\b/gi, "Transit MK5 2.5 Diesel"],
+    [/\besos\b/gi, "Transit MK5 2.5 Diesel"],
   ];
   for (const [pattern, replacement] of replacements) text = text.replace(pattern, replacement);
   return normalizeText(text);
