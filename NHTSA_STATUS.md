@@ -136,18 +136,22 @@ Source file:
 - [C:\Users\sekald\Downloads\TSBS_RECEIVED_2020-2024\TSBS_RECEIVED_2020-2024.txt](C:/Users/sekald/Downloads/TSBS_RECEIVED_2020-2024/TSBS_RECEIVED_2020-2024.txt)
 
 Current clean imported total from this file:
-- `187` unique cases
+- `242` unique cases
 
 Imported breakdown so far:
 - `Lincoln` `139`
 - `Genesis` `46`
+- `Infiniti` `30`
+- `Audi` `25`
 - `Polestar` `2`
 
 Notes:
 - `Lincoln` required a second stricter AI pass over the already AI-reviewed set; first-pass `368 accepted` was reduced to a final safe subset `139`.
 - `Genesis` was individually reviewed and reduced to `46` clean imports after rejecting ICCU conditional repair trees and weak comfort/software cases.
+- `Infiniti` needed a catalog expansion for legacy `G/M/QX` rows before the final second-pass safe subset could be closed; final import is `30`.
+- `Audi` coarse parser output was highly inflated (`210 ready`, `100829 to_review`), but a ready-only AI pass plus strict second pass reduced it to a clean `25`.
 - `Polestar` yielded only `2` safe imports after full individual AI review.
-- `Infiniti` and `Lexus` still have coarse subsets prepared, but they have not yet been closed into a final safe import subset for this file.
+- `Lexus` still has a coarse subset prepared, but has not yet been closed into a final safe import subset for this file.
 
 Review artifacts:
 - Lincoln final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_lincoln_reviewed_final_20260402](C:/GB/tmp/nhtsa_2020_2024_lincoln_reviewed_final_20260402)
@@ -156,6 +160,14 @@ Review artifacts:
 - Lincoln live import: [C:\GB\seed_import_supabase_nhtsa_2020_2024_lincoln_live_20260402\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2020_2024_lincoln_live_20260402/results.jsonl)
 - Genesis final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_genesis_reviewed_final_20260402](C:/GB/tmp/nhtsa_2020_2024_genesis_reviewed_final_20260402)
 - Polestar final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_polestar_reviewed_final_20260402](C:/GB/tmp/nhtsa_2020_2024_polestar_reviewed_final_20260402)
+- Infiniti final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_infiniti_second_pass_20260403](C:/GB/tmp/nhtsa_2020_2024_infiniti_second_pass_20260403)
+- Infiniti audit: [C:\GB\tmp\nhtsa_2020_2024_infiniti_second_pass_20260403\MANUAL_REVIEW.md](C:/GB/tmp/nhtsa_2020_2024_infiniti_second_pass_20260403/MANUAL_REVIEW.md)
+- Infiniti dry import: [C:\GB\tmp\nhtsa_2020_2024_infiniti_dry_20260403\results.jsonl](C:/GB/tmp/nhtsa_2020_2024_infiniti_dry_20260403/results.jsonl)
+- Infiniti live import: [C:\GB\seed_import_supabase_nhtsa_2020_2024_infiniti_live_20260403\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2020_2024_infiniti_live_20260403/results.jsonl)
+- Audi final reviewed subset: [C:\GB\tmp\nhtsa_2020_2024_audi_second_pass_20260402](C:/GB/tmp/nhtsa_2020_2024_audi_second_pass_20260402)
+- Audi audit: [C:\GB\tmp\nhtsa_2020_2024_audi_second_pass_20260402\MANUAL_REVIEW.md](C:/GB/tmp/nhtsa_2020_2024_audi_second_pass_20260402/MANUAL_REVIEW.md)
+- Audi dry import: [C:\GB\tmp\nhtsa_2020_2024_audi_dry_20260402\results.jsonl](C:/GB/tmp/nhtsa_2020_2024_audi_dry_20260402/results.jsonl)
+- Audi live import: [C:\GB\seed_import_supabase_nhtsa_2020_2024_audi_live_20260402\results.jsonl](C:/GB/seed_import_supabase_nhtsa_2020_2024_audi_live_20260402/results.jsonl)
 
 Newly completed in the latest pass:
 - `GMC` `58`

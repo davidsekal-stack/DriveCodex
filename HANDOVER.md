@@ -53,8 +53,11 @@ Nejčerstvější praktický stav:
 - Volvo pass už má doplněný US katalog pro `V90` a současné `MHEV/PHEV/BEV` aliasy; `V60CCPHEV` zůstal vědomě mimo katalog, protože pro US podporu nebyla dost silná oficiální opora
 - další backlog na tom souboru už není legacy mainstream; zbývají hlavně unsupported niche/commercial makes jako `McLaren`, `BrightDrop`, `Workhorse`, `Karma`, `Ineos`, `Lotus`, `Rolls-Royce`, `Lamborghini`, `Koenigsegg`
 - na [TSBS_RECEIVED_2020-2024.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2020-2024/TSBS_RECEIVED_2020-2024.txt) jsou zatím čistě uzavřené první 3 značky:
+- na [TSBS_RECEIVED_2020-2024.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2020-2024/TSBS_RECEIVED_2020-2024.txt) jsou teď čistě uzavřené první 5 značek:
   - `Lincoln` `139`
   - `Genesis` `46`
+  - `Infiniti` `30`
+  - `Audi` `25`
   - `Polestar` `2`
 
 ## Stav větví a push do GitHubu
@@ -195,6 +198,35 @@ Artefakty:
 - audit: [MANUAL_REVIEW.md](/C:/GB/tmp/nhtsa_2020_2024_lincoln_reviewed_final_20260402/MANUAL_REVIEW.md)
 - dry import: [results.jsonl](/C:/GB/tmp/nhtsa_2020_2024_lincoln_dry_20260402/results.jsonl)
 - live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2020_2024_lincoln_live_20260402/results.jsonl)
+
+### 2c. Infiniti a Audi 2020-2024 byly dotažené do čistého importu
+
+Nové nebo změněné soubory:
+- [web/src/constants/catalog-us.js](/C:/GB/web/src/constants/catalog-us.js)
+- [tests/unit.test.js](/C:/GB/tests/unit.test.js)
+- [NHTSA_STATUS.md](/C:/GB/NHTSA_STATUS.md)
+
+Co je nové:
+- US katalog pro `Infiniti` byl opatrně rozšířen o legacy modely:
+  - `G25`, `G35`, `G37`
+  - `M35`, `M45`, `M37`, `M56`
+  - `JX35`, `QX56`, `QX30`, starší `QX50`
+- Infiniti second-pass review tak mohl zachránit validní starší EVAP/mechanical případy, které předtím padaly jen na unresolved model
+- `Audi` coarse subset byl extrémně přestřelený, proto jsem nepouštěl AI nad `100k` review kandidátů; místo toho šel:
+  - coarse `ready`
+  - first-pass AI
+  - second-pass strict per-case AI
+  - teprve potom import
+
+Výsledek:
+- Infiniti `30/30` clean import
+- Audi `25/25` clean import
+
+Artefakty:
+- Infiniti final subset: [nhtsa_2020_2024_infiniti_second_pass_20260403](/C:/GB/tmp/nhtsa_2020_2024_infiniti_second_pass_20260403)
+- Infiniti live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2020_2024_infiniti_live_20260403/results.jsonl)
+- Audi final subset: [nhtsa_2020_2024_audi_second_pass_20260402](/C:/GB/tmp/nhtsa_2020_2024_audi_second_pass_20260402)
+- Audi live import: [results.jsonl](/C:/GB/seed_import_supabase_nhtsa_2020_2024_audi_live_20260402/results.jsonl)
 
 ### 3. Seed metadata teď nesou původní URL vlákna
 

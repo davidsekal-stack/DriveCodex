@@ -1560,15 +1560,25 @@ describe('helpers — makeEmptyVehicle', () => {
   })
 
   describe('catalog — Infiniti coverage', () => {
-    test('obsahuje ověřené US modely QX55 a Q70', () => {
+    test('obsahuje ověřené US modely QX55, Q70 a starší G/M/QX řady', () => {
       const infinitiEntry = getBrandEntry('Infiniti')
       ok(infinitiEntry)
       ok(infinitiEntry.expertise.includes('QX55'))
       ok(infinitiEntry.expertise.includes('Q70'))
+      ok(infinitiEntry.expertise.includes('G37'))
+      ok(infinitiEntry.expertise.includes('M56'))
+      ok(infinitiEntry.expertise.includes('QX30'))
 
       const infinitiModels = getBrandModels('Infiniti').map(model => model.label).filter(Boolean)
       ok(infinitiModels.includes('QX55 (2022–present)'))
       ok(infinitiModels.includes('Q70 (2011–2019)'))
+      ok(infinitiModels.includes('G37 (2008–2014)'))
+      ok(infinitiModels.includes('G25 (2011–2012)'))
+      ok(infinitiModels.includes('M56 (2011–2013)'))
+      ok(infinitiModels.includes('QX30 (2017–2019)'))
+      ok(infinitiModels.includes('QX50 (2014–2017)'))
+      ok(infinitiModels.includes('JX35 (2013)'))
+      ok(infinitiModels.includes('QX56 (2004–2013)'))
     })
   })
 

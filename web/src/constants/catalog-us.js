@@ -753,8 +753,26 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Infiniti",
     active:    true,
-    expertise: "Infiniti luxury vehicles — QX60, QX80, QX50, QX55, Q50, Q60, Q70 — 2.0L VC-Turbo (Variable Compression), 3.0L Twin Turbo V6, 3.5L V6 Hybrid, 5.6L V8 Endurance, ProPILOT Assist, Dynamic Digital Suspension, 2007–present US spec",
+    expertise: "Infiniti luxury vehicles — G25/G35/G37, M35/M37/M45/M56, JX35, QX30, QX50, QX55, QX56, QX60, QX80, Q50, Q60, Q70 — 2.0L VC-Turbo (Variable Compression), 2.0L Turbo, 2.5L/3.5L/3.7L V6, 5.6L V8 Endurance, ProPILOT Assist, Dynamic Digital Suspension, 2003–present US spec",
     models: [
+      // ── G / M legacy sedans and coupes ───────────────────────────────────
+      { group: "G" },
+      { label: "G35 (2003–2008)", powers: ["280 hp – 3.5L V6 VQ35DE", "298 hp – 3.5L V6 VQ35HR"] },
+      { label: "G37 (2008–2014)", powers: ["328 hp – 3.7L V6 VQ37VHR"] },
+      { label: "G25 (2011–2012)", powers: ["218 hp – 2.5L V6 VQ25HR"] },
+
+      { group: "M" },
+      { label: "M35 (2006–2010)", powers: ["275 hp – 3.5L V6 VQ35DE"] },
+      { label: "M45 (2006–2010)", powers: ["325 hp – 4.5L V8 VK45DE"] },
+      { label: "M37 (2011–2013)", powers: ["330 hp – 3.7L V6 VQ37VHR"] },
+      { label: "M56 (2011–2013)", powers: ["420 hp – 5.6L V8 VK56VD"] },
+
+      // ── JX / QX legacy crossovers ────────────────────────────────────────
+      { group: "JX35" },
+      { label: "JX35 (2013)", powers: ["265 hp – 3.5L V6 VQ35DE"] },
+      { group: "QX56" },
+      { label: "QX56 (2004–2013)", powers: ["315 hp – 5.6L V8 VK56DE", "400 hp – 5.6L V8 VK56VD"] },
+
       // ── QX60 ──────────────────────────────────────────────────────────────
       { group: "QX60" },
       { label: "QX60 (2013–2021)", powers: ["265 hp – 2.5L Supercharged Hybrid I4", "295 hp – 3.5L V6 VQ35DE"] },
@@ -764,8 +782,11 @@ export const VEHICLE_CATALOG_US = [
       { group: "QX80" },
       { label: "QX80 (2014–)", powers: ["400 hp – 5.6L V8 Endurance VK56VD"] },
 
-      // ── QX50 ──────────────────────────────────────────────────────────────
+      // ── QX30 / QX50 ───────────────────────────────────────────────────────
+      { group: "QX30" },
+      { label: "QX30 (2017–2019)", powers: ["208 hp – 2.0L Turbo I4"] },
       { group: "QX50" },
+      { label: "QX50 (2014–2017)", powers: ["325 hp – 3.7L V6 VQ37VHR"] },
       { label: "QX50 (2019–present)", powers: ["268 hp – 2.0L VC-Turbo Variable Compression I4"] },
       { label: "QX55 (2022–present)", powers: ["268 hp – 2.0L VC-Turbo Variable Compression I4"] },
 
