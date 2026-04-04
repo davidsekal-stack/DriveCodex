@@ -820,6 +820,16 @@ test("resolveCatalogVehicle maps Jeep 4xe and L variants to US catalog", () => {
   assert.equal(gc.vehicle_brand, "Jeep");
   assert.equal(gc.vehicle_model, "Grand Cherokee WL (2021–)");
   assert.equal(gc.market, "US");
+
+  const gcWk2 = resolveCatalogVehicle({
+    ...mergeTsbRecords(null, parseTsbLine(SERVICE_BULLETIN_LINE)),
+    make: "JEEP",
+    model: "GRAND CHEROKEE",
+    model_year: "2021",
+  });
+  assert.equal(gcWk2.vehicle_brand, "Jeep");
+  assert.equal(gcWk2.vehicle_model, "Grand Cherokee WK2 (2011–2021)");
+  assert.equal(gcWk2.market, "US");
 });
 
 test("resolveCatalogVehicle maps Jeep Recon and keeps unsupported Commander unresolved", () => {

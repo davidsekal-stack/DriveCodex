@@ -727,6 +727,10 @@ function getForcedJeepCatalogMatch(record) {
     return { brand: "Jeep", market: "US", label: "Wrangler JL (2018–)", group: "Wrangler" };
   }
   if (model === "GRAND CHEROKEE") {
+    const modelYear = Number.parseInt(String(record?.model_year ?? ""), 10);
+    if (Number.isFinite(modelYear) && modelYear <= 2021) {
+      return { brand: "Jeep", market: "US", label: "Grand Cherokee WK2 (2011–2021)", group: "Grand Cherokee" };
+    }
     return { brand: "Jeep", market: "US", label: "Grand Cherokee WL (2021–)", group: "Grand Cherokee" };
   }
   return null;
