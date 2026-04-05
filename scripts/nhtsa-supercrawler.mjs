@@ -10,6 +10,7 @@ import { execFile as execFileCb } from "node:child_process";
 import { promisify } from "node:util";
 
 import { parseTsbLine, hasSupportedCatalogBrand, isExcludedCommercialModel } from "./tsb-seed-nhtsa.mjs";
+import { validateSubset } from "./nhtsa-validate-final-subset.mjs";
 
 const execFile = promisify(execFileCb);
 
@@ -17,16 +18,14 @@ const DEFAULT_MODEL = "deepseek-chat";
 const DEFAULT_STATE_ROOT = path.join(process.cwd(), "tmp", "nhtsa_runs");
 const DEFAULT_IMPORT_USER_ID = "8463d502-7bf6-464b-9fb2-e6dec5b9d4d3";
 const AUTOMATION_BRANCH = "codex/nhtsa-automation";
-const SAFE_TERMINAL_STATUSES = new Set([
-  "awaiting_codex_review",
-  "awaiting_codex_validate",
+const TERMINAL_STATUSES = new Set([
   "dry_import_done",
   "live_import_done",
   "rejected",
   "blocked",
   "done",
 ]);
-const STOP_AFTER_VALUES = new Set(["sync", "coarse", "refined", "deepseek", "second-pass", "codex-review"]);
+const STOP_AFTER_VALUES = new Set(["sync", "coarse", "refined", "deepseek", "second-pass", "codex-review", "codex-validate", "dry", "live"]);
 
 function usage(exitCode = 1) {
   console.log(`
@@ -43,7 +42,11 @@ Options:
   --make <make>               Process only one make within discovered supported brands
   --model <name>              DeepSeek model for AI review steps. Default: ${DEFAULT_MODEL}
   --user-id <id>              User id written into generated seeds before import. Default: ${DEFAULT_IMPORT_USER_ID}
-  --stop-after <phase>        Stop after one phase: sync, coarse, refined, deepseek, second-pass, codex-review
+  --push-case-url <url>       Override push-case endpoint for import steps
+  --anon-key <key>            Override Supabase anon key for import steps
+  --import-sleep-ms <ms>      Delay between import requests. Default: 200
+  --live                      After dry import, also run live import
+  --stop-after <phase>        Stop after one phase: sync, coarse, refined, deepseek, second-pass, codex-review, codex-validate, dry, live
   --allow-main-branch         Disable the branch safety guard
   --help                      Show help
 `.trim());
@@ -58,6 +61,10 @@ export function parseArgs(argv) {
     make: "",
     model: DEFAULT_MODEL,
     userId: DEFAULT_IMPORT_USER_ID,
+    pushCaseUrl: "",
+    anonKey: "",
+    importSleepMs: 200,
+    live: false,
     stopAfter: "",
     allowMainBranch: false,
   };
@@ -84,6 +91,23 @@ export function parseArgs(argv) {
     }
     if (token === "--user-id") {
       args.userId = (argv[++i] ?? "").trim() || DEFAULT_IMPORT_USER_ID;
+      continue;
+    }
+    if (token === "--push-case-url") {
+      args.pushCaseUrl = (argv[++i] ?? "").trim();
+      continue;
+    }
+    if (token === "--anon-key") {
+      args.anonKey = (argv[++i] ?? "").trim();
+      continue;
+    }
+    if (token === "--import-sleep-ms") {
+      const value = Number(argv[++i] ?? "");
+      args.importSleepMs = Number.isFinite(value) && value >= 0 ? Math.trunc(value) : 200;
+      continue;
+    }
+    if (token === "--live") {
+      args.live = true;
       continue;
     }
     if (token === "--stop-after") {
@@ -126,7 +150,7 @@ export function makeBrandKey(make) {
 
 export function chooseNextBrand(brands) {
   return [...brands]
-    .filter(brand => !SAFE_TERMINAL_STATUSES.has(brand.status))
+    .filter(brand => !TERMINAL_STATUSES.has(brand.status))
     .sort((a, b) => {
       const byStatus = statusRank(a.status) - statusRank(b.status);
       if (byStatus !== 0) return byStatus;
@@ -145,8 +169,9 @@ function statusRank(status) {
     case "second_pass_done": return 4;
     case "awaiting_codex_review": return 5;
     case "awaiting_codex_validate": return 6;
-    case "dry_import_done": return 7;
-    case "live_import_done": return 8;
+    case "codex_validate_done": return 7;
+    case "dry_import_done": return 8;
+    case "live_import_done": return 9;
     default: return 99;
   }
 }
@@ -308,7 +333,7 @@ async function syncState(args) {
       const brandDir = path.join(fileDir, brand.brand_key);
       await ensureDir(brandDir);
       const brandManifestPath = path.join(brandDir, "brand_manifest.json");
-      const existingBrand = existingByKey.get(brand.brand_key) ?? await readJson(brandManifestPath, null);
+      const existingBrand = await readJson(brandManifestPath, null) ?? existingByKey.get(brand.brand_key) ?? null;
       const manifest = existingBrand
         ? {
             ...existingBrand,
@@ -328,7 +353,7 @@ async function syncState(args) {
       });
     }
 
-    const nextStatus = brands.every(brand => SAFE_TERMINAL_STATUSES.has(brand.status)) ? "done" : "discovered";
+    const nextStatus = brands.every(brand => TERMINAL_STATUSES.has(brand.status)) ? "done" : "discovered";
     const fileManifest = existing
       ? {
           ...existing,
@@ -450,6 +475,141 @@ async function prepareCodexJobs(brandManifest) {
   brandManifest.status = "awaiting_codex_review";
 }
 
+async function maybeAdvanceFromCodexReview(brandManifest) {
+  const resultPath = path.join(brandManifest.directories.codex_review, "review_result.json");
+  const result = await readJson(resultPath, null);
+  if (!result) {
+    return false;
+  }
+
+  const status = cleanText(result.status).toLowerCase();
+  brandManifest.steps.codex_review = brandManifest.steps.codex_review ?? {
+    job_path: path.join(brandManifest.directories.codex_review, "review_job.json"),
+  };
+  if (status === "rejected") {
+    brandManifest.status = "rejected";
+    brandManifest.steps.codex_review.result_path = resultPath;
+    brandManifest.steps.codex_review.result = result;
+    return true;
+  }
+  if (status === "blocked") {
+    brandManifest.status = "blocked";
+    brandManifest.steps.codex_review.result_path = resultPath;
+    brandManifest.steps.codex_review.result = result;
+    return true;
+  }
+  if (status !== "approved") {
+    return false;
+  }
+
+  if (cleanText(result.final_subset_dir)) {
+    brandManifest.directories.final_subset = path.resolve(result.final_subset_dir);
+  }
+  brandManifest.steps.codex_review.result_path = resultPath;
+  brandManifest.steps.codex_review.result = result;
+  brandManifest.status = "awaiting_codex_validate";
+  return true;
+}
+
+async function maybeAdvanceFromCodexValidate(brandManifest) {
+  const resultPath = path.join(brandManifest.directories.codex_validate, "validate_result.json");
+  const result = await readJson(resultPath, null);
+  if (!result) {
+    return false;
+  }
+
+  const status = cleanText(result.status).toLowerCase();
+  brandManifest.steps.codex_validate = brandManifest.steps.codex_validate ?? {
+    job_path: path.join(brandManifest.directories.codex_validate, "validate_job.json"),
+  };
+  brandManifest.steps.codex_validate.result_path = resultPath;
+  brandManifest.steps.codex_validate.result = result;
+  if (status === "rejected") {
+    brandManifest.status = "rejected";
+    return true;
+  }
+  if (status === "blocked") {
+    brandManifest.status = "blocked";
+    return true;
+  }
+  if (status !== "approved") {
+    return false;
+  }
+
+  brandManifest.status = "codex_validate_done";
+  return true;
+}
+
+async function runFinalSubsetValidation(brandManifest, cwd) {
+  const summary = await validateSubset(
+    brandManifest.directories.final_subset,
+    brandManifest.directories.codex_validate,
+  );
+  const summaryPath = path.join(brandManifest.directories.codex_validate, "summary.json");
+  brandManifest.steps.final_validation = {
+    summary_path: summaryPath,
+    summary,
+  };
+  if (!summary?.approved) {
+    brandManifest.status = "blocked";
+    return;
+  }
+  brandManifest.status = "codex_validate_done";
+}
+
+async function runDryImportStep(brandManifest, args, cwd) {
+  const importArgs = [
+    path.join(cwd, "scripts", "import-seeds-to-supabase.mjs"),
+    brandManifest.directories.final_subset,
+    "--user-id",
+    args.userId,
+    "--sleep-ms",
+    String(args.importSleepMs),
+    "--out-dir",
+    brandManifest.directories.import_dry,
+    "--dry",
+  ];
+  if (args.pushCaseUrl) {
+    importArgs.push("--url", args.pushCaseUrl);
+  }
+  if (args.anonKey) {
+    importArgs.push("--anon-key", args.anonKey);
+  }
+  await spawnNodeScript(importArgs[0], importArgs.slice(1), cwd);
+  const resultsPath = path.join(brandManifest.directories.import_dry, "results.jsonl");
+  brandManifest.steps.import_dry = {
+    out_dir: brandManifest.directories.import_dry,
+    results_path: resultsPath,
+  };
+  brandManifest.status = "dry_import_done";
+}
+
+async function runLiveImportStep(brandManifest, args, cwd) {
+  const importArgs = [
+    path.join(cwd, "scripts", "import-seeds-to-supabase.mjs"),
+    brandManifest.directories.final_subset,
+    "--user-id",
+    args.userId,
+    "--sleep-ms",
+    String(args.importSleepMs),
+    "--out-dir",
+    brandManifest.directories.import_live,
+  ];
+  if (args.pushCaseUrl) {
+    importArgs.push("--url", args.pushCaseUrl);
+  }
+  if (args.anonKey) {
+    importArgs.push("--anon-key", args.anonKey);
+  }
+  await spawnNodeScript(importArgs[0], importArgs.slice(1), cwd);
+  const resultsPath = path.join(brandManifest.directories.import_live, "results.jsonl");
+  brandManifest.steps.import_live = {
+    out_dir: brandManifest.directories.import_live,
+    results_path: resultsPath,
+  };
+  brandManifest.status = "live_import_done";
+}
+
 async function persistBrandManifest(brandManifestPath, brandManifest) {
   await writeJson(brandManifestPath, brandManifest);
 }
@@ -460,7 +620,7 @@ async function runAutomaticPhases(args, targetBrand) {
     throw new Error(`Missing brand manifest: ${targetBrand.manifest_path}`);
   }
 
-  if (SAFE_TERMINAL_STATUSES.has(brandManifest.status)) {
+  if (TERMINAL_STATUSES.has(brandManifest.status)) {
     return { status: "noop", reason: `Brand already in terminal state ${brandManifest.status}.`, brandManifest };
   }
 
@@ -499,6 +659,54 @@ async function runAutomaticPhases(args, targetBrand) {
     await prepareCodexJobs(brandManifest);
     await persistBrandManifest(targetBrand.manifest_path, brandManifest);
     if (args.stopAfter === "codex-review") {
+      return { status: brandManifest.status, brandManifest };
+    }
+  }
+  if (brandManifest.status === "awaiting_codex_review") {
+    const advanced = await maybeAdvanceFromCodexReview(brandManifest);
+    if (advanced) {
+      await persistBrandManifest(targetBrand.manifest_path, brandManifest);
+    } else {
+      return {
+        status: brandManifest.status,
+        reason: "Waiting for codex review result.",
+        brandManifest,
+      };
+    }
+  }
+  if (brandManifest.status === "awaiting_codex_validate") {
+    const advanced = await maybeAdvanceFromCodexValidate(brandManifest);
+    if (advanced) {
+      await persistBrandManifest(targetBrand.manifest_path, brandManifest);
+      if (args.stopAfter === "codex-validate") {
+        return { status: brandManifest.status, brandManifest };
+      }
+    } else {
+      return {
+        status: brandManifest.status,
+        reason: "Waiting for codex validate result.",
+        brandManifest,
+      };
+    }
+  }
+  if (brandManifest.status === "codex_validate_done") {
+    await runFinalSubsetValidation(brandManifest, cwd);
+    await persistBrandManifest(targetBrand.manifest_path, brandManifest);
+    if (brandManifest.status !== "codex_validate_done") {
+      return { status: brandManifest.status, brandManifest };
+    }
+  }
+  if (brandManifest.status === "codex_validate_done") {
+    await runDryImportStep(brandManifest, args, cwd);
+    await persistBrandManifest(targetBrand.manifest_path, brandManifest);
+    if (args.stopAfter === "dry") {
+      return { status: brandManifest.status, brandManifest };
+    }
+  }
+  if (brandManifest.status === "dry_import_done" && args.live) {
+    await runLiveImportStep(brandManifest, args, cwd);
+    await persistBrandManifest(targetBrand.manifest_path, brandManifest);
+    if (args.stopAfter === "live") {
       return { status: brandManifest.status, brandManifest };
     }
   }

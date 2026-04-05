@@ -118,6 +118,42 @@ Každý manifest by měl obsahovat:
 - import logy
 - finální verdict
 
+### Výsledek reviewer/validator kroku
+
+Aby se orchestrátor obešel bez ručního lepení stavů, reviewer a validator mají zapisovat explicitní result markery:
+
+- `C:\GB\tmp\nhtsa_runs\<file_key>\<brand_key>\05_codex_review\review_result.json`
+- `C:\GB\tmp\nhtsa_runs\<file_key>\<brand_key>\06_codex_validate\validate_result.json`
+
+Navržený tvar `review_result.json`:
+
+```json
+{
+  "status": "approved",
+  "final_subset_dir": "C:\\GB\\tmp\\nhtsa_runs\\...\\07_final_subset",
+  "manual_review_path": "C:\\GB\\tmp\\nhtsa_runs\\...\\07_final_subset\\MANUAL_REVIEW.md",
+  "ready_count": 123,
+  "rejected_count": 57,
+  "reviewed_at": "2026-04-05T10:00:00.000Z"
+}
+```
+
+Navržený tvar `validate_result.json`:
+
+```json
+{
+  "status": "approved",
+  "notes": "Subset passed independent Codex gatekeeper review.",
+  "validated_at": "2026-04-05T10:30:00.000Z"
+}
+```
+
+Povolené `status`:
+
+- `approved`
+- `rejected`
+- `blocked`
+
 ### 3. Brand workspace layout
 
 Pro jednu značku:
@@ -325,11 +361,13 @@ Technicky:
 Použít existující:
 
 - `C:\GB\scripts\import-seeds-to-supabase.mjs`
+- `C:\GB\scripts\nhtsa-validate-final-subset.mjs`
 
 Režim:
 
-1. dry import
-2. pokud `Success == Total` a nejsou gate violations, teprve live import
+1. nezávislá deterministická validace finálního subsetu
+2. dry import
+3. pokud `Success == Total` a nejsou gate violations, teprve live import
 
 Povinné podmínky před live importem:
 
@@ -586,6 +624,33 @@ Pipeline musí failnout nebo přejít do `blocked`, pokud:
 - mapping na katalog je podezřelý
 - symptomy jsou verbose
 - je detekována duplicate canonical skupina
+
+## Aktuálně implementované skripty
+
+První implementační vlna už reálně existuje v repu:
+
+- `C:\GB\scripts\nhtsa-supercrawler.mjs`
+- `C:\GB\scripts\nhtsa-refine-pass.mjs`
+- `C:\GB\scripts\nhtsa-validate-final-subset.mjs`
+
+Co umí už teď:
+
+- discovery vstupních NHTSA souborů
+- file/brand manifesty
+- lock file a branch safety guard
+- coarse -> refine -> DeepSeek -> second pass
+- vytvoření Codex review jobů
+- převzetí `review_result.json`
+- převzetí `validate_result.json`
+- deterministickou finální validaci subsetu
+- dry import
+- volitelně live import
+
+Co stále zůstává mimo čistý Node orchestrátor:
+
+- samotné Codex reviewer rozhodování
+- nezávislé Codex gatekeeper rozhodování
+- bezpečné katalogové doplnění po vícezdrojovém ověření
 
 ## Minimální implementační plán
 
