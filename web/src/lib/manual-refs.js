@@ -13,7 +13,13 @@
  * Only tiers 1a/1b/1c have at least one vehicle dimension constrained and are
  * safe to show as "relevant to this vehicle". Everything else may point to a
  * completely different car's manual.
+ *
+ * MANUAL_LOOKUP_ENABLED — set to true once licensing and data pipeline are ready.
+ * When false the FaultManualRef component returns null immediately without making
+ * any network calls; all code and tests remain intact for future activation.
  */
+
+export const MANUAL_LOOKUP_ENABLED = false
 
 export const RELEVANT_TIERS = new Set(['1a', '1b', '1c'])
 

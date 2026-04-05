@@ -72,7 +72,7 @@ import {
 import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
 import { uid, urgColor, fmtDate, fmtMileage } from '../web/src/lib/utils.js'
-import { filterManualRefs, RELEVANT_TIERS } from '../web/src/lib/manual-refs.js'
+import { filterManualRefs, RELEVANT_TIERS, MANUAL_LOOKUP_ENABLED } from '../web/src/lib/manual-refs.js'
 import { detectEngineTech, getObdCodes, BRAND_OBD_CODES } from '../web/src/constants/obd-codes.js'
 import { VEHICLE_CATALOG } from '../web/src/constants/catalog.js'
 import { VEHICLE_CATALOG_US } from '../web/src/constants/catalog-us.js'
@@ -1947,6 +1947,10 @@ describe('filterManualRefs — relevance tier filtering', () => {
     ok(!RELEVANT_TIERS.has('3'))
     ok(!RELEVANT_TIERS.has('4'))
     strictEqual(RELEVANT_TIERS.size, 3)
+  })
+
+  test('MANUAL_LOOKUP_ENABLED je boolean', () => {
+    strictEqual(typeof MANUAL_LOOKUP_ENABLED, 'boolean')
   })
 })
 

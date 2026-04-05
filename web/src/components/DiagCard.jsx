@@ -4,7 +4,7 @@ import { useTheme } from "../contexts/ThemeContext.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import { ObdChip } from "./Chip.jsx";
 import { lookupManual } from "../lib/storage-edge.js";
-import { filterManualRefs } from "../lib/manual-refs.js";
+import { filterManualRefs, MANUAL_LOOKUP_ENABLED } from "../lib/manual-refs.js";
 
 // ── Source-based colors ──────────────────────────────────────────────────────
 // Green = from database (verified), Blue = AI-generated
@@ -69,6 +69,11 @@ function getUniqueRagSources(ragMatches = []) {
 // ── Per-fault manual references (inline in each FaultCard) ──────────────────
 
 function FaultManualRef({ vehicle, fault, tr, onOpenManual }) {
+  // Feature flag — disabled until licensing and data pipeline are ready.
+  // Flip MANUAL_LOOKUP_ENABLED in manual-refs.js to re-enable without any
+  // other code changes needed.
+  if (!MANUAL_LOOKUP_ENABLED) return null;
+
   const { t } = useTheme();
   const [refs, setRefs] = useState(null);
   const [loading, setLoading] = useState(false);
