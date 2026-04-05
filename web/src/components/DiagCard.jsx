@@ -194,7 +194,7 @@ function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual }) {
   const { t } = useTheme();
   const sc = sourceColor(f);
   return (
-    <div style={{ background: t.bgCard, border: `1px solid ${isPrimary ? sc.accent : t.border}`, padding: mobile ? "12px" : "16px", borderLeft: `4px solid ${sc.accent}`, marginBottom: 8, borderRadius: 2 }}>
+    <div style={{ background: t.bgCard, border: `2px solid ${isPrimary ? sc.accent : t.border}`, padding: mobile ? "12px" : "16px", borderLeft: `5px solid ${sc.accent}`, marginBottom: 16, borderRadius: 3 }}>
 
       {/* Název + pravděpodobnost */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 8, flexWrap: "wrap" }}>

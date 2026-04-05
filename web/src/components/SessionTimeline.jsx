@@ -19,7 +19,7 @@ export default function SessionTimeline({
   const { t } = useTheme();
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "10px" : "20px", background: t.bg }}>
-      <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: mobile ? 12 : 32 }}>
+      <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: mobile ? 20 : 48 }}>
         {activeCase.messages.length === 0 && !loading && (
           <div style={{ textAlign: "center", color: t.textVeryFaint, fontSize: "0.78rem", letterSpacing: "0.08em", padding: "40px 0" }}>
             {tr("app.caseReady")}
