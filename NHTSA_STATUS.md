@@ -1,5 +1,64 @@
 # NHTSA TSB Status
 
+## Automation Checkpoint
+
+Aktualizováno: 2026-04-06
+
+Tento checkpoint je pro automation workspace [C:\GB-nhtsa](/C:/GB-nhtsa).
+
+Pravidlo:
+- Neredo brandy, které jsou níže označené jako `imported clean`.
+- Pokud existuje rozdělaný brand artifact v [C:\GB-nhtsa\tmp](/C:/GB-nhtsa/tmp), navazuj na něj přednostně.
+- Aktuální rozdělaný brand k navázání je `Volkswagen`.
+
+### TSBS_RECEIVED_2020-2024.txt checkpoint
+
+Source file:
+- [C:\Users\sekald\Downloads\TSBS_RECEIVED_2020-2024\TSBS_RECEIVED_2020-2024.txt](/C:/Users/sekald/Downloads/TSBS_RECEIVED_2020-2024/TSBS_RECEIVED_2020-2024.txt)
+
+Clean imported brands already completed in the manual stream:
+- `Lincoln` `139`
+- `Genesis` `46`
+- `Infiniti` `30`
+- `Audi` `25`
+- `Tesla` `4`
+- `Honda` `19`
+- `Acura` `5`
+- `Volvo` `24`
+- `Kia` `29`
+- `Mazda` `14`
+- `Toyota` `1`
+- `Hyundai` `36`
+- `Chevrolet` `83`
+- `GMC` `52`
+- `Ford` `55`
+- `Jeep` `101`
+- `Polestar` `2`
+- `Dodge` `25`
+- `Cadillac` `49`
+- `Chrysler` `17`
+- `Nissan (US)` `23`
+- `Mercedes-Benz` `10`
+
+Current imported lower bound from this file:
+- `789`
+
+Processed but not imported:
+- `Lexus` `0 safe`
+
+Current in-progress handoff copied into this workspace:
+- coarse subset: [C:\GB-nhtsa\tmp\nhtsa_2020_2024_volkswagen_subset_20260405](/C:/GB-nhtsa/tmp/nhtsa_2020_2024_volkswagen_subset_20260405)
+- first-pass AI output: [C:\GB-nhtsa\tmp\nhtsa_2020_2024_volkswagen_ready_ai_reviewed_20260406](/C:/GB-nhtsa/tmp/nhtsa_2020_2024_volkswagen_ready_ai_reviewed_20260406)
+
+Next preferred queue after Volkswagen:
+- `Buick`
+- `Subaru`
+- `Ram`
+- `Mitsubishi`
+- `Alfa Romeo`
+- `Bentley`
+- `Porsche`
+
 Aktualizováno: 2026-04-02
 
 ## Scope note
