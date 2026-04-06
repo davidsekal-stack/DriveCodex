@@ -26,6 +26,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertCodexNotQuotaError } from './quota.mjs';
+import { buildDiaryContext } from './diary.mjs';
 
 const execFile = promisify(execFileCb);
 
@@ -203,7 +204,7 @@ async function fetchPage(url) {
  *   2. IDENTIFY — find technical subforum URLs
  *   3. DETECT — forum type + initial parser hints
  */
-async function discoverForumStructure(forum) {
+async function discoverForumStructure(forum, state = null) {
   console.log(`  Phase 0: Discovering forum structure...`);
 
   let rootHtml;
@@ -217,7 +218,13 @@ async function discoverForumStructure(forum) {
   // Truncate HTML for Codex prompt (keep first 15K — enough for link structure)
   const htmlSample = rootHtml.slice(0, 15_000);
 
+  // Inject lessons from past similar forums (same parser type or language)
+  const diaryContext = state
+    ? buildDiaryContext(state, { parser: forum.parser, language: forum.language })
+    : '';
+
   const prompt = `You are a web scraping engineer evaluating and analyzing an automotive forum.
+${diaryContext}
 
 TASK 1 — QUALIFY: Decide if this forum is worth crawling for resolved vehicle fault cases.
 A good forum has:
@@ -308,7 +315,7 @@ async function ensureSections(state, forumId, forum) {
     return 'ok';
   }
 
-  const result = await discoverForumStructure(forum);
+  const result = await discoverForumStructure(forum, state);
 
   // Check qualification
   if (result && result.qualified === false) {

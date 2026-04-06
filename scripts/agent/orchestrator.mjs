@@ -27,6 +27,7 @@ import { AgentState } from './state.mjs';
 import { calibrateForum } from './calibrate.mjs';
 import { verifyCase } from './verify.mjs';
 import { createCrawlPipeline, processThread } from './crawl.mjs';
+import { writeDiary } from './diary.mjs';
 import { createHash } from 'node:crypto';
 import { QuotaError, formatQuotaMessage } from './quota.mjs';
 
@@ -51,6 +52,7 @@ function parseArgs() {
     phase: null,
     forumUrl: null,
     stats: false,
+    diary: false,
     force: false,
   };
   for (let i = 0; i < args.length; i++) {
@@ -61,6 +63,7 @@ function parseArgs() {
       case '--phase':       opts.phase = args[++i]; break;
       case '--forum-url':   opts.forumUrl = args[++i]; break;
       case '--stats':       opts.stats = true; break;
+      case '--diary':       opts.diary = true; break;
       case '--force':       opts.force = true; break;
     }
   }
@@ -116,6 +119,11 @@ function printStats(state) {
       console.log(`  ${f.status.padEnd(12)} ${name}`);
       console.log(`             ${yield_}${cooldown ? '  ' + cooldown : ''}`);
       if (f.last_crawled_at) console.log(`             last crawl: ${f.last_crawled_at.slice(0, 16)}, new last batch: ${f.new_threads_last_batch ?? '?'}`);
+      if (f.diary_md) {
+        // Show just the first line of diary (the title/headline)
+        const diaryHead = f.diary_md.split('\n').find(l => l.trim()) || '';
+        console.log(`             📓 ${diaryHead.replace(/^#+\s*/, '').slice(0, 80)}`);
+      }
     }
   }
 
@@ -144,6 +152,24 @@ function printStats(state) {
       const icon = entry.level === 'error' ? '✗' : entry.level === 'warn' ? '⚠' : '·';
       console.log(`  ${ts} ${icon} ${phase}${entry.message}`);
     }
+  }
+}
+
+function printDiaries(state) {
+  const forums = state.getAllForums().filter(f => f.diary_md);
+  if (forums.length === 0) {
+    console.log('No forum diaries written yet.');
+    return;
+  }
+  console.log(`\n═══ FORUM DIARIES (${forums.length}) ═══`);
+  for (const f of forums) {
+    const name = f.name || new URL(f.url).hostname;
+    const crawled = f.last_crawled_at?.slice(0, 10) ?? '?';
+    const yield_ = f.threads_crawled > 0
+      ? `${f.cases_total || 0}/${f.threads_crawled} (${((f.cases_total || 0) / f.threads_crawled * 100).toFixed(1)}%)`
+      : 'no data';
+    console.log(`\n── ${name} · ${f.language} · ${f.parser} · crawled ${crawled} · yield ${yield_} ──`);
+    console.log(f.diary_md);
   }
 }
 
@@ -365,6 +391,25 @@ async function phaseCrawl(state, opts) {
       status: 'active',
     });
     console.log(`  Forum done: +${newUrls.length} threads, +${batchCases} cases (total: ${crawled} threads, ${forumCases} cases).`);
+
+    // ── Write Codex diary entry for this forum ──
+    // Collect top discard reasons from this batch for diary context
+    const discardReasons = [];
+    for (const url of newUrls) {
+      const t = state.getThreadByUrl(url);
+      if (t?.discard_reason) discardReasons.push(t.discard_reason);
+    }
+    const discardCounts = {};
+    for (const r of discardReasons) discardCounts[r] = (discardCounts[r] ?? 0) + 1;
+    const topDiscards = Object.entries(discardCounts)
+      .sort((a, b) => b[1] - a[1]).slice(0, 5).map(([r, n]) => `${r} (×${n})`);
+
+    try {
+      await writeDiary(state, forum, { threads: newUrls.length, cases: batchCases }, topDiscards);
+    } catch (err) {
+      if (err instanceof QuotaError) throw err;
+      logWarn(`Diary write skipped for ${forum.name || forum.url}: ${err.message}`);
+    }
   }
 
   console.log(`  Batch done: ${totalThreads} threads processed, ${totalCases} cases extracted.`);
@@ -643,6 +688,12 @@ async function main() {
 
   if (opts.stats) {
     printStats(state);
+    state.close();
+    return;
+  }
+
+  if (opts.diary) {
+    printDiaries(state);
     state.close();
     return;
   }

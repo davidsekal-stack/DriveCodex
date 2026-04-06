@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS forums (
   calibration_attempts INTEGER DEFAULT 0,
   cooldown_until TEXT,
   last_crawled_at TEXT,
+  diary_md TEXT,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -94,6 +95,13 @@ export class AgentState {
 
   #migrate() {
     this.#db.exec(MIGRATIONS);
+    // Incremental column additions for existing databases
+    const alterations = [
+      'ALTER TABLE forums ADD COLUMN diary_md TEXT',
+    ];
+    for (const sql of alterations) {
+      try { this.#db.exec(sql); } catch { /* column already exists */ }
+    }
   }
 
   close() {
@@ -141,7 +149,7 @@ export class AgentState {
       'sections_json', 'threads_found', 'threads_crawled',
       'new_threads_last_batch', 'cases_total', 'last_crawled_at',
       'calibration_json', 'calibration_status', 'calibration_attempts',
-      'cooldown_until',
+      'cooldown_until', 'diary_md',
     ];
     const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
     if (entries.length === 0) return;
@@ -150,6 +158,33 @@ export class AgentState {
     const values = entries.map(([, v]) => v);
     const stmt = this.#db.prepare(`UPDATE forums SET ${sets} WHERE id = ?`);
     stmt.run(...values, id);
+  }
+
+  /**
+   * Store a Codex-written diary entry for a forum.
+   */
+  setForumDiary(forumId, diaryMd) {
+    const stmt = this.#db.prepare('UPDATE forums SET diary_md = ? WHERE id = ?');
+    stmt.run(diaryMd, forumId);
+  }
+
+  /**
+   * Return diary entries from forums with a similar parser type and/or language.
+   * Used to inject past lessons into Phase 0 prompts for new forums.
+   */
+  getRelevantDiaries({ parser = null, language = null, limit = 3 } = {}) {
+    let where = 'diary_md IS NOT NULL AND diary_md != \'\'';
+    const params = [];
+    if (parser) { where += ' AND parser = ?'; params.push(parser); }
+    if (language) { where += ' AND language = ?'; params.push(language); }
+    params.push(limit);
+    const stmt = this.#db.prepare(
+      `SELECT name, url, parser, language, diary_md FROM forums
+       WHERE ${where}
+       ORDER BY last_crawled_at DESC
+       LIMIT ?`
+    );
+    return stmt.all(...params);
   }
 
   getForumsToProcess(limit = 50) {

@@ -1,0 +1,122 @@
+[
+  {
+    "rank": 1,
+    "url": "https://www.meinid.com/",
+    "name": "MeinID.com (VW ID Forum)",
+    "language": "de",
+    "parser": "generic",
+    "brands": ["Volkswagen"],
+    "estimated_threads": 9600,
+    "tech_section_hint": "Antrieb & Technik, Software & Updates, Häufige Probleme & Fehler (Wiki), ID.3/ID.4/ID.5/ID.7/ID.Buzz",
+    "notes": "Dediziertes VW ID-Forum. WoltLab Suite, kein Login zum Lesen. 410k Posts, 172 Posts/Tag. Strukturierte Fehlercode-Wiki (z.B. B200049). Sehr wertvoll für moderne VW Elektrofahrzeuge.",
+    "risk": "low-medium — WoltLab, public, well-structured wiki for fault codes"
+  },
+  {
+    "rank": 2,
+    "url": "https://www.motor-talk.de/forum/volkswagen-b22.html",
+    "name": "Motor-Talk (VW Sektion)",
+    "language": "de",
+    "parser": "generic",
+    "brands": ["Volkswagen"],
+    "estimated_threads": 500000,
+    "tech_section_hint": "Pro Modell (Golf, Passat, Polo, Tiguan…) je dediziertes Technifk/Fehler/Reparatur Unterforum",
+    "notes": "VW-Sektion des größten deutschen KFZ-Forums (63M+ Posts gesamt). Kein Login zum Lesen. Proprietäre Software — Codex Phase 0 soll Struktur und Parser-Typ identifizieren. Massives Datenvolumen.",
+    "risk": "medium — proprietary software unknown, but volume is unmatched"
+  },
+  {
+    "rank": 3,
+    "url": "https://www.audidrivers.de/",
+    "name": "AudiDrivers.de",
+    "language": "de",
+    "parser": "phpbb",
+    "brands": ["Audi"],
+    "estimated_threads": 16000,
+    "tech_section_hint": "Motor, Turbo, Fahrwerk/Räder, Bremsen, Elektrik/Elektronik",
+    "notes": "phpBB 3, kein Login. 200k+ Posts, 16k Threads. Sehr strukturiert mit dedizierten Technik-Sektionen. Hohe Fehler→Lösung-Dichte. Niedrigstes Risiko in der Liste.",
+    "risk": "low — phpBB, public, excellent structure"
+  },
+  {
+    "rank": 4,
+    "url": "https://www.peugeotforum.de/forum/",
+    "name": "PeugeotForum.de",
+    "language": "de",
+    "parser": "phpbb",
+    "brands": ["Peugeot"],
+    "estimated_threads": 100000,
+    "tech_section_hint": "Panne, Fehler, Elektrik, Wartung — nach Modell sortiert",
+    "notes": "phpBB, kein Login. 885k Posts, 102k Threads, 31k Mitglieder. Einer der aktivsten deutschen Marken-Foren. Explizite Fehler-Sektionen pro Modell.",
+    "risk": "low — phpBB, public, very high volume"
+  },
+  {
+    "rank": 5,
+    "url": "https://www.germancarforum.com/forums/",
+    "name": "German Car Forum",
+    "language": "en",
+    "parser": "xenforo",
+    "brands": ["Mercedes-Benz", "BMW", "Audi", "Porsche", "VW", "Opel", "Ford", "Peugeot", "Renault", "Citroën"],
+    "estimated_threads": 222000,
+    "tech_section_hint": "Per-brand technical subforums, Problems & Solutions sections",
+    "notes": "XenForo, kein Login. 2,85M Posts seit 2005. Englischsprachig aber europäisch fokussiert. Alle deutschen Marken vertreten. XenForo bestens unterstützt.",
+    "risk": "low — XenForo, public, multi-brand goldmine"
+  },
+  {
+    "rank": 6,
+    "url": "https://www.bmw-syndikat.de/bmwsyndikatforum/",
+    "name": "BMW-Syndikat",
+    "language": "de",
+    "parser": "generic",
+    "brands": ["BMW"],
+    "estimated_threads": 385000,
+    "tech_section_hint": "Codierung/Diagnose/Programmierung, Motoren, modellspezifische Foren (E30–G20)",
+    "notes": "3,1M Posts, 313k Mitglieder, kein Login. Forum-Software unklar (legacy custom). Hervorragend für BMW-Fehlerdiagnose. Codex Phase 0 bestimmt Software.",
+    "risk": "medium — software unknown, volume justifies the attempt"
+  },
+  {
+    "rank": 7,
+    "url": "https://www.c4forum.de/",
+    "name": "C4Forum.de",
+    "language": "de",
+    "parser": "phpbb",
+    "brands": ["Citroën"],
+    "estimated_threads": 11400,
+    "tech_section_hint": "Fehler - Mängel - Probleme, Motor, Elektronik, Wartung/Reparatur",
+    "notes": "phpBB 3, öffentlich. 159k Posts, aktiv bis 2026. Explizite 'Fehler/Mängel/Probleme'-Sektion. Kleineres Forum aber hohe Qualität.",
+    "risk": "low — phpBB, clear fault section"
+  },
+  {
+    "rank": 8,
+    "url": "https://www.fiat-forum.de/",
+    "name": "Fiat-Forum.de",
+    "language": "de",
+    "parser": "generic",
+    "brands": ["Fiat", "Abarth"],
+    "estimated_threads": 15200,
+    "tech_section_hint": "Motor, Elektrik/Elektronik, Getriebe, modellspezifische Boards",
+    "notes": "WoltLab Suite. 63k Posts, 23k Mitglieder. Ähnliche HTML-Struktur wie phpBB — generic Parser + Codex Phase 0 sollte ausreichen.",
+    "risk": "medium — WoltLab, needs generic parser"
+  },
+  {
+    "rank": 9,
+    "url": "https://renaultforum.net/",
+    "name": "RenaultForum.net",
+    "language": "de",
+    "parser": "generic",
+    "brands": ["Renault"],
+    "estimated_threads": 8000,
+    "tech_section_hint": "Elektronik, Mechanik, Multimedia — nach Modell",
+    "notes": "WoltLab, aktiv bis März 2026. Spezialisierte Renault-Community. Gastlesezugang wahrscheinlich verfügbar.",
+    "risk": "medium — WoltLab, guest access unconfirmed"
+  },
+  {
+    "rank": 10,
+    "url": "https://www.peugeottalk.de/",
+    "name": "PeugeotTalk.de",
+    "language": "de",
+    "parser": "generic",
+    "brands": ["Peugeot", "Citroën", "Opel", "DS"],
+    "estimated_threads": 20000,
+    "tech_section_hint": "PSA Motoren-Talk, Diagbox/PP2000 Diagnostik, Tuning/TÜV",
+    "notes": "WoltLab, PSA-Gruppe. Besonderer Fokus auf Diagnose-Software (Diagbox) — sehr wertvolle OBD-Code-Threads.",
+    "risk": "medium — WoltLab, PSA diagnostic focus is valuable"
+  }
+]
