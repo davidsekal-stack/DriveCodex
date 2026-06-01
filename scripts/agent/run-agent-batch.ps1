@@ -85,6 +85,41 @@ try {
 
   Set-Location $repoRoot
 
+  # ── Step 1: refresh the cross-source "already-extracted" index from the DB (NON-FATAL) ──
+  # Keeps crawled-index.json current so the orchestrator skips anything already extracted
+  # (by this agent, the legacy forum-seed scripts, or NHTSA) since the last batch.
+  # A failure here must NOT abort the crawl: log a warning and proceed on the existing snapshot.
+  $indexBuilder = Join-Path $agentDir 'build-crawled-index.mjs'
+  Write-LogLine -Path $logPath -Message "Refreshing crawled-index from DB..."
+  $idxOut = [System.IO.Path]::GetTempFileName()
+  $idxErr = [System.IO.Path]::GetTempFileName()
+  try {
+    $idxProc = Start-Process `
+      -FilePath $nodeExe `
+      -ArgumentList @($indexBuilder) `
+      -WorkingDirectory $repoRoot `
+      -NoNewWindow `
+      -Wait `
+      -PassThru `
+      -RedirectStandardOutput $idxOut `
+      -RedirectStandardError $idxErr
+
+    foreach ($idxStream in @($idxOut, $idxErr)) {
+      if (-not (Test-Path $idxStream)) { continue }
+      $idxContent = Get-Content $idxStream -Raw
+      if ([string]::IsNullOrWhiteSpace($idxContent)) { continue }
+      Add-Content -Path $logPath -Value $idxContent.TrimEnd("`r", "`n")
+    }
+
+    if ([int]$idxProc.ExitCode -ne 0) {
+      Write-LogLine -Path $logPath -Message ("WARN: index refresh exit_code={0}; proceeding with existing snapshot." -f $idxProc.ExitCode)
+    }
+  } catch {
+    Write-LogLine -Path $logPath -Message ("WARN: index refresh failed ({0}); proceeding with existing snapshot." -f $_.Exception.Message)
+  } finally {
+    Remove-Item $idxOut, $idxErr -ErrorAction SilentlyContinue
+  }
+
   $orchestrator = Join-Path $agentDir 'orchestrator.mjs'
   $args = @(
     '--experimental-sqlite',

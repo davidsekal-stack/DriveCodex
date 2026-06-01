@@ -27,6 +27,7 @@ import { AgentState } from './state.mjs';
 import { calibrateForum } from './calibrate.mjs';
 import { verifyCase } from './verify.mjs';
 import { createCrawlPipeline, processThread } from './crawl.mjs';
+import { loadCrawledIndex, isThreadAlreadyExtracted } from './crawled-index.mjs';
 import { writeDiary } from './diary.mjs';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -323,6 +324,9 @@ async function phaseCrawl(state, opts) {
   }
 
   const pipeline = createCrawlPipeline({ sleepMs: opts.sleepMs });
+  // Cross-source "already extracted" index (DB-derived: covers legacy forum-seed
+  // scripts + NHTSA + prior agent runs). Refresh via build-crawled-index.mjs.
+  const crawledIndex = loadCrawledIndex();
   let totalThreads = 0;
   let totalCases = 0;
 
@@ -360,7 +364,14 @@ async function phaseCrawl(state, opts) {
     // ── Filter out already-processed threads ──
     const newUrls = [];
     const skippedUrls = [];
+    let skippedByIndex = 0;
     for (const url of threadUrls) {
+      // Cross-source skip: already extracted by any crawler (legacy/NHTSA/agent)
+      if (isThreadAlreadyExtracted(url, crawledIndex)) {
+        skippedUrls.push(url);
+        skippedByIndex++;
+        continue;
+      }
       const existing = state.getThreadByUrl(url);
       if (existing && existing.status !== 'pending') {
         skippedUrls.push(url);
@@ -369,7 +380,7 @@ async function phaseCrawl(state, opts) {
       }
     }
 
-    console.log(`  Enumerated ${threadUrls.length} thread(s): ${newUrls.length} new, ${skippedUrls.length} already crawled.`);
+    console.log(`  Enumerated ${threadUrls.length} thread(s): ${newUrls.length} new, ${skippedUrls.length} already crawled (${skippedByIndex} via cross-source index).`);
 
     // ── Exhaustion check — if almost everything is already known, set cooldown ──
     const cooldownHours = computeCooldown(newUrls.length, threadUrls.length);

@@ -34,3 +34,9 @@ tmp-chrome-profile*/
 
 # Local-only settings (may contain credentials) — keep out of the repo
 .claude/settings.local.json
+
+# Crawl-audit workspace — keep the scripts, ignore generated data dumps
+audit/*.json
+
+# Generated "already-extracted" snapshot (regenerate from DB via build-crawled-index.mjs)
+scripts/agent/crawled-index.json
