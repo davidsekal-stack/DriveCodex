@@ -5,7 +5,7 @@ Aktualizováno: 2026-04-03
 ## Scope note
 
 - The raw 2025-2026 NHTSA file contains `240` unique makes.
-- The current GearBrain NHTSA pipeline covers `43` catalog-supported makes.
+- The current DriveCodex NHTSA pipeline covers `43` catalog-supported makes.
 - The remaining `197` unsupported makes are a mix of non-automotive entries (buses, RVs, trailers, components, motorcycles) and additional automotive makes not yet added to our catalog.
 - This status file therefore describes the **currently supported automotive slice**, not the entire raw file universe.
 

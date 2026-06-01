@@ -2,14 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "GearBrain Web (Vite)",
+      "name": "DriveCodex Web (Vite)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5180", "--host"],
       "cwd": "./web",
       "port": 5180
     },
     {
-      "name": "GearBrain Preview (Vite)",
+      "name": "DriveCodex Preview (Vite)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5180", "--host"],
       "cwd": "./web",

@@ -1,4 +1,4 @@
-# GearBrain — Databázový gatekeeper
+# DriveCodex — Databázový gatekeeper
 
 Spusťte níže uvedené SQL příkazy v Supabase SQL Editoru.
 **Pokud jste databázi vytvořili dříve, použijte sekci Migrace na konci.**
@@ -124,13 +124,13 @@ BEGIN
 
   -- Předmět podle závažnosti
   v_subject := CASE
-    WHEN NEW.blocked THEN '[GearBrain] ⛔ Instalace ZABLOKOVÁNA — ' || NEW.violation_count || '. porušení'
-    ELSE '[GearBrain] ⚠ Porušení pravidel č. ' || NEW.violation_count
+    WHEN NEW.blocked THEN '[DriveCodex] ⛔ Instalace ZABLOKOVÁNA — ' || NEW.violation_count || '. porušení'
+    ELSE '[DriveCodex] ⚠ Porušení pravidel č. ' || NEW.violation_count
   END;
 
   -- Tělo emailu
   v_body := format(
-    '<h2>GearBrain — Porušení pravidel databáze</h2>'
+    '<h2>DriveCodex — Porušení pravidel databáze</h2>'
     '<table style="border-collapse:collapse;font-family:monospace">'
     '<tr><td style="padding:4px 12px 4px 0"><b>Instalace:</b></td><td>%s</td></tr>'
     '<tr><td style="padding:4px 12px 4px 0"><b>Důvod:</b></td><td>%s</td></tr>'
@@ -153,7 +153,7 @@ BEGIN
       'Content-Type',  'application/json'
     ),
     body    := jsonb_build_object(
-      'from',    'GearBrain <onboarding@resend.dev>',
+      'from',    'DriveCodex <onboarding@resend.dev>',
       'to',      ARRAY[v_admin_email],
       'subject', v_subject,
       'html',    v_body

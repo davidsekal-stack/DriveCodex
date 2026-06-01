@@ -225,7 +225,7 @@ function logProgress(message) {
 
 function defaultHeaders() {
   return {
-    "User-Agent": "Mozilla/5.0 (compatible; GearBrainVWSeed/1.0; +https://example.invalid)",
+    "User-Agent": "Mozilla/5.0 (compatible; DriveCodexVWSeed/1.0; +https://example.invalid)",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
   };
 }

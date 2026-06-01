@@ -1,4 +1,4 @@
-# GearBrain — Nasazení Edge Function + zabezpečení databáze
+# DriveCodex — Nasazení Edge Function + zabezpečení databáze
 
 ## Co se změní
 
@@ -37,7 +37,7 @@ supabase link --project-ref váš-project-ref
 ### 2c — Nasaďte funkci
 
 ```cmd
-cd C:\GearBrain
+cd C:\DriveCodex
 supabase functions deploy search-cases
 ```
 
