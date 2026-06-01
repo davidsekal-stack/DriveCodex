@@ -11,12 +11,48 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { canonicalizeThreadUrl } from './url-utils.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_DB_PATH = join(__dirname, 'agent.db');
 
 function sha256(input) {
   return createHash('sha256').update(input).digest('hex');
+}
+
+const THREAD_STATUS_PRIORITY = {
+  extracted: 40,
+  discarded: 30,
+  error: 20,
+  pending: 10,
+};
+
+// Must stay aligned with calibrate.mjs MAX_ATTEMPTS.
+const CALIBRATION_FINAL_FAILURE_ATTEMPTS = 3;
+
+const CASE_STATUS_PRIORITY = {
+  imported: 90,
+  import_ready: 80,
+  verified: 70,
+  ai_approved: 60,
+  crosscheck_error: 50,
+  import_failed: 40,
+  verify_error: 30,
+  verify_skipped: 20,
+  verify_rejected: 10,
+  crosscheck_dupe: 5,
+};
+
+function threadPriority(thread) {
+  return THREAD_STATUS_PRIORITY[thread.status] ?? 0;
+}
+
+function casePriority(caseRow) {
+  return CASE_STATUS_PRIORITY[caseRow.status] ?? 0;
+}
+
+function normalizeCaseIdentity(value) {
+  return (value ?? '').toString().trim().toLowerCase();
 }
 
 const MIGRATIONS = `
@@ -59,6 +95,9 @@ CREATE TABLE IF NOT EXISTS cases (
   payload_json TEXT NOT NULL,
   status TEXT DEFAULT 'ai_approved',
   review_note TEXT,
+  verify_attempts INTEGER DEFAULT 0,
+  crosscheck_attempts INTEGER DEFAULT 0,
+  import_attempts INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -85,12 +124,16 @@ CREATE TABLE IF NOT EXISTS agent_log (
 
 export class AgentState {
   #db;
+  #readOnly = false;
 
-  constructor(dbPath = DEFAULT_DB_PATH) {
-    this.#db = new DatabaseSync(dbPath);
-    this.#db.exec('PRAGMA journal_mode=WAL');
-    this.#db.exec('PRAGMA foreign_keys=ON');
-    this.#migrate();
+  constructor(dbPath = DEFAULT_DB_PATH, options = {}) {
+    this.#readOnly = options.readOnly === true;
+    this.#db = new DatabaseSync(dbPath, { readOnly: this.#readOnly });
+    if (!this.#readOnly) {
+      this.#db.exec('PRAGMA journal_mode=WAL');
+      this.#db.exec('PRAGMA foreign_keys=ON');
+      this.#migrate();
+    }
   }
 
   #migrate() {
@@ -98,10 +141,15 @@ export class AgentState {
     // Incremental column additions for existing databases
     const alterations = [
       'ALTER TABLE forums ADD COLUMN diary_md TEXT',
+      'ALTER TABLE runs ADD COLUMN stop_reason TEXT',
+      'ALTER TABLE cases ADD COLUMN verify_attempts INTEGER DEFAULT 0',
+      'ALTER TABLE cases ADD COLUMN crosscheck_attempts INTEGER DEFAULT 0',
+      'ALTER TABLE cases ADD COLUMN import_attempts INTEGER DEFAULT 0',
     ];
     for (const sql of alterations) {
       try { this.#db.exec(sql); } catch { /* column already exists */ }
     }
+    this.#repairLegacyState();
   }
 
   close() {
@@ -190,12 +238,27 @@ export class AgentState {
   getForumsToProcess(limit = 50) {
     const stmt = this.#db.prepare(
       `SELECT * FROM forums
-       WHERE status IN ('discovered', 'queued', 'active')
-         AND status NOT IN ('disqualified', 'calibration_failed', 'exhausted')
+       WHERE status IN ('discovered', 'queued', 'active', 'exhausted')
+         AND status NOT IN ('disqualified', 'calibration_failed')
          AND (cooldown_until IS NULL OR cooldown_until < datetime('now'))
        ORDER BY
          last_crawled_at IS NULL DESC,
          last_crawled_at ASC
+       LIMIT ?`
+    );
+    return stmt.all(limit);
+  }
+
+  getForumsPendingCalibration(limit = 10) {
+    const stmt = this.#db.prepare(
+      `SELECT * FROM forums
+       WHERE status IN ('discovered', 'queued', 'active', 'exhausted')
+         AND status NOT IN ('disqualified', 'calibration_failed')
+         AND (calibration_status IS NULL OR calibration_status = 'pending')
+         AND (cooldown_until IS NULL OR cooldown_until < datetime('now'))
+       ORDER BY
+         COALESCE(calibration_attempts, 0) ASC,
+         created_at ASC
        LIMIT ?`
     );
     return stmt.all(limit);
@@ -228,12 +291,15 @@ export class AgentState {
   // ── Threads ─────────────────────────────────────────────
 
   addThread({ forumId, url, title = null }) {
-    const id = sha256(url);
+    const canonicalUrl = canonicalizeThreadUrl(url);
+    const existing = this.#db.prepare('SELECT id FROM threads WHERE url = ?').get(canonicalUrl);
+    if (existing?.id) return existing.id;
+    const id = sha256(canonicalUrl);
     const stmt = this.#db.prepare(
       `INSERT OR IGNORE INTO threads (id, forum_id, url, title)
        VALUES (?, ?, ?, ?)`
     );
-    stmt.run(id, forumId, url, title);
+    stmt.run(id, forumId, canonicalUrl, title);
     return id;
   }
 
@@ -243,8 +309,9 @@ export class AgentState {
   }
 
   getThreadByUrl(url) {
+    const canonicalUrl = canonicalizeThreadUrl(url);
     const stmt = this.#db.prepare('SELECT * FROM threads WHERE url = ?');
-    return stmt.get(url) ?? null;
+    return stmt.get(canonicalUrl) ?? null;
   }
 
   updateThread(id, fields) {
@@ -311,8 +378,26 @@ export class AgentState {
     return stmt.get(id) ?? null;
   }
 
+  getCasesForThread(threadId, excludeCaseId = null) {
+    if (excludeCaseId) {
+      return this.#db.prepare(
+        'SELECT * FROM cases WHERE thread_id = ? AND id != ? ORDER BY created_at'
+      ).all(threadId, excludeCaseId);
+    }
+    return this.#db.prepare(
+      'SELECT * FROM cases WHERE thread_id = ? ORDER BY created_at'
+    ).all(threadId);
+  }
+
   updateCase(id, fields) {
-    const allowed = ['status', 'review_note', 'payload_json'];
+    const allowed = [
+      'status',
+      'review_note',
+      'payload_json',
+      'verify_attempts',
+      'crosscheck_attempts',
+      'import_attempts',
+    ];
     const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
     if (entries.length === 0) return;
 
@@ -328,6 +413,45 @@ export class AgentState {
        ORDER BY created_at LIMIT ?`
     );
     return stmt.all(status, limit);
+  }
+
+  getCasesForVerification(limit = 100, maxRetryAttempts = 3) {
+    const stmt = this.#db.prepare(
+      `SELECT * FROM cases
+       WHERE status = 'ai_approved'
+          OR (status = 'verify_error' AND verify_attempts < ?)
+       ORDER BY
+         CASE WHEN status = 'ai_approved' THEN 0 ELSE 1 END,
+         created_at
+       LIMIT ?`
+    );
+    return stmt.all(maxRetryAttempts, limit);
+  }
+
+  getCasesForCrosscheck(limit = 100, maxRetryAttempts = 3) {
+    const stmt = this.#db.prepare(
+      `SELECT * FROM cases
+       WHERE status = 'verified'
+          OR (status = 'crosscheck_error' AND crosscheck_attempts < ?)
+       ORDER BY
+         CASE WHEN status = 'verified' THEN 0 ELSE 1 END,
+         created_at
+       LIMIT ?`
+    );
+    return stmt.all(maxRetryAttempts, limit);
+  }
+
+  getCasesForImport(limit = 100, maxRetryAttempts = 3) {
+    const stmt = this.#db.prepare(
+      `SELECT * FROM cases
+       WHERE status = 'import_ready'
+          OR (status = 'import_failed' AND import_attempts < ?)
+       ORDER BY
+         CASE WHEN status = 'import_ready' THEN 0 ELSE 1 END,
+         created_at
+       LIMIT ?`
+    );
+    return stmt.all(maxRetryAttempts, limit);
   }
 
   countCasesByStatus() {
@@ -410,5 +534,187 @@ export class AgentState {
       cases_by_status: this.countCasesByStatus(),
       last_run: this.getLastRun(),
     };
+  }
+
+  #repairLegacyState() {
+    this.#db.exec('BEGIN IMMEDIATE');
+    try {
+      this.#repairLegacyThreads();
+      this.#repairLegacyCases();
+      this.#repairCalibrationState();
+      this.#db.exec('COMMIT');
+    } catch (err) {
+      this.#db.exec('ROLLBACK');
+      throw err;
+    }
+  }
+
+  #repairLegacyThreads() {
+    const threads = this.#db.prepare(
+      `SELECT id, forum_id, url, title, status, discard_reason, thread_text, created_at
+       FROM threads
+       ORDER BY created_at, id`
+    ).all();
+
+    const groups = new Map();
+    for (const thread of threads) {
+      const canonicalUrl = canonicalizeThreadUrl(thread.url);
+      if (!groups.has(canonicalUrl)) groups.set(canonicalUrl, []);
+      groups.get(canonicalUrl).push({ ...thread, canonicalUrl });
+    }
+
+    const updateThread = this.#db.prepare(
+      `UPDATE threads
+       SET url = ?, title = ?, status = ?, discard_reason = ?, thread_text = ?
+       WHERE id = ?`
+    );
+    const moveCases = this.#db.prepare('UPDATE cases SET thread_id = ? WHERE thread_id = ?');
+    const deleteThread = this.#db.prepare('DELETE FROM threads WHERE id = ?');
+
+    for (const [canonicalUrl, rows] of groups) {
+      const primary = rows
+        .slice()
+        .sort((a, b) =>
+          threadPriority(b) - threadPriority(a) ||
+          ((b.thread_text?.length ?? 0) - (a.thread_text?.length ?? 0)) ||
+          ((b.title?.length ?? 0) - (a.title?.length ?? 0)) ||
+          Number(b.url === canonicalUrl) - Number(a.url === canonicalUrl) ||
+          String(a.created_at).localeCompare(String(b.created_at)) ||
+          String(a.id).localeCompare(String(b.id))
+        )[0];
+
+      const mergedTitle = rows
+        .map(row => row.title)
+        .filter(Boolean)
+        .sort((a, b) => b.length - a.length)[0] ?? null;
+      const mergedThreadText = rows
+        .map(row => row.thread_text)
+        .filter(Boolean)
+        .sort((a, b) => b.length - a.length)[0] ?? null;
+      const mergedDiscardReason = rows.find(row => row.discard_reason)?.discard_reason ?? null;
+
+      for (const duplicate of rows) {
+        if (duplicate.id === primary.id) continue;
+        moveCases.run(primary.id, duplicate.id);
+        deleteThread.run(duplicate.id);
+      }
+
+      updateThread.run(
+        canonicalUrl,
+        mergedTitle,
+        primary.status,
+        mergedDiscardReason,
+        mergedThreadText,
+        primary.id,
+      );
+    }
+  }
+
+  #repairLegacyCases() {
+    const threads = this.#db.prepare('SELECT id, url FROM threads').all();
+    const threadUrlById = new Map(threads.map(thread => [thread.id, thread.url]));
+
+    const cases = this.#db.prepare(
+      `SELECT id, thread_id, payload_json, status, review_note,
+              verify_attempts, crosscheck_attempts, import_attempts, created_at
+       FROM cases
+       ORDER BY created_at, id`
+    ).all();
+
+    const updateCaseRow = this.#db.prepare(
+      `UPDATE cases
+       SET thread_id = ?, payload_json = ?, status = ?, review_note = ?,
+           verify_attempts = ?, crosscheck_attempts = ?, import_attempts = ?
+       WHERE id = ?`
+    );
+    const deleteCase = this.#db.prepare('DELETE FROM cases WHERE id = ?');
+
+    const groups = new Map();
+    for (const caseRow of cases) {
+      let payload = {};
+      try {
+        payload = JSON.parse(caseRow.payload_json || '{}') || {};
+      } catch {
+        payload = {};
+      }
+
+      const threadUrl = threadUrlById.get(caseRow.thread_id) || payload.thread_url || '';
+      const canonicalThreadUrl = canonicalizeThreadUrl(threadUrl);
+
+      if (canonicalThreadUrl) {
+        payload.thread_url = canonicalThreadUrl;
+        if (typeof payload.source_ref === 'string' && payload.source_ref.startsWith('agent:thread:')) {
+          payload.source_ref = `agent:thread:${canonicalThreadUrl}`;
+        }
+      }
+
+      updateCaseRow.run(
+        caseRow.thread_id,
+        JSON.stringify(payload),
+        caseRow.status,
+        caseRow.review_note,
+        caseRow.verify_attempts ?? 0,
+        caseRow.crosscheck_attempts ?? 0,
+        caseRow.import_attempts ?? 0,
+        caseRow.id,
+      );
+
+      const duplicateKey = [
+        canonicalThreadUrl,
+        normalizeCaseIdentity(payload.case_author),
+      ].join('|');
+
+      if (!canonicalThreadUrl || !normalizeCaseIdentity(payload.case_author)) {
+        continue;
+      }
+
+      if (!groups.has(duplicateKey)) groups.set(duplicateKey, []);
+      groups.get(duplicateKey).push({
+        ...caseRow,
+        payload,
+        canonicalThreadUrl,
+      });
+    }
+
+    for (const rows of groups.values()) {
+      if (rows.length < 2) continue;
+
+      const primary = rows
+        .slice()
+        .sort((a, b) =>
+          casePriority(b) - casePriority(a) ||
+          ((b.review_note?.length ?? 0) - (a.review_note?.length ?? 0)) ||
+          String(a.created_at).localeCompare(String(b.created_at)) ||
+          String(a.id).localeCompare(String(b.id))
+        )[0];
+
+      for (const duplicate of rows) {
+        if (duplicate.id === primary.id) continue;
+        deleteCase.run(duplicate.id);
+      }
+    }
+  }
+
+  #repairCalibrationState() {
+    // Historical bug: quota/interruption inside phaseCalibrate marked forums as
+    // calibration_failed even when the calibration loop had not exhausted all attempts.
+    // Those forums should remain retryable.
+    this.#db.prepare(
+      `UPDATE forums
+       SET status = 'discovered',
+           calibration_status = 'pending'
+       WHERE status = 'calibration_failed'
+         AND calibration_status = 'failed'
+         AND COALESCE(calibration_attempts, 0) < ?`
+    ).run(CALIBRATION_FINAL_FAILURE_ATTEMPTS);
+
+    // A successfully crawled forum must stay calibrated or it becomes invisible
+    // to future crawl batches even though it already proved crawlable.
+    this.#db.prepare(
+      `UPDATE forums
+       SET calibration_status = 'calibrated'
+       WHERE status IN ('queued', 'active', 'exhausted')
+         AND COALESCE(calibration_status, '') != 'calibrated'`
+    ).run();
   }
 }

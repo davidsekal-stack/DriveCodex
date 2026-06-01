@@ -6,6 +6,18 @@
 
 const SIGNATURES = [
   {
+    key: 'woltlab',
+    patterns: [
+      /woltlab/i,
+      /data-page-identifier=(?:"|')com\.woltlab/i,
+      /WCF_PATH/,
+      /wbbThreadList/i,
+      /class=(?:"|')messageText/i,
+      /messageListItem/i,
+    ],
+    minMatches: 2,
+  },
+  {
     key: 'invision',
     patterns: [
       /ips(?:Community|\.?suite)/i,

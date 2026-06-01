@@ -92,6 +92,10 @@ Rules:
 - Translate symptoms, description, and resolution to English.
 - If mileage is explicitly mentioned, extract it as an integer number of kilometers (e.g., 185000).
 - Normalize OBD codes to uppercase format like P0401. If none are present, use [].
+- symptoms must be SHORT (2–5 words each), standardized observable phenomena — what the driver sees, hears, feels, or smells. They are used as search tags, not prose.
+  GOOD: ["knocking from front wheel", "noise on turns", "intermittent beep", "smoke near injector"]
+  BAD:  ["Most noticeable around 80 km/h when going slightly into a turn", "rear parking sensor occasionally beeps"]
+  Each symptom = one distinct observable thing. Strip context, conditions, and frequency — those belong in description.
 
 Output schema:
 [{"case_author":"","fault_post_numbers":[],"resolution_post_numbers":[],"brand_raw":"","model_raw":"","engine_raw":"","engine_code_raw":"","mileage":null,"symptoms":[],"obd_codes":[],"description":"","resolution":"","closed_at":""}]

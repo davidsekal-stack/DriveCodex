@@ -8,15 +8,12 @@
  *   import { verifyCase, verifyBatch } from './verify.mjs';
  */
 
-import { execFile as execFileCb } from 'node:child_process';
-import { promisify } from 'node:util';
-import { writeFile, readFile, unlink } from 'node:fs/promises';
+import { unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertCodexNotQuotaError } from './quota.mjs';
-
-const execFile = promisify(execFileCb);
+import { runCodexPrompt } from './codex-cli.mjs';
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
@@ -105,30 +102,19 @@ function parseVerdict(raw) {
 export async function verifyCase(threadText, extractedCase, options = {}) {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const id = randomUUID().slice(0, 8);
-  const promptFile = join(tmpdir(), `codex-verify-prompt-${id}.txt`);
   const outFile    = join(tmpdir(), `codex-verify-out-${id}.txt`);
 
   try {
-    // Write full prompt to temp file (thread text can be 10K+)
     const prompt = buildPrompt(threadText, extractedCase);
-    await writeFile(promptFile, prompt, 'utf-8');
-
-    // Call codex exec, piping prompt via stdin redirect
-    // Shell form: codex exec --sandbox read-only --ephemeral -o <outfile> < <promptfile>
-    await execFile('bash', [
-      '-c',
-      `codex exec --sandbox read-only --ephemeral -o "${outFile}" < "${promptFile}"`,
-    ], {
-      timeout: timeoutMs,
-      maxBuffer: 10 * 1024 * 1024,  // 10 MB
+    const raw = await runCodexPrompt(prompt, {
+      outFile,
+      timeoutMs,
+      sandbox: 'read-only',
     });
-
-    // Read and parse the output file
-    const raw = await readFile(outFile, 'utf-8');
-    // Check for quota exhaustion in output before parsing verdict
     assertCodexNotQuotaError(raw);
     return parseVerdict(raw);
   } catch (err) {
+    assertCodexNotQuotaError(err.output || err.message || '');
     const isTimeout = err.killed || err.code === 'ETIMEDOUT';
     return {
       verdict: 'FAIL',
@@ -138,7 +124,6 @@ export async function verifyCase(threadText, extractedCase, options = {}) {
     };
   } finally {
     // Cleanup temp files (best-effort)
-    await unlink(promptFile).catch(() => {});
     await unlink(outFile).catch(() => {});
   }
 }

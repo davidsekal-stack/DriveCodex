@@ -8,6 +8,15 @@
 
 import { htmlToText, cleanPostText } from './common.mjs';
 
+const CALIBRATION_HINT_KEYS = [
+  'post_selector',
+  'content_selector',
+  'author_selector',
+  'quote_selector',
+  'date_selector',
+  'min_post_length',
+];
+
 // ---------------------------------------------------------------------------
 // Regex-based CSS selector simulation
 // ---------------------------------------------------------------------------
@@ -160,9 +169,16 @@ function calibratedExtract(html, calibration, pageNumber) {
  * Generic forum parser — uses calibration config or falls back to heuristics.
  */
 export function parseGeneric(html, calibration = {}, pageNumber = 1) {
-  const posts = Object.keys(calibration).length > 1
+  const posts = hasCalibrationHints(calibration)
     ? calibratedExtract(html, calibration, pageNumber)
     : heuristicExtract(html, pageNumber);
 
   return { posts, html };
+}
+
+export function hasCalibrationHints(calibration = {}) {
+  return CALIBRATION_HINT_KEYS.some(key => {
+    const value = calibration?.[key];
+    return value !== undefined && value !== null && value !== '';
+  });
 }

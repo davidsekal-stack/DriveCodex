@@ -7,12 +7,12 @@
  * enabling the agent to learn from past experience.
  */
 
-import { execFile } from 'node:child_process';
-import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
+import { unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { assertCodexNotQuotaError } from './quota.mjs';
+import { runCodexPrompt } from './codex-cli.mjs';
 
 const CODEX_TIMEOUT_MS = 90_000;
 
@@ -85,6 +85,7 @@ export async function writeDiary(state, forum, stats, discardSample = []) {
     diary = raw.trim();
   } catch (err) {
     // Re-throw quota errors — everything else is non-fatal
+    assertCodexNotQuotaError(err.output || err.message || '');
     if (err.name === 'QuotaError') throw err;
     console.warn(`  ⚠ Diary write failed for ${forum.name || forum.url}: ${err.message}`);
     return null;
@@ -116,33 +117,14 @@ export function buildDiaryContext(state, { parser, language }) {
 // Internal: run Codex CLI
 // ---------------------------------------------------------------------------
 
-function runCodex(prompt, outFile) {
-  return new Promise((resolve, reject) => {
-    // Write prompt to temp file for ephemeral Codex exec
-    const promptFile = outFile.replace('.txt', '_prompt.txt');
-    writeFileSync(promptFile, prompt, 'utf8');
-
-    const child = execFile(
-      'codex',
-      ['exec', '--sandbox', 'read-only', '--ephemeral', '-o', outFile, '--', `cat ${promptFile} | head -c 4000`],
-      { timeout: CODEX_TIMEOUT_MS, maxBuffer: 1024 * 1024 },
-      (err, stdout, stderr) => {
-        try { unlinkSync(promptFile); } catch {}
-        if (err) {
-          reject(new Error(`Codex diary error: ${err.message || stderr}`));
-          return;
-        }
-        // Try output file first, fall back to stdout
-        let result = '';
-        try {
-          result = readFileSync(outFile, 'utf8');
-          unlinkSync(outFile);
-        } catch {
-          result = stdout;
-        }
-        resolve(result);
-      }
-    );
-    child.on('error', reject);
-  });
+async function runCodex(prompt, outFile) {
+  try {
+    return await runCodexPrompt(prompt, {
+      outFile,
+      timeoutMs: CODEX_TIMEOUT_MS,
+      sandbox: 'read-only',
+    });
+  } finally {
+    try { unlinkSync(outFile); } catch {}
+  }
 }

@@ -90,6 +90,11 @@ export const VEHICLE_CATALOG = [
 
       // ── Transit (velká dodávka) ──────────────────────────────────────────
       { group: "Transit (velká dodávka)" },
+      { label: "Transit / Tourneo MK5 (1994–2000)" },
+      { label: "Transit / Tourneo MK6 (2000–2006)" },
+      { label: "Transit / Tourneo MK7 (2006–2011)" },
+      { label: "Transit / Tourneo MK7 FL (2011–2014)" },
+      { label: "Transit / Tourneo MK8 (2014–současnost)" },
       { label: "Transit MK5 2.5 Diesel (1994–2000)",      powers: ["2.5 DI", "2.5 TD", "2.5 TDI / EPIC"] },
       { label: "Transit MK6 2.0/2.4 Diesel (2000–2006)",  powers: ["2.0 TDDi/TDCi", "2.4 TDDi/TDCi"] },
       { label: "Transit MK6 2.3 Duratec (2001–2006)",     powers: ["2.3 Duratec HE"] },
@@ -121,6 +126,9 @@ export const VEHICLE_CATALOG = [
 
       // ── 3. Transit Connect (kompaktní dodávka) ─────────────────────────────
       { group: "Transit Connect" },
+      { label: "Transit Connect I (2002–2013)" },
+      { label: "Transit Connect II (2013–2018)" },
+      { label: "Transit Connect II FL (2018–2024)" },
       { label: "Transit Connect I 1.8 TDDi/TDCi (2002–2013)",    powers: ["55 kW (75 k)", "66 kW (90 k)", "81 kW (110 k)"] },
       { label: "Transit Connect II 1.6 TDCi (2013–2015)",        powers: ["55 kW (75 k)", "70 kW (95 k)", "85 kW (115 k)"] },
       { label: "Transit Connect II 1.0 EcoBoost (2013–2018)",    powers: ["74 kW (100 k)"] },
@@ -131,6 +139,9 @@ export const VEHICLE_CATALOG = [
 
       // ── Tourneo Connect (osobní varianta) ─────────────────────────────────
       { group: "Tourneo Connect" },
+      { label: "Tourneo Connect I (2002–2013)" },
+      { label: "Tourneo Connect II (2013–2022)" },
+      { label: "Tourneo Connect III (2022–současnost)" },
       { label: "Tourneo Connect III 1.5 EcoBoost (2022–současnost)", powers: ["85 kW (115 k)"] },
       { label: "Tourneo Connect III 2.0 EcoBlue (2022–současnost)", powers: ["90 kW (122 k)"] },
       { label: "Tourneo Connect III 1.5 EcoBoost PHEV (2022–současnost)", powers: ["110 kW (150 k)"] },

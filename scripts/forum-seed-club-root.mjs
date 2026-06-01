@@ -337,6 +337,7 @@ export function createClubCrawler(config) {
   const topicSignalPatterns = [...COMMON_SIGNAL_PATTERNS, ...(config.signalPatterns ?? [])];
   const modelAliasByLabel = config.modelAliasByLabel ?? new Map();
   const forumHints = config.forumHints ?? new Map();
+  const filterRootCategory = typeof config.filterRootCategory === "function" ? config.filterRootCategory : null;
   const replacements = config.normalizeReplacements ?? [];
 
   function usage(exitCode = 1) {
@@ -359,6 +360,7 @@ export function createClubCrawler(config) {
     topicSignalPatterns,
     modelAliasByLabel,
     forumHints,
+    filterRootCategory,
     replacements,
     usage,
   };
@@ -381,6 +383,7 @@ export function buildClubCrawlerApi(config) {
     topicSignalPatterns,
     modelAliasByLabel,
     forumHints,
+    filterRootCategory,
     replacements,
     usage,
   } = state;
@@ -453,7 +456,7 @@ export function buildClubCrawlerApi(config) {
 
   function defaultHeaders() {
     return {
-      "User-Agent": `Mozilla/5.0 (compatible; GearBrain${brand.replace(/[^a-z0-9]+/gi, "")}Seed/1.0; +https://example.invalid)`,
+      "User-Agent": `Mozilla/5.0 (compatible; DriveCodex${brand.replace(/[^a-z0-9]+/gi, "")}Seed/1.0; +https://example.invalid)`,
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     };
   }
@@ -939,13 +942,23 @@ export function buildClubCrawlerApi(config) {
         forum_title: anchor.text,
       }));
 
-    return uniqByKey(anchors, item => item.forum_url).map(item => ({
-      ...inferForumInventory({
-        forumUrl: item.forum_url,
-        forumTitle: item.forum_title,
-      }),
-      discovered_from_root: true,
-    }));
+    return uniqByKey(anchors, item => item.forum_url)
+      .map(item => ({
+        ...inferForumInventory({
+          forumUrl: item.forum_url,
+          forumTitle: item.forum_title,
+        }),
+        discovered_from_root: true,
+      }))
+      .map(item => {
+        if (!filterRootCategory) return item;
+        const decision = filterRootCategory(item);
+        if (!decision) return item;
+        return {
+          ...item,
+          ...decision,
+        };
+      });
   }
 
   async function deepseekChatJson({ apiKey, model, messages, maxTokens = 1400 }) {

@@ -187,6 +187,36 @@ test("resolveTransitFamilyVehicleModel recovers obvious Transit generation clues
 
   assert.equal(
     resolveTransitFamilyVehicleModel({
+      modelRaw: "Connect",
+      threadTitle: "Connect wipers failed.",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "This is on my 18 plate connect. Replaced BCM and all fixed.",
+    }),
+    "Transit Connect II FL (2018–2024)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Connect",
+      threadTitle: "07 connect power loss",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "van drives fine normally but has intermittent power loss",
+    }),
+    "Transit Connect I (2002–2013)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Connect",
+      threadTitle: "Connect tdci ran out of diesel and now won't start",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "1.8 TDCI P0190 fuel rail pressure sensor circuit",
+    }),
+    "Transit Connect I 1.8 TDDi/TDCi (2002–2013)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
       modelRaw: "Transit",
       threadTitle: "2.5 di high reving !",
       parentForumTitle: "Technical Problems & Questions",
@@ -203,6 +233,86 @@ test("resolveTransitFamilyVehicleModel recovers obvious Transit generation clues
       extraText: "Fault code P1170 electronic switch off solenoid plunger",
     }),
     "Transit MK5 2.5 Diesel (1994–2000)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Transit T260",
+      threadTitle: "2002 T260 wont start after full service?",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "Vehicle would not start after a full service.",
+    }),
+    "Transit MK6 2.0/2.4 Diesel (2000–2006)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Transit",
+      threadTitle: "Duratorq 2000 loses power then cuts out",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "2.4 duratorq | Van now runs perfectly.",
+    }),
+    "Transit MK6 2.0/2.4 Diesel (2000–2006)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "",
+      threadTitle: "53 plate FWD fuel pump leaks",
+      parentForumTitle: "Ford Transit Forum • View forum - Technical Problems & Questions",
+      extraText: "51plate swb 2.0td",
+    }),
+    "Transit MK6 2.0/2.4 Diesel (2000–2006)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Transit",
+      threadTitle: "Transit heater",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "2012/2013 2.2 tdci euro 5 heater thermostat now working",
+    }),
+    "Transit MK7 FL 2.2 TDCi (2011–2014)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Tourneo",
+      threadTitle: "Tourneo 53 plate injector advice please",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "what engine is this... 2.0 fwd tdci",
+    }),
+    "Transit MK6 2.0/2.4 Diesel (2000–2006)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Tourneo",
+      threadTitle: "Tourneo Minibus (2005 05 plate) rear heater not working",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "rear heater not working on 2005 tourneo minibus",
+    }),
+    "Transit / Tourneo MK6 (2000–2006)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Tourneo",
+      threadTitle: "My transit only starts useing easy start but not for long",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "Ford Tourneo minibus with 2.0l TDCI engine",
+    }),
+    "Transit MK6 2.0/2.4 Diesel (2000–2006)",
+  );
+
+  assert.equal(
+    resolveTransitFamilyVehicleModel({
+      modelRaw: "Transit Custom",
+      threadTitle: "Mk8 Heater fan only works on speed 4",
+      parentForumTitle: "Technical Problems & Questions",
+      extraText: "2022 Transit Custom 2.0 Ecoblue",
+    }),
+    "Transit Custom I FL 2.0 EcoBlue (2016–2023)",
   );
 });
 

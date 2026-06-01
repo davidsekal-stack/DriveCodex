@@ -13,63 +13,20 @@ import { parseInvision } from './parsers/invision.mjs';
 import { parseXenforo } from './parsers/xenforo.mjs';
 import { parsePhpbb } from './parsers/phpbb.mjs';
 import { parseGeneric } from './parsers/generic.mjs';
+import { parseWoltlab } from './parsers/woltlab.mjs';
 import {
   htmlToText,
   extractTitle,
   buildThreadText,
   extractThreadLinks,
+  extractThreadLinksBySelector,
   findNextPageLink,
 } from './parsers/common.mjs';
 import { classifyThread } from './classify.mjs';
 import { extractCases } from './extract.mjs';
 import { validateCase } from './validate.mjs';
-
-// ---------------------------------------------------------------------------
-// HTTP fetch with retries
-// ---------------------------------------------------------------------------
-
-const DEFAULT_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  'Accept-Language': 'en-US,en;q=0.9,cs;q=0.8,de;q=0.7',
-};
-
-async function fetchHtml(url, options = {}) {
-  const maxRetries = options.maxRetries ?? 2;
-  const headers = { ...DEFAULT_HEADERS };
-  if (options.cookie) headers.Cookie = options.cookie;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 30_000);
-
-      const res = await fetch(url, {
-        method: 'GET',
-        headers,
-        signal: controller.signal,
-        redirect: 'follow',
-      });
-      clearTimeout(timeout);
-
-      if (!res.ok) {
-        if (res.status === 429 || res.status >= 500) {
-          // Retry on rate limit or server error
-          if (attempt < maxRetries) {
-            await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
-            continue;
-          }
-        }
-        throw new Error(`HTTP ${res.status} fetching ${url}`);
-      }
-
-      return await res.text();
-    } catch (err) {
-      if (attempt >= maxRetries) throw err;
-      await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
-    }
-  }
-}
+import { fetchHtml } from './fetch-utils.mjs';
+import { canonicalizeThreadUrl, canonicalizeTraversalUrl } from './url-utils.mjs';
 
 // ---------------------------------------------------------------------------
 // Parser dispatch
@@ -79,6 +36,7 @@ const PARSERS = {
   invision: parseInvision,
   xenforo: parseXenforo,
   phpbb: parsePhpbb,
+  woltlab: parseWoltlab,
   vbulletin: parseGeneric, // vBulletin uses generic with calibration-driven selectors
   generic: parseGeneric,
 };
@@ -86,6 +44,14 @@ const PARSERS = {
 function parseHtml(html, parserKey, calibration, pageNumber) {
   const parser = PARSERS[parserKey] || PARSERS.generic;
   return parser(html, calibration, pageNumber);
+}
+
+export function isLikelyThreadUrl(url) {
+  const value = (url ?? '').toString();
+  return (
+    /\/topic\/|(?:\/|\?)thread\/|viewtopic|showthread|\/threads\/|(?:\/|\?)t\d|\/discussion\//i.test(value) &&
+    !/\/blogs?\/|\/tests?\/|\/news\/|\/articles?\/|\/reviews?\//i.test(value)
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -134,41 +100,104 @@ async function fetchThreadPages(url, parserKey, calibration, sleepMs) {
 // Thread URL enumeration from forum sections
 // ---------------------------------------------------------------------------
 
-async function enumerateThreadUrls(forum, calibration, maxThreads, sleepMs) {
+export async function enumerateThreadUrls(forum, calibration, maxThreads, sleepMs, options = {}) {
   const sections = safeJsonParse(forum.sections_json, []);
   const urls = [];
   const seen = new Set();
+  const fetcher = options.fetchHtmlImpl ?? fetchHtml;
+  const maxSectionPages = options.maxSectionPages ?? (Number(calibration.max_section_pages) || 10);
+  const forumRootUrl = canonicalizeTraversalUrl(forum.url);
 
   // If no sections configured, try the forum URL itself as a section
   const sectionUrls = sections.length > 0
     ? sections.map(s => typeof s === 'string' ? s : s.url).filter(Boolean)
     : [forum.url];
 
-  for (const sectionUrl of sectionUrls) {
-    if (urls.length >= maxThreads) break;
+  async function enumerateSection(rootSectionUrl, pageLimit = maxSectionPages) {
+    if (urls.length >= maxThreads) return { hadError: false };
 
-    try {
-      const html = await fetchHtml(sectionUrl, { cookie: calibration.cookie });
+    let sectionUrl = canonicalizeTraversalUrl(rootSectionUrl);
+    const seenSectionPages = new Set();
+    let sectionPageCount = 0;
+    let hadError = false;
 
-      // Use calibrated thread list selector, or try generic link extraction
-      const links = extractThreadLinks(html, sectionUrl);
+    while (sectionUrl && urls.length < maxThreads && sectionPageCount < pageLimit) {
+      if (seenSectionPages.has(sectionUrl)) break;
+      seenSectionPages.add(sectionUrl);
+      sectionPageCount++;
 
-      // Filter to likely thread URLs (heuristic: contain topic/thread/viewtopic keywords)
-      const threadLinks = links.filter(l =>
-        /\/topic\/|\/thread\/|viewtopic|\/threads\/|\/t\d|\/discussion\//i.test(l.url)
-      );
+      try {
+        const html = await fetcher(sectionUrl, { cookie: calibration.cookie });
 
-      for (const link of threadLinks) {
-        if (urls.length >= maxThreads) break;
-        if (seen.has(link.url)) continue;
-        seen.add(link.url);
-        urls.push(link);
+        let links = [];
+        if (calibration.thread_list_selector) {
+          links = extractThreadLinksBySelector(html, sectionUrl, calibration.thread_list_selector);
+        }
+        if (links.length === 0) {
+          links = extractThreadLinks(html, sectionUrl);
+        }
+
+        const threadLinks = links
+          .map(link => ({
+            ...link,
+            url: canonicalizeThreadUrl(link.url),
+          }))
+          .filter(link => isLikelyThreadUrl(link.url));
+
+        for (const link of threadLinks) {
+          if (urls.length >= maxThreads) break;
+          if (seen.has(link.url)) continue;
+          seen.add(link.url);
+          urls.push(link);
+        }
+
+        const nextSectionUrl = findNextPageLink(
+          html,
+          sectionUrl,
+          calibration.section_pagination_selector || calibration.pagination_selector
+        );
+        sectionUrl = nextSectionUrl ? canonicalizeTraversalUrl(nextSectionUrl) : null;
+      } catch (err) {
+        console.error(`  Error enumerating ${sectionUrl}: ${err.message}`);
+        hadError = true;
+        break;
       }
-    } catch (err) {
-      console.error(`  Error enumerating ${sectionUrl}: ${err.message}`);
+
+      if (sleepMs && sectionUrl) await new Promise(r => setTimeout(r, sleepMs));
     }
 
-    if (sleepMs) await new Promise(r => setTimeout(r, sleepMs));
+    return { hadError };
+  }
+
+  let rootFallbackAttempted = false;
+  for (const rootSectionUrl of sectionUrls) {
+    const result = await enumerateSection(rootSectionUrl);
+    if (urls.length >= maxThreads) break;
+
+    if (
+      !rootFallbackAttempted &&
+      urls.length === 0 &&
+      sections.length > 0 &&
+      forumRootUrl &&
+      canonicalizeTraversalUrl(rootSectionUrl) !== forumRootUrl &&
+      result?.hadError
+    ) {
+      rootFallbackAttempted = true;
+      console.warn(`  Section enumeration failed early for ${forum.url}; trying forum root immediately.`);
+      await enumerateSection(forum.url, 1);
+      if (urls.length > 0) break;
+    }
+  }
+
+  if (
+    urls.length === 0 &&
+    !rootFallbackAttempted &&
+    sections.length > 0 &&
+    forumRootUrl &&
+    !sectionUrls.some(url => canonicalizeTraversalUrl(url) === forumRootUrl)
+  ) {
+    console.warn(`  Section enumeration yielded no threads for ${forum.url}; retrying forum root.`);
+    await enumerateSection(forum.url, 1);
   }
 
   return urls;
@@ -214,7 +243,8 @@ export function createCrawlPipeline(opts = {}) {
 
       return {
         posts,
-        html: html.slice(0, 5000), // Keep first 5K for diagnosis
+        // Keep 30K of body HTML for diagnosis — skip <head> (GDPR scripts)
+        html: (() => { const b = html.indexOf('<body'); return (b !== -1 ? html.slice(b) : html).slice(0, 30_000); })(),
         threadText,
         title,
         pageCount,

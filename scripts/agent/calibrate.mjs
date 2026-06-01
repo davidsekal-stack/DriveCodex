@@ -19,19 +19,19 @@
  *   const result = await calibrateForum(state, forumId, pipeline);
  */
 
-import { execFile as execFileCb } from 'node:child_process';
-import { promisify } from 'node:util';
-import { writeFile, readFile, unlink } from 'node:fs/promises';
+import { unlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { assertCodexNotQuotaError } from './quota.mjs';
 import { buildDiaryContext } from './diary.mjs';
-
-const execFile = promisify(execFileCb);
+import { runCodexPrompt } from './codex-cli.mjs';
+import { fetchHtml } from './fetch-utils.mjs';
 
 const PROBE_SIZE = 5;
 const MAX_ATTEMPTS = 3;
+const CODEX_CALIBRATION_TIMEOUT_MS = 600_000;
+const TRANSIENT_CALIBRATION_BACKOFF_HOURS = 6;
 
 // Minimum thresholds for a forum to be considered calibrated
 const THRESHOLDS = {
@@ -74,43 +74,73 @@ function meetsThresholds(metrics) {
   );
 }
 
+export function isTransientCrawlerError(err) {
+  const message = (err?.message || err || '').toString();
+  return Boolean(
+    err?.code === 'ETIMEDOUT' ||
+    err?.name === 'AbortError' ||
+    /timed out|timeout|aborted|fetch failed|socket hang up|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN/i.test(message) ||
+    /HTTP (403|406|408|409|425|429|5\d\d)\b/i.test(message) ||
+    /browser challenge fallback failed|browser fallback/i.test(message)
+  );
+}
+
+function transientReason(prefix, err) {
+  const detail = err?.message || String(err || 'unknown error');
+  return `${prefix}: ${detail}`;
+}
+
+function deferCalibration(state, forumId, currentCalibration, attempts, reason) {
+  const until = new Date(Date.now() + TRANSIENT_CALIBRATION_BACKOFF_HOURS * 3600_000).toISOString();
+  state.updateForum(forumId, {
+    calibration_json: JSON.stringify({
+      ...currentCalibration,
+      last_transient_failure: reason,
+      last_transient_at: new Date().toISOString(),
+    }),
+    calibration_status: 'pending',
+    calibration_attempts: attempts,
+    cooldown_until: until,
+  });
+  console.log(`  Transient calibration failure. Backing off until ${until}.`);
+}
+
 // ---------------------------------------------------------------------------
 // Codex diagnosis — asks Codex to analyze why parsing/extraction failed
 // ---------------------------------------------------------------------------
 
 async function diagnoseWithCodex(forum, probeResult, metrics, currentCalibration) {
   const prompt = buildDiagnosisPrompt(forum, probeResult, metrics, currentCalibration);
-  const promptFile = join(tmpdir(), `calibrate-diag-${randomUUID()}.txt`);
   const outFile = join(tmpdir(), `calibrate-diag-out-${randomUUID()}.txt`);
 
   try {
-    await writeFile(promptFile, prompt, 'utf-8');
-    await execFile('bash', [
-      '-c',
-      `codex exec --sandbox read-only --ephemeral -o "${outFile}" < "${promptFile}"`,
-    ], {
-      timeout: 180_000,
-      maxBuffer: 10 * 1024 * 1024,
+    const output = await runCodexPrompt(prompt, {
+      outFile,
+      timeoutMs: CODEX_CALIBRATION_TIMEOUT_MS,
     });
-
-    const output = await readFile(outFile, 'utf-8').catch(() => '');
     assertCodexNotQuotaError(output);
     return parseCalibrationResponse(output);
   } catch (err) {
     // QuotaError propagates up — do not swallow it
+    assertCodexNotQuotaError(err.output || err.message || '');
     if (err.name === 'QuotaError') throw err;
+    if (isTransientCrawlerError(err)) throw err;
     console.error(`  Codex diagnosis failed: ${err.message}`);
     return null;
   } finally {
-    await unlink(promptFile).catch(() => {});
     await unlink(outFile).catch(() => {});
   }
 }
 
 function buildDiagnosisPrompt(forum, probeResult, metrics, currentCalibration) {
+  // Skip <head> section — we need <body> post HTML, not CSS/JS metadata
   const htmlSamples = (probeResult.sample_html || [])
     .slice(0, 3)
-    .map((h, i) => `--- HTML SAMPLE ${i + 1} (first 2000 chars) ---\n${h.slice(0, 2000)}\n`)
+    .map((h, i) => {
+      const bodyStart = h.indexOf('<body');
+      const useful = bodyStart !== -1 ? h.slice(bodyStart) : h;
+      return `--- HTML SAMPLE ${i + 1} (body, first 8000 chars) ---\n${useful.slice(0, 8000)}\n`;
+    })
     .join('\n');
 
   const discardSamples = (probeResult.sample_discards || [])
@@ -138,6 +168,10 @@ ${discardSamples || '  (none)'}
 HTML SAMPLES FROM FAILED PARSES:
 ${htmlSamples || '  (none available)'}
 
+You may fetch the forum URL or run code to inspect the live HTML if it helps you identify the correct selectors.
+But your FINAL output MUST be a single JSON object and nothing else after it.
+Do NOT end with a table, markdown list, or plain text summary.
+
 Based on the above, provide a JSON calibration config to improve parsing for this forum.
 Reply with ONLY a JSON object, no other text:
 
@@ -159,13 +193,32 @@ Reply with ONLY a JSON object, no other text:
 Only include fields you are confident about. Omit fields where you cannot determine the correct value.`;
 }
 
-function parseCalibrationResponse(output) {
+function parseJsonObjectResponse(output) {
   const text = (output || '').trim();
-  // Find JSON object in response
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1 || end <= start) return null;
 
+  // Try to extract JSON from markdown code block first (```json ... ```)
+  const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+  if (codeBlockMatch) {
+    try {
+      const parsed = JSON.parse(codeBlockMatch[1]);
+      if (typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch { /* fall through */ }
+  }
+
+  // Find the LAST complete JSON object in response (Codex often reasons first, then outputs JSON)
+  // Walk backwards from the end to find the last }...{ pair
+  let depth = 0;
+  let end = -1;
+  let start = -1;
+  for (let i = text.length - 1; i >= 0; i--) {
+    if (text[i] === '}') { if (depth === 0) end = i; depth++; }
+    else if (text[i] === '{') {
+      depth--;
+      if (depth === 0) { start = i; break; }
+    }
+  }
+
+  if (start === -1 || end === -1) return null;
   try {
     const parsed = JSON.parse(text.slice(start, end + 1));
     if (typeof parsed !== 'object' || Array.isArray(parsed)) return null;
@@ -175,27 +228,30 @@ function parseCalibrationResponse(output) {
   }
 }
 
+export function parseCalibrationResponse(output) {
+  const parsed = parseJsonObjectResponse(output);
+  if (!parsed) return null;
+
+  const meaningful = ['post_selector', 'content_selector', 'parser', 'thread_list_selector'];
+  if (!meaningful.some(k => k in parsed)) return null;
+  return parsed;
+}
+
+export function parseStructureDiscoveryResponse(output) {
+  const parsed = parseJsonObjectResponse(output);
+  if (!parsed) return null;
+
+  const meaningful = ['qualified', 'sections', 'forum_type', 'qualification_reason', 'activity_level'];
+  if (!meaningful.some(k => k in parsed)) return null;
+  return parsed;
+}
+
 // ---------------------------------------------------------------------------
 // Phase 0: Structure discovery — Codex explores forum root to find sections
 // ---------------------------------------------------------------------------
 
-const FETCH_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-};
-
 async function fetchPage(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30_000);
-  try {
-    const res = await fetch(url, { headers: FETCH_HEADERS, signal: controller.signal, redirect: 'follow' });
-    clearTimeout(timeout);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.text();
-  } catch (err) {
-    clearTimeout(timeout);
-    throw err;
-  }
+  return fetchHtml(url, { maxRetries: 1 });
 }
 
 /**
@@ -212,11 +268,17 @@ async function discoverForumStructure(forum, state = null) {
     rootHtml = await fetchPage(forum.url);
   } catch (err) {
     console.log(`  Could not fetch forum root: ${err.message}`);
+    if (isTransientCrawlerError(err)) {
+      return { transient_failure: transientReason('Structure fetch failed', err) };
+    }
     return null;
   }
 
-  // Truncate HTML for Codex prompt (keep first 15K — enough for link structure)
-  const htmlSample = rootHtml.slice(0, 15_000);
+  // Skip <head> (GDPR scripts dominate first 10-15K on European forums)
+  // Take 20K of body content — enough to see forum section links
+  const bodyStart = rootHtml.indexOf('<body');
+  const usefulRoot = bodyStart !== -1 ? rootHtml.slice(bodyStart) : rootHtml;
+  const htmlSample = usefulRoot.slice(0, 20_000);
 
   // Inject lessons from past similar forums (same parser type or language)
   const diaryContext = state
@@ -240,9 +302,24 @@ A bad forum has:
 - Non-automotive content
 
 TASK 2 — IDENTIFY: If qualified, find the best subforum URLs for resolved fault threads.
-We want sections like "Závady" (faults/defects), "Technický koutek" (technical corner),
-"Problémy" (problems), "Poruchy" (malfunctions), "Motor" (engine), "Elektrika" (electrics).
-Avoid: general discussion, marketplace/bazaar, off-topic, rules, introductions, galleries.
+
+HIGH relevance sections (rank these first):
+- "Závady", "Fehler", "Probleme", "Défauts" (faults/defects)
+- "Technický koutek", "Technik", "Reparatur", "Werkstatt" (technical/repair)
+- "Motor", "Elektrik/Elektronik", "Getriebe", "Fahrwerk", "Bremsen" (drivetrain/components)
+- "Poruchy", "Pannes", "Storingen" (malfunctions)
+- Model-specific technical boards (e.g. "Golf Technik", "ID.3 Antrieb & Technik")
+
+MEDIUM relevance (only if no high-relevance sections exist):
+- Model-specific general boards that likely contain repair threads
+
+LOW/EXCLUDE (do NOT include these):
+- "Software & Updates", "OTA", "Firmware" — mostly general SW discussion, not hardware faults
+- "Chat", "Lounge", "Off-Topic", "General" — no technical content
+- "Marktplatz", "Verkauf", "Bazár", "Kleinanzeigen" — marketplace
+- "Galerie", "Fotos", "Media" — image galleries
+- "Regeln", "Ankündigungen", "News" — announcements
+- "Einführung", "Vorstellen" — introductions
 
 TASK 3 — DETECT: Identify forum software type and initial parser configuration.
 
@@ -277,34 +354,38 @@ Reply with ONLY a JSON object:
 If qualified=false, you can omit sections and parser_hints.
 Only include sections where you found actual links in the HTML. Prefer "high" relevance
 sections (fault/defect/technical). Include "medium" for model-specific general sections
-that likely contain repair threads. Return at most 15 sections.`;
+that likely contain repair threads. Return at most 15 sections.
 
-  const promptFile = join(tmpdir(), `calibrate-struct-${randomUUID()}.txt`);
+CRITICAL: Your final output MUST be a single JSON object. You may analyse the HTML first,
+but the LAST thing you output must be the JSON object and nothing else after it.
+Do NOT output tables, markdown lists, or plain text as your final answer.`;
+
   const outFile = join(tmpdir(), `calibrate-struct-out-${randomUUID()}.txt`);
 
   try {
-    await writeFile(promptFile, prompt, 'utf-8');
-    await execFile('bash', [
-      '-c',
-      `codex exec --sandbox read-only --ephemeral -o "${outFile}" < "${promptFile}"`,
-    ], { timeout: 180_000, maxBuffer: 10 * 1024 * 1024 });
-
-    const output = await readFile(outFile, 'utf-8').catch(() => '');
+    const output = await runCodexPrompt(prompt, {
+      outFile,
+      timeoutMs: CODEX_CALIBRATION_TIMEOUT_MS,
+    });
     assertCodexNotQuotaError(output);
-    return parseCalibrationResponse(output);
+    return parseStructureDiscoveryResponse(output);
   } catch (err) {
+    assertCodexNotQuotaError(err.output || err.message || '');
     if (err.name === 'QuotaError') throw err;
+    if (isTransientCrawlerError(err)) {
+      console.error(`  Structure discovery failed transiently: ${err.message}`);
+      return { transient_failure: transientReason('Structure discovery failed', err) };
+    }
     console.error(`  Structure discovery failed: ${err.message}`);
     return null;
   } finally {
-    await unlink(promptFile).catch(() => {});
     await unlink(outFile).catch(() => {});
   }
 }
 
 /**
  * If sections_json is empty, run structure discovery and apply results.
- * Returns: 'ok' | 'disqualified' | 'fallback'
+ * Returns: 'ok' | 'disqualified' | 'fallback' | { transient_failure: string }
  */
 async function ensureSections(state, forumId, forum) {
   let sections;
@@ -316,6 +397,10 @@ async function ensureSections(state, forumId, forum) {
   }
 
   const result = await discoverForumStructure(forum, state);
+
+  if (result?.transient_failure) {
+    return { transient_failure: result.transient_failure };
+  }
 
   // Check qualification
   if (result && result.qualified === false) {
@@ -405,15 +490,33 @@ export async function calibrateForum(state, forumId, pipeline) {
   let currentCalibration = safeJsonParse(forum.calibration_json);
   let attempt = forum.calibration_attempts || 0;
 
+  if (structureResult?.transient_failure) {
+    deferCalibration(state, forumId, currentCalibration, attempt, structureResult.transient_failure);
+    return {
+      success: false,
+      metrics: { parser_success_rate: 0, classifier_pass_rate: 0, extractor_yield_rate: 0 },
+      attempts: attempt,
+      transient: true,
+      reason: structureResult.transient_failure,
+    };
+  }
+
   while (attempt < MAX_ATTEMPTS) {
-    attempt++;
-    console.log(`  Attempt ${attempt}/${MAX_ATTEMPTS}...`);
+    const attemptNumber = attempt + 1;
+    console.log(`  Attempt ${attemptNumber}/${MAX_ATTEMPTS}...`);
 
     // 1. Probe — sample threads and run pipeline
     const probeResult = await runProbe(forum, currentCalibration, pipeline);
     const metrics = computeMetrics(probeResult);
 
     console.log(`  Results: parser=${(metrics.parser_success_rate * 100).toFixed(0)}% classifier=${(metrics.classifier_pass_rate * 100).toFixed(0)}% extractor=${(metrics.extractor_yield_rate * 100).toFixed(0)}%`);
+
+    if (probeResult.transient_failure) {
+      deferCalibration(state, forumId, currentCalibration, attempt, probeResult.transient_failure);
+      return { success: false, metrics, attempts: attempt, transient: true, reason: probeResult.transient_failure };
+    }
+
+    attempt = attemptNumber;
 
     // 2. Check thresholds
     if (meetsThresholds(metrics)) {
@@ -430,7 +533,15 @@ export async function calibrateForum(state, forumId, pipeline) {
     // 3. Diagnose failures with Codex
     if (attempt < MAX_ATTEMPTS) {
       console.log(`  Metrics below thresholds, asking Codex to diagnose...`);
-      const newCalibration = await diagnoseWithCodex(forum, probeResult, metrics, currentCalibration);
+      let newCalibration;
+      try {
+        newCalibration = await diagnoseWithCodex(forum, probeResult, metrics, currentCalibration);
+      } catch (err) {
+        if (!isTransientCrawlerError(err)) throw err;
+        const reason = transientReason('Codex diagnosis failed', err);
+        deferCalibration(state, forumId, currentCalibration, attempt, reason);
+        return { success: false, metrics, attempts: attempt, transient: true, reason };
+      }
       if (newCalibration) {
         console.log(`  Codex suggested: ${newCalibration.notes || '(no notes)'}`);
         currentCalibration = { ...currentCalibration, ...newCalibration };
@@ -467,6 +578,8 @@ async function runProbe(forum, calibration, pipeline) {
     extractor_ok: 0,
     sample_html: [],
     sample_discards: [],
+    transient_errors: 0,
+    transient_failure: null,
   };
 
   // Get sample thread URLs
@@ -475,6 +588,10 @@ async function runProbe(forum, calibration, pipeline) {
     urls = await pipeline.sampleThreadUrls(forum, PROBE_SIZE);
   } catch (err) {
     result.sample_discards.push(`sampleThreadUrls failed: ${err.message}`);
+    if (isTransientCrawlerError(err)) {
+      result.transient_errors++;
+      result.transient_failure = transientReason('sampleThreadUrls failed', err);
+    }
     return result;
   }
 
@@ -492,6 +609,7 @@ async function runProbe(forum, calibration, pipeline) {
       parseResult = await pipeline.fetchAndParse(url, calibration);
     } catch (err) {
       result.sample_discards.push(`parse failed (${url}): ${err.message}`);
+      if (isTransientCrawlerError(err)) result.transient_errors++;
       continue;
     }
 
@@ -549,6 +667,10 @@ async function runProbe(forum, calibration, pipeline) {
     } else if (cases?.length > 0) {
       result.sample_discards.push(`extractor produced ${cases.length} cases but none passed validation (${url})`);
     }
+  }
+
+  if (result.parser_ok === 0 && result.transient_errors === result.threads_total) {
+    result.transient_failure = `All parse attempts failed transiently (${result.transient_errors}/${result.threads_total})`;
   }
 
   return result;

@@ -104,7 +104,14 @@ function validateCaseAuthor(item, postMetaByNumber) {
 
   // Check fault posts
   for (const pn of item.fault_post_numbers) {
-    const meta = postMetaByNumber.get(Number(pn));
+    const postNumber = Number(pn);
+    if (!Number.isInteger(postNumber) || postNumber <= 0) {
+      return { valid: false, reason: `Invalid fault post number: ${pn}` };
+    }
+    const meta = postMetaByNumber.get(postNumber);
+    if (!meta) {
+      return { valid: false, reason: `Fault post ${pn} not found in thread` };
+    }
     if (meta && meta.author && normalizeText(meta.author) !== normAuthor) {
       return { valid: false, reason: `Fault post ${pn} author mismatch: expected "${caseAuthor}", got "${meta.author}"` };
     }
@@ -112,7 +119,14 @@ function validateCaseAuthor(item, postMetaByNumber) {
 
   // Check resolution posts
   for (const pn of item.resolution_post_numbers) {
-    const meta = postMetaByNumber.get(Number(pn));
+    const postNumber = Number(pn);
+    if (!Number.isInteger(postNumber) || postNumber <= 0) {
+      return { valid: false, reason: `Invalid resolution post number: ${pn}` };
+    }
+    const meta = postMetaByNumber.get(postNumber);
+    if (!meta) {
+      return { valid: false, reason: `Resolution post ${pn} not found in thread` };
+    }
     if (meta && meta.author && normalizeText(meta.author) !== normAuthor) {
       return { valid: false, reason: `Resolution post ${pn} author mismatch: expected "${caseAuthor}", got "${meta.author}"` };
     }

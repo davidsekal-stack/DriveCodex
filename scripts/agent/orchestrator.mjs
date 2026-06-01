@@ -29,15 +29,28 @@ import { verifyCase } from './verify.mjs';
 import { createCrawlPipeline, processThread } from './crawl.mjs';
 import { writeDiary } from './diary.mjs';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { QuotaError, formatQuotaMessage } from './quota.mjs';
+import {
+  clampResolutionForImport,
+  crosscheckCaseAgainstSupabase,
+  normalizeImportText,
+  normalizeForDedupe,
+  RESOLUTION_MIN_LENGTH,
+  resolveSupabaseFunctionKey,
+  resolveSupabaseReadKey,
+} from './supabase-utils.mjs';
 
-// Supabase connection defaults (same as other scripts in this repo)
+// Supabase project URL is public; credentials must come from environment.
 const SUPABASE_DEFAULTS = {
   url: 'https://nmvjthfezyjcwuzphiuu.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo',
-  authEmail: 'socialpilotbot@gmail.com',
-  authPassword: 'claude',
 };
+
+const VERIFY_RETRY_LIMIT = 3;
+const CROSSCHECK_RETRY_LIMIT = 3;
+const IMPORT_RETRY_LIMIT = 3;
+const DISCOVERY_BATCH_SIZE = 10;
+const LOCAL_DUPLICATE_STATUSES = new Set(['verified', 'import_ready', 'imported', 'crosscheck_dupe']);
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -147,7 +160,7 @@ function printStats(state) {
   if (logs.length > 0) {
     console.log('\nRecent log (last 20):');
     for (const entry of logs) {
-      const ts = (entry.ts || '').slice(11, 19); // HH:MM:SS
+      const ts = formatLogTimestamp(entry.ts);
       const phase = entry.phase ? `[${entry.phase}] ` : '';
       const icon = entry.level === 'error' ? '✗' : entry.level === 'warn' ? '⚠' : '·';
       console.log(`  ${ts} ${icon} ${phase}${entry.message}`);
@@ -196,10 +209,41 @@ async function phaseDiscover(state, opts) {
     return;
   }
 
-  // TODO: integrate discovery.mjs — web search for automotive forums
-  // For now, log that discovery is not yet implemented
-  console.log('  Discovery module not yet implemented.');
-  console.log('  Seed forums manually with --forum-url <url>');
+  const candidates = loadForumCandidates();
+  if (candidates.length === 0) {
+    console.log('  No forum candidates available.');
+    return;
+  }
+
+  let added = 0;
+  let skipped = 0;
+  const limit = Math.min(DISCOVERY_BATCH_SIZE, Math.max(1, opts.batchSize || DISCOVERY_BATCH_SIZE));
+
+  for (const candidate of candidates) {
+    if (added >= limit) break;
+    if (!candidate.url) {
+      skipped++;
+      continue;
+    }
+
+    const sameDomain = state.getForumsByDomain(candidate.url);
+    if (sameDomain.length > 0) {
+      skipped++;
+      continue;
+    }
+
+    const id = state.addForum({
+      url: candidate.url,
+      name: candidate.name,
+      brand: Array.isArray(candidate.brands) ? candidate.brands.join(', ') : candidate.brand,
+      language: candidate.language,
+      parser: candidate.parser || 'generic',
+    });
+    console.log(`  Seeded candidate #${candidate.rank ?? '?'}: ${candidate.name || candidate.url} (${id.slice(0, 8)})`);
+    added++;
+  }
+
+  console.log(`  Discovery seeded ${added} candidate(s), skipped ${skipped}.`);
 }
 
 // ---------------------------------------------------------------------------
@@ -209,11 +253,7 @@ async function phaseDiscover(state, opts) {
 async function phaseCalibrate(state, opts) {
   console.log('\n── Phase: CALIBRATE ──');
 
-  const forums = state.getForumsToProcess(10);
-  const uncalibrated = forums.filter(f => {
-    const cs = f.calibration_status;
-    return cs === 'pending' || cs === null;
-  });
+  const uncalibrated = state.getForumsPendingCalibration(10);
 
   if (uncalibrated.length === 0) {
     console.log('  No forums pending calibration.');
@@ -231,12 +271,21 @@ async function phaseCalibrate(state, opts) {
       const result = await calibrateForum(state, forum.id, pipeline);
       if (result.success) {
         console.log(`  ✓ ${forum.url} calibrated in ${result.attempts} attempt(s)`);
+      } else if (result.transient) {
+        console.log(`  ⏸ ${forum.url} deferred: ${result.reason}`);
       } else {
         console.log(`  ✗ ${forum.url} calibration failed`);
       }
     } catch (err) {
+      if (err instanceof QuotaError) {
+        throw err;
+      }
       console.error(`  Error calibrating ${forum.url}: ${err.message}`);
-      state.updateForum(forum.id, { calibration_status: 'failed', status: 'calibration_failed' });
+      const until = new Date(Date.now() + COOLDOWN_HOURS_SHORT * 3600_000).toISOString();
+      state.updateForum(forum.id, {
+        calibration_status: 'pending',
+        cooldown_until: until,
+      });
     }
   }
 }
@@ -287,11 +336,24 @@ async function phaseCrawl(state, opts) {
       threadUrls = await pipeline.sampleThreadUrls(forum, opts.batchSize);
     } catch (err) {
       console.error(`  Error enumerating threads for ${forum.url}: ${err.message}`);
+      const until = new Date(Date.now() + COOLDOWN_HOURS_SHORT * 3600_000).toISOString();
+      state.updateForum(forum.id, {
+        cooldown_until: until,
+        new_threads_last_batch: 0,
+        status: 'active',
+      });
       continue;
     }
 
     if (!threadUrls || threadUrls.length === 0) {
       console.log('  No thread URLs found.');
+      const until = new Date(Date.now() + COOLDOWN_HOURS_SHORT * 3600_000).toISOString();
+      state.updateForum(forum.id, {
+        last_crawled_at: new Date().toISOString(),
+        cooldown_until: until,
+        new_threads_last_batch: 0,
+        status: 'active',
+      });
       continue;
     }
 
@@ -364,7 +426,14 @@ async function phaseCrawl(state, opts) {
           c.source_ref = c.source_ref || `agent:thread:${url}`;
 
           const caseId = createHash('sha256')
-            .update(`${url}|${c.case_author}|${c.description?.slice(0, 50)}`)
+            .update([
+              url,
+              c.case_author || '',
+              c.description || '',
+              c.resolution || '',
+              JSON.stringify(c.fault_post_numbers || []),
+              JSON.stringify(c.resolution_post_numbers || []),
+            ].join('|'))
             .digest('hex');
 
           state.addCase({ id: caseId, threadId, payload: c });
@@ -413,6 +482,10 @@ async function phaseCrawl(state, opts) {
   }
 
   console.log(`  Batch done: ${totalThreads} threads processed, ${totalCases} cases extracted.`);
+  return {
+    threads_processed: totalThreads,
+    cases_extracted: totalCases,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -422,10 +495,10 @@ async function phaseCrawl(state, opts) {
 async function phaseVerify(state, opts) {
   console.log('\n── Phase: VERIFY ──');
 
-  const cases = state.getCasesByStatus('ai_approved', opts.batchSize);
+  const cases = state.getCasesForVerification(opts.batchSize, VERIFY_RETRY_LIMIT);
   if (cases.length === 0) {
     console.log('  No cases pending verification.');
-    return;
+    return {};
   }
 
   console.log(`  Verifying ${cases.length} case(s) with Codex...`);
@@ -434,6 +507,7 @@ async function phaseVerify(state, opts) {
 
   for (const c of cases) {
     const payload = JSON.parse(c.payload_json);
+    state.updateCase(c.id, { verify_attempts: (c.verify_attempts ?? 0) + 1 });
 
     // Get original thread text
     const thread = state.getThread(c.thread_id);
@@ -468,6 +542,7 @@ async function phaseVerify(state, opts) {
   }
 
   console.log(`  Verification done: ${passed} passed, ${failed} failed.`);
+  return { cases_verified: passed };
 }
 
 // ---------------------------------------------------------------------------
@@ -477,60 +552,73 @@ async function phaseVerify(state, opts) {
 async function phaseCrosscheck(state, opts) {
   console.log('\n── Phase: CROSSCHECK ──');
 
-  const cases = state.getCasesByStatus('verified', opts.batchSize);
+  const cases = state.getCasesForCrosscheck(opts.batchSize, CROSSCHECK_RETRY_LIMIT);
   if (cases.length === 0) {
     console.log('  No verified cases pending crosscheck.');
-    return;
+    return {};
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL || SUPABASE_DEFAULTS.url;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_KEY || SUPABASE_DEFAULTS.anonKey;
+  const { supabaseUrl, supabaseKey } = requireSupabaseConfig('read');
 
   let passed = 0;
   let dupes = 0;
+  let errors = 0;
 
   for (const c of cases) {
     const payload = JSON.parse(c.payload_json);
-    const brand = payload.vehicle_brand || payload.brand_raw || '';
-    const model = payload.vehicle_model || payload.model_raw || '';
-    const resolution = (payload.resolution || '').slice(0, 100);
+    state.updateCase(c.id, { crosscheck_attempts: (c.crosscheck_attempts ?? 0) + 1 });
 
-    // Query Supabase for potential duplicates
+    const localDuplicates = state.getCasesForThread(c.thread_id, c.id)
+      .filter(other => LOCAL_DUPLICATE_STATUSES.has(other.status))
+      .some(other => isLikelyLocalDuplicate(payload, safeJsonParse(other.payload_json)));
+
+    if (localDuplicates) {
+      state.updateCase(c.id, {
+        status: 'crosscheck_dupe',
+        review_note: 'Duplicate of an existing local case for the same thread',
+      });
+      dupes++;
+      continue;
+    }
+
     try {
-      const query = new URLSearchParams({
-        vehicle_brand: `eq.${brand}`,
-        vehicle_model: `eq.${model}`,
-        select: 'id,resolution',
-        limit: '50',
-      });
-      const res = await fetch(`${supabaseUrl}/rest/v1/cases?${query}`, {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
+      const result = await crosscheckCaseAgainstSupabase({
+        supabaseUrl,
+        supabaseKey,
+        payload,
       });
 
-      if (res.ok) {
-        const existing = await res.json();
-        const isDupe = existing.some(e =>
-          normalizeForDedupe(e.resolution) === normalizeForDedupe(resolution)
-        );
+      if (result.status === 'error') {
+        state.updateCase(c.id, {
+          status: 'crosscheck_error',
+          review_note: result.reviewNote,
+        });
+        errors++;
+        console.error(`  Crosscheck query failed for ${c.id}: HTTP ${result.httpStatus}`);
+        continue;
+      }
 
-        if (isDupe) {
-          state.updateCase(c.id, { status: 'crosscheck_dupe', review_note: 'Duplicate resolution in Supabase' });
-          dupes++;
-          continue;
-        }
+      if (result.status === 'duplicate') {
+        state.updateCase(c.id, { status: 'crosscheck_dupe', review_note: 'Duplicate resolution in Supabase' });
+        dupes++;
+        continue;
       }
     } catch (err) {
+      state.updateCase(c.id, {
+        status: 'crosscheck_error',
+        review_note: `Crosscheck error: ${err.message}`,
+      });
+      errors++;
       console.error(`  Crosscheck query failed for ${c.id}: ${err.message}`);
+      continue;
     }
 
     state.updateCase(c.id, { status: 'import_ready' });
     passed++;
   }
 
-  console.log(`  Crosscheck done: ${passed} ready for import, ${dupes} duplicates skipped.`);
+  console.log(`  Crosscheck done: ${passed} ready for import, ${dupes} duplicates skipped, ${errors} errors held back.`);
+  return {};
 }
 
 // ---------------------------------------------------------------------------
@@ -540,20 +628,36 @@ async function phaseCrosscheck(state, opts) {
 async function phaseImport(state, opts) {
   console.log('\n── Phase: IMPORT ──');
 
-  const cases = state.getCasesByStatus('import_ready', opts.batchSize);
+  const cases = state.getCasesForImport(opts.batchSize, IMPORT_RETRY_LIMIT);
   if (cases.length === 0) {
     console.log('  No cases ready for import.');
-    return;
+    return {};
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL || SUPABASE_DEFAULTS.url;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_KEY || SUPABASE_DEFAULTS.anonKey;
+  const { supabaseUrl, supabaseKey } = requireSupabaseConfig('function');
 
   let imported = 0;
   let failed = 0;
 
   for (const c of cases) {
     const payload = JSON.parse(c.payload_json);
+    state.updateCase(c.id, { import_attempts: (c.import_attempts ?? 0) + 1 });
+    const normalizedDescription = normalizeImportText(payload.description || '');
+    const normalizedResolution = normalizeImportText(payload.resolution || '');
+    const importResolution = clampResolutionForImport(normalizedResolution);
+    const sanitizationNote = importResolution !== normalizedResolution
+      ? `Resolution trimmed for import (${normalizedResolution.length} → ${importResolution.length})`
+      : null;
+
+    if (importResolution.length < RESOLUTION_MIN_LENGTH) {
+      state.updateCase(c.id, {
+        status: 'import_failed',
+        review_note: `Resolution too short for import after sanitization (${importResolution.length} < ${RESOLUTION_MIN_LENGTH})`,
+      });
+      failed++;
+      console.log(`  ✗ ${c.id.slice(0, 8)}: resolution too short`);
+      continue;
+    }
 
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/push-case`, {
@@ -563,21 +667,25 @@ async function phaseImport(state, opts) {
           Authorization: `Bearer ${supabaseKey}`,
         },
         body: JSON.stringify({
+          local_id: c.id,
           user_id: 'ai_importer',
           vehicle_brand: payload.vehicle_brand || payload.brand_raw || '',
           vehicle_model: payload.vehicle_model || payload.model_raw || '',
           engine_power: payload.engine_power || payload.engine_raw || '',
           symptoms: payload.symptoms || [],
           obd_codes: payload.obd_codes || [],
-          description: payload.description || '',
-          resolution: payload.resolution || '',
+          description: normalizedDescription,
+          resolution: importResolution,
           source_ref: payload.source_ref || `agent:${c.id.slice(0, 12)}`,
           thread_url: payload.thread_url || payload.source_url || '',
         }),
       });
 
       if (res.ok) {
-        state.updateCase(c.id, { status: 'imported', review_note: 'Pushed to Supabase' });
+        state.updateCase(c.id, {
+          status: 'imported',
+          review_note: sanitizationNote ? `Pushed to Supabase. ${sanitizationNote}` : 'Pushed to Supabase',
+        });
         imported++;
         console.log(`  ✓ ${c.id.slice(0, 8)}`);
       } else {
@@ -596,6 +704,7 @@ async function phaseImport(state, opts) {
   }
 
   console.log(`  Import done: ${imported} imported, ${failed} failed.`);
+  return { cases_imported: imported };
 }
 
 // ---------------------------------------------------------------------------
@@ -614,8 +723,69 @@ function safeJsonParse(str) {
   try { return JSON.parse(str || '{}') || {}; } catch { return {}; }
 }
 
-function normalizeForDedupe(s) {
-  return (s ?? '').toString().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 100);
+function loadForumCandidates() {
+  try {
+    const path = new URL('./forum-candidates.json', import.meta.url);
+    const parsed = JSON.parse(readFileSync(path, 'utf-8'));
+    return Array.isArray(parsed)
+      ? parsed.slice().sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999))
+      : [];
+  } catch (err) {
+    logWarn(`Could not load forum candidates: ${err.message}`);
+    return [];
+  }
+}
+
+function requireSupabaseConfig(kind) {
+  const supabaseUrl = process.env.SUPABASE_URL || SUPABASE_DEFAULTS.url;
+  const supabaseKey = kind === 'function'
+    ? resolveSupabaseFunctionKey(process.env, SUPABASE_DEFAULTS)
+    : resolveSupabaseReadKey(process.env, SUPABASE_DEFAULTS);
+  if (!supabaseUrl || !supabaseKey) {
+    const envName = kind === 'function'
+      ? 'SUPABASE_SERVICE_KEY or SUPABASE_FUNCTION_KEY'
+      : 'SUPABASE_SERVICE_KEY or SUPABASE_ANON_KEY';
+    throw new Error(`Missing Supabase config for ${kind}: set SUPABASE_URL and ${envName}`);
+  }
+  return { supabaseUrl, supabaseKey };
+}
+
+function createEmptyRunStats() {
+  return {
+    threads_processed: 0,
+    cases_extracted: 0,
+    cases_verified: 0,
+    cases_imported: 0,
+  };
+}
+
+function mergeRunStats(target, delta = {}) {
+  for (const key of Object.keys(target)) {
+    target[key] += delta[key] ?? 0;
+  }
+}
+
+function normalizeCaseAuthor(value) {
+  return (value ?? '').toString().trim().toLowerCase();
+}
+
+function isLikelyLocalDuplicate(payload, otherPayload) {
+  const author = normalizeCaseAuthor(payload.case_author);
+  const otherAuthor = normalizeCaseAuthor(otherPayload.case_author);
+  if (author && otherAuthor && author === otherAuthor) return true;
+
+  const resolution = normalizeForDedupe(payload.resolution);
+  const otherResolution = normalizeForDedupe(otherPayload.resolution);
+  return Boolean(resolution && otherResolution && resolution === otherResolution);
+}
+
+function formatLogTimestamp(value) {
+  const text = (value ?? '').toString().trim();
+  if (!text) return 'unknown-ts';
+  const normalized = text.includes('T') ? text : text.replace(' ', 'T');
+  const parsed = new Date(normalized.endsWith('Z') ? normalized : `${normalized}Z`);
+  if (Number.isNaN(parsed.getTime())) return text;
+  return parsed.toISOString().slice(0, 19).replace('T', ' ');
 }
 
 // ---------------------------------------------------------------------------
@@ -624,30 +794,32 @@ function normalizeForDedupe(s) {
 
 async function runOnce(state, opts) {
   const runId = state.startRun(opts.phase || 'full');
-  // Snapshot counts before run to compute deltas
+  const runStats = createEmptyRunStats();
   const before = {
     threads: Object.values(state.countThreadsByStatus()).reduce((a, b) => a + b, 0),
     cases: Object.values(state.countCasesByStatus()).reduce((a, b) => a + b, 0),
-    verified: (state.countCasesByStatus().verified ?? 0),
     imported: (state.countCasesByStatus().imported ?? 0),
   };
 
   let stopReason = null;
+  let fatalError = null;
   try {
     const phases = opts.phase ? [opts.phase] : ['discover', 'calibrate', 'crawl', 'verify', 'crosscheck', 'import'];
 
     for (const phase of phases) {
       setLogPhase(phase);
+      let phaseStats = null;
       switch (phase) {
-        case 'discover':   await phaseDiscover(state, opts); break;
-        case 'calibrate':  await phaseCalibrate(state, opts); break;
-        case 'crawl':      await phaseCrawl(state, opts); break;
-        case 'verify':     await phaseVerify(state, opts); break;
-        case 'crosscheck': await phaseCrosscheck(state, opts); break;
-        case 'import':     await phaseImport(state, opts); break;
+        case 'discover':   phaseStats = await phaseDiscover(state, opts); break;
+        case 'calibrate':  phaseStats = await phaseCalibrate(state, opts); break;
+        case 'crawl':      phaseStats = await phaseCrawl(state, opts); break;
+        case 'verify':     phaseStats = await phaseVerify(state, opts); break;
+        case 'crosscheck': phaseStats = await phaseCrosscheck(state, opts); break;
+        case 'import':     phaseStats = await phaseImport(state, opts); break;
         default:
           logError(`Unknown phase: ${phase}`);
       }
+      mergeRunStats(runStats, phaseStats ?? {});
     }
     setLogPhase(null);
   } catch (err) {
@@ -659,6 +831,7 @@ async function runOnce(state, opts) {
       console.error(formatQuotaMessage(err));
     } else {
       stopReason = `error: ${err.message}`;
+      fatalError = err;
       logError(`Run error: ${err.message}`);
     }
   }
@@ -667,23 +840,21 @@ async function runOnce(state, opts) {
   const after = {
     threads: Object.values(state.countThreadsByStatus()).reduce((a, b) => a + b, 0),
     cases: Object.values(state.countCasesByStatus()).reduce((a, b) => a + b, 0),
-    verified: (state.countCasesByStatus().verified ?? 0),
     imported: (state.countCasesByStatus().imported ?? 0),
   };
-  const stats = {
-    threads_processed: after.threads - before.threads,
-    cases_extracted: after.cases - before.cases,
-    cases_verified: after.verified - before.verified,
-    cases_imported: after.imported - before.imported,
-  };
+  runStats.threads_processed = Math.max(runStats.threads_processed, after.threads - before.threads, 0);
+  runStats.cases_extracted = Math.max(runStats.cases_extracted, after.cases - before.cases, 0);
+  runStats.cases_imported = Math.max(runStats.cases_imported, after.imported - before.imported, 0);
 
-  state.finishRun(runId, stats, stopReason);
-  return stats;
+  state.finishRun(runId, runStats, stopReason);
+  if (stopReason) runStats.stop_reason = stopReason;
+  if (fatalError) throw fatalError;
+  return runStats;
 }
 
 async function main() {
   const opts = parseArgs();
-  const state = new AgentState();
+  const state = new AgentState(undefined, { readOnly: opts.stats || opts.diary });
   setLogState(state);
 
   if (opts.stats) {

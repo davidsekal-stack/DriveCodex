@@ -227,7 +227,7 @@ function sleep(ms) {
 
 function defaultHeaders() {
   return {
-    "User-Agent": "Mozilla/5.0 (compatible; GearBrainFordTransitSeed/1.0; +https://example.invalid)",
+    "User-Agent": "Mozilla/5.0 (compatible; DriveCodexFordTransitSeed/1.0; +https://example.invalid)",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
   };
 }
@@ -678,15 +678,14 @@ function detectPotentialCatalogHints(text) {
 }
 
 function resolveTransitFamilyVehicleModel({ modelRaw = "", threadTitle = "", parentForumTitle = "", extraText = "" }) {
-  const resolved = resolveFordVehicleModel({
+  const combined = normalizeText([modelRaw, threadTitle, parentForumTitle, extraText].filter(Boolean).join(" | "));
+  if (!combined || !/\b(transit|tourneo|connect|custom|courier|t(?:260|280|300|330|350|430)|mk\s*[1-8])\b/.test(combined)) return null;
+
+  const fallbackResolved = sanitizeResolvedTransitModel(resolveFordVehicleModel({
     modelRaw,
     threadTitle,
     parentForumTitle,
-  });
-  if (resolved) return resolved;
-
-  const combined = normalizeText([modelRaw, threadTitle, parentForumTitle, extraText].filter(Boolean).join(" | "));
-  if (!combined || !/\btransit\b/.test(combined)) return null;
+  }), combined);
 
   const has22 = /\b2[\s.]*2(?!\d)/.test(combined);
   const has24 = /\b2[\s.]*4(?!\d)/.test(combined);
@@ -699,33 +698,207 @@ function resolveTransitFamilyVehicleModel({ modelRaw = "", threadTitle = "", par
   const hasConnect = /\bconnect\b/.test(combined);
   const hasCustom = /\bcustom\b/.test(combined);
   const hasTourneo = /\btourneo\b/.test(combined);
+  const hasCourier = /\bcourier\b/.test(combined);
   const hasDiesel = /\b(diesel|tdci|tddi|duratorq)\b/.test(combined);
   const hasPetrol = /\b(petrol|duratec|ecoboost)\b/.test(combined);
   const hasEpic = /\bepic\b/.test(combined);
   const hasEsos = /\besos\b/.test(combined);
   const hasEso = /\beso\b/.test(combined) || /\belectronic switch off\b/.test(combined);
   const hasBanana = /\bbanana\b/.test(combined);
+  const hasSmiley = /\bsmiley\b/.test(combined);
   const hasP1170 = /\bp1170\b/.test(combined);
+  const hasMk1 = /\bmk\s*1\b/.test(combined);
+  const hasMk2 = /\bmk\s*2\b/.test(combined);
+  const hasMk3 = /\bmk\s*3\b/.test(combined);
+  const hasMk4 = /\bmk\s*4\b/.test(combined);
+  const hasT260Family = /\bt(?:260|280|300|330|350|430)\b/.test(combined);
+  const hasOldPayloadCode = /\b(?:80|100|120|150|160|190)\s*[a-z]?\b/.test(combined);
+  const hasPinto = /\bpinto\b/.test(combined);
+  const hasDi = /\b2[\s.]*5\s*d[i1]\b/.test(combined) || /\bdi\b/.test(combined);
+  const plateMatch = combined.match(/\b([a-z]|\d{2})\s*plate\b/);
+  const plateToken = plateMatch?.[1] ?? "";
   const years = [...combined.matchAll(/\b(20\d{2})\b/g)]
     .map((match) => Number(match[1]))
     .filter((year) => Number.isFinite(year));
   const minYear = years.length ? Math.min(...years) : null;
   const maxYear = years.length ? Math.max(...years) : null;
+  const looksLegacyTransit = hasSmiley || hasBanana || hasEpic || hasEsos || hasEso || hasP1170 || hasOldPayloadCode || /\b190d\b/.test(combined);
+  const looksMk6Transit = hasT260Family || /\b(2000|2001|2002|2003|2004|2005|2006)\b/.test(combined);
+  const looksMk7Transit = /\b(2007|2008|2009|2010|2011)\b/.test(combined);
+  const looksMk7FlTransit = /\b(2011|2012|2013|2014)\b/.test(combined);
+  const looksMk8Transit = /\b(2014|2015|2016)\b/.test(combined);
+  const looksModernTransit = /\b(2016|2017|2018|2019|2020|2021|2022|2023|2024|2025|2026)\b/.test(combined);
+  const has2018PlusPlate = /\b(18|68|19|69|20|70|21|71|22|72|23|73|24|74|25|75|26|76)\s*plate\b/.test(combined);
+  const has2013To2017Plate = /\b(13|63|14|64|15|65|16|66|17|67)\s*plate\b/.test(combined);
+  const hasOldConnectYearPrefix = /\b0[2-9]\s+connect\b|\b1[0-3]\s+connect\b/.test(combined);
+  const hasConnect15 = /\b1[\s.]*5(?!\d)\b/.test(combined);
+  const hasConnect16 = /\b1[\s.]*6(?!\d)\b/.test(combined);
+
+  const plateYearBand = (() => {
+    const token = plateToken.toLowerCase();
+    if (!token) return "";
+    if (["r", "s", "t", "v", "w", "x", "y"].includes(token)) return "mk5";
+    if (["51", "02", "52", "03", "53", "04", "54", "05", "55", "06"].includes(token)) return "mk6";
+    if (["56", "57", "08", "58", "09", "59", "10", "60"].includes(token)) return "mk7";
+    if (["11", "61", "12", "62", "13", "63"].includes(token)) return "mk7fl";
+    if (["14", "64", "15", "65"].includes(token)) return "mk8";
+    if (["16", "66", "17", "67", "18", "68", "19", "69", "20", "70", "21", "71", "22", "72", "23", "73", "24", "74", "25", "75", "26", "76"].includes(token)) return "mk8_ecoblue";
+    return "";
+  })();
 
   if (hasConnect) {
-    if ((has18 || hasDiesel) && ((minYear !== null && minYear <= 2013) || /\b(04|05|54|55|56|57|58|59)\s*plate\b/.test(combined))) {
-      return "Transit Connect I 1.8 TDDi/TDCi (2002–2013)";
+    if ((minYear !== null && minYear >= 2018) || has2018PlusPlate) {
+      if (hasTourneo) {
+        if ((minYear !== null && minYear >= 2022) || /\b(22|72|23|73|24|74|25|75|26|76)\s*plate\b/.test(combined)) {
+          if (/\bphev|plug[- ]?in|hybrid\b/.test(combined)) return "Tourneo Connect III 1.5 EcoBoost PHEV (2022–současnost)";
+          if (hasEcoblue || (hasConnect15 && hasDiesel)) return "Tourneo Connect III 2.0 EcoBlue (2022–současnost)";
+          if (hasPetrol) return "Tourneo Connect III 1.5 EcoBoost (2022–současnost)";
+          return "Tourneo Connect III (2022–současnost)";
+        }
+        return "Tourneo Connect II (2013–2022)";
+      }
+      if ((minYear !== null && minYear >= 2024) || /\b(24|74|25|75|26|76)\s*plate\b/.test(combined)) {
+        if (/\bphev|plug[- ]?in|hybrid\b/.test(combined)) return "Transit Connect III 1.5 EcoBoost PHEV (2024–současnost)";
+        if (hasEcoblue || (hasConnect15 && hasDiesel)) return "Transit Connect III 2.0 EcoBlue (2024–současnost)";
+      }
+      if (hasEcoblue || (hasConnect15 && hasDiesel)) return "Transit Connect II FL 1.5 EcoBlue (2018–2024)";
+      return "Transit Connect II FL (2018–2024)";
+    }
+    if ((minYear !== null && minYear >= 2013) || has2013To2017Plate) {
+      if (hasConnect16 && hasDiesel) return "Transit Connect II 1.6 TDCi (2013–2015)";
+      if (hasConnect15 && hasDiesel) return "Transit Connect II 1.5 TDCi (2015–2018)";
+      if (hasPetrol) {
+        return hasTourneo
+          ? "Tourneo Connect II (2013–2022)"
+          : "Transit Connect II 1.0 EcoBoost (2013–2018)";
+      }
+      return hasTourneo
+        ? "Tourneo Connect II (2013–2022)"
+        : "Transit Connect II (2013–2018)";
+    }
+    if ((has18 && hasDiesel) || ((has18 || hasDiesel) && ((minYear !== null && minYear <= 2013) || hasOldConnectYearPrefix || /\b(04|05|54|55|56|57|58|59)\s*plate\b/.test(combined)))) {
+      return hasTourneo
+        ? "Tourneo Connect I (2002–2013)"
+        : "Transit Connect I 1.8 TDDi/TDCi (2002–2013)";
+    }
+    if ((minYear !== null && minYear <= 2013) || hasOldConnectYearPrefix || /\b(02|52|03|53|04|54|05|55|06|56|07|57|08|58|09|59|10|60|11|61|12|62|13|63)\s*plate\b/.test(combined)) {
+      return hasTourneo
+        ? "Tourneo Connect I (2002–2013)"
+        : "Transit Connect I (2002–2013)";
+    }
+  }
+
+  if (hasCustom) {
+    if (hasTourneo) {
+      if (/\be[- ]?tourneo\s+custom\b/.test(combined)) return "E-Tourneo Custom Elektro (2024–současnost)";
+      if (hasEcoblue || has20) {
+        if ((minYear !== null && minYear >= 2023) || /\b(23|73|24|74|25|75|26|76)\s*plate\b/.test(combined)) {
+          return "Tourneo Custom II 2.0 EcoBlue (2023–současnost)";
+        }
+        return "Tourneo Custom I FL 2.0 EcoBlue (2016–2023)";
+      }
+      if (has22 || hasDiesel) return "Tourneo Custom I 2.2 TDCi (2012–2016)";
+    } else {
+      if (hasEcoblue || has20) {
+        if ((minYear !== null && minYear >= 2023) || /\b(23|73|24|74|25|75|26|76)\s*plate\b/.test(combined)) {
+          return "Transit Custom II 2.0 EcoBlue (2023–současnost)";
+        }
+        return "Transit Custom I FL 2.0 EcoBlue (2016–2023)";
+      }
+      if (has22 || hasDiesel) return "Transit Custom I 2.2 TDCi (2012–2016)";
+    }
+  }
+
+  if (hasTourneo && !hasConnect && !hasCustom && !hasCourier) {
+    if (hasMk1 || hasMk2 || hasMk3 || hasMk4) return null;
+
+    if ((has20 && hasDiesel) || /\bd3fa\b/.test(combined) || /\bduratorq\s+di\b/.test(combined)) {
+      return "Transit MK6 2.0/2.4 Diesel (2000–2006)";
+    }
+
+    if (/\bmk\s*6\b/.test(combined) || plateYearBand === "mk6" || (minYear !== null && maxYear !== null && minYear >= 2000 && maxYear <= 2006)) {
+      if (hasPetrol || has23 || hasPinto) return "Transit MK6 2.3 Duratec (2001–2006)";
+      if (hasDiesel || has20 || has24 || hasT260Family) return "Transit MK6 2.0/2.4 Diesel (2000–2006)";
+      return "Transit / Tourneo MK6 (2000–2006)";
+    }
+    if (/\bmk\s*5\b/.test(combined) || plateYearBand === "mk5" || looksLegacyTransit || has25 || hasDi) {
+      if (hasDiesel || has25 || hasDi || looksLegacyTransit) return "Transit MK5 2.5 Diesel (1994–2000)";
+      return "Transit / Tourneo MK5 (1994–2000)";
+    }
+    if (/\bmk\s*7\b/.test(combined) || plateYearBand === "mk7" || (minYear !== null && maxYear !== null && minYear >= 2006 && maxYear <= 2011)) {
+      if (has32) return "Transit MK7 3.2 TDCi (2006–2011)";
+      if (has24) return "Transit MK7 2.4 TDCi (2006–2011)";
+      if (has23 || (hasPetrol && !hasEcoblue)) return "Transit MK7 2.3 Duratec (2006–2011)";
+      if (has22 || hasDiesel) return "Transit MK7 2.2 TDCi (2006–2011)";
+      return "Transit / Tourneo MK7 (2006–2011)";
+    }
+    if (plateYearBand === "mk7fl" || (minYear !== null && maxYear !== null && minYear >= 2011 && maxYear <= 2014)) {
+      if (has22 || hasDiesel) return "Transit MK7 FL 2.2 TDCi (2011–2014)";
+      return "Transit / Tourneo MK7 FL (2011–2014)";
+    }
+    if (plateYearBand === "mk8" || plateYearBand === "mk8_ecoblue" || (minYear !== null && maxYear !== null && minYear >= 2014)) {
+      if (has20 || hasEcoblue) return "Transit MK8 2.0 EcoBlue (2016–současnost)";
+      if (has22 || hasDiesel) return "Transit MK8 2.2 TDCi (2014–2016)";
+      return "Transit / Tourneo MK8 (2014–současnost)";
     }
   }
 
   if (!hasCustom && !hasConnect && !hasTourneo) {
+    if (hasMk1 || hasMk2 || hasMk3 || hasMk4) {
+      return null;
+    }
+
     if (/\bmk\s*6\b/.test(combined)) {
-      if (hasPetrol || has23) return "Transit MK6 2.3 Duratec (2001–2006)";
+      if (hasPetrol || has23 || hasPinto) return "Transit MK6 2.3 Duratec (2001–2006)";
       return "Transit MK6 2.0/2.4 Diesel (2000–2006)";
     }
 
-    if (/\bmk\s*5\b/.test(combined) || has25 || hasEpic || hasEsos || hasEso || hasBanana || hasP1170) {
+    if (/\bmk\s*5\b/.test(combined) || has25 || looksLegacyTransit || hasDi) {
       return "Transit MK5 2.5 Diesel (1994–2000)";
+    }
+
+    if (minYear !== null && maxYear !== null) {
+      if (maxYear < 2000 && (hasDiesel || has25 || looksLegacyTransit)) {
+        return "Transit MK5 2.5 Diesel (1994–2000)";
+      }
+
+      if (minYear >= 2000 && maxYear <= 2006) {
+        if (hasPetrol || has23 || hasPinto) return "Transit MK6 2.3 Duratec (2001–2006)";
+        if (hasDiesel || has20 || has24 || hasT260Family || looksMk6Transit) {
+          return "Transit MK6 2.0/2.4 Diesel (2000–2006)";
+        }
+      }
+
+      if (minYear >= 2006 && maxYear <= 2011) {
+        if (has32) return "Transit MK7 3.2 TDCi (2006–2011)";
+        if (has24) return "Transit MK7 2.4 TDCi (2006–2011)";
+        if (has23 || (hasPetrol && !hasEcoblue)) return "Transit MK7 2.3 Duratec (2006–2011)";
+        if (has22 || hasDiesel || hasT260Family || looksMk7Transit) return "Transit MK7 2.2 TDCi (2006–2011)";
+      }
+    }
+
+    if (plateYearBand === "mk5" && (hasDiesel || has25 || looksLegacyTransit)) {
+      return "Transit MK5 2.5 Diesel (1994–2000)";
+    }
+    if (plateYearBand === "mk6") {
+      if (hasPetrol || has23 || hasPinto) return "Transit MK6 2.3 Duratec (2001–2006)";
+      return "Transit MK6 2.0/2.4 Diesel (2000–2006)";
+    }
+    if (plateYearBand === "mk7") {
+      if (has32) return "Transit MK7 3.2 TDCi (2006–2011)";
+      if (has24) return "Transit MK7 2.4 TDCi (2006–2011)";
+      if (has23 || (hasPetrol && !hasEcoblue)) return "Transit MK7 2.3 Duratec (2006–2011)";
+      return "Transit MK7 2.2 TDCi (2006–2011)";
+    }
+    if (plateYearBand === "mk7fl") {
+      return "Transit MK7 FL 2.2 TDCi (2011–2014)";
+    }
+    if (plateYearBand === "mk8") {
+      if (has22 || hasDiesel || hasT260Family || looksMk8Transit) return "Transit MK8 2.2 TDCi (2014–2016)";
+    }
+    if (plateYearBand === "mk8_ecoblue") {
+      if (has22) return "Transit MK8 2.2 TDCi (2014–2016)";
+      if (has20 || hasEcoblue) return "Transit MK8 2.0 EcoBlue (2016–současnost)";
     }
   }
 
@@ -741,11 +914,31 @@ function resolveTransitFamilyVehicleModel({ modelRaw = "", threadTitle = "", par
     if (minYear >= 2014 && maxYear <= 2016) return "Transit MK8 2.2 TDCi (2014–2016)";
   }
 
+  if (!hasCustom && !hasConnect && !hasTourneo) {
+    if ((has24 || has20 || hasT260Family || looksMk6Transit) && maxYear !== null && maxYear <= 2006) {
+      return "Transit MK6 2.0/2.4 Diesel (2000–2006)";
+    }
+    if ((has24 || has22 || has32 || hasT260Family || looksMk7Transit) && minYear !== null && minYear >= 2006 && maxYear !== null && maxYear <= 2011) {
+      if (has32) return "Transit MK7 3.2 TDCi (2006–2011)";
+      if (has24) return "Transit MK7 2.4 TDCi (2006–2011)";
+      return "Transit MK7 2.2 TDCi (2006–2011)";
+    }
+    if ((has22 || looksMk7FlTransit) && minYear !== null && minYear >= 2011 && maxYear !== null && maxYear <= 2014) {
+      return "Transit MK7 FL 2.2 TDCi (2011–2014)";
+    }
+    if ((has22 || hasDiesel || looksMk8Transit) && minYear !== null && minYear >= 2014 && maxYear !== null && maxYear <= 2016) {
+      return "Transit MK8 2.2 TDCi (2014–2016)";
+    }
+    if ((has20 || hasEcoblue) && (maxYear !== null && maxYear >= 2016 || looksModernTransit)) {
+      return "Transit MK8 2.0 EcoBlue (2016–současnost)";
+    }
+  }
+
   if ((has20 || hasEcoblue) && maxYear !== null && maxYear >= 2016) {
     return "Transit MK8 2.0 EcoBlue (2016–současnost)";
   }
 
-  return null;
+  return fallbackResolved ?? null;
 }
 
 function sanitizeResolvedTransitModel(vehicleModel, contextText = "") {
