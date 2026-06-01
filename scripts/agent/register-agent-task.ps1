@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-  [string]$TaskName = 'GearBrainAgentBatch',
+  [string]$TaskName = 'DriveCodexAgentBatch',
   [int]$IntervalMinutes = 5,
   [int]$BatchSize = 5,
   [int]$SleepMs = 600,
@@ -88,7 +88,7 @@ Register-ScheduledTask `
   -Trigger @($onceTrigger, $logonTrigger) `
   -Settings $settings `
   -Principal $principal `
-  -Description 'GearBrain autonomous crawl agent batch runner' `
+  -Description 'DriveCodex autonomous crawl agent batch runner' `
   -Force | Out-Null
 
 if ($RunNow) {

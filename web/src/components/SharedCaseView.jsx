@@ -52,7 +52,7 @@ function SharedCaseViewInner({ shareId }) {
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'Exo 2',sans-serif" }}>
         <GlobalStyles />
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em" }}>GEARBRAIN</div>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em" }}>DRIVECODEX</div>
           <div style={{ fontSize: "0.75rem", color: t.textFaint, marginTop: 8, animation: "pulse 1.5s ease infinite" }}>{tr("share.loading")}</div>
         </div>
       </div>
@@ -65,7 +65,7 @@ function SharedCaseViewInner({ shareId }) {
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: t.bg, fontFamily: "'Exo 2',sans-serif" }}>
         <GlobalStyles />
         <div style={{ textAlign: "center", maxWidth: 400, padding: 20 }}>
-          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em", marginBottom: 16 }}>GEARBRAIN</div>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: t.accent, letterSpacing: "0.15em", marginBottom: 16 }}>DRIVECODEX</div>
           <div style={{ fontSize: "0.85rem", color: "#dc2626", marginBottom: 24 }}>{error || tr("share.notFound")}</div>
           <ShareCTA tr={tr} />
         </div>
@@ -84,7 +84,7 @@ function SharedCaseViewInner({ shareId }) {
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <div style={{ padding: mobile ? "10px 12px" : "12px 24px", background: t.bgHeader, borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: "1rem", fontWeight: 700, color: t.accent, letterSpacing: "0.12em" }}>GEARBRAIN</span>
+          <span style={{ fontSize: "1rem", fontWeight: 700, color: t.accent, letterSpacing: "0.12em" }}>DRIVECODEX</span>
           <span style={{ fontSize: "0.55rem", color: t.textFaint, letterSpacing: "0.1em" }}>{tr("share.badge")}</span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

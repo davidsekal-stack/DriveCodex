@@ -45,7 +45,7 @@ function New-MutexName {
   try {
     $bytes = [System.Text.Encoding]::UTF8.GetBytes($RepoRoot.ToLowerInvariant())
     $hash = [System.BitConverter]::ToString($md5.ComputeHash($bytes)).Replace('-', '')
-    return "Local\GearBrainAgentBatch_$hash"
+    return "Local\DriveCodexAgentBatch_$hash"
   } finally {
     $md5.Dispose()
   }

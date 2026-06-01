@@ -270,7 +270,7 @@ Recommended setup:
 powershell -ExecutionPolicy Bypass -File C:\GB\scripts\agent\register-agent-task.ps1
 ```
 
-That creates a task named `GearBrainAgentBatch` for the current Windows user with:
+That creates a task named `DriveCodexAgentBatch` for the current Windows user with:
 
 - repeat interval: every 5 minutes
 - overlap policy: `IgnoreNew`
