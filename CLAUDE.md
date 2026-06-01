@@ -3,6 +3,12 @@
 ## Project Overview
 AI-powered automotive diagnostic web app. React SPA + Supabase backend + Deno edge functions.
 
+## Working With the Owner
+- The project owner is **non-technical** and cannot review code or pull requests — never rely on them to review a diff or catch issues.
+- **You own verification:** run lint + build (and tests where relevant) and confirm behavior yourself, since no one else will.
+- Explain changes in **plain, non-technical language** (what it does, what to expect) — not code detail.
+- Confirm anything irreversible or user-facing (especially live deploys / merges to `main`, which auto-publish via Vercel) with the owner in plain terms before doing it.
+
 ## Before Every Push
 Pre-push hook runs automatically (ESLint + Vite build). Do NOT skip with `--no-verify`.
 
