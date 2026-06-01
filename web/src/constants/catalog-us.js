@@ -210,7 +210,7 @@ export const VEHICLE_CATALOG_US = [
   {
     brand:     "Saab",
     active:    false,
-    expertise: "Legacy Saab US post-2000 niche models under the strict GearBrain cutoff — 9-2X, 9-4X and 9-7X — Subaru boxer and GM-derived V6/V8 platforms, AWD driveline and premium crossover diagnostics, 2005–2012 US spec",
+    expertise: "Legacy Saab US post-2000 niche models under the strict DriveCodex cutoff — 9-2X, 9-4X and 9-7X — Subaru boxer and GM-derived V6/V8 platforms, AWD driveline and premium crossover diagnostics, 2005–2012 US spec",
     models: [
       { group: "9-2X / 9-4X / 9-7X" },
       { label: "9-2X (2005–2006)", powers: ["173 hp – 2.5L Boxer I4", "230 hp – 2.5L Turbo Boxer I4"] },

@@ -1,4 +1,4 @@
-# GearBrain — Claude Code Instructions
+# DriveCodex — Claude Code Instructions
 
 ## Project Overview
 AI-powered automotive diagnostic web app. React SPA + Supabase backend + Deno edge functions.

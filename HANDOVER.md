@@ -388,7 +388,7 @@ Set-Location C:\GB
 
 $env:TEST_SUPABASE_URL="https://nmvjthfezyjcwuzphiuu.supabase.co"
 $env:TEST_SUPABASE_ANON_KEY="SEM_VLOZ_ANON_KEY"
-$env:TEST_USER_EMAIL="gb-test-user@gearbrain.local"
+$env:TEST_USER_EMAIL="gb-test-user@drivecodex.local"
 $env:TEST_USER_PASSWORD="SEM_VLOZ_TEST_HESLO"
 
 & "$env:LOCALAPPDATA\Programs\nodejs\npm.cmd" run test:supabase:live

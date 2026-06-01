@@ -356,7 +356,7 @@ function renderMinimalist(activeCase, lang, tr, fonts) {
 
   // ── Header ──
   doc.setFont(F, "bold"); doc.setFontSize(11); doc.setTextColor(C.black);
-  doc.text("GEARBRAIN", PAGE.mx, ctx.y);
+  doc.text("DRIVECODEX", PAGE.mx, ctx.y);
   ctx.y += 5;
   doc.setFont(F, "normal"); doc.setFontSize(FS.body); doc.setTextColor(C.mid);
   doc.text(tr("pdf.title"), PAGE.mx, ctx.y);

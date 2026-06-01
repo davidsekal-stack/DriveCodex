@@ -1,4 +1,4 @@
-# GearBrain — Supabase nastavení
+# DriveCodex — Supabase nastavení
 
 Jednorázový setup. Celé zabere asi 5 minut.
 
@@ -7,7 +7,7 @@ Jednorázový setup. Celé zabere asi 5 minut.
 ## 1. Vytvořte Supabase projekt
 
 1. Jděte na [supabase.com](https://supabase.com) → **New project**
-2. Název: `gearbrain`, heslo databáze si uložte
+2. Název: `drivecodex`, heslo databáze si uložte
 3. Region: `Central EU (Frankfurt)` — nejblíže ČR
 4. Počkejte ~2 minuty než se projekt provisionuje
 
@@ -94,7 +94,7 @@ Potřebujete:
 
 ---
 
-## 5. Zadejte do GearBrain
+## 5. Zadejte do DriveCodex
 
 V aplikaci: **Nastavení** → sekce **CLOUD DATABÁZE**
 
@@ -110,11 +110,11 @@ V aplikaci: **Nastavení** → sekce **CLOUD DATABÁZE**
 ```
 Zákazník uzavře případ
         ↓
-GearBrain odešle anonymní záznam do Supabase
+DriveCodex odešle anonymní záznam do Supabase
 (installation_id = náhodné UUID, žádná osobní data)
         ↓
 Při příští diagnostice jiného zákazníka
-GearBrain prohledá Supabase (OBD kódy / model vozidla)
+DriveCodex prohledá Supabase (OBD kódy / model vozidla)
         ↓
 Nalezené záznamy se sloučí s lokálními výsledky
 a předají AI jako kontext → přesnější diagnostika
@@ -157,7 +157,7 @@ ORDER BY created_at DESC;
 
 ## Migrace existující databáze (pokud jste ji vytvořili před touto verzí)
 
-Pokud jste již vytvořili databázi z dřívější verze GearBrain, spusťte v SQL Editoru:
+Pokud jste již vytvořili databázi z dřívější verze DriveCodex, spusťte v SQL Editoru:
 
 ```sql
 -- Přidat local_id sloupec

@@ -20,6 +20,8 @@ import { getServiceClient } from '../_shared/client.ts'
 
 const IMPORTER_USER_ALIAS = 'ai_importer'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const RESOLUTION_MIN_LENGTH = 10
+const RESOLUTION_MAX_LENGTH = 400
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return optionsResponse()
@@ -99,6 +101,12 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
           // Překlad selhal — pokračujeme s originálními texty
         }
       }
+    }
+
+    translatedDescription = normalizeImportText(translatedDescription)
+    translatedResolution = clampResolutionForImport(translatedResolution)
+    if (translatedResolution.length < RESOLUTION_MIN_LENGTH) {
+      return json({ error: 'Popis opravy je příliš krátký.' }, 400)
     }
 
     // ── Uložení do gearbrain_cases ─────────────────────────────────────────────
@@ -187,4 +195,43 @@ function resolveIncomingUserId(value: unknown): { userId: string } | { error: st
   }
 
   return { userId: raw }
+}
+
+function normalizeImportText(value: unknown): string {
+  return (value ?? '')
+    .toString()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function clampResolutionForImport(value: unknown, maxLength = RESOLUTION_MAX_LENGTH): string {
+  const text = normalizeImportText(value)
+  if (text.length <= maxLength) return text
+
+  const ellipsis = '...'
+  const budget = Math.max(0, maxLength - ellipsis.length)
+  if (budget === 0) return ellipsis.slice(0, maxLength)
+
+  const sample = text.slice(0, budget + 1)
+  const minBoundary = Math.max(0, Math.floor(budget * 0.6))
+  const sentenceCuts = ['. ', '! ', '? ']
+  const clauseCuts = ['; ', ': ', ', ']
+
+  let cut = findPreferredCut(sample, sentenceCuts, minBoundary, 1)
+  if (cut === -1) cut = findPreferredCut(sample, clauseCuts, minBoundary, 1)
+  if (cut === -1) {
+    const wordCut = sample.lastIndexOf(' ')
+    if (wordCut >= minBoundary) cut = wordCut
+  }
+  if (cut === -1) cut = budget
+
+  return `${sample.slice(0, cut).trimEnd()}${ellipsis}`
+}
+
+function findPreferredCut(sample: string, separators: string[], minBoundary: number, extraLength: number): number {
+  for (const separator of separators) {
+    const index = sample.lastIndexOf(separator)
+    if (index >= minBoundary) return index + extraLength
+  }
+  return -1
 }

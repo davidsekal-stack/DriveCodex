@@ -64,6 +64,9 @@ const CODEX_QUOTA_PATTERNS = [
   /account.{0,20}has.{0,20}been.{0,20}suspended/i,
   /no.{0,10}credits.{0,10}remaining/i,
   /context_length_exceeded/i,  // also stops processing — token limit per call
+  /you.{0,10}ve.{0,10}hit.{0,20}your.{0,20}usage.{0,20}limit/i,  // OpenAI/Codex usage limit message
+  /hit.{0,20}usage.{0,20}limit/i,
+  /purchase.{0,10}more.{0,10}credits/i,
 ];
 
 /**

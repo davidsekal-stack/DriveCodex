@@ -1,4 +1,4 @@
-# GearBrain — AI Vehicle Diagnostics
+# DriveCodex — AI Vehicle Diagnostics
 
 Web app for AI-powered automotive fault diagnosis. Combines symptoms, OBD codes, and mechanic notes with LLM analysis and a database of verified repairs (RAG).
 
@@ -33,7 +33,7 @@ npm run test:integration  # Supabase integration (needs env vars)
 ## Project Structure
 
 ```
-gearbrain/
+drivecodex/
 ├── web/                         React SPA (Vite)
 │   ├── src/
 │   │   ├── App.jsx              View routing, theme, sidebar
