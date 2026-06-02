@@ -34,7 +34,12 @@ export function isThreadAlreadyExtracted(url, index) {
 }
 
 const odiFromString = (s) => {
-  const m = (s || "").toString().match(/(\d{6,})/);
+  const str = (s || "").toString().trim();
+  // Whole string is exactly an ODI id (e.g. "11026660").
+  if (/^\d{6,}$/.test(str)) return str;
+  // Otherwise only extract from a genuine NHTSA context (mirrors build-side nhtsaOdiOf),
+  // so a stray digit-run from a forum URL (e.g. viewtopic?t=172092) is never read as an ODI id.
+  const m = str.match(/(?:MC-|odi\/tsbs\/\d+\/[A-Za-z]*-?|NHTSA\s*)(\d{6,})/i);
   return m ? m[1] : null;
 };
 export function isNhtsaDone(idOrUrl, index) {

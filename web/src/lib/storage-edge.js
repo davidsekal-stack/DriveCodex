@@ -93,7 +93,7 @@ function buildTestAiResponse() {
         pravděpodobnost: 80,
         zdroj: "AI",
         řešení: ["Provést nucenou regeneraci DPF", "Zkontrolovat tlakové čidlo DPF"],
-        vysvětlení: "Kanonická testovací odpověď – AI nebyla volána.",
+        popis: "Kanonická testovací odpověď – AI nebyla volána.",
       },
     ],
   };
