@@ -80,7 +80,7 @@ export default function ConsentGate({ children }) {
             }}>
             {tr('consent.decline')}
           </button>
-          <button onClick={accept}
+          <button onClick={accept} data-testid="consent-accept"
             style={{
               background: t.accent, border: "none", color: "#fff",
               padding: "10px 28px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",

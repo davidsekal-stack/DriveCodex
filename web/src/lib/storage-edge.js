@@ -10,7 +10,7 @@ import {
   buildPushClosedCasePayload,
   buildSearchCasesPayload,
 } from "./storage-payloads.js";
-import { RUNTIME_CONFIG } from "./runtime-config.js";
+import { RUNTIME_CONFIG, PROD_SUPABASE_URL } from "./runtime-config.js";
 import {
   makeStorageErrorResult,
   makeStorageSuccessResult,
@@ -58,7 +58,54 @@ export async function pushClosedCase(kase) {
 
 import { AI_MAX_TOKENS, AI_MODEL } from "../constants/limits.js";
 
+/**
+ * TEST-ONLY AI stub. Returns a canned diagnosis instead of calling DeepSeek so that
+ * the end-to-end browser test is deterministic, fast and free.
+ *
+ * DOUBLE-GATED so it can NEVER fire in production:
+ *   1. import.meta.env.DEV — true only in a local `vite dev` build, never in the
+ *      production bundle that Vercel ships (`vite build` statically replaces this
+ *      with `false`, so the whole function dead-code-eliminates to a constant false).
+ *   2. the app is NOT pointed at the production Supabase project (defense-in-depth:
+ *      even a dev build with the flag set won't stub against prod data).
+ *   3. an explicit opt-in flag — VITE_TEST_MODE=1 at build time, or a
+ *      `dc_test_mode` = "1" localStorage key set by the test harness at runtime.
+ * All conditions must hold; any one alone leaves the real AI call untouched.
+ */
+function isTestAiStubEnabled() {
+  if (!import.meta.env.DEV) return false;
+  if (RUNTIME_CONFIG.supabaseUrl === PROD_SUPABASE_URL) return false;
+  if (import.meta.env.VITE_TEST_MODE === "1") return true;
+  try {
+    return typeof localStorage !== "undefined" && localStorage.getItem("dc_test_mode") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function buildTestAiResponse() {
+  // Shape mirrors the real deepseek-proxy contract consumed by run-diagnosis.js:
+  // data.content[].text (joined) → smartRepair → parsed.závady[].
+  const cannedDiagnosis = {
+    závady: [
+      {
+        název: "Zanesený DPF filtr (test)",
+        pravděpodobnost: 80,
+        zdroj: "AI",
+        řešení: ["Provést nucenou regeneraci DPF", "Zkontrolovat tlakové čidlo DPF"],
+        vysvětlení: "Kanonická testovací odpověď – AI nebyla volána.",
+      },
+    ],
+  };
+  return {
+    content: [{ text: JSON.stringify(cannedDiagnosis) }],
+    usage: { input_tokens: 0, output_tokens: 0 },
+  };
+}
+
 export async function callAI({ systemPrompt, userMessage, maxTokens = AI_MAX_TOKENS, model = AI_MODEL }) {
+  if (isTestAiStubEnabled()) return buildTestAiResponse();
+
   const { data: { user } } = await supabase.auth.getUser();
 
   return edgeFetch("deepseek-proxy", buildAiRequestPayload({

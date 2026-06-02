@@ -48,7 +48,7 @@ export default function AppSidebar({
         background: t.bgSidebar,
       }}>
         <div style={{ padding: "10px 12px", borderBottom: `1px solid ${t.border}` }}>
-          <button onClick={onStartNewCase}
+          <button onClick={onStartNewCase} data-testid="new-case-btn"
             style={{ width: "100%", background: t.accent, color: "#fff", border: "none", cursor: "pointer", padding: "10px", fontSize: "0.78rem", letterSpacing: "0.1em", fontWeight: 700, fontFamily: "inherit", borderRadius: 2, clipPath: "polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%)" }}>
             {tr("app.newCase")}
           </button>

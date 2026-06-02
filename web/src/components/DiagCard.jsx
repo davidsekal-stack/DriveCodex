@@ -269,7 +269,7 @@ export default function DiagCard({ result, ragMatches = [], vehicle, onOpenManua
   const ragSources = getUniqueRagSources(ragMatches).filter((match) => match?.sourceRef || match?.threadUrl);
 
   return (
-    <div className="fade-in">
+    <div className="fade-in" data-testid="diagnosis-result">
       {/* Shrnutí */}
       <div style={{ padding: "14px 16px", background: t.bgCardAlt, border: `1px solid ${t.borderAccent}`, borderLeft: `3px solid ${t.accent}`, marginBottom: 12, borderRadius: 2 }}>
         <div style={{ fontSize: "0.62rem", color: t.textFaint, letterSpacing: "0.15em", marginBottom: 5 }}>{tr('diag.title')}</div>

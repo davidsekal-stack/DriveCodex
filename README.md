@@ -28,7 +28,12 @@ npm run build     # → web/dist/
 npm test                # unit + i18n + validation + catalog
 npm run test:unit       # unit tests only
 npm run test:integration  # Supabase integration (needs env vars)
+npm --prefix web run test:e2e   # Playwright browser end-to-end (see TEST_SETUP.md)
 ```
+
+Three layers run in CI on every push/PR (`.github/workflows/test.yml`): app-logic unit tests, backend
+integration against an isolated test DB, and a Playwright browser walkthrough of the core workflow.
+See `TEST_SETUP.md` for details.
 
 ## Project Structure
 

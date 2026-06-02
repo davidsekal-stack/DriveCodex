@@ -158,6 +158,7 @@ export default function CloseCaseModal({
               </label>
               {customActive && (
                 <textarea ref={customRef} value={customText} onChange={(e) => handleCustomChange(e.target.value)}
+                  data-testid="resolution-other-input"
                   placeholder={tr("app.closeCustomPlaceholder")} rows={1}
                   onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
                   style={{ width: "calc(100% - 28px)", marginTop: 6, marginLeft: 28, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "6px 10px", fontSize: FONT, fontFamily: "'Exo 2',sans-serif", outline: "none", borderRadius: 2, boxSizing: "border-box", resize: "none", overflow: "hidden", lineHeight: 1.6 }} />
@@ -186,7 +187,7 @@ export default function CloseCaseModal({
             style={{ background: "transparent", border: `1px solid ${t.border}`, color: t.textFaint, padding: "8px 20px", fontSize: FONT, cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
             {tr("app.cancel")}
           </button>
-          <button disabled={!resolution.trim()} onClick={onConfirm}
+          <button disabled={!resolution.trim()} onClick={onConfirm} data-testid="confirm-close-btn"
             style={{ background: resolution.trim() ? t.doneStatusColor : "transparent", color: resolution.trim() ? "#fff" : t.textVeryFaint, border: `1px solid ${resolution.trim() ? t.doneStatusColor : t.border}`, padding: "8px 24px", fontSize: FONT, fontWeight: 700, cursor: resolution.trim() ? "pointer" : "not-allowed", fontFamily: "inherit", borderRadius: 2 }}>
             {tr("app.confirm")}
           </button>
