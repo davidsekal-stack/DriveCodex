@@ -151,12 +151,14 @@ function LoginPageInner({ onAuth }) {
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('login.email')}</div>
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  data-testid="login-email"
                   placeholder={tr('login.emailPlaceholder')} autoComplete="email"
                   style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.85rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }} />
               </div>
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr('login.password')}</div>
                 <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
+                  data-testid="login-password"
                   placeholder={tr('login.passwordPlaceholder')} autoComplete={mode === "login" ? "current-password" : "new-password"}
                   style={{ width: "100%", background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "10px 12px", fontSize: "0.85rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }} />
               </div>
@@ -167,7 +169,7 @@ function LoginPageInner({ onAuth }) {
                 </div>
               )}
 
-              <button type="submit" disabled={loading}
+              <button type="submit" disabled={loading} data-testid="login-submit"
                 style={{ width: "100%", background: t.accent, color: "#fff", border: "none", padding: "11px", fontSize: "0.82rem", fontWeight: 700, letterSpacing: "0.08em", cursor: loading ? "wait" : "pointer", fontFamily: "inherit", borderRadius: 2, opacity: loading ? 0.6 : 1 }}>
                 {loading ? tr('login.processing') : mode === "login" ? tr('login.loginBtn') : tr('login.registerBtn')}
               </button>

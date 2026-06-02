@@ -112,7 +112,7 @@ export default function SessionHeader({
           </div>
         )}
         {activeCase.status === CASE_STATUS.OPEN && (
-          <button onClick={onRequestCloseCase}
+          <button onClick={onRequestCloseCase} data-testid="close-case-btn"
             style={{ background: t.doneStatusBg, border: `1px solid ${t.doneStatusBorder}`, color: t.doneStatusColor, padding: "6px 14px", fontSize: "0.75rem", letterSpacing: "0.06em", cursor: "pointer", fontFamily: "inherit", borderRadius: 2 }}>
             {tr("app.closeBtn")}
           </button>

@@ -43,3 +43,12 @@ audit/*.json
 # Generated "already-extracted" snapshot (regenerate from DB via build-crawled-index.mjs)
 scripts/agent/crawled-index.json
 PASTE-TOKEN-HERE.txt
+web/.env.local
+.env.local
+
+# Playwright e2e — generated output (config + specs are committed)
+web/test-results/
+web/playwright-report/
+web/blob-report/
+web/.playwright/
+web/playwright/.cache/

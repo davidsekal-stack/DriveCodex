@@ -80,7 +80,7 @@ export default function NewCaseView({
           <div>
             <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr("app.vehicleBrand")}</div>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <select value={newVehicle.brand}
+              <select value={newVehicle.brand} data-testid="vehicle-brand-select"
                 onChange={(e) => setNewVehicle((vehicle) => ({ ...vehicle, brand: e.target.value, model: "", enginePower: "" }))}
                 style={{ flex: 1, background: t.bgInput, border: `1px solid ${t.borderInput}`, color: t.text, padding: "9px 10px", fontSize: "0.82rem", fontFamily: "inherit", borderRadius: 2, outline: "none" }}>
                 {ACTIVE_BRAND_DROPDOWN_OPTIONS.map((item) => (
@@ -118,7 +118,7 @@ export default function NewCaseView({
           </div>
           <div>
             <div style={{ fontSize: "0.68rem", color: t.textFaint, letterSpacing: "0.1em", marginBottom: 6 }}>{tr("app.vehicleModel")}</div>
-            <select value={newVehicle.model}
+            <select value={newVehicle.model} data-testid="vehicle-model-select"
               onChange={(e) => {
                 const item = modelOptions.find((option) => option.label === e.target.value);
                 if (item?.label) setNewVehicle((vehicle) => ({ ...vehicle, model: item.label, enginePower: "" }));

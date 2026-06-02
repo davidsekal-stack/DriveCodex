@@ -473,7 +473,11 @@ Historické dokumenty:
 4. Až live testy budou stabilní, přidat app-layer contract testy pro:
    - [web/src/lib/storage-sessions.js](/C:/GB/web/src/lib/storage-sessions.js)
    - [web/src/lib/storage-edge.js](/C:/GB/web/src/lib/storage-edge.js)
-5. Teprve potom má smysl přidávat browser E2E smoke flow.
+5. ✅ Hotovo — browser E2E smoke flow běží přes Playwright: `web/e2e/core-flow.spec.js`
+   (login → nový případ → diagnostika → uzavření/uložení → ověření v DB → úklid).
+   AI je v testu nahrazeno deterministickou „canned" odpovědí (dvojitě zahradzeno: jen dev build +
+   explicitní flag `VITE_TEST_MODE`/`localStorage dc_test_mode`, takže v produkci se nikdy nespustí).
+   Spouští se v CI jako job `web-e2e`. Detaily v `TEST_SETUP.md`.
 
 ## Kdybych na to navazoval znovu já
 

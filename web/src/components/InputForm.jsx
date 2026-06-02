@@ -83,7 +83,7 @@ export default function InputForm({ onSubmit, loading, label, vehicle }) {
             const isOpen = openCat === catKey;
             return (
               <div key={catKey} style={{ marginBottom: 4 }}>
-                <button onClick={() => setOpenCat(isOpen ? null : catKey)}
+                <button onClick={() => setOpenCat(isOpen ? null : catKey)} data-testid={`symptom-cat-${catKey}`}
                   style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: "7px 10px", backgroundColor: isOpen ? t.bgCatOpen : t.bgCat, color: isOpen ? t.accent : t.textLabel, fontSize: "0.65rem", letterSpacing: "0.08em", borderLeft: isOpen ? `3px solid ${t.accent}` : `3px solid ${t.border}` }}>
                   {isOpen ? "▼" : "▶"} {tr(catKey).toUpperCase()}
                   {selectedCount > 0 && <span style={{ marginLeft: 8, color: t.textFaint }}>({selectedCount})</span>}
@@ -93,7 +93,7 @@ export default function InputForm({ onSubmit, loading, label, vehicle }) {
                     {symKeys.map((symKey) => {
                       const sel = symptoms.includes(symKey);
                       return (
-                        <div key={symKey} onClick={() => toggleSymptom(symKey)}
+                        <div key={symKey} onClick={() => toggleSymptom(symKey)} data-testid={`symptom-chip-${symKey}`}
                           style={{ cursor: "pointer", userSelect: "none", padding: mobile ? "3px 7px" : "4px 9px", fontSize: mobile ? "0.62rem" : "0.68rem", background: sel ? t.chipSelBg : t.chipBg, color: sel ? t.chipSelText : t.chipText, border: `1px solid ${sel ? t.accent : t.chipBorder}`, fontWeight: sel ? 600 : 400, borderRadius: 2, transition: "all 0.12s" }}>
                           {tr(symKey)}
                         </div>
@@ -200,7 +200,7 @@ export default function InputForm({ onSubmit, loading, label, vehicle }) {
           {text.trim()         && <span style={{ color: t.doneStatusColor }}>✍️</span>}
           {total === 0         && <span style={{ color: t.textVeryFaint }}>{tr('input.enterHint')}</span>}
         </div>
-        <button disabled={total === 0 || loading} onClick={handleSubmit}
+        <button disabled={total === 0 || loading} onClick={handleSubmit} data-testid="submit-input-btn"
           style={{ background: total > 0 ? t.accent : t.border, color: total > 0 ? "#fff" : t.textFaint, border: "none", cursor: total > 0 && !loading ? "pointer" : "not-allowed", padding: "9px 22px", letterSpacing: "0.1em", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: 700, borderRadius: 2, transition: "background 0.2s, color 0.2s, opacity 0.2s", opacity: total === 0 || loading ? 0.55 : 1, flexShrink: 0, whiteSpace: "nowrap" }}>
           {loading
             ? <span style={{ display: "inline-block", animation: "pulse 1.5s ease infinite" }}>{tr('input.analyzing')}</span>
