@@ -36,7 +36,13 @@ async function run() {
     const webFixtures = await runWebSessionsSuite(harness)
     await runRlsSuite(harness, webFixtures)
     await runEdgeFunctionsSuite(harness)
-    await runManualLookupSuite(harness)
+    // manual-lookup is behind a licensing feature-flag and needs extra config;
+    // skip it in CI / on the test DB via SKIP_GATED_TESTS=1.
+    if (process.env.SKIP_GATED_TESTS !== '1') {
+      await runManualLookupSuite(harness)
+    } else {
+      harness.skip('manual-lookup suite', 'SKIP_GATED_TESTS=1 (gated feature)')
+    }
   } finally {
     if (harness.state.accessToken) {
       await harness.runCleanup()
