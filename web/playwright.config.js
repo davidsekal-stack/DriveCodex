@@ -33,9 +33,10 @@ export default defineConfig({
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: BASE_URL,
+    // Trace already embeds DOM snapshots + screenshots; a standalone screenshot is a
+    // cheap quick-glance artifact. Video would mostly duplicate the trace, so it's off.
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   // Start the Vite dev server pointed at the TEST Supabase project.

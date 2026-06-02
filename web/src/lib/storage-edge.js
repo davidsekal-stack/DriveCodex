@@ -10,7 +10,7 @@ import {
   buildPushClosedCasePayload,
   buildSearchCasesPayload,
 } from "./storage-payloads.js";
-import { RUNTIME_CONFIG } from "./runtime-config.js";
+import { RUNTIME_CONFIG, PROD_SUPABASE_URL } from "./runtime-config.js";
 import {
   makeStorageErrorResult,
   makeStorageSuccessResult,
@@ -64,14 +64,18 @@ import { AI_MAX_TOKENS, AI_MODEL } from "../constants/limits.js";
  *
  * DOUBLE-GATED so it can NEVER fire in production:
  *   1. import.meta.env.DEV — true only in a local `vite dev` build, never in the
- *      production bundle that Vercel ships (`vite build` sets DEV = false).
- *   2. an explicit opt-in flag — VITE_TEST_MODE=1 at build time, or a
+ *      production bundle that Vercel ships (`vite build` statically replaces this
+ *      with `false`, so the whole function dead-code-eliminates to a constant false).
+ *   2. the app is NOT pointed at the production Supabase project (defense-in-depth:
+ *      even a dev build with the flag set won't stub against prod data).
+ *   3. an explicit opt-in flag — VITE_TEST_MODE=1 at build time, or a
  *      `dc_test_mode` = "1" localStorage key set by the test harness at runtime.
- * Both conditions must hold; either one alone leaves the real AI call untouched.
+ * All conditions must hold; any one alone leaves the real AI call untouched.
  */
 function isTestAiStubEnabled() {
-  if (!import.meta.env?.DEV) return false;
-  if (import.meta.env?.VITE_TEST_MODE === "1") return true;
+  if (!import.meta.env.DEV) return false;
+  if (RUNTIME_CONFIG.supabaseUrl === PROD_SUPABASE_URL) return false;
+  if (import.meta.env.VITE_TEST_MODE === "1") return true;
   try {
     return typeof localStorage !== "undefined" && localStorage.getItem("dc_test_mode") === "1";
   } catch {

@@ -6,25 +6,25 @@ const ANON_KEY = process.env.TEST_SUPABASE_ANON_KEY;
 const EMAIL = process.env.TEST_USER_EMAIL;
 const PASSWORD = process.env.TEST_USER_PASSWORD;
 
-const MODEL_LABEL = "Transit MK7 2.2 TDCi (2006–2011)"; // en-dash between years
+// Match the vehicle by a stable substring instead of the exact catalog label
+// (which contains an en-dash and could be reformatted) — see model selection below.
+const MODEL_MATCH = "Transit MK7 2.2 TDCi";
 const RESOLUTION_TEXT = "E2E test: provedena nucena regenerace DPF a kontrola tlakoveho cidla.";
 
 // ── REST helpers (verify + cleanup) ────────────────────────────────────────────
 // We use the test user's own access token (not a service key) so verification and
-// cleanup go through RLS exactly as a real user would — the same pattern the backend
-// integration harness uses. This also means CI needs only the anon key + login creds.
+// cleanup go through RLS exactly as a real user would. A single request context is
+// shared across login/verify/cleanup. CI needs only the anon key + login creds.
+let apiCtx = null;
 let accessToken = null;
 
 async function login() {
-  const ctx = await pwRequest.newContext();
-  const res = await ctx.post(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+  const res = await apiCtx.post(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     headers: { apikey: ANON_KEY, "Content-Type": "application/json" },
     data: { email: EMAIL, password: PASSWORD },
   });
   if (!res.ok()) throw new Error(`Auth failed: HTTP ${res.status()}`);
-  const body = await res.json();
-  await ctx.dispose();
-  return body.access_token;
+  return (await res.json()).access_token;
 }
 
 function authHeaders() {
@@ -32,34 +32,51 @@ function authHeaders() {
 }
 
 async function caseRows(localId) {
-  const ctx = await pwRequest.newContext();
-  const res = await ctx.get(
+  const res = await apiCtx.get(
     `${SUPABASE_URL}/rest/v1/gearbrain_cases?local_id=eq.${encodeURIComponent(localId)}&select=id,status,local_id`,
     { headers: authHeaders() },
   );
-  const body = res.ok() ? await res.json() : [];
-  await ctx.dispose();
-  return body;
+  return res.ok() ? await res.json() : [];
 }
 
 async function deleteCase(localId) {
-  const ctx = await pwRequest.newContext();
-  await ctx.delete(
+  const res = await apiCtx.delete(
     `${SUPABASE_URL}/rest/v1/gearbrain_cases?local_id=eq.${encodeURIComponent(localId)}`,
     { headers: authHeaders() },
   );
-  await ctx.dispose();
+  // Surface cleanup failures loudly — a silent failure leaves orphan rows in the shared test DB.
+  if (!res.ok()) console.warn(`[e2e cleanup] failed to delete case ${localId}: HTTP ${res.status()}`);
 }
 
 test.beforeAll(async () => {
   const required = { TEST_SUPABASE_URL: SUPABASE_URL, TEST_SUPABASE_ANON_KEY: ANON_KEY, TEST_USER_EMAIL: EMAIL, TEST_USER_PASSWORD: PASSWORD };
   const missing = Object.entries(required).filter(([, v]) => !v).map(([k]) => k);
   if (missing.length) throw new Error(`Missing required env: ${missing.join(", ")}`);
+  apiCtx = await pwRequest.newContext();
   accessToken = await login();
+});
+
+test.afterAll(async () => {
+  if (apiCtx) await apiCtx.dispose();
 });
 
 test("core workflow: login -> new case -> diagnosis -> close/save -> DB verify -> cleanup", async ({ page }) => {
   let createdLocalId = null;
+
+  // Safety net: never let the app talk to a Supabase project other than the test one.
+  // A stale dev server reused on :5180 could point at prod (see playwright.config.js);
+  // aborting any cross-project request means the destructive close-case write can never
+  // hit production, and the assertion below turns it into a clear failure.
+  const expectedHost = new URL(SUPABASE_URL).host;
+  let wrongSupabaseHost = null;
+  await page.route(/supabase\.co/, (route) => {
+    const host = new URL(route.request().url()).host;
+    if (host !== expectedHost) {
+      wrongSupabaseHost = host;
+      return route.abort();
+    }
+    return route.continue();
+  });
 
   // Enable the canned AI stub before any app code runs (double-gated: dev build only).
   await page.addInitScript(() => {
@@ -90,14 +107,24 @@ test("core workflow: login -> new case -> diagnosis -> close/save -> DB verify -
     // 3. New case
     await page.getByTestId("new-case-btn").click();
     await page.getByTestId("vehicle-brand-select").selectOption("Ford");
-    await page.getByTestId("vehicle-model-select").selectOption(MODEL_LABEL);
 
-    // Select the "Ztrata vykonu" (loss of power) symptom. The engine accordion is open
-    // by default, but ensure it's expanded before clicking the chip.
+    // Pick the model by a stable substring: find its <option> value and select that,
+    // so a catalog re-format (dash/spacing/year) doesn't silently break the test.
+    const modelSelect = page.getByTestId("vehicle-model-select");
+    const modelOption = modelSelect.locator("option", { hasText: MODEL_MATCH });
+    await expect(modelOption, `catalog has a "${MODEL_MATCH}" model`).toHaveCount(1);
+    await modelSelect.selectOption(await modelOption.getAttribute("value"));
+
+    // Select the "Ztrata vykonu" (loss of power) symptom. Expand the engine category
+    // only if it's collapsed ("▶") — clicking a header toggles it, so branching on the
+    // real collapsed-state (not transient visibility) avoids closing the default-open one.
     const chip = page.getByTestId("symptom-chip-sym.lossOfPower");
-    if (!(await chip.isVisible())) {
-      await page.getByTestId("symptom-cat-sym.cat.engine").click();
+    const engineCat = page.getByTestId("symptom-cat-sym.cat.engine");
+    const catLabel = await engineCat.textContent();
+    if (catLabel && catLabel.includes("▶")) {
+      await engineCat.click();
     }
+    await expect(chip).toBeVisible();
     await chip.click();
 
     // 4. Run diagnosis (stubbed -> deterministic, no DeepSeek call)
@@ -110,16 +137,19 @@ test("core workflow: login -> new case -> diagnosis -> close/save -> DB verify -
     const confirm = page.getByTestId("confirm-close-btn");
     await expect(confirm).toBeEnabled();
 
+    // Guard: refuse to perform the write if the app ever reached the wrong project.
+    expect(wrongSupabaseHost, `app must use the test Supabase project (${expectedHost})`).toBeNull();
+
     const [pushResponse] = await Promise.all([
       page.waitForResponse((r) => r.request().method() === "POST" && r.url().includes("/functions/v1/push-case")),
       confirm.click(),
     ]);
     expect(pushResponse.status(), "push-case should return 200").toBe(200);
 
-    // 6. Verify the row reached the test DB
+    // 6. Verify exactly the row we created reached the test DB, as pending review
     expect(createdLocalId, "captured local_id from push-case request").toBeTruthy();
     const rows = await caseRows(createdLocalId);
-    expect(rows.length, "case row exists in gearbrain_cases").toBeGreaterThan(0);
+    expect(rows.length, "exactly one case row exists in gearbrain_cases").toBe(1);
     expect(rows[0].status, "new case is pending review").toBe("pending");
   } finally {
     // Cleanup — remove the row we created so the test DB stays clean and re-runnable.

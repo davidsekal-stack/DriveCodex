@@ -1,4 +1,8 @@
 const DEFAULT_SUPABASE_URL = "https://nmvjthfezyjcwuzphiuu.supabase.co";
+
+// The production project URL — exported so safety guards (e.g. the test-only AI stub)
+// can refuse to engage when the app is pointed at production.
+export const PROD_SUPABASE_URL = DEFAULT_SUPABASE_URL;
 const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tdmp0aGZlenlqY3d1enBoaXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MzcwNTAsImV4cCI6MjA4ODMxMzA1MH0.acMPCJe2asOToPXg6DQccejtLOUbD8EMx9Z9FqWo_xo";
 
 const VITE_ENV = typeof import.meta !== "undefined" && import.meta.env
