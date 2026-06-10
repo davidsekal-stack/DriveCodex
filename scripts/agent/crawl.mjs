@@ -212,8 +212,8 @@ export async function enumerateThreadUrls(forum, calibration, maxThreads, sleepM
  *
  * @param {object} opts
  * @param {number} [opts.sleepMs=600] - Delay between HTTP requests
- * @param {string} [opts.apiKey] - DeepSeek API key
- * @param {string} [opts.model] - DeepSeek model name
+ * @param {string} [opts.apiKey] - DeepSeek API key (only used for tasks
+ *   routed to DeepSeek — see llm.mjs)
  * @returns {object} Pipeline functions for orchestrator/calibration
  */
 export function createCrawlPipeline(opts = {}) {
@@ -252,7 +252,7 @@ export function createCrawlPipeline(opts = {}) {
     },
 
     /**
-     * Classify a thread — L2 DeepSeek classifier.
+     * Classify a thread — L2 routed-LLM classifier.
      */
     async classify(threadText) {
       if (sleepMs) await new Promise(r => setTimeout(r, sleepMs));
@@ -260,7 +260,7 @@ export function createCrawlPipeline(opts = {}) {
     },
 
     /**
-     * Extract cases from a classified thread — L3 DeepSeek extractor.
+     * Extract cases from a classified thread — L3 routed-LLM extractor.
      */
     async extract(threadText, classifierResult) {
       if (sleepMs) await new Promise(r => setTimeout(r, sleepMs));

@@ -120,6 +120,12 @@ CREATE TABLE IF NOT EXISTS agent_log (
   phase TEXT,
   message TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS agent_meta (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  updated_at TEXT DEFAULT (datetime('now'))
+);
 `;
 
 export class AgentState {
@@ -209,7 +215,7 @@ export class AgentState {
   }
 
   /**
-   * Store a Codex-written diary entry for a forum.
+   * Store an LLM-written diary entry for a forum.
    */
   setForumDiary(forumId, diaryMd) {
     const stmt = this.#db.prepare('UPDATE forums SET diary_md = ? WHERE id = ?');
@@ -493,6 +499,33 @@ export class AgentState {
       stopReason,
       runId,
     );
+  }
+
+  // ── Agent meta (agent-wide key/value: pause_until, last_success_at, …) ──
+
+  getMeta(key) {
+    // try/catch: read-only connections skip migrations, so the table may
+    // not exist yet on old databases opened with --stats
+    try {
+      const row = this.#db.prepare('SELECT value FROM agent_meta WHERE key = ?').get(key);
+      return row?.value ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  setMeta(key, value) {
+    this.#db.prepare(
+      `INSERT INTO agent_meta (key, value, updated_at)
+       VALUES (?, ?, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`
+    ).run(key, value);
+  }
+
+  deleteMeta(key) {
+    try {
+      this.#db.prepare('DELETE FROM agent_meta WHERE key = ?').run(key);
+    } catch { /* table may not exist on legacy DBs */ }
   }
 
   // ── Agent log ───────────────────────────────────────────

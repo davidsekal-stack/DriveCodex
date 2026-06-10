@@ -1,15 +1,16 @@
 /**
- * extract.mjs — L3 DeepSeek extractor for the autonomous crawl agent.
+ * extract.mjs — L3 case extractor for the autonomous crawl agent.
  *
- * Extracts resolved automotive diagnostic cases from classified forum threads.
+ * Extracts resolved automotive diagnostic cases from classified forum threads
+ * using the routed LLM (default: Claude Sonnet via the Claude Code CLI — see
+ * llm.mjs).
  *
  * Usage:
  *   import { extractCases } from './extract.mjs';
  */
 
-import { assertDeepSeekNotQuotaError } from './quota.mjs';
+import { runLlm } from './llm.mjs';
 
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const EXTRACTOR_MAX_TOKENS = 2600;
 const EXTRACTOR_TEMPERATURE = 0.2;
 
@@ -19,48 +20,6 @@ const KNOWN_BRANDS = [
   'Jeep', 'Kia', 'Mazda', 'Mercedes-Benz', 'Mitsubishi', 'Nissan', 'Opel',
   'Peugeot', 'Renault', 'Seat', 'Suzuki', 'Škoda', 'Toyota', 'Volkswagen', 'Volvo',
 ];
-
-// ---------------------------------------------------------------------------
-// DeepSeek API call
-// ---------------------------------------------------------------------------
-
-async function deepseekChat({ apiKey, model = 'deepseek-chat', prompt, maxTokens }) {
-  const maxRetries = 3;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const res = await fetch(DEEPSEEK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        temperature: EXTRACTOR_TEMPERATURE,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      return (data?.choices?.[0]?.message?.content ?? '').toString().trim();
-    }
-
-    const body = await res.text().catch(() => '');
-
-    assertDeepSeekNotQuotaError(res.status, body);
-
-    if ((res.status === 429 || res.status >= 500) && attempt < maxRetries) {
-      const wait = Math.min(2000 * Math.pow(2, attempt), 30_000);
-      console.log(`  DeepSeek ${res.status}, retry in ${wait}ms...`);
-      await new Promise(r => setTimeout(r, wait));
-      continue;
-    }
-
-    throw new Error(`DeepSeek API error (${res.status}): ${body.slice(0, 300)}`);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Extractor prompt
@@ -137,27 +96,23 @@ function parseExtractorResponse(raw) {
 // ---------------------------------------------------------------------------
 
 /**
- * Extract resolved cases from a classified forum thread.
+ * Extract resolved cases from a classified forum thread using the routed LLM.
  *
  * @param {string} threadText - Assembled thread text
  * @param {object} classifierResult - Result from classifyThread()
  * @param {object} [options]
- * @param {string} options.apiKey - DeepSeek API key
- * @param {string} [options.model] - Model name
+ * @param {string} [options.apiKey] - DeepSeek API key override (only used when
+ *   the extract task is routed to DeepSeek)
  * @returns {Promise<Array<object>>} - Array of extracted case objects
  */
 export async function extractCases(threadText, classifierResult, options = {}) {
-  const apiKey = options.apiKey || process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) throw new Error('DEEPSEEK_API_KEY not set');
-
   const evidencePosts = classifierResult?.evidence_post_numbers || [];
   const prompt = buildExtractorPrompt(threadText, evidencePosts);
 
-  const raw = await deepseekChat({
-    apiKey,
-    model: options.model || 'deepseek-chat',
-    prompt,
+  const raw = await runLlm('extract', prompt, {
     maxTokens: EXTRACTOR_MAX_TOKENS,
+    temperature: EXTRACTOR_TEMPERATURE,
+    apiKey: options.apiKey,
   });
 
   return parseExtractorResponse(raw);

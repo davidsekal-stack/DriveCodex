@@ -1,23 +1,20 @@
 /**
  * diary.mjs — Forum crawl diary writer.
  *
- * After each forum completes a crawl batch, Codex writes a structured
- * post-mortem diary entry. This diary is then injected as context into
- * Phase 0 prompts for future forums with similar characteristics,
- * enabling the agent to learn from past experience.
+ * After each forum completes a crawl batch, the routed LLM (default: Claude
+ * Haiku — see llm.mjs) writes a structured post-mortem diary entry. This
+ * diary is then injected as context into Phase 0 prompts for future forums
+ * with similar characteristics, enabling the agent to learn from past
+ * experience.
  */
 
-import { unlinkSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { randomBytes } from 'node:crypto';
-import { assertCodexNotQuotaError } from './quota.mjs';
-import { runCodexPrompt } from './codex-cli.mjs';
+import { runLlm } from './llm.mjs';
 
-const CODEX_TIMEOUT_MS = 90_000;
+const DIARY_TIMEOUT_MS = 90_000;
+const DIARY_MAX_TOKENS = 800;
 
 /**
- * Build the prompt asking Codex to write a forum diary entry.
+ * Build the prompt asking the LLM to write a forum diary entry.
  */
 function buildDiaryPrompt(forum, stats, discardSample) {
   const calibration = (() => {
@@ -71,21 +68,21 @@ Output ONLY the markdown diary entry, no other text.`;
 }
 
 /**
- * Run Codex to write a diary entry, store it in state.
- * Non-fatal: if Codex fails, logs a warning but does not throw.
+ * Run the routed LLM to write a diary entry, store it in state.
+ * Non-fatal: if the LLM fails, logs a warning but does not throw.
  */
 export async function writeDiary(state, forum, stats, discardSample = []) {
   const prompt = buildDiaryPrompt(forum, stats, discardSample);
-  const outFile = join(tmpdir(), `diary_${randomBytes(6).toString('hex')}.txt`);
 
   let diary = null;
   try {
-    const raw = await runCodex(prompt, outFile);
-    assertCodexNotQuotaError(raw); // propagates QuotaError up to orchestrator
-    diary = raw.trim();
+    const raw = await runLlm('diary', prompt, {
+      timeoutMs: DIARY_TIMEOUT_MS,
+      maxTokens: DIARY_MAX_TOKENS,
+    });
+    diary = (raw || '').trim();
   } catch (err) {
     // Re-throw quota errors — everything else is non-fatal
-    assertCodexNotQuotaError(err.output || err.message || '');
     if (err.name === 'QuotaError') throw err;
     console.warn(`  ⚠ Diary write failed for ${forum.name || forum.url}: ${err.message}`);
     return null;
@@ -111,20 +108,4 @@ export function buildDiaryContext(state, { parser, language }) {
   ).join('\n\n---\n\n');
 
   return `\n\n## Lessons from previously crawled similar forums\n${lines}\n`;
-}
-
-// ---------------------------------------------------------------------------
-// Internal: run Codex CLI
-// ---------------------------------------------------------------------------
-
-async function runCodex(prompt, outFile) {
-  try {
-    return await runCodexPrompt(prompt, {
-      outFile,
-      timeoutMs: CODEX_TIMEOUT_MS,
-      sandbox: 'read-only',
-    });
-  } finally {
-    try { unlinkSync(outFile); } catch {}
-  }
 }

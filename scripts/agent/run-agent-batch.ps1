@@ -85,6 +85,97 @@ try {
 
   Set-Location $repoRoot
 
+  # ── Step 0: usage-limit pause gate + stall alarm ──
+  # The orchestrator writes pause-until.txt when an AI usage limit is hit
+  # (subscription limits reset on their own) and last-success.txt after every
+  # clean run. While paused, scheduled runs are ~free no-ops. If the agent has
+  # not succeeded for >24h beyond any legitimate pause — or >9 days no matter
+  # what, since renewing hourly pauses must not suppress the alarm forever —
+  # drop a plain-language marker file on the owner's Desktop; remove it once
+  # runs succeed again.
+  $pauseFile = Join-Path $agentDir 'pause-until.txt'
+  $lastSuccessFile = Join-Path $agentDir 'last-success.txt'
+  $firstRunFile = Join-Path $agentDir 'first-run.txt'
+  # Empty when the profile/known folder is unavailable (e.g. S4U logon) —
+  # the alarm is then disabled, but it must never abort the main job
+  $desktopDir = [Environment]::GetFolderPath('Desktop')
+  $stallMarker = $null
+  if ($desktopDir) {
+    $stallMarker = Join-Path $desktopDir 'DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt'
+  }
+
+  $pauseUntil = $null
+  if (Test-Path $pauseFile) {
+    $pauseRaw = Get-Content $pauseFile -TotalCount 1
+    $parsedPause = [datetimeoffset]::MinValue
+    if ($pauseRaw -and [datetimeoffset]::TryParse($pauseRaw.Trim(), [ref]$parsedPause)) {
+      $pauseUntil = $parsedPause
+    }
+  }
+
+  # Stall anchor: last clean run, or first time this wrapper ever ran (so a
+  # deployment that has NEVER succeeded still raises the alarm eventually)
+  $anchorRaw = $null
+  if (Test-Path $lastSuccessFile) {
+    $anchorRaw = Get-Content $lastSuccessFile -TotalCount 1
+  }
+  if (-not $anchorRaw) {
+    if (Test-Path $firstRunFile) {
+      $anchorRaw = Get-Content $firstRunFile -TotalCount 1
+    } else {
+      $anchorRaw = [datetimeoffset]::UtcNow.ToString('o')
+      try { Set-Content -Path $firstRunFile -Value $anchorRaw -Encoding utf8 } catch { }
+    }
+  }
+
+  if ($stallMarker -and $anchorRaw) {
+    $anchorRaw = $anchorRaw.Trim()
+    $anchorTime = [datetimeoffset]::MinValue
+    if ([datetimeoffset]::TryParse($anchorRaw, [ref]$anchorTime)) {
+      $hoursSinceSuccess = ([datetimeoffset]::UtcNow - $anchorTime.ToUniversalTime()).TotalHours
+      $pastPauseGrace = $true
+      if ($pauseUntil) {
+        $pastPauseGrace = [datetimeoffset]::UtcNow -gt $pauseUntil.ToUniversalTime().AddHours(6)
+      }
+      # Hard ceiling: a single legitimate pause is clamped to 8 days in the
+      # orchestrator, so >9 days without success is a stall even if fresh
+      # pause files keep appearing (e.g. drained DeepSeek balance every hour).
+      if ((($hoursSinceSuccess -gt 24) -and $pastPauseGrace) -or ($hoursSinceSuccess -gt 216)) {
+        if (-not (Test-Path $stallMarker)) {
+          $markerText = @"
+DriveCodex crawler se zastavil a nepodarilo se mu obnovit provoz.
+
+Posledni uspesny beh: $anchorRaw
+Zkontrolovano: $((Get-Date).ToString('yyyy-MM-dd HH:mm'))
+
+Co s tim:
+  1. Otevrete Claude Code v projektu C:\GB
+  2. Napiste: "zkontroluj crawler"
+
+Tento soubor zmizi sam, jakmile crawler zase pobezi.
+(Vytvoril: scripts\agent\run-agent-batch.ps1)
+"@
+          try {
+            Set-Content -Path $stallMarker -Value $markerText -Encoding utf8
+            Write-LogLine -Path $logPath -Message ("ALARM: stalled since {0}; desktop marker created." -f $anchorRaw)
+          } catch {
+            Write-LogLine -Path $logPath -Message ("WARN: could not write desktop marker ({0})." -f $_.Exception.Message)
+          }
+        }
+      } elseif ($hoursSinceSuccess -le 24) {
+        if (Test-Path $stallMarker) {
+          Remove-Item $stallMarker -Force -ErrorAction SilentlyContinue
+          Write-LogLine -Path $logPath -Message "Recovered: desktop stall marker removed."
+        }
+      }
+    }
+  }
+
+  if ($pauseUntil -and ([datetimeoffset]::UtcNow -lt $pauseUntil.ToUniversalTime())) {
+    Write-LogLine -Path $logPath -Message ("Skip: paused until {0} (AI usage limit)." -f $pauseUntil.ToString('u'))
+    exit 0
+  }
+
   # ── Step 1: refresh the cross-source "already-extracted" index from the DB (NON-FATAL) ──
   # Keeps crawled-index.json current so the orchestrator skips anything already extracted
   # (by this agent, the legacy forum-seed scripts, or NHTSA) since the last batch.

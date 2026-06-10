@@ -2,7 +2,7 @@
  * validate.mjs — L4 deterministic gates for the autonomous crawl agent.
  *
  * Pure validation logic: no API calls, no side effects.
- * Checks extracted case completeness and quality before Codex verification.
+ * Checks extracted case completeness and quality before independent AI verification.
  *
  * Usage:
  *   import { validateCase, isCompleteRecord } from './validate.mjs';

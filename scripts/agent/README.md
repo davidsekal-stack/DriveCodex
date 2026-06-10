@@ -1,6 +1,6 @@
 # Autonomous Crawl Agent Notes
 
-Reviewed: 2026-04-09
+Reviewed: 2026-06-10 (Claude-first LLM routing + usage-limit pause/resume)
 
 ## What This Folder Is
 
@@ -13,7 +13,7 @@ The idea is not "scrape everything and trust the parser". The design is:
 3. crawl only threads that look promising
 4. extract structured cases
 5. reject weak cases with deterministic gates
-6. run an independent Codex audit
+6. run an independent AI audit (different vendor than the extractor)
 7. dedupe against Supabase
 8. import only the survivors
 
@@ -57,8 +57,8 @@ Before crawling at scale, the agent asks:
 
 Calibration has two sub-parts:
 
-1. Structure discovery with Codex
-   - fetch root page
+1. Structure discovery with the routed LLM (the script fetches the root page
+   itself and embeds the HTML in the prompt)
    - qualify/disqualify the forum
    - detect engine type
    - identify the best technical section URLs
@@ -77,7 +77,7 @@ Thresholds are explicitly encoded:
 - classifier pass >= 10%
 - extractor yield >= 5%
 
-If the probe is weak, Codex is asked to diagnose failures and suggest better calibration JSON.
+If the probe is weak, the LLM is asked to diagnose failures and suggest better calibration JSON.
 
 If calibration still fails after 3 attempts, the forum is marked `calibration_failed`.
 
@@ -91,8 +91,8 @@ The crawl pipeline is:
 2. skip threads already processed
 3. fetch thread pages, including pagination
 4. parse posts into a normalized thread text format
-5. classify thread relevance with DeepSeek
-6. extract one or more candidate cases with DeepSeek
+5. classify thread relevance (routed LLM, default Claude Haiku)
+6. extract one or more candidate cases (routed LLM, default Claude Sonnet)
 7. run deterministic validation on each case
 8. store valid cases in SQLite
 
@@ -123,9 +123,11 @@ This file is important because it turns the system from "LLM extraction" into "L
 
 Core file: [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs)
 
-After deterministic validation, Codex performs an independent audit against the original thread text and must return exactly `PASS` or `FAIL: reason`.
+After deterministic validation, an independent AI auditor (default: DeepSeek —
+deliberately a different vendor than the Claude-based extractor) re-reads the
+original thread text and must return exactly `PASS` or `FAIL: reason`.
 
-This is a second opinion layer, separate from the DeepSeek extraction path.
+This is a second opinion layer, separate from the extraction path.
 
 ### Phase 6: Crosscheck
 
@@ -145,22 +147,54 @@ Runtime credentials are intentionally not stored in code. Crosscheck requires `S
 
 ## Where AI Is Used
 
-There are two separate AI roles:
+Every AI call goes through the router in [`llm.mjs`](/C:/GB/scripts/agent/llm.mjs).
+Default routing (override per task via `AGENT_LLM_<TASK>=provider:model`):
 
-- DeepSeek
-  - thread classification in [`classify.mjs`](/C:/GB/scripts/agent/classify.mjs)
-  - case extraction in [`extract.mjs`](/C:/GB/scripts/agent/extract.mjs)
-- Codex
-  - forum structure discovery in [`calibrate.mjs`](/C:/GB/scripts/agent/calibrate.mjs)
-  - calibration diagnosis in [`calibrate.mjs`](/C:/GB/scripts/agent/calibrate.mjs)
-  - case verification in [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs)
-  - post-crawl diary writing in [`diary.mjs`](/C:/GB/scripts/agent/diary.mjs)
+| Task | Default route | Module | Why |
+|---|---|---|---|
+| classify | `claude:haiku` | [`classify.mjs`](/C:/GB/scripts/agent/classify.mjs) | high volume → cheapest subscription model |
+| extract | `claude:sonnet` | [`extract.mjs`](/C:/GB/scripts/agent/extract.mjs) | ~18 % of threads, quality matters |
+| verify | `deepseek:deepseek-chat` | [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs) | tiny volume; independent second AI from a different vendor |
+| calibrate | `claude:sonnet` | [`calibrate.mjs`](/C:/GB/scripts/agent/calibrate.mjs) | rare, needs good HTML reasoning |
+| diary | `claude:haiku` | [`diary.mjs`](/C:/GB/scripts/agent/diary.mjs) | short free-form summaries |
 
-The design intent is clear:
+Providers:
 
-- DeepSeek does the first-pass semantic work
+- `claude` — the Claude Code CLI in headless print mode
+  ([`claude-cli.mjs`](/C:/GB/scripts/agent/claude-cli.mjs)). Auth = the owner's
+  Claude subscription: run `claude` once in a plain terminal and log in.
+  No API key, billed against the subscription's usage windows.
+- `deepseek` — HTTP API, needs `DEEPSEEK_API_KEY`.
+
+The design intent:
+
+- cheap Claude models do the first-pass semantic work in volume
 - deterministic code does strict rule enforcement
-- Codex does higher-trust meta-review and adaptation
+- the verifier stays on a *different vendor* than the extractor on purpose —
+  an independent second opinion has independent blind spots (it caught real
+  extractor over-leniency in practice; keep it cross-vendor)
+
+## Usage Limits = Pause, Not Death
+
+Historical failure: in April 2026 the Codex CLI hit its subscription limit and
+the agent stayed silently dead for 7 weeks (runs "succeeded" with exit 0 every
+5 minutes). The current design treats limits as a self-healing pause:
+
+1. A `QuotaError` (from either provider) makes the orchestrator persist
+   `pause_until` + `pause_reason` into the `agent_meta` table and write
+   `pause-until.txt` next to `agent.db`. Claude limit messages are parsed for
+   the reset time; unknown reset → retry in 1 hour. Exit code is 75.
+2. [`run-agent-batch.ps1`](/C:/GB/scripts/agent/run-agent-batch.ps1) checks
+   `pause-until.txt` first and exits in milliseconds while paused — scheduled
+   runs keep firing but cost nothing.
+3. The first run after the window passes resumes automatically; a clean run
+   clears the pause and refreshes the `last-success.txt` heartbeat.
+4. If the agent has not succeeded for >24 h beyond any legitimate pause — or
+   >9 days no matter what (renewing hourly pauses must not suppress the alarm
+   forever) — the wrapper drops `DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt` on
+   the Desktop with plain-language instructions, and removes it once runs
+   succeed again. Fresh installs that have never succeeded are anchored by
+   `first-run.txt`, so a never-working deployment alarms too.
 
 ## Parser Layer
 
@@ -287,7 +321,7 @@ powershell -ExecutionPolicy Bypass -File C:\GB\scripts\agent\run-agent-batch.ps1
 
 Important operational note:
 
-- the scheduled task is registered with `Interactive` logon for the current user, which is the safest mode for reusing the same user-level environment, Codex auth, and API keys
+- the scheduled task is registered with `Interactive` logon for the current user, which is the safest mode for reusing the same user-level environment, the Claude CLI login, and API keys
 - if the machine is logged out, the task will not keep running until that user logs back in
 
 ## What Looks Real vs What Looks Planned
@@ -296,8 +330,8 @@ Verified from code:
 
 - SQLite-backed state and resumability are real
 - staged pipeline structure is real
-- DeepSeek classification/extraction hooks are real
-- Codex verification/calibration hooks are real
+- LLM-routed classification/extraction hooks are real (Claude CLI by default)
+- independent verification and LLM calibration hooks are real
 - cooldown and forum exhaustion logic are real
 - parser support for multiple forum engines is real
 
@@ -316,9 +350,9 @@ My concise understanding is:
 This folder implements an autonomous forum-ingestion agent whose main job is to transform messy automotive discussion threads into high-confidence structured repair cases by combining:
 
 - parser heuristics
-- DeepSeek semantic filtering/extraction
+- LLM semantic filtering/extraction (Claude, cheap models in volume)
 - deterministic validation
-- Codex review/adaptation
+- independent cross-vendor AI review/adaptation
 - SQLite persistence
 - Supabase import
 

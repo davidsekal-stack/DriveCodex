@@ -176,10 +176,24 @@ try {
   assert.equal(activeForum?.status, 'active');
   assert.equal(activeForum?.calibration_status, 'calibrated');
 
+  // ── agent_meta key/value store (usage-limit pause + heartbeat) ──
+  assert.equal(state.getMeta('pause_until'), null);
+  state.setMeta('pause_until', '2099-01-01T00:00:00.000Z');
+  state.setMeta('pause_reason', 'Claude quota exhausted');
+  assert.equal(state.getMeta('pause_until'), '2099-01-01T00:00:00.000Z');
+  state.setMeta('pause_until', '2099-02-02T00:00:00.000Z'); // upsert overwrites
+  assert.equal(state.getMeta('pause_until'), '2099-02-02T00:00:00.000Z');
+  state.deleteMeta('pause_until');
+  assert.equal(state.getMeta('pause_until'), null);
+  assert.equal(state.getMeta('pause_reason'), 'Claude quota exhausted');
+
   state.close();
 
   const readOnlyState = new AgentState(dbPath, { readOnly: true });
   assert.equal(readOnlyState.getStats().forums >= 3, true);
+  // Read-only connections must tolerate meta reads (and legacy DBs without the table)
+  assert.equal(readOnlyState.getMeta('pause_reason'), 'Claude quota exhausted');
+  assert.equal(readOnlyState.getMeta('nonexistent-key'), null);
   readOnlyState.close();
 } finally {
   try {
