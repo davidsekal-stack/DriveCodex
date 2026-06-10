@@ -3,13 +3,13 @@
  *
  * When the agent discovers a new forum, it must calibrate before full crawl.
  * This module:
- *   0. DISCOVER STRUCTURE — fetch root page, send HTML to Codex to identify
- *      technical subforum URLs (faults/defects/technical corner), auto-detect
- *      forum type, and set sections_json
+ *   0. DISCOVER STRUCTURE — fetch root page, send HTML to the routed LLM to
+ *      identify technical subforum URLs (faults/defects/technical corner),
+ *      auto-detect forum type, and set sections_json
  *   1. Picks a small sample of threads (PROBE_SIZE) from discovered sections
  *   2. Runs them through parser → classifier → extractor → validation
  *   3. Computes quality metrics
- *   4. If metrics are below thresholds, calls Codex to diagnose & adapt
+ *   4. If metrics are below thresholds, asks the LLM to diagnose & adapt
  *   5. Stores per-forum calibration config in forums.calibration_json
  *   6. Re-probes with adapted config
  *   7. After MAX_ATTEMPTS fails → marks forum as 'calibration_failed'
@@ -19,18 +19,14 @@
  *   const result = await calibrateForum(state, forumId, pipeline);
  */
 
-import { unlink } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
-import { assertCodexNotQuotaError } from './quota.mjs';
 import { buildDiaryContext } from './diary.mjs';
-import { runCodexPrompt } from './codex-cli.mjs';
+import { runLlm } from './llm.mjs';
+import { isStoppingError } from './quota.mjs';
 import { fetchHtml } from './fetch-utils.mjs';
 
 const PROBE_SIZE = 5;
 const MAX_ATTEMPTS = 3;
-const CODEX_CALIBRATION_TIMEOUT_MS = 600_000;
+const CALIBRATION_LLM_TIMEOUT_MS = 180_000;
 const TRANSIENT_CALIBRATION_BACKOFF_HOURS = 6;
 
 // Minimum thresholds for a forum to be considered calibrated
@@ -106,29 +102,24 @@ function deferCalibration(state, forumId, currentCalibration, attempts, reason) 
 }
 
 // ---------------------------------------------------------------------------
-// Codex diagnosis — asks Codex to analyze why parsing/extraction failed
+// LLM diagnosis — asks the routed LLM to analyze why parsing/extraction failed
 // ---------------------------------------------------------------------------
 
-async function diagnoseWithCodex(forum, probeResult, metrics, currentCalibration) {
+async function diagnoseCalibration(forum, probeResult, metrics, currentCalibration) {
   const prompt = buildDiagnosisPrompt(forum, probeResult, metrics, currentCalibration);
-  const outFile = join(tmpdir(), `calibrate-diag-out-${randomUUID()}.txt`);
 
   try {
-    const output = await runCodexPrompt(prompt, {
-      outFile,
-      timeoutMs: CODEX_CALIBRATION_TIMEOUT_MS,
+    const output = await runLlm('calibrate', prompt, {
+      timeoutMs: CALIBRATION_LLM_TIMEOUT_MS,
+      maxTokens: 1500,
     });
-    assertCodexNotQuotaError(output);
     return parseCalibrationResponse(output);
   } catch (err) {
-    // QuotaError propagates up — do not swallow it
-    assertCodexNotQuotaError(err.output || err.message || '');
-    if (err.name === 'QuotaError') throw err;
+    // Quota/auth stop the agent — never swallow or misclassify as transient
+    if (isStoppingError(err)) throw err;
     if (isTransientCrawlerError(err)) throw err;
-    console.error(`  Codex diagnosis failed: ${err.message}`);
+    console.error(`  Calibration diagnosis failed: ${err.message}`);
     return null;
-  } finally {
-    await unlink(outFile).catch(() => {});
   }
 }
 
@@ -168,8 +159,8 @@ ${discardSamples || '  (none)'}
 HTML SAMPLES FROM FAILED PARSES:
 ${htmlSamples || '  (none available)'}
 
-You may fetch the forum URL or run code to inspect the live HTML if it helps you identify the correct selectors.
-But your FINAL output MUST be a single JSON object and nothing else after it.
+Base your analysis ONLY on the probe results and HTML samples above — you cannot fetch anything.
+Your FINAL output MUST be a single JSON object and nothing else after it.
 Do NOT end with a table, markdown list, or plain text summary.
 
 Based on the above, provide a JSON calibration config to improve parsing for this forum.
@@ -205,7 +196,7 @@ function parseJsonObjectResponse(output) {
     } catch { /* fall through */ }
   }
 
-  // Find the LAST complete JSON object in response (Codex often reasons first, then outputs JSON)
+  // Find the LAST complete JSON object in response (models often reason first, then output JSON)
   // Walk backwards from the end to find the last }...{ pair
   let depth = 0;
   let end = -1;
@@ -247,7 +238,7 @@ export function parseStructureDiscoveryResponse(output) {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 0: Structure discovery — Codex explores forum root to find sections
+// Phase 0: Structure discovery — LLM analyzes forum root to find sections
 // ---------------------------------------------------------------------------
 
 async function fetchPage(url) {
@@ -255,7 +246,7 @@ async function fetchPage(url) {
 }
 
 /**
- * Discover forum structure: fetch root page, send to Codex to:
+ * Discover forum structure: fetch root page, send to the routed LLM to:
  *   1. QUALIFY — is this forum worth crawling at all?
  *   2. IDENTIFY — find technical subforum URLs
  *   3. DETECT — forum type + initial parser hints
@@ -360,26 +351,20 @@ CRITICAL: Your final output MUST be a single JSON object. You may analyse the HT
 but the LAST thing you output must be the JSON object and nothing else after it.
 Do NOT output tables, markdown lists, or plain text as your final answer.`;
 
-  const outFile = join(tmpdir(), `calibrate-struct-out-${randomUUID()}.txt`);
-
   try {
-    const output = await runCodexPrompt(prompt, {
-      outFile,
-      timeoutMs: CODEX_CALIBRATION_TIMEOUT_MS,
+    const output = await runLlm('calibrate', prompt, {
+      timeoutMs: CALIBRATION_LLM_TIMEOUT_MS,
+      maxTokens: 2000,
     });
-    assertCodexNotQuotaError(output);
     return parseStructureDiscoveryResponse(output);
   } catch (err) {
-    assertCodexNotQuotaError(err.output || err.message || '');
-    if (err.name === 'QuotaError') throw err;
+    if (isStoppingError(err)) throw err;
     if (isTransientCrawlerError(err)) {
       console.error(`  Structure discovery failed transiently: ${err.message}`);
       return { transient_failure: transientReason('Structure discovery failed', err) };
     }
     console.error(`  Structure discovery failed: ${err.message}`);
     return null;
-  } finally {
-    await unlink(outFile).catch(() => {});
   }
 }
 
@@ -404,7 +389,7 @@ async function ensureSections(state, forumId, forum) {
 
   // Check qualification
   if (result && result.qualified === false) {
-    const reason = result.qualification_reason || 'Codex disqualified this forum';
+    const reason = result.qualification_reason || 'LLM disqualified this forum';
     console.log(`  ✗ Forum DISQUALIFIED: ${reason}`);
     console.log(`    Activity: ${result.activity_level || '?'}, Requires login: ${result.requires_login ?? '?'}, Est. threads: ${result.estimated_thread_count ?? '?'}`);
     state.updateForum(forumId, {
@@ -530,23 +515,23 @@ export async function calibrateForum(state, forumId, pipeline) {
       return { success: true, metrics, attempts: attempt };
     }
 
-    // 3. Diagnose failures with Codex
+    // 3. Diagnose failures with the LLM
     if (attempt < MAX_ATTEMPTS) {
-      console.log(`  Metrics below thresholds, asking Codex to diagnose...`);
+      console.log(`  Metrics below thresholds, asking the LLM to diagnose...`);
       let newCalibration;
       try {
-        newCalibration = await diagnoseWithCodex(forum, probeResult, metrics, currentCalibration);
+        newCalibration = await diagnoseCalibration(forum, probeResult, metrics, currentCalibration);
       } catch (err) {
         if (!isTransientCrawlerError(err)) throw err;
-        const reason = transientReason('Codex diagnosis failed', err);
+        const reason = transientReason('Calibration diagnosis failed', err);
         deferCalibration(state, forumId, currentCalibration, attempt, reason);
         return { success: false, metrics, attempts: attempt, transient: true, reason };
       }
       if (newCalibration) {
-        console.log(`  Codex suggested: ${newCalibration.notes || '(no notes)'}`);
+        console.log(`  LLM suggested: ${newCalibration.notes || '(no notes)'}`);
         currentCalibration = { ...currentCalibration, ...newCalibration };
       } else {
-        console.log(`  Codex returned no actionable config.`);
+        console.log(`  LLM returned no actionable config.`);
       }
     }
 
@@ -627,6 +612,8 @@ async function runProbe(forum, calibration, pipeline) {
     try {
       classResult = await pipeline.classify(parseResult.threadText);
     } catch (err) {
+      // A quota/auth outage must stop the agent, not burn calibration attempts
+      if (isStoppingError(err)) throw err;
       result.sample_discards.push(`classify failed (${url}): ${err.message}`);
       continue;
     }
@@ -645,6 +632,7 @@ async function runProbe(forum, calibration, pipeline) {
     try {
       cases = await pipeline.extract(parseResult.threadText, classResult);
     } catch (err) {
+      if (isStoppingError(err)) throw err;
       result.sample_discards.push(`extract failed (${url}): ${err.message}`);
       continue;
     }

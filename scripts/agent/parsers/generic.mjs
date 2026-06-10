@@ -2,7 +2,7 @@
  * generic.mjs — Fallback parser using calibration CSS selector hints.
  *
  * When no specific forum software is detected, this parser uses
- * calibration config (from Codex diagnosis) to extract posts.
+ * calibration config (from LLM diagnosis) to extract posts.
  * If no calibration exists, it falls back to simple heuristic extraction.
  */
 

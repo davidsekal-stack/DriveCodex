@@ -1,68 +1,26 @@
 /**
- * classify.mjs — L2 DeepSeek classifier for the autonomous crawl agent.
+ * classify.mjs — L2 thread classifier for the autonomous crawl agent.
  *
- * Calls DeepSeek API to determine if a forum thread contains at least one
- * extractable resolved automotive diagnostic case.
+ * Asks the routed LLM (default: Claude Haiku via the Claude Code CLI — see
+ * llm.mjs) whether a forum thread contains at least one extractable resolved
+ * automotive diagnostic case.
  *
  * Usage:
  *   import { classifyThread, isClassifierApproved } from './classify.mjs';
  */
 
-import { assertDeepSeekNotQuotaError } from './quota.mjs';
+import { runLlm } from './llm.mjs';
 
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const CLASSIFIER_MAX_TOKENS = 900;
 const CLASSIFIER_TEMPERATURE = 0.2;
-
-// ---------------------------------------------------------------------------
-// DeepSeek API call
-// ---------------------------------------------------------------------------
-
-async function deepseekChat({ apiKey, model = 'deepseek-chat', prompt, maxTokens }) {
-  const maxRetries = 3;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const res = await fetch(DEEPSEEK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        temperature: CLASSIFIER_TEMPERATURE,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      return (data?.choices?.[0]?.message?.content ?? '').toString().trim();
-    }
-
-    // Retry on rate limit or server errors
-    const body = await res.text().catch(() => '');
-
-    // Check for quota/billing exhaustion BEFORE retry — these are permanent, not transient
-    assertDeepSeekNotQuotaError(res.status, body);
-
-    if ((res.status === 429 || res.status >= 500) && attempt < maxRetries) {
-      const wait = Math.min(2000 * Math.pow(2, attempt), 30_000);
-      console.log(`  DeepSeek ${res.status}, retry in ${wait}ms...`);
-      await new Promise(r => setTimeout(r, wait));
-      continue;
-    }
-
-    throw new Error(`DeepSeek API error (${res.status}): ${body.slice(0, 300)}`);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Classifier prompt
 // ---------------------------------------------------------------------------
 
-// DeepSeek context is ~64K tokens ≈ ~200K chars. Leave room for prompt template + output.
+// Keep thread text within the smallest routed model's context (~64K tokens
+// ≈ ~200K chars for deepseek-chat; Claude models allow more). Leave room for
+// the prompt template + output.
 const MAX_THREAD_TEXT_CHARS = 150_000;
 
 function buildClassifierPrompt(threadText) {
@@ -144,24 +102,20 @@ export function isClassifierApproved(result) {
 // ---------------------------------------------------------------------------
 
 /**
- * Classify a forum thread using DeepSeek.
+ * Classify a forum thread using the routed LLM (see llm.mjs).
  *
  * @param {string} threadText - Assembled thread text (POST 1 | ... format)
  * @param {object} [options]
- * @param {string} options.apiKey - DeepSeek API key (default: env DEEPSEEK_API_KEY)
- * @param {string} [options.model] - Model name (default: deepseek-chat)
+ * @param {string} [options.apiKey] - DeepSeek API key override (only used when
+ *   the classify task is routed to DeepSeek)
  * @returns {Promise<{ approved: boolean, result: object, reason: string }>}
  */
 export async function classifyThread(threadText, options = {}) {
-  const apiKey = options.apiKey || process.env.DEEPSEEK_API_KEY;
-  if (!apiKey) throw new Error('DEEPSEEK_API_KEY not set');
-
   const prompt = buildClassifierPrompt(threadText);
-  const raw = await deepseekChat({
-    apiKey,
-    model: options.model || 'deepseek-chat',
-    prompt,
+  const raw = await runLlm('classify', prompt, {
     maxTokens: CLASSIFIER_MAX_TOKENS,
+    temperature: CLASSIFIER_TEMPERATURE,
+    apiKey: options.apiKey,
   });
 
   const result = parseClassifierResponse(raw);

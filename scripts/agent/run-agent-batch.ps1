@@ -60,6 +60,21 @@ function Write-LogLine {
   Add-Content -Path $Path -Value ("[{0}] {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message)
 }
 
+# Read the first line of a state file, returning $null on any problem (missing,
+# empty, or a TOCTOU delete/rewrite by a concurrent orchestrator). Never throws,
+# so $ErrorActionPreference='Stop' cannot abort the run on a transient read.
+function Read-FirstLineSafe {
+  param([string]$Path)
+  try {
+    if (-not (Test-Path $Path)) { return $null }
+    $line = Get-Content $Path -TotalCount 1 -ErrorAction Stop
+    if ($line) { return $line.Trim() }
+    return $null
+  } catch {
+    return $null
+  }
+}
+
 $repoRoot = Resolve-RepoRoot
 $agentDir = (Resolve-Path $PSScriptRoot).Path
 $nodeExe = Resolve-NodeExe -RequestedNodePath $NodePath -RepoRoot $repoRoot
@@ -84,6 +99,95 @@ try {
   }
 
   Set-Location $repoRoot
+
+  # ── Step 0: usage-limit pause gate + stall alarm ──
+  # The orchestrator writes pause-until.txt when an AI usage limit is hit
+  # (subscription limits reset on their own) and last-success.txt after every
+  # clean full run. While paused, scheduled runs are ~free no-ops. The Desktop
+  # marker is dropped when the last clean run was >24h ago AND it is >6h past
+  # any promised reset, or unconditionally after >9 days (renewing hourly
+  # pauses must not suppress the alarm forever); it is removed once runs
+  # succeed again.
+  $pauseFile = Join-Path $agentDir 'pause-until.txt'
+  $lastSuccessFile = Join-Path $agentDir 'last-success.txt'
+  $firstRunFile = Join-Path $agentDir 'first-run.txt'
+  # Empty when the profile/known folder is unavailable (e.g. S4U logon) —
+  # the alarm is then disabled, but it must never abort the main job
+  $desktopDir = [Environment]::GetFolderPath('Desktop')
+  $stallMarker = $null
+  if ($desktopDir) {
+    $stallMarker = Join-Path $desktopDir 'DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt'
+  }
+
+  $pauseUntil = $null
+  $pauseRaw = Read-FirstLineSafe -Path $pauseFile
+  if ($pauseRaw) {
+    $parsedPause = [datetimeoffset]::MinValue
+    if ([datetimeoffset]::TryParse($pauseRaw, [ref]$parsedPause)) {
+      $pauseUntil = $parsedPause
+    }
+  }
+
+  # Stall anchor: last clean run, or first time this wrapper ever ran (so a
+  # deployment that has NEVER succeeded still raises the alarm eventually).
+  # Treat an unreadable/empty first-run.txt the same as missing — rewrite it —
+  # so a 0-byte file (e.g. an interrupted earlier write) can't permanently
+  # disable the never-succeeded alarm.
+  $anchorRaw = Read-FirstLineSafe -Path $lastSuccessFile
+  if (-not $anchorRaw) {
+    $anchorRaw = Read-FirstLineSafe -Path $firstRunFile
+    if (-not $anchorRaw) {
+      $anchorRaw = [datetimeoffset]::UtcNow.ToString('o')
+      try { Set-Content -Path $firstRunFile -Value $anchorRaw -Encoding utf8 } catch { }
+    }
+  }
+
+  if ($stallMarker -and $anchorRaw) {
+    $anchorTime = [datetimeoffset]::MinValue
+    if ([datetimeoffset]::TryParse($anchorRaw, [ref]$anchorTime)) {
+      $hoursSinceSuccess = ([datetimeoffset]::UtcNow - $anchorTime.ToUniversalTime()).TotalHours
+      $pastPauseGrace = $true
+      if ($pauseUntil) {
+        $pastPauseGrace = [datetimeoffset]::UtcNow -gt $pauseUntil.ToUniversalTime().AddHours(6)
+      }
+      # Hard ceiling: a single legitimate pause is clamped to 8 days in the
+      # orchestrator, so >9 days without success is a stall even if fresh
+      # pause files keep appearing (e.g. drained DeepSeek balance every hour).
+      if ((($hoursSinceSuccess -gt 24) -and $pastPauseGrace) -or ($hoursSinceSuccess -gt 216)) {
+        if (-not (Test-Path $stallMarker)) {
+          $markerText = @"
+DriveCodex crawler se zastavil a nepodarilo se mu obnovit provoz.
+
+Posledni uspesny beh: $anchorRaw
+Zkontrolovano: $((Get-Date).ToString('yyyy-MM-dd HH:mm'))
+
+Co s tim:
+  1. Otevrete Claude Code v projektu C:\GB
+  2. Napiste: "zkontroluj crawler"
+
+Tento soubor zmizi sam, jakmile crawler zase pobezi.
+(Vytvoril: scripts\agent\run-agent-batch.ps1)
+"@
+          try {
+            Set-Content -Path $stallMarker -Value $markerText -Encoding utf8
+            Write-LogLine -Path $logPath -Message ("ALARM: stalled since {0}; desktop marker created." -f $anchorRaw)
+          } catch {
+            Write-LogLine -Path $logPath -Message ("WARN: could not write desktop marker ({0})." -f $_.Exception.Message)
+          }
+        }
+      } elseif ($hoursSinceSuccess -le 24) {
+        if (Test-Path $stallMarker) {
+          Remove-Item $stallMarker -Force -ErrorAction SilentlyContinue
+          Write-LogLine -Path $logPath -Message "Recovered: desktop stall marker removed."
+        }
+      }
+    }
+  }
+
+  if ($pauseUntil -and ([datetimeoffset]::UtcNow -lt $pauseUntil.ToUniversalTime())) {
+    Write-LogLine -Path $logPath -Message ("Skip: paused until {0} (AI usage limit)." -f $pauseUntil.ToString('u'))
+    exit 0
+  }
 
   # ── Step 1: refresh the cross-source "already-extracted" index from the DB (NON-FATAL) ──
   # Keeps crawled-index.json current so the orchestrator skips anything already extracted

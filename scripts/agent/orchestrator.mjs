@@ -7,7 +7,7 @@
  *   2. CALIBRATE — probe + adapt parser for each new forum
  *   3. CRAWL     — fetch threads, classify, extract cases
  *   4. VALIDATE  — deterministic gates (L4)
- *   5. VERIFY    — Codex independent audit (L5)
+ *   5. VERIFY    — independent AI audit (L5)
  *   6. CROSSCHECK— dedupe vs. Supabase (L6)
  *   7. IMPORT    — push verified cases to Supabase
  *
@@ -18,20 +18,28 @@
  *   --batch-size <n>    Threads per batch (default: 20)
  *   --sleep-ms <n>      Delay between HTTP requests (default: 600)
  *   --continuous         Keep running in a loop
- *   --phase <name>       Run only one phase: discover|calibrate|crawl|verify|import
+ *   --phase <name>       Run only one phase: discover|calibrate|crawl|verify|crosscheck|import
  *   --forum-url <url>    Seed a specific forum URL
  *   --stats              Print stats and exit
  */
 
 import { AgentState } from './state.mjs';
-import { calibrateForum } from './calibrate.mjs';
+import { calibrateForum, isTransientCrawlerError } from './calibrate.mjs';
 import { verifyCase } from './verify.mjs';
 import { createCrawlPipeline, processThread } from './crawl.mjs';
 import { loadCrawledIndex, isThreadAlreadyExtracted } from './crawled-index.mjs';
 import { writeDiary } from './diary.mjs';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { QuotaError, formatQuotaMessage } from './quota.mjs';
+import { QuotaError, AuthError, isStoppingError, formatQuotaMessage } from './quota.mjs';
+import {
+  computePauseUntil,
+  enterQuotaPause,
+  clearQuotaPause,
+  recordSuccessHeartbeat,
+  getActivePause,
+  QUOTA_EXIT_CODE,
+} from './pause.mjs';
 import {
   clampResolutionForImport,
   crosscheckCaseAgainstSupabase,
@@ -52,6 +60,11 @@ const CROSSCHECK_RETRY_LIMIT = 3;
 const IMPORT_RETRY_LIMIT = 3;
 const DISCOVERY_BATCH_SIZE = 10;
 const LOCAL_DUPLICATE_STATUSES = new Set(['verified', 'import_ready', 'imported', 'crosscheck_dupe']);
+
+// Usage-limit pause + heartbeat live in pause.mjs (testable). Auth failures do
+// NOT pause (a human must re-login) — they set a stop reason so the heartbeat
+// is skipped and the wrapper's stall alarm reaches the owner.
+const AUTH_EXIT_CODE = 76;
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -278,7 +291,7 @@ async function phaseCalibrate(state, opts) {
         console.log(`  ✗ ${forum.url} calibration failed`);
       }
     } catch (err) {
-      if (err instanceof QuotaError) {
+      if (isStoppingError(err)) {
         throw err;
       }
       console.error(`  Error calibrating ${forum.url}: ${err.message}`);
@@ -426,6 +439,9 @@ async function phaseCrawl(state, opts) {
           status: 'extracted',
           thread_text: result.threadText,
           title: result.title,
+          // Clear any 'transient:' note left by a prior retry so it doesn't
+          // pollute the diary's top-discard stats for a thread that succeeded.
+          discard_reason: null,
         });
 
         // Save valid cases
@@ -452,9 +468,16 @@ async function phaseCrawl(state, opts) {
           batchCases++;
         }
       } catch (err) {
-        if (err instanceof QuotaError) throw err;  // propagate up to stop the phase
+        if (isStoppingError(err)) throw err;  // quota/auth → stop the phase, don't bury the thread
         console.error(`  Error processing ${url}: ${err.message}`);
-        state.updateThread(threadId, { status: 'error', discard_reason: err.message });
+        // First transient failure (timeout, 5xx, connection reset) → leave the
+        // thread pending so the next batch retries it once; repeated or
+        // permanent failures bury it as 'error'.
+        const current = state.getThread(threadId);
+        const firstTransientFailure = isTransientCrawlerError(err) && !current?.discard_reason;
+        state.updateThread(threadId, firstTransientFailure
+          ? { status: 'pending', discard_reason: `transient: ${err.message}` }
+          : { status: 'error', discard_reason: err.message });
       }
 
       await sleep(opts.sleepMs);
@@ -472,7 +495,7 @@ async function phaseCrawl(state, opts) {
     });
     console.log(`  Forum done: +${newUrls.length} threads, +${batchCases} cases (total: ${crawled} threads, ${forumCases} cases).`);
 
-    // ── Write Codex diary entry for this forum ──
+    // ── Write LLM diary entry for this forum ──
     // Collect top discard reasons from this batch for diary context
     const discardReasons = [];
     for (const url of newUrls) {
@@ -487,7 +510,7 @@ async function phaseCrawl(state, opts) {
     try {
       await writeDiary(state, forum, { threads: newUrls.length, cases: batchCases }, topDiscards);
     } catch (err) {
-      if (err instanceof QuotaError) throw err;
+      if (isStoppingError(err)) throw err;
       logWarn(`Diary write skipped for ${forum.name || forum.url}: ${err.message}`);
     }
   }
@@ -500,7 +523,7 @@ async function phaseCrawl(state, opts) {
 }
 
 // ---------------------------------------------------------------------------
-// Phase: VERIFY — Codex independent audit (L5)
+// Phase: VERIFY — independent AI audit (L5)
 // ---------------------------------------------------------------------------
 
 async function phaseVerify(state, opts) {
@@ -512,7 +535,7 @@ async function phaseVerify(state, opts) {
     return {};
   }
 
-  console.log(`  Verifying ${cases.length} case(s) with Codex...`);
+  console.log(`  Verifying ${cases.length} case(s) with the independent AI auditor...`);
   let passed = 0;
   let failed = 0;
 
@@ -534,22 +557,22 @@ async function phaseVerify(state, opts) {
       });
 
       if (result.verdict === 'PASS') {
-        state.updateCase(c.id, { status: 'verified', review_note: 'Codex: PASS' });
+        state.updateCase(c.id, { status: 'verified', review_note: 'Verifier: PASS' });
         passed++;
         console.log(`  ✓ ${c.id}`);
       } else {
-        state.updateCase(c.id, { status: 'verify_rejected', review_note: `Codex: ${result.reason}` });
+        state.updateCase(c.id, { status: 'verify_rejected', review_note: `Verifier: ${result.reason}` });
         failed++;
         console.log(`  ✗ ${c.id}: ${result.reason}`);
       }
     } catch (err) {
-      if (err instanceof QuotaError) throw err;  // propagate up to stop the phase
+      if (isStoppingError(err)) throw err;  // quota/auth → stop the phase
       state.updateCase(c.id, { status: 'verify_error', review_note: `Error: ${err.message}` });
       failed++;
       console.error(`  ✗ ${c.id}: error — ${err.message}`);
     }
 
-    await sleep(1000); // Brief pause between Codex calls
+    await sleep(1000); // Brief pause between verifier calls
   }
 
   console.log(`  Verification done: ${passed} passed, ${failed} failed.`);
@@ -828,7 +851,9 @@ async function runOnce(state, opts) {
         case 'crosscheck': phaseStats = await phaseCrosscheck(state, opts); break;
         case 'import':     phaseStats = await phaseImport(state, opts); break;
         default:
-          logError(`Unknown phase: ${phase}`);
+          // A typo'd phase must fail loudly — a silent no-op would otherwise
+          // count as a clean run and keep the stall heartbeat fresh forever.
+          throw new Error(`Unknown phase: ${phase}`);
       }
       mergeRunStats(runStats, phaseStats ?? {});
     }
@@ -839,12 +864,31 @@ async function runOnce(state, opts) {
       stopReason = err.message;
       // Log to DB first so it's persisted even if console output is lost
       state.log('error', err.message, 'quota');
-      console.error(formatQuotaMessage(err));
+      const pauseUntil = enterQuotaPause(state, err);
+      state.log('info', `Paused until ${pauseUntil.toISOString()}`, 'quota');
+      console.error(formatQuotaMessage(err, pauseUntil));
+      process.exitCode = QUOTA_EXIT_CODE;
+    } else if (err instanceof AuthError) {
+      // No pause: re-auth needs a human. Leave a stop reason so the heartbeat
+      // is skipped and runs keep failing fast → the stall alarm fires.
+      stopReason = err.message;
+      state.log('error', err.message, 'auth');
+      console.error(`\n  ✗ ${err.message}\n  → Open a plain terminal, run \`claude\`, and log in. The agent resumes on the next run.\n`);
+      process.exitCode = AUTH_EXIT_CODE;
     } else {
       stopReason = `error: ${err.message}`;
       fatalError = err;
       logError(`Run error: ${err.message}`);
     }
+  }
+
+  // Heartbeat means "the full pipeline ran healthy" — only refresh it on a
+  // full run (the scheduled production task). Phase-limited / manual runs must
+  // not keep the stall anchor fresh, or a stuck full task would never alarm.
+  // Always clear an expired pause on any clean run.
+  if (!stopReason) {
+    if (!opts.phase) recordSuccessHeartbeat(state);
+    clearQuotaPause(state);
   }
 
   // Compute actual deltas
@@ -880,6 +924,15 @@ async function main() {
     return;
   }
 
+  // Usage-limit pause gate: subscription limits reset on their own, so a
+  // paused agent exits immediately and resumes on a later scheduled run.
+  const activePause = getActivePause(state);
+  if (activePause) {
+    console.log(`⏸ Agent paused until ${activePause.until.toISOString()} (${activePause.reason}). Exiting.`);
+    state.close();
+    return;
+  }
+
   console.log('═══ DriveCodex Autonomous Crawl Agent ═══');
   console.log(`Batch size: ${opts.batchSize}, Sleep: ${opts.sleepMs}ms, Continuous: ${opts.continuous}`);
 
@@ -889,8 +942,18 @@ async function main() {
     await runOnce(state, opts);
 
     if (opts.continuous) {
-      console.log(`\n  Sleeping 60s before next batch...`);
-      await sleep(60_000);
+      // Respect an active usage-limit pause instead of hammering the provider
+      let pause = getActivePause(state);
+      if (pause) {
+        console.log(`\n  ⏸ Paused until ${pause.until.toISOString()} (${pause.reason}). Sleeping...`);
+        while ((pause = getActivePause(state))) {
+          await sleep(Math.min(5 * 60_000, Math.max(pause.until - new Date(), 1000)));
+        }
+        console.log('  ▶ Limit window passed — resuming.');
+      } else {
+        console.log(`\n  Sleeping 60s before next batch...`);
+        await sleep(60_000);
+      }
     }
   } while (opts.continuous);
 

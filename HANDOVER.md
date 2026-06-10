@@ -443,6 +443,23 @@ Web / runtime:
 Seed crawlery:
 - `DEEPSEEK_API_KEY`
 
+Autonomní crawl agent (`scripts/agent/`):
+- AI volání jdou přes router `scripts/agent/llm.mjs` — výchozí nastavení:
+  klasifikace+extrakce+kalibrace+deník = Claude Code CLI (předplatné, nutné
+  jednorázové přihlášení `claude` v terminálu), verifikace = DeepSeek
+  (`DEEPSEEK_API_KEY`) jako nezávislý auditor od jiného výrobce
+- přesměrování per úloha: `AGENT_LLM_<TASK>=provider:model`
+  (např. `AGENT_LLM_VERIFY=claude:opus` pro provoz úplně bez DeepSeeku)
+- vyčerpání limitu = automatická pauza do resetu okna (tabulka `agent_meta`,
+  soubor `pause-until.txt`), plánované běhy se levně přeskakují a po resetu
+  se agent sám rozjede. Soubor na ploše `DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt`
+  se objeví, když poslední čistý běh byl >24h a zároveň >6h po slíbeném resetu
+  (nebo bezpodmínečně po >9 dnech); sám zmizí po ozdravení
+- vypršené přihlášení Claude = `AuthError`: agent se zastaví bez pauzy (re-login
+  musí udělat člověk), takže alarm dorazí; `ANTHROPIC_API_KEY` v prostředí
+  plánovače NENASTAVOVAT (přepnulo by účtování na placené API)
+- detail: `scripts/agent/README.md`
+
 Edge functions:
 - `DEEPSEEK_API_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`

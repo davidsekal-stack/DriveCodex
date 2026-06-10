@@ -1,9 +1,10 @@
 /**
- * quota.mjs — Quota / rate-limit error detection and propagation.
+ * quota.mjs — Usage-limit / quota error detection and propagation.
  *
- * When DeepSeek or Codex runs out of credits/quota, the agent stops the
- * current phase cleanly, persists state, and prints a clear message.
- * The next run resumes exactly where it left off (SQLite state is intact).
+ * When DeepSeek or the Claude Code CLI runs out of credits/quota, the agent
+ * stops the current phase cleanly, persists state, and pauses itself until
+ * the limit window resets (Claude subscription limits reset automatically).
+ * The next scheduled run after the reset resumes exactly where it left off.
  */
 
 // ---------------------------------------------------------------------------
@@ -11,11 +12,41 @@
 // ---------------------------------------------------------------------------
 
 export class QuotaError extends Error {
-  constructor(service, detail = '') {
-    super(`${service} quota exhausted${detail ? ': ' + detail : ''}. Refill credits and re-run.`);
+  /**
+   * @param {string} service - 'DeepSeek' | 'Claude' | ...
+   * @param {string} detail - the matched error line
+   * @param {object} [options]
+   * @param {Date|null} [options.resetAt] - when the limit window resets, if known
+   */
+  constructor(service, detail = '', options = {}) {
+    super(`${service} quota exhausted${detail ? ': ' + detail : ''}`);
     this.name = 'QuotaError';
     this.service = service;
+    this.resetAt = options.resetAt instanceof Date && !Number.isNaN(options.resetAt.getTime())
+      ? options.resetAt
+      : null;
   }
+}
+
+/**
+ * AuthError — the provider rejected our credentials (e.g. the Claude CLI
+ * subscription login expired). Unlike QuotaError this does NOT self-heal on a
+ * timer; it needs a human to re-authenticate. It is an agent-stopping
+ * condition that must propagate like QuotaError (so the queue is not buried),
+ * but it must NOT set a pause — runs should keep failing fast so the stall
+ * alarm reaches the owner.
+ */
+export class AuthError extends Error {
+  constructor(service, detail = '') {
+    super(`${service} authentication failed${detail ? ': ' + detail : ''}`);
+    this.name = 'AuthError';
+    this.service = service;
+  }
+}
+
+/** True for the agent-stopping error family (quota + auth). */
+export function isStoppingError(err) {
+  return err instanceof QuotaError || err instanceof AuthError;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,54 +82,118 @@ export function assertDeepSeekNotQuotaError(status, body) {
 }
 
 // ---------------------------------------------------------------------------
-// Codex quota detection
+// Claude Code CLI usage-limit detection
 // ---------------------------------------------------------------------------
 
-// Patterns in Codex stdout/stderr that indicate quota exhaustion
-const CODEX_QUOTA_PATTERNS = [
-  /quota.{0,20}exceeded/i,
-  /rate.{0,10}limit.{0,20}reached/i,
-  /insufficient.{0,20}quota/i,
-  /you.{0,20}exceeded.{0,20}your.{0,20}current.{0,20}quota/i,
-  /billing.{0,20}hard.{0,20}limit/i,
-  /account.{0,20}has.{0,20}been.{0,20}suspended/i,
-  /no.{0,10}credits.{0,10}remaining/i,
-  /context_length_exceeded/i,  // also stops processing — token limit per call
-  /you.{0,10}ve.{0,10}hit.{0,20}your.{0,20}usage.{0,20}limit/i,  // OpenAI/Codex usage limit message
-  /hit.{0,20}usage.{0,20}limit/i,
-  /purchase.{0,10}more.{0,10}credits/i,
+// Patterns in the CLI's error text that indicate the subscription usage limit
+// (5-hour window or weekly cap) was hit. Matched against the parsed JSON
+// envelope's error text and, as a fallback when no envelope was produced,
+// against the raw CLI diagnostics (see runClaudePrompt in claude-cli.mjs).
+// They are NOT matched against successful model output, which could echo forum
+// content — that path returns the result verbatim without limit checks.
+const CLAUDE_LIMIT_PATTERNS = [
+  /usage limit reached/i,
+  /you'?ve reached your usage limit/i,
+  /hit your usage limit/i,
+  /limit will reset/i,
+  /5-hour limit/i,
+  /weekly limit/i,
+  /out of extra usage/i,
 ];
 
 /**
- * Check if Codex output indicates quota/credit exhaustion.
- * @param {string} output - Combined stdout+stderr from codex exec
- * @throws {QuotaError} if quota is exhausted
+ * Does this error text from the Claude CLI's JSON envelope describe a
+ * subscription usage limit (as opposed to e.g. auth failure or a bad request)?
  */
-export function assertCodexNotQuotaError(output) {
-  const text = (output || '').toString();
-  if (CODEX_QUOTA_PATTERNS.some(p => p.test(text))) {
-    // Extract the relevant line for the error message
-    const line = text.split('\n').find(l => CODEX_QUOTA_PATTERNS.some(p => p.test(l))) || '';
-    throw new QuotaError('Codex', line.trim().slice(0, 200));
+export function isClaudeLimitMessage(text) {
+  const t = (text ?? '').toString();
+  return CLAUDE_LIMIT_PATTERNS.some(p => p.test(t));
+}
+
+const MAX_RESET_WINDOW_MS = 8 * 24 * 3600_000; // weekly limit + margin
+
+/**
+ * Extract the limit-reset time from a Claude usage-limit message, if present.
+ * Supported forms (in priority order):
+ *   1. Machine format: "...usage limit reached|1735689600" (unix epoch seconds or ms)
+ *   2. Clock time: "Your limit will reset at 10:30pm" / "resets at 22:00"
+ * Returns a Date strictly in the future and within 8 days, otherwise null.
+ *
+ * @param {string} text
+ * @param {Date} [now] - injectable for tests
+ * @returns {Date|null}
+ */
+export function parseClaudeResetAt(text, now = new Date()) {
+  const t = (text ?? '').toString();
+
+  const epochMatch = t.match(/\|(\d{9,13})\b/);
+  if (epochMatch) {
+    const n = Number(epochMatch[1]);
+    const ms = n > 1e12 ? n : n * 1000;
+    const d = new Date(ms);
+    if (!Number.isNaN(d.getTime()) && d > now && d.getTime() - now.getTime() < MAX_RESET_WINDOW_MS) {
+      return d;
+    }
   }
+
+  // Require HH:MM or an am/pm suffix — a bare number would also match phrases
+  // like "reset 5 days from now" and mis-parse as 5 o'clock
+  let hours = null;
+  let minutes = 0;
+  let meridiem = '';
+  const hhmm = t.match(/reset(?:s)?\s+(?:at\s+)?(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+  if (hhmm) {
+    hours = Number(hhmm[1]);
+    minutes = Number(hhmm[2]);
+    meridiem = (hhmm[3] ?? '').toLowerCase();
+  } else {
+    const ampm = t.match(/reset(?:s)?\s+(?:at\s+)?(\d{1,2})\s*(am|pm)/i);
+    if (ampm) {
+      hours = Number(ampm[1]);
+      meridiem = ampm[2].toLowerCase();
+    }
+  }
+
+  if (hours !== null) {
+    if (meridiem === 'pm' && hours < 12) hours += 12;
+    if (meridiem === 'am' && hours === 12) hours = 0;
+    if (hours <= 23 && minutes <= 59) {
+      // Interpreted in machine-local time; the message's timezone is ignored,
+      // which can over/under-shoot — bounded by the caller's clamp + the
+      // hourly-retry fallback, and the epoch format takes priority anyway.
+      const d = new Date(now);
+      d.setHours(hours, minutes, 0, 0);
+      // Wall-clock time already passed today → it means tomorrow
+      if (d <= now) d.setDate(d.getDate() + 1);
+      return d;
+    }
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
-// Quota backoff state helpers (stored in SQLite runs table metadata)
+// Console message
 // ---------------------------------------------------------------------------
 
 /**
- * Format a clear, actionable quota exhaustion message for the console.
+ * Format a clear quota/limit message for the console.
+ * @param {QuotaError} err
+ * @param {Date|null} [pauseUntil] - when the agent will automatically resume
  */
-export function formatQuotaMessage(err) {
+export function formatQuotaMessage(err, pauseUntil = null) {
+  const resume = pauseUntil
+    ? `  Agent paused until ${pauseUntil.toISOString()} — it will`
+    : '  Agent paused — it will';
   const lines = [
     '',
     '══════════════════════════════════════════════',
     `  ⚠  ${err.message}`,
     '',
     '  Agent state is fully preserved in SQLite.',
-    '  Re-run after refilling credits — it will',
-    '  resume exactly where it stopped.',
+    resume,
+    '  resume automatically on the next scheduled',
+    '  run after the limit window resets.',
     '══════════════════════════════════════════════',
     '',
   ];
