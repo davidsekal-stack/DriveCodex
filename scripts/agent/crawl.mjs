@@ -21,6 +21,7 @@ import {
   extractThreadLinks,
   extractThreadLinksBySelector,
   findNextPageLink,
+  selectPosts,
 } from './parsers/common.mjs';
 import { classifyThread } from './classify.mjs';
 import { extractCases } from './extract.mjs';
@@ -42,6 +43,14 @@ const PARSERS = {
 };
 
 function parseHtml(html, parserKey, calibration, pageNumber) {
+  // Honor LLM-calibrated CSS selectors first — they work across every forum
+  // engine (incl. JS platforms like VerticalScope "Fora" that the regex
+  // engine parsers miss). Fall back to the engine parser only if selectors
+  // are absent or yield too little.
+  if (calibration?.post_selector) {
+    const selected = selectPosts(html, calibration, pageNumber);
+    if (selected.length >= 2) return { posts: selected };
+  }
   const parser = PARSERS[parserKey] || PARSERS.generic;
   return parser(html, calibration, pageNumber);
 }
@@ -67,9 +76,8 @@ async function fetchThreadPages(url, parserKey, calibration, sleepMs) {
   const maxPages = 10;
 
   while (currentUrl && pageNumber <= maxPages) {
-    const html = await fetchHtml(currentUrl, { cookie: calibration.cookie });
+    let html = await fetchHtml(currentUrl, { cookie: calibration.cookie });
     if (pageNumber === 1) {
-      firstPageHtml = html;
       // Auto-detect forum type on first page if parser is unknown/generic
       if (!resolvedParser || resolvedParser === 'generic' || resolvedParser === 'unknown') {
         const detected = detectForumType(html);
@@ -77,10 +85,28 @@ async function fetchThreadPages(url, parserKey, calibration, sleepMs) {
           resolvedParser = detected;
         }
       }
-    }
 
-    const { posts } = parseHtml(html, resolvedParser, calibration, pageNumber);
-    allPosts.push(...posts);
+      // JS-rendered shell: HTTP 200 but no parseable posts. Re-fetch page 1 via
+      // a headless browser render once so SPA forums aren't silently discarded.
+      let posts = parseHtml(html, resolvedParser, calibration, pageNumber).posts;
+      if (posts.length === 0) {
+        const rendered = await fetchHtml(currentUrl, { cookie: calibration.cookie, forceBrowser: true })
+          .catch(() => null);
+        if (rendered) {
+          html = rendered;
+          if (!resolvedParser || resolvedParser === 'generic' || resolvedParser === 'unknown') {
+            const detected = detectForumType(html);
+            if (detected !== 'generic') resolvedParser = detected;
+          }
+          posts = parseHtml(html, resolvedParser, calibration, pageNumber).posts;
+        }
+      }
+      firstPageHtml = html;
+      allPosts.push(...posts);
+    } else {
+      const { posts } = parseHtml(html, resolvedParser, calibration, pageNumber);
+      allPosts.push(...posts);
+    }
 
     // Look for next page
     const nextUrl = findNextPageLink(html, currentUrl, calibration.pagination_selector);

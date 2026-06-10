@@ -229,6 +229,22 @@ The parser contract is simple: produce normalized post objects with fields like:
 
 Everything downstream assumes that shape.
 
+**Calibrated CSS selectors are honored first.** When `calibration_json` has a
+`post_selector` (the LLM finds these during calibration), `parseHtml` in
+[`crawl.mjs`](/C:/GB/scripts/agent/crawl.mjs) extracts posts with
+`selectPosts()` in [`common.mjs`](/C:/GB/scripts/agent/parsers/common.mjs) —
+a real tokenizer-backed CSS matcher (post / content / author / date / quote
+selectors), not regex. This is what makes modern JS platforms work: VerticalScope
+"Fora" sites (VWVortex, ToyotaNation, SwedeSpeed, Audizine) use
+`div.MessageCard.js-post` containers that the regex `xenforo` engine parser
+cannot match. The engine parsers are the fallback when no selector is set.
+
+**JS-rendered shells get a browser retry.** If a thread page returns HTTP 200
+but yields zero parseable posts (an empty SPA shell), `fetchThreadPages`
+re-fetches page 1 once via the headless-browser render (`forceBrowser` in
+[`fetch-utils.mjs`](/C:/GB/scripts/agent/fetch-utils.mjs)) and re-parses, so
+single-page-app forums aren't silently discarded as "Too few posts".
+
 ## State Machine
 
 Practical statuses I saw in code:

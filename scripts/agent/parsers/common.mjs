@@ -483,6 +483,181 @@ export function extractThreadLinksBySelector(html, baseUrl, selectorList) {
 }
 
 // ---------------------------------------------------------------------------
+// General element selection (post containers, content/author/date sub-fields)
+//
+// The anchor selector above is generalized here to any element, so the
+// LLM-calibrated CSS selectors (post_selector / content_selector /
+// author_selector / date_selector / quote_selector) are honored by every
+// parser instead of being dead config. Reuses the same tokenizer.
+// ---------------------------------------------------------------------------
+
+function findMatchingCloseTag(tokens, openIndex, tagName) {
+  let depth = 0;
+  for (let i = openIndex + 1; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.tagName !== tagName) continue;
+    if (token.type === 'open' && !token.isSelfClosing) { depth++; continue; }
+    if (token.type !== 'close') continue;
+    if (depth === 0) return i;
+    depth--;
+  }
+  return -1;
+}
+
+function selectorMatchesElement(selector, tagName, attrText, ancestorStack) {
+  const parts = selector.split(/\s+/).map(s => s.trim()).filter(Boolean);
+  if (parts.length === 0) return false;
+
+  const target = parseSelectorSegment(parts.at(-1));
+  if (!target) return false;
+  if (!segmentMatchesOpenTag(tagName, attrText, target)) return false;
+
+  const ancestors = parts.slice(0, -1).map(parseSelectorSegment).filter(Boolean);
+  if (ancestors.length === 0) return true;
+
+  let stackIndex = ancestorStack.length - 1;
+  for (let i = ancestors.length - 1; i >= 0; i--) {
+    const ancestor = ancestors[i];
+    let found = false;
+    while (stackIndex >= 0) {
+      const item = ancestorStack[stackIndex];
+      stackIndex--;
+      if (!segmentMatchesOpenTag(item.tagName, item.attrText, ancestor)) continue;
+      found = true;
+      break;
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
+/**
+ * Collect non-overlapping elements matching ANY selector in a comma list.
+ * Returns [{ tagName, attrText, innerHtml, outerStart, outerEnd, ancestorStack }].
+ * Nested matches inside a matched element are skipped (outermost wins).
+ */
+export function selectElements(html, selectorList) {
+  const selectors = (selectorList ?? '')
+    .toString()
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  if (selectors.length === 0) return [];
+
+  const source = (html ?? '').toString();
+  const tokens = tokenizeHtmlTags(source);
+  const stack = [];
+  const results = [];
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.type === 'close') { popMatchingTag(stack, token.tagName); continue; }
+    if (token.isSelfClosing) continue;
+
+    const matched = selectors.some(sel =>
+      selectorMatchesElement(sel, token.tagName, token.attrText, stack)
+    );
+    if (matched) {
+      const closeIndex = findMatchingCloseTag(tokens, i, token.tagName);
+      const outerEnd = closeIndex === -1 ? source.length : tokens[closeIndex].end;
+      const innerHtml = closeIndex === -1
+        ? source.slice(token.end)
+        : source.slice(token.end, tokens[closeIndex].start);
+      results.push({
+        tagName: token.tagName,
+        attrText: token.attrText,
+        innerHtml,
+        outerStart: token.start,
+        outerEnd,
+        ancestorStack: stack.map(item => ({ ...item })),
+      });
+      // Skip the element's interior so nested same-selector matches don't double-count
+      if (closeIndex !== -1) i = closeIndex;
+      continue;
+    }
+
+    stack.push({ tagName: token.tagName, attrText: token.attrText });
+  }
+
+  return results;
+}
+
+function firstElementText(html, selectorList) {
+  const els = selectElements(html, selectorList);
+  if (els.length === 0) return '';
+  // Prefer an element with an itemprop/title-ish attribute, else the first
+  return htmlToText(els[0].innerHtml).trim();
+}
+
+function removeElementsBySelector(html, selectorList) {
+  const els = selectElements(html, selectorList).sort((a, b) => b.outerStart - a.outerStart);
+  let out = (html ?? '').toString();
+  for (const el of els) out = `${out.slice(0, el.outerStart)} ${out.slice(el.outerEnd)}`;
+  return out;
+}
+
+function extractPostId(attrText) {
+  const attrMap = parseTagAttrs(attrText);
+  for (const key of ['id', 'data-content', 'data-post-id', 'data-id']) {
+    const raw = attrMap.get(key);
+    if (raw) {
+      const num = raw.match(/\d+/);
+      if (num) return num[0];
+    }
+  }
+  return null;
+}
+
+/**
+ * Extract posts using calibrated CSS selectors. Returns [] if no post_selector
+ * is configured or nothing matches, so callers can fall back to engine regex.
+ *
+ * @param {string} html
+ * @param {object} calibration - post_selector (required), content_selector,
+ *   author_selector, date_selector, quote_selector, min_post_length
+ * @param {number} [pageNumber=1]
+ */
+export function selectPosts(html, calibration = {}, pageNumber = 1) {
+  const postSelector = calibration?.post_selector;
+  if (!postSelector) return [];
+
+  const minLength = Number(calibration.min_post_length) || 40;
+  const containers = selectElements(html, postSelector);
+  const posts = [];
+
+  for (const container of containers) {
+    let contentHtml = container.innerHtml;
+    if (calibration.content_selector) {
+      const found = selectElements(contentHtml, calibration.content_selector);
+      if (found.length > 0) contentHtml = found.map(f => f.innerHtml).join('\n');
+    }
+    if (calibration.quote_selector) {
+      contentHtml = removeElementsBySelector(contentHtml, calibration.quote_selector);
+    }
+
+    const text = cleanPostText(htmlToText(contentHtml), minLength);
+    if (!text) continue;
+
+    const author = calibration.author_selector
+      ? firstElementText(container.innerHtml, calibration.author_selector)
+      : '';
+    const when = calibration.date_selector
+      ? firstElementText(container.innerHtml, calibration.date_selector)
+      : '';
+
+    posts.push({
+      author: author || '',
+      postId: extractPostId(container.attrText),
+      when: when || '',
+      pageNumber,
+      text,
+    });
+  }
+
+  return posts;
+}
+
+// ---------------------------------------------------------------------------
 // Extract thread links from a section/index page
 // ---------------------------------------------------------------------------
 
