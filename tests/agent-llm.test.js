@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
-import { resolveRoute } from '../scripts/agent/llm.mjs';
-import { isClaudeLimitMessage, parseClaudeResetAt, QuotaError, formatQuotaMessage } from '../scripts/agent/quota.mjs';
+import { resolveRoute, deepseekChat } from '../scripts/agent/llm.mjs';
+import {
+  isClaudeLimitMessage,
+  parseClaudeResetAt,
+  QuotaError,
+  formatQuotaMessage,
+  assertDeepSeekNotQuotaError,
+} from '../scripts/agent/quota.mjs';
 
 function testDefaultRoutes() {
   assert.deepEqual(resolveRoute('classify', {}), { provider: 'claude', model: 'haiku' });
@@ -21,6 +27,60 @@ function testEnvOverrides() {
 function testInvalidRoutes() {
   assert.throws(() => resolveRoute('nonexistent-task', {}), /Unknown LLM task/);
   assert.throws(() => resolveRoute('verify', { AGENT_LLM_VERIFY: 'openai:gpt' }), /Unknown LLM provider/);
+}
+
+function testModelValidation() {
+  // Legitimate model names pass
+  assert.deepEqual(resolveRoute('extract', { AGENT_LLM_EXTRACT: 'claude:claude-opus-4-8' }),
+    { provider: 'claude', model: 'claude-opus-4-8' });
+  // Shell-injection via PowerShell smart quotes must be rejected, not interpolated
+  assert.throws(() => resolveRoute('classify', { AGENT_LLM_CLASSIFY: "claude:haiku’; rm x" }), /Invalid model/);
+  assert.throws(() => resolveRoute('classify', { AGENT_LLM_CLASSIFY: "claude:haiku'; whoami" }), /Invalid model/);
+  assert.throws(() => resolveRoute('classify', { AGENT_LLM_CLASSIFY: 'claude:haiku spaces' }), /Invalid model/);
+}
+
+function testDeepSeekQuotaDetection() {
+  // 402/403 are quota statuses regardless of body
+  assert.throws(() => assertDeepSeekNotQuotaError(402, '{}'), QuotaError);
+  assert.throws(() => assertDeepSeekNotQuotaError(403, 'forbidden'), QuotaError);
+  // Body-pattern detection on other 4xx
+  assert.throws(() => assertDeepSeekNotQuotaError(400, 'Insufficient Balance'), QuotaError);
+  // Plain transient errors are NOT quota
+  assert.doesNotThrow(() => assertDeepSeekNotQuotaError(429, 'rate limited, slow down'));
+  assert.doesNotThrow(() => assertDeepSeekNotQuotaError(500, 'internal error'));
+  assert.doesNotThrow(() => assertDeepSeekNotQuotaError(200, 'ok'));
+}
+
+async function testDeepseekChatWithStub() {
+  const realFetch = globalThis.fetch;
+  try {
+    // 402 → QuotaError before any retry
+    globalThis.fetch = async () => ({ ok: false, status: 402, text: async () => 'Insufficient Balance' });
+    await assert.rejects(
+      deepseekChat({ apiKey: 'k', prompt: 'p', maxTokens: 10 }),
+      QuotaError,
+    );
+
+    // 429 then 200 → retry then success
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls++;
+      if (calls === 1) return { ok: false, status: 429, text: async () => 'rate limited' };
+      return { ok: true, json: async () => ({ choices: [{ message: { content: 'hello' } }] }) };
+    };
+    const out = await deepseekChat({ apiKey: 'k', prompt: 'p', maxTokens: 10 });
+    assert.equal(out, 'hello');
+    assert.equal(calls, 2);
+
+    // Timeout (AbortError) is retried then surfaced as a DeepSeek timeout error
+    globalThis.fetch = async () => { const e = new Error('aborted'); e.name = 'TimeoutError'; throw e; };
+    await assert.rejects(
+      deepseekChat({ apiKey: 'k', prompt: 'p', maxTokens: 10, timeoutMs: 10 }),
+      /DeepSeek timeout/,
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 }
 
 function testLimitMessageDetection() {
@@ -81,8 +141,11 @@ function testQuotaErrorShape() {
 testDefaultRoutes();
 testEnvOverrides();
 testInvalidRoutes();
+testModelValidation();
+testDeepSeekQuotaDetection();
 testLimitMessageDetection();
 testResetTimeParsing();
 testQuotaErrorShape();
+await testDeepseekChatWithStub();
 
 console.log('agent-llm.test.js passed');

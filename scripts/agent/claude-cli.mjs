@@ -10,7 +10,21 @@
  */
 
 import { spawnManaged, terminateProcessTree } from './process-utils.mjs';
-import { QuotaError, isClaudeLimitMessage, parseClaudeResetAt } from './quota.mjs';
+import { QuotaError, AuthError, isClaudeLimitMessage, parseClaudeResetAt } from './quota.mjs';
+
+// CLI error text that means our login is invalid (needs human re-auth)
+const CLAUDE_AUTH_PATTERNS = [
+  /not authenticated/i,
+  /invalid api key/i,
+  /authentication_error/i,
+  /failed to authenticate/i,
+  /please run\s+\/?login/i,
+];
+
+function isClaudeAuthMessage(text) {
+  const t = (text ?? '').toString();
+  return CLAUDE_AUTH_PATTERNS.some(p => p.test(t));
+}
 
 // Generous: CLI cold start + Sonnet generation over a 150K-char thread.
 // Transient timeouts no longer bury threads (one retry, see orchestrator).
@@ -123,15 +137,21 @@ export function assertClaudeEnvelopeOk(envelope) {
 
   if (envelope.is_error) {
     const message = (envelope.result ?? '').toString();
-    if (envelope.api_error_status === 429 || isClaudeLimitMessage(message)) {
+    const status = envelope.api_error_status;
+    if (status === 429 || isClaudeLimitMessage(message)) {
       throw new QuotaError('Claude', message.slice(0, 200), {
         resetAt: parseClaudeResetAt(message),
       });
     }
-    if (envelope.api_error_status === 401) {
-      throw new Error(
-        'claude CLI is not authenticated (401). Open a plain terminal, run `claude`, and log in once.'
-      );
+    if (status === 401 || status === 403 || isClaudeAuthMessage(message)) {
+      throw new AuthError('Claude', message.slice(0, 200) ||
+        'not authenticated — open a plain terminal, run `claude`, and log in once');
+    }
+    // Transient Anthropic errors (overloaded / server) must be retryable, not
+    // a permanent thread burial. The "HTTP <5xx>" token is what
+    // isTransientCrawlerError (calibrate.mjs) recognizes.
+    if (typeof status === 'number' && status >= 500) {
+      throw new Error(`claude CLI transient error: HTTP ${status} ${message.slice(0, 200)}`);
     }
     throw new Error(`claude CLI error: ${message.slice(0, 300) || envelope.subtype || 'unknown'}`);
   }
@@ -146,13 +166,19 @@ function spawnWithInput(command, args, input, timeoutMs, env) {
     let stderr = '';
     let timedOut = false;
 
+    // Decode with a StringDecoder that buffers partial multibyte sequences
+    // across chunk boundaries — otherwise a Czech char split between two
+    // chunks of a large result decodes to U+FFFD on each side.
+    child.stdout.setEncoding('utf-8');
+    child.stderr.setEncoding('utf-8');
+
     const timer = setTimeout(() => {
       timedOut = true;
       terminateProcessTree(child);
     }, timeoutMs);
 
-    child.stdout.on('data', chunk => { stdout += chunk.toString(); });
-    child.stderr.on('data', chunk => { stderr += chunk.toString(); });
+    child.stdout.on('data', chunk => { stdout += chunk; });
+    child.stderr.on('data', chunk => { stderr += chunk; });
     child.on('error', err => {
       clearTimeout(timer);
       err.stdout = stdout;
@@ -208,6 +234,9 @@ export async function runClaudePrompt(prompt, { model, timeoutMs = DEFAULT_TIMEO
       throw new QuotaError('Claude', combined.trim().slice(0, 200), {
         resetAt: parseClaudeResetAt(combined),
       });
+    }
+    if (isClaudeAuthMessage(combined)) {
+      throw new AuthError('Claude', combined.trim().slice(0, 200));
     }
     const detail = combined.trim().slice(0, 300);
     throw new Error(

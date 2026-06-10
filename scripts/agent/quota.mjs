@@ -28,6 +28,27 @@ export class QuotaError extends Error {
   }
 }
 
+/**
+ * AuthError — the provider rejected our credentials (e.g. the Claude CLI
+ * subscription login expired). Unlike QuotaError this does NOT self-heal on a
+ * timer; it needs a human to re-authenticate. It is an agent-stopping
+ * condition that must propagate like QuotaError (so the queue is not buried),
+ * but it must NOT set a pause — runs should keep failing fast so the stall
+ * alarm reaches the owner.
+ */
+export class AuthError extends Error {
+  constructor(service, detail = '') {
+    super(`${service} authentication failed${detail ? ': ' + detail : ''}`);
+    this.name = 'AuthError';
+    this.service = service;
+  }
+}
+
+/** True for the agent-stopping error family (quota + auth). */
+export function isStoppingError(err) {
+  return err instanceof QuotaError || err instanceof AuthError;
+}
+
 // ---------------------------------------------------------------------------
 // DeepSeek quota detection
 // ---------------------------------------------------------------------------
@@ -64,10 +85,12 @@ export function assertDeepSeekNotQuotaError(status, body) {
 // Claude Code CLI usage-limit detection
 // ---------------------------------------------------------------------------
 
-// Patterns in the CLI's structured error result that indicate the subscription
-// usage limit (5-hour window or weekly cap) was hit. These are matched ONLY
-// against the parsed JSON envelope's error text — never against raw output
-// that could echo forum content — to avoid false positives.
+// Patterns in the CLI's error text that indicate the subscription usage limit
+// (5-hour window or weekly cap) was hit. Matched against the parsed JSON
+// envelope's error text and, as a fallback when no envelope was produced,
+// against the raw CLI diagnostics (see runClaudePrompt in claude-cli.mjs).
+// They are NOT matched against successful model output, which could echo forum
+// content — that path returns the result verbatim without limit checks.
 const CLAUDE_LIMIT_PATTERNS = [
   /usage limit reached/i,
   /you'?ve reached your usage limit/i,

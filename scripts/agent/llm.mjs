@@ -47,6 +47,12 @@ export function resolveRoute(task, env = process.env) {
   if (provider !== 'claude' && provider !== 'deepseek') {
     throw new Error(`Unknown LLM provider "${provider}" for task ${task} (use claude:<model> or deepseek:<model>)`);
   }
+  // The model string is interpolated into a PowerShell command on Windows;
+  // restrict it to a safe alphabet so an env override cannot inject shell
+  // syntax (incl. Unicode smart quotes that PS treats as string delimiters).
+  if (model !== null && !/^[A-Za-z0-9._-]+$/.test(model)) {
+    throw new Error(`Invalid model "${model}" for task ${task}: only letters, digits, dot, underscore and hyphen are allowed`);
+  }
   return { provider, model };
 }
 
@@ -117,7 +123,11 @@ export async function deepseekChat({ apiKey, model = 'deepseek-chat', prompt, ma
     } catch (err) {
       const isTimeout = err?.name === 'TimeoutError' || err?.name === 'AbortError';
       if (isTimeout && attempt < maxRetries) {
-        console.log(`  DeepSeek timeout after ${timeoutMs}ms, retrying...`);
+        // Back off before retrying so a persistently slow endpoint cannot tie
+        // up the run (and the scheduler mutex) for maxRetries × timeoutMs
+        const wait = Math.min(2000 * Math.pow(2, attempt), 30_000);
+        console.log(`  DeepSeek timeout after ${timeoutMs}ms, retry in ${wait}ms...`);
+        await new Promise(r => setTimeout(r, wait));
         continue;
       }
       throw isTimeout ? new Error(`DeepSeek timeout after ${timeoutMs}ms`) : err;

@@ -107,13 +107,32 @@ function testEnvelopeErrors() {
     assert.equal(err.resetAt, null);
   }
 
-  // 401 → actionable auth error, NOT a quota error
+  // 401/403 → AuthError (agent-stopping, needs human re-login), NOT quota
+  for (const status of [401, 403]) {
+    try {
+      assertClaudeEnvelopeOk({ type: 'result', is_error: true, api_error_status: status, result: 'Failed to authenticate' });
+      assert.fail('expected AuthError');
+    } catch (err) {
+      assert.equal(err.name, 'AuthError');
+      assert.equal(err.service, 'Claude');
+    }
+  }
+
+  // Auth detected from message text even without a status
   try {
-    assertClaudeEnvelopeOk({ type: 'result', is_error: true, api_error_status: 401, result: 'Failed to authenticate' });
+    assertClaudeEnvelopeOk({ type: 'result', is_error: true, result: 'Invalid API key - run /login' });
+    assert.fail('expected AuthError');
+  } catch (err) {
+    assert.equal(err.name, 'AuthError');
+  }
+
+  // 5xx / overloaded → transient-marked Error (so isTransientCrawlerError matches HTTP 5xx)
+  try {
+    assertClaudeEnvelopeOk({ type: 'result', is_error: true, api_error_status: 529, result: 'Overloaded' });
     assert.fail('expected Error');
   } catch (err) {
     assert.equal(err.name, 'Error');
-    assert.match(err.message, /not authenticated/);
+    assert.match(err.message, /HTTP 529/);
   }
 
   // Other errors → plain Error with detail

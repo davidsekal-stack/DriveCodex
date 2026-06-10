@@ -129,13 +129,13 @@ def main():
     main_boxes = []
     main_specs = [
         ("1. Seed or Discover Forum", ["Known source list or newly found forum", "Forum row enters SQLite queue"]),
-        ("2. Calibration", ["Codex identifies engine, sections, selectors", "Crawler chooses where and how to look"]),
+        ("2. Calibration", ["Claude identifies engine, sections, selectors", "Crawler chooses where and how to look"]),
         ("3. Enumerate Threads", ["Batch crawl of candidate thread links", "Already seen or bad URLs are skipped"]),
         ("4. Fetch and Parse", ["Thread pages become normalized text", "Parser uses forum-specific hints and fallbacks"]),
-        ("5. DeepSeek Classify", ["Decide whether the thread looks like a resolved case", "Low-signal threads are discarded"]),
-        ("6. DeepSeek Extract", ["Pull problem, fix, parts, symptoms, confidence", "Can emit one or more candidate cases"]),
+        ("5. Claude Classify", ["Decide whether the thread looks like a resolved case", "Low-signal threads are discarded"]),
+        ("6. Claude Extract", ["Pull problem, fix, parts, symptoms, confidence", "Can emit one or more candidate cases"]),
         ("7. Deterministic Validate", ["Check completeness, author consistency, resolution rules", "Reject malformed or weak cases"]),
-        ("8. Codex Verify", ["Second-pass audit of extracted case", "PASS keeps it alive, FAIL rejects it"]),
+        ("8. Independent Verify", ["Second-pass audit by a different-vendor AI (DeepSeek)", "PASS keeps it alive, FAIL rejects it"]),
         ("9. Dedupe and Import", ["Cross-check against existing knowledge base", "New verified cases are imported"]),
     ]
     for title, lines in main_specs:
@@ -177,7 +177,7 @@ def main():
         draw,
         side_boxes["quality"],
         "Quality Gates",
-        ["Classifier -> extractor -> deterministic rules -> Codex verifier", "Noise is removed before import"],
+        ["Classifier -> extractor -> deterministic rules -> independent verifier", "Noise is removed before import"],
         SIDE_FILL,
         SIDE_BORDER,
     )
@@ -228,7 +228,7 @@ def main():
     }
     text_box(draw, reject_boxes["discard_classify"], "Discarded thread", ["Rejected at classification"], REJECT_FILL, REJECT_BORDER, radius=20)
     text_box(draw, reject_boxes["discard_validate"], "Discarded case", ["Failed deterministic checks"], REJECT_FILL, REJECT_BORDER, radius=20)
-    text_box(draw, reject_boxes["verify_reject"], "verify_rejected", ["Codex audit said FAIL"], REJECT_FILL, REJECT_BORDER, radius=20)
+    text_box(draw, reject_boxes["verify_reject"], "verify_rejected", ["Independent AI audit said FAIL"], REJECT_FILL, REJECT_BORDER, radius=20)
 
     elbow_arrow(
         draw,

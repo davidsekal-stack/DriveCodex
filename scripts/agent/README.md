@@ -162,8 +162,13 @@ Providers:
 
 - `claude` — the Claude Code CLI in headless print mode
   ([`claude-cli.mjs`](/C:/GB/scripts/agent/claude-cli.mjs)). Auth = the owner's
-  Claude subscription: run `claude` once in a plain terminal and log in.
-  No API key, billed against the subscription's usage windows.
+  Claude subscription: run `claude` once in a plain terminal and log in. Billed
+  against the subscription's usage windows. **Do not set `ANTHROPIC_API_KEY` in
+  the scheduler account's environment** — the CLI would then bill the metered
+  API instead of the subscription, and the usage-limit pause (which keys off
+  subscription limit messages) would no longer apply. If the subscription login
+  expires, the agent raises an `AuthError`, stops (no pause), and the stall
+  alarm reaches the owner — re-run `claude` to log in.
 - `deepseek` — HTTP API, needs `DEEPSEEK_API_KEY`.
 
 The design intent:
@@ -183,18 +188,22 @@ the agent stayed silently dead for 7 weeks (runs "succeeded" with exit 0 every
 1. A `QuotaError` (from either provider) makes the orchestrator persist
    `pause_until` + `pause_reason` into the `agent_meta` table and write
    `pause-until.txt` next to `agent.db`. Claude limit messages are parsed for
-   the reset time; unknown reset → retry in 1 hour. Exit code is 75.
+   the reset time; unknown reset → retry in 1 hour (DeepSeek balance, which
+   needs a human top-up, pauses 6 h). Exit code is 75. The heartbeat is only
+   refreshed by a full run (no `--phase`), so a stuck full task still alarms
+   even if a phase-limited task keeps "succeeding".
 2. [`run-agent-batch.ps1`](/C:/GB/scripts/agent/run-agent-batch.ps1) checks
    `pause-until.txt` first and exits in milliseconds while paused — scheduled
    runs keep firing but cost nothing.
-3. The first run after the window passes resumes automatically; a clean run
-   clears the pause and refreshes the `last-success.txt` heartbeat.
-4. If the agent has not succeeded for >24 h beyond any legitimate pause — or
-   >9 days no matter what (renewing hourly pauses must not suppress the alarm
-   forever) — the wrapper drops `DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt` on
-   the Desktop with plain-language instructions, and removes it once runs
-   succeed again. Fresh installs that have never succeeded are anchored by
-   `first-run.txt`, so a never-working deployment alarms too.
+3. The first run after the window passes resumes automatically; a clean full
+   run clears the pause and refreshes the `last-success.txt` heartbeat.
+4. The Desktop marker `DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt` is written when
+   the last clean run was >24 h ago **and** it is >6 h past any promised reset
+   — or unconditionally after >9 days (so renewing hourly pauses can't suppress
+   it forever). It is removed once runs succeed again. Fresh installs that have
+   never succeeded are anchored by `first-run.txt`, so a never-working
+   deployment alarms too. An expired Claude login (`AuthError`) does not pause,
+   so it reaches the >24 h alarm directly.
 
 ## Parser Layer
 

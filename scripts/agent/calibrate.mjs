@@ -21,6 +21,7 @@
 
 import { buildDiaryContext } from './diary.mjs';
 import { runLlm } from './llm.mjs';
+import { isStoppingError } from './quota.mjs';
 import { fetchHtml } from './fetch-utils.mjs';
 
 const PROBE_SIZE = 5;
@@ -114,8 +115,8 @@ async function diagnoseCalibration(forum, probeResult, metrics, currentCalibrati
     });
     return parseCalibrationResponse(output);
   } catch (err) {
-    // QuotaError propagates up — do not swallow it
-    if (err.name === 'QuotaError') throw err;
+    // Quota/auth stop the agent — never swallow or misclassify as transient
+    if (isStoppingError(err)) throw err;
     if (isTransientCrawlerError(err)) throw err;
     console.error(`  Calibration diagnosis failed: ${err.message}`);
     return null;
@@ -357,7 +358,7 @@ Do NOT output tables, markdown lists, or plain text as your final answer.`;
     });
     return parseStructureDiscoveryResponse(output);
   } catch (err) {
-    if (err.name === 'QuotaError') throw err;
+    if (isStoppingError(err)) throw err;
     if (isTransientCrawlerError(err)) {
       console.error(`  Structure discovery failed transiently: ${err.message}`);
       return { transient_failure: transientReason('Structure discovery failed', err) };
@@ -611,8 +612,8 @@ async function runProbe(forum, calibration, pipeline) {
     try {
       classResult = await pipeline.classify(parseResult.threadText);
     } catch (err) {
-      // A quota outage must pause the agent, not burn calibration attempts
-      if (err.name === 'QuotaError') throw err;
+      // A quota/auth outage must stop the agent, not burn calibration attempts
+      if (isStoppingError(err)) throw err;
       result.sample_discards.push(`classify failed (${url}): ${err.message}`);
       continue;
     }
@@ -631,7 +632,7 @@ async function runProbe(forum, calibration, pipeline) {
     try {
       cases = await pipeline.extract(parseResult.threadText, classResult);
     } catch (err) {
-      if (err.name === 'QuotaError') throw err;
+      if (isStoppingError(err)) throw err;
       result.sample_discards.push(`extract failed (${url}): ${err.message}`);
       continue;
     }

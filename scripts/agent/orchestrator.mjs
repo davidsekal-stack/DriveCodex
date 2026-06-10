@@ -18,7 +18,7 @@
  *   --batch-size <n>    Threads per batch (default: 20)
  *   --sleep-ms <n>      Delay between HTTP requests (default: 600)
  *   --continuous         Keep running in a loop
- *   --phase <name>       Run only one phase: discover|calibrate|crawl|verify|import
+ *   --phase <name>       Run only one phase: discover|calibrate|crawl|verify|crosscheck|import
  *   --forum-url <url>    Seed a specific forum URL
  *   --stats              Print stats and exit
  */
@@ -30,10 +30,16 @@ import { createCrawlPipeline, processThread } from './crawl.mjs';
 import { loadCrawledIndex, isThreadAlreadyExtracted } from './crawled-index.mjs';
 import { writeDiary } from './diary.mjs';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { QuotaError, formatQuotaMessage } from './quota.mjs';
+import { readFileSync } from 'node:fs';
+import { QuotaError, AuthError, isStoppingError, formatQuotaMessage } from './quota.mjs';
+import {
+  computePauseUntil,
+  enterQuotaPause,
+  clearQuotaPause,
+  recordSuccessHeartbeat,
+  getActivePause,
+  QUOTA_EXIT_CODE,
+} from './pause.mjs';
 import {
   clampResolutionForImport,
   crosscheckCaseAgainstSupabase,
@@ -55,60 +61,10 @@ const IMPORT_RETRY_LIMIT = 3;
 const DISCOVERY_BATCH_SIZE = 10;
 const LOCAL_DUPLICATE_STATUSES = new Set(['verified', 'import_ready', 'imported', 'crosscheck_dupe']);
 
-// ── Usage-limit pause (set on QuotaError, cleared on a clean run) ──────────
-// Subscription limits reset on their own, so the agent pauses itself and the
-// scheduled runs resume automatically once the window passes.
-const __agentDir = dirname(fileURLToPath(import.meta.url));
-// Fast-path files for run-agent-batch.ps1 (skip runs without starting node)
-const PAUSE_FILE = join(__agentDir, 'pause-until.txt');
-const LAST_SUCCESS_FILE = join(__agentDir, 'last-success.txt');
-const PAUSE_FALLBACK_MS = 60 * 60_000;       // unknown reset time → retry hourly
-const PAUSE_GRACE_MS = 5 * 60_000;           // run a bit after the promised reset
-const PAUSE_MAX_MS = 8 * 24 * 3600_000;      // weekly limit + margin
-const QUOTA_EXIT_CODE = 75;                  // distinct LastTaskResult in Task Scheduler
-
-function computePauseUntil(resetAt, now = new Date()) {
-  const target = resetAt instanceof Date && !Number.isNaN(resetAt.getTime())
-    ? resetAt.getTime() + PAUSE_GRACE_MS
-    : now.getTime() + PAUSE_FALLBACK_MS;
-  const clamped = Math.min(
-    Math.max(target, now.getTime() + PAUSE_GRACE_MS),
-    now.getTime() + PAUSE_MAX_MS,
-  );
-  return new Date(clamped);
-}
-
-function enterQuotaPause(state, err) {
-  const pauseUntil = computePauseUntil(err.resetAt);
-  state.setMeta('pause_until', pauseUntil.toISOString());
-  state.setMeta('pause_reason', err.message.slice(0, 300));
-  try {
-    writeFileSync(PAUSE_FILE, `${pauseUntil.toISOString()}\n${err.message.slice(0, 300)}\n`, 'utf-8');
-  } catch { /* fast-path file is best-effort; SQLite is the source of truth */ }
-  return pauseUntil;
-}
-
-function clearQuotaPause(state) {
-  state.deleteMeta('pause_until');
-  state.deleteMeta('pause_reason');
-  try { unlinkSync(PAUSE_FILE); } catch { /* may not exist */ }
-}
-
-function recordSuccessHeartbeat(state) {
-  const now = new Date().toISOString();
-  state.setMeta('last_success_at', now);
-  try {
-    writeFileSync(LAST_SUCCESS_FILE, `${now}\n`, 'utf-8');
-  } catch { /* best-effort */ }
-}
-
-function getActivePause(state) {
-  const raw = state.getMeta('pause_until');
-  if (!raw) return null;
-  const until = new Date(raw);
-  if (Number.isNaN(until.getTime()) || until <= new Date()) return null;
-  return { until, reason: state.getMeta('pause_reason') || 'usage limit' };
-}
+// Usage-limit pause + heartbeat live in pause.mjs (testable). Auth failures do
+// NOT pause (a human must re-login) — they set a stop reason so the heartbeat
+// is skipped and the wrapper's stall alarm reaches the owner.
+const AUTH_EXIT_CODE = 76;
 
 // ---------------------------------------------------------------------------
 // CLI args
@@ -335,7 +291,7 @@ async function phaseCalibrate(state, opts) {
         console.log(`  ✗ ${forum.url} calibration failed`);
       }
     } catch (err) {
-      if (err instanceof QuotaError) {
+      if (isStoppingError(err)) {
         throw err;
       }
       console.error(`  Error calibrating ${forum.url}: ${err.message}`);
@@ -483,6 +439,9 @@ async function phaseCrawl(state, opts) {
           status: 'extracted',
           thread_text: result.threadText,
           title: result.title,
+          // Clear any 'transient:' note left by a prior retry so it doesn't
+          // pollute the diary's top-discard stats for a thread that succeeded.
+          discard_reason: null,
         });
 
         // Save valid cases
@@ -509,7 +468,7 @@ async function phaseCrawl(state, opts) {
           batchCases++;
         }
       } catch (err) {
-        if (err instanceof QuotaError) throw err;  // propagate up to stop the phase
+        if (isStoppingError(err)) throw err;  // quota/auth → stop the phase, don't bury the thread
         console.error(`  Error processing ${url}: ${err.message}`);
         // First transient failure (timeout, 5xx, connection reset) → leave the
         // thread pending so the next batch retries it once; repeated or
@@ -551,7 +510,7 @@ async function phaseCrawl(state, opts) {
     try {
       await writeDiary(state, forum, { threads: newUrls.length, cases: batchCases }, topDiscards);
     } catch (err) {
-      if (err instanceof QuotaError) throw err;
+      if (isStoppingError(err)) throw err;
       logWarn(`Diary write skipped for ${forum.name || forum.url}: ${err.message}`);
     }
   }
@@ -607,7 +566,7 @@ async function phaseVerify(state, opts) {
         console.log(`  ✗ ${c.id}: ${result.reason}`);
       }
     } catch (err) {
-      if (err instanceof QuotaError) throw err;  // propagate up to stop the phase
+      if (isStoppingError(err)) throw err;  // quota/auth → stop the phase
       state.updateCase(c.id, { status: 'verify_error', review_note: `Error: ${err.message}` });
       failed++;
       console.error(`  ✗ ${c.id}: error — ${err.message}`);
@@ -892,7 +851,9 @@ async function runOnce(state, opts) {
         case 'crosscheck': phaseStats = await phaseCrosscheck(state, opts); break;
         case 'import':     phaseStats = await phaseImport(state, opts); break;
         default:
-          logError(`Unknown phase: ${phase}`);
+          // A typo'd phase must fail loudly — a silent no-op would otherwise
+          // count as a clean run and keep the stall heartbeat fresh forever.
+          throw new Error(`Unknown phase: ${phase}`);
       }
       mergeRunStats(runStats, phaseStats ?? {});
     }
@@ -907,6 +868,13 @@ async function runOnce(state, opts) {
       state.log('info', `Paused until ${pauseUntil.toISOString()}`, 'quota');
       console.error(formatQuotaMessage(err, pauseUntil));
       process.exitCode = QUOTA_EXIT_CODE;
+    } else if (err instanceof AuthError) {
+      // No pause: re-auth needs a human. Leave a stop reason so the heartbeat
+      // is skipped and runs keep failing fast → the stall alarm fires.
+      stopReason = err.message;
+      state.log('error', err.message, 'auth');
+      console.error(`\n  ✗ ${err.message}\n  → Open a plain terminal, run \`claude\`, and log in. The agent resumes on the next run.\n`);
+      process.exitCode = AUTH_EXIT_CODE;
     } else {
       stopReason = `error: ${err.message}`;
       fatalError = err;
@@ -914,9 +882,12 @@ async function runOnce(state, opts) {
     }
   }
 
-  // Clean run → heartbeat for the stall alarm + explicit resume from pause
+  // Heartbeat means "the full pipeline ran healthy" — only refresh it on a
+  // full run (the scheduled production task). Phase-limited / manual runs must
+  // not keep the stall anchor fresh, or a stuck full task would never alarm.
+  // Always clear an expired pause on any clean run.
   if (!stopReason) {
-    recordSuccessHeartbeat(state);
+    if (!opts.phase) recordSuccessHeartbeat(state);
     clearQuotaPause(state);
   }
 

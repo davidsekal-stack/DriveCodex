@@ -60,6 +60,21 @@ function Write-LogLine {
   Add-Content -Path $Path -Value ("[{0}] {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message)
 }
 
+# Read the first line of a state file, returning $null on any problem (missing,
+# empty, or a TOCTOU delete/rewrite by a concurrent orchestrator). Never throws,
+# so $ErrorActionPreference='Stop' cannot abort the run on a transient read.
+function Read-FirstLineSafe {
+  param([string]$Path)
+  try {
+    if (-not (Test-Path $Path)) { return $null }
+    $line = Get-Content $Path -TotalCount 1 -ErrorAction Stop
+    if ($line) { return $line.Trim() }
+    return $null
+  } catch {
+    return $null
+  }
+}
+
 $repoRoot = Resolve-RepoRoot
 $agentDir = (Resolve-Path $PSScriptRoot).Path
 $nodeExe = Resolve-NodeExe -RequestedNodePath $NodePath -RepoRoot $repoRoot
@@ -88,11 +103,11 @@ try {
   # ── Step 0: usage-limit pause gate + stall alarm ──
   # The orchestrator writes pause-until.txt when an AI usage limit is hit
   # (subscription limits reset on their own) and last-success.txt after every
-  # clean run. While paused, scheduled runs are ~free no-ops. If the agent has
-  # not succeeded for >24h beyond any legitimate pause — or >9 days no matter
-  # what, since renewing hourly pauses must not suppress the alarm forever —
-  # drop a plain-language marker file on the owner's Desktop; remove it once
-  # runs succeed again.
+  # clean full run. While paused, scheduled runs are ~free no-ops. The Desktop
+  # marker is dropped when the last clean run was >24h ago AND it is >6h past
+  # any promised reset, or unconditionally after >9 days (renewing hourly
+  # pauses must not suppress the alarm forever); it is removed once runs
+  # succeed again.
   $pauseFile = Join-Path $agentDir 'pause-until.txt'
   $lastSuccessFile = Join-Path $agentDir 'last-success.txt'
   $firstRunFile = Join-Path $agentDir 'first-run.txt'
@@ -105,31 +120,29 @@ try {
   }
 
   $pauseUntil = $null
-  if (Test-Path $pauseFile) {
-    $pauseRaw = Get-Content $pauseFile -TotalCount 1
+  $pauseRaw = Read-FirstLineSafe -Path $pauseFile
+  if ($pauseRaw) {
     $parsedPause = [datetimeoffset]::MinValue
-    if ($pauseRaw -and [datetimeoffset]::TryParse($pauseRaw.Trim(), [ref]$parsedPause)) {
+    if ([datetimeoffset]::TryParse($pauseRaw, [ref]$parsedPause)) {
       $pauseUntil = $parsedPause
     }
   }
 
   # Stall anchor: last clean run, or first time this wrapper ever ran (so a
-  # deployment that has NEVER succeeded still raises the alarm eventually)
-  $anchorRaw = $null
-  if (Test-Path $lastSuccessFile) {
-    $anchorRaw = Get-Content $lastSuccessFile -TotalCount 1
-  }
+  # deployment that has NEVER succeeded still raises the alarm eventually).
+  # Treat an unreadable/empty first-run.txt the same as missing — rewrite it —
+  # so a 0-byte file (e.g. an interrupted earlier write) can't permanently
+  # disable the never-succeeded alarm.
+  $anchorRaw = Read-FirstLineSafe -Path $lastSuccessFile
   if (-not $anchorRaw) {
-    if (Test-Path $firstRunFile) {
-      $anchorRaw = Get-Content $firstRunFile -TotalCount 1
-    } else {
+    $anchorRaw = Read-FirstLineSafe -Path $firstRunFile
+    if (-not $anchorRaw) {
       $anchorRaw = [datetimeoffset]::UtcNow.ToString('o')
       try { Set-Content -Path $firstRunFile -Value $anchorRaw -Encoding utf8 } catch { }
     }
   }
 
   if ($stallMarker -and $anchorRaw) {
-    $anchorRaw = $anchorRaw.Trim()
     $anchorTime = [datetimeoffset]::MinValue
     if ([datetimeoffset]::TryParse($anchorRaw, [ref]$anchorTime)) {
       $hoursSinceSuccess = ([datetimeoffset]::UtcNow - $anchorTime.ToUniversalTime()).TotalHours

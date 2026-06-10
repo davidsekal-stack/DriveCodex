@@ -9,6 +9,7 @@
  */
 
 import { runLlm } from './llm.mjs';
+import { isStoppingError } from './quota.mjs';
 
 const DIARY_TIMEOUT_MS = 90_000;
 const DIARY_MAX_TOKENS = 800;
@@ -82,8 +83,8 @@ export async function writeDiary(state, forum, stats, discardSample = []) {
     });
     diary = (raw || '').trim();
   } catch (err) {
-    // Re-throw quota errors — everything else is non-fatal
-    if (err.name === 'QuotaError') throw err;
+    // Re-throw agent-stopping errors (quota/auth) — everything else is non-fatal
+    if (isStoppingError(err)) throw err;
     console.warn(`  ⚠ Diary write failed for ${forum.name || forum.url}: ${err.message}`);
     return null;
   }

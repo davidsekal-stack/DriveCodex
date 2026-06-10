@@ -452,8 +452,12 @@ Autonomní crawl agent (`scripts/agent/`):
   (např. `AGENT_LLM_VERIFY=claude:opus` pro provoz úplně bez DeepSeeku)
 - vyčerpání limitu = automatická pauza do resetu okna (tabulka `agent_meta`,
   soubor `pause-until.txt`), plánované běhy se levně přeskakují a po resetu
-  se agent sám rozjede; při >24h výpadku se objeví soubor na ploše
-  `DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt` (sám zmizí po ozdravení)
+  se agent sám rozjede. Soubor na ploše `DRIVECODEX-CRAWLER-STOJI-PRECTI-ME.txt`
+  se objeví, když poslední čistý běh byl >24h a zároveň >6h po slíbeném resetu
+  (nebo bezpodmínečně po >9 dnech); sám zmizí po ozdravení
+- vypršené přihlášení Claude = `AuthError`: agent se zastaví bez pauzy (re-login
+  musí udělat člověk), takže alarm dorazí; `ANTHROPIC_API_KEY` v prostředí
+  plánovače NENASTAVOVAT (přepnulo by účtování na placené API)
 - detail: `scripts/agent/README.md`
 
 Edge functions:
