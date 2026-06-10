@@ -174,6 +174,14 @@ export async function fetchHtml(url, options = {}) {
   if (options.cookie) headers.Cookie = options.cookie;
   if (options.referer) headers.Referer = options.referer;
 
+  // Force the headless-browser render (used as a retry when a plain fetch
+  // returns a JS-rendered shell with no parseable posts).
+  if (options.forceBrowser) {
+    const html = await fetchHtmlWithBrowser(url, options);
+    if (html) return html;
+    throw new Error(`Browser render returned no usable HTML for ${url}`);
+  }
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const controller = new AbortController();
