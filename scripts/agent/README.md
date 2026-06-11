@@ -303,21 +303,41 @@ So this is meant to become better over time per forum type, not just run statele
 - [`seed-candidates.mjs`](/C:/GB/scripts/agent/seed-candidates.mjs): imports ranked forum candidates into SQLite
 - [`reset-forum.mjs`](/C:/GB/scripts/agent/reset-forum.mjs): clears failed calibration state so a forum can be retried
 - [`patch-symptoms.mjs`](/C:/GB/scripts/agent/patch-symptoms.mjs): re-extracts symptoms for already imported cases and patches Supabase/local payloads
-- [`run-agent-batch.ps1`](/C:/GB/scripts/agent/run-agent-batch.ps1): Windows-safe one-shot batch wrapper with process mutex and daily log files
+- [`run-agent-batch.ps1`](/C:/GB/scripts/agent/run-agent-batch.ps1): Windows-safe one-shot batch wrapper with process mutex and daily log files (loads `.env.local` automatically)
 - [`register-agent-task.ps1`](/C:/GB/scripts/agent/register-agent-task.ps1): creates or updates a Windows Task Scheduler job that runs the batch wrapper every few minutes
+- [`apply-migrations.ps1`](/C:/GB/scripts/agent/apply-migrations.ps1): applies pending Supabase migrations to the linked project non-interactively (reads `SUPABASE_DB_PASSWORD` from `.env.local`); `-DryRun` to preview
+
+## Secrets / Environment
+
+Fill `scripts/agent/.env.local` (copy from
+[`.env.local.example`](/C:/GB/scripts/agent/.env.local.example); git-ignored) **once**:
+
+| Var | Used for | Where to get it |
+|---|---|---|
+| `SUPABASE_SERVICE_KEY` | online registry + case import + crosscheck | Dashboard → Settings → API → service_role |
+| `SUPABASE_DB_PASSWORD` | `supabase db push` (migrations) | Dashboard → Settings → Database |
+| `DEEPSEEK_API_KEY` | independent verification | DeepSeek console |
+| `SUPABASE_URL` | (public) | already set in the template |
+
+Once filled, everything is autonomous: scheduled runs (`run-agent-batch.ps1`) load
+it, migrations run via `apply-migrations.ps1`, and the online registry + import
+activate. Without it the agent still runs (local-only registry, no import).
 
 ## How I Would Operate It
 
-Useful commands:
+Useful commands (`--env-file` loads the secrets for manual runs):
 
 ```bash
 node --experimental-sqlite scripts/agent/orchestrator.mjs --stats
-node --experimental-sqlite scripts/agent/seed-candidates.mjs
-node --experimental-sqlite scripts/agent/orchestrator.mjs --phase calibrate
-node --experimental-sqlite scripts/agent/orchestrator.mjs --phase crawl
-node --experimental-sqlite scripts/agent/orchestrator.mjs --phase verify
-node --experimental-sqlite scripts/agent/orchestrator.mjs --continuous
+node --experimental-sqlite --env-file=scripts/agent/.env.local scripts/agent/orchestrator.mjs --phase calibrate
+node --experimental-sqlite --env-file=scripts/agent/.env.local scripts/agent/orchestrator.mjs --phase crawl
+node --experimental-sqlite --env-file=scripts/agent/.env.local scripts/agent/orchestrator.mjs --phase verify
+node --experimental-sqlite --env-file=scripts/agent/.env.local scripts/agent/orchestrator.mjs --continuous
 node --experimental-sqlite scripts/agent/reset-forum.mjs --all-failed
+
+# Apply pending DB migrations (e.g. 020_crawl_forums) to the linked project:
+powershell -ExecutionPolicy Bypass -File scripts/agent/apply-migrations.ps1 -DryRun
+powershell -ExecutionPolicy Bypass -File scripts/agent/apply-migrations.ps1
 ```
 
 If I were onboarding myself fast, I would read files in this order:

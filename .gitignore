@@ -39,6 +39,7 @@ tmp-chrome-profile*/
 .claude/settings.local.json
 .supabase-token.local
 .env.test.local
+scripts/agent/.env.local
 
 # Crawl-audit workspace — keep the scripts, ignore generated data dumps
 audit/*.json

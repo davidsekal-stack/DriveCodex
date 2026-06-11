@@ -60,6 +60,29 @@ function Write-LogLine {
   Add-Content -Path $Path -Value ("[{0}] {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message)
 }
 
+# Load KEY=VALUE secrets from .env.local into the process environment so child
+# node runs (registry sync, import, verify) get them. Never logs values.
+# Existing environment variables win, so a user/system env override is honored.
+function Import-DotEnv {
+  param([string]$Path)
+  if (-not (Test-Path $Path)) { return 0 }
+  $count = 0
+  foreach ($line in (Get-Content $Path -ErrorAction SilentlyContinue)) {
+    $trimmed = $line.Trim()
+    if (-not $trimmed -or $trimmed.StartsWith('#')) { continue }
+    $eq = $trimmed.IndexOf('=')
+    if ($eq -lt 1) { continue }
+    $key = $trimmed.Substring(0, $eq).Trim()
+    $val = $trimmed.Substring($eq + 1).Trim().Trim('"').Trim("'")
+    if (-not $key) { continue }
+    if ([string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($key, 'Process'))) {
+      Set-Item -Path ("Env:{0}" -f $key) -Value $val
+      $count++
+    }
+  }
+  return $count
+}
+
 # Read the first line of a state file, returning $null on any problem (missing,
 # empty, or a TOCTOU delete/rewrite by a concurrent orchestrator). Never throws,
 # so $ErrorActionPreference='Stop' cannot abort the run on a transient read.
@@ -99,6 +122,11 @@ try {
   }
 
   Set-Location $repoRoot
+
+  # Load local secrets (Supabase service key / DB password / DeepSeek key) so
+  # the agent operates Supabase autonomously. Git-ignored; values never logged.
+  $loaded = Import-DotEnv -Path (Join-Path $agentDir '.env.local')
+  if ($loaded -gt 0) { Write-LogLine -Path $logPath -Message ("Loaded {0} secret(s) from .env.local." -f $loaded) }
 
   # ── Step 0: usage-limit pause gate + stall alarm ──
   # The orchestrator writes pause-until.txt when an AI usage limit is hit
