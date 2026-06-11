@@ -58,8 +58,12 @@ drivecodex/
 │   │   ├── review-cases/        Admin approve/reject
 │   │   ├── send-feedback/       User feedback
 │   │   └── share-case/          Shareable diagnostic links + OG tags
-│   └── migrations/              SQL migrations (002–012)
-├── tests/                       Unit + integration tests
+│   └── migrations/              SQL migrations (002–020)
+├── scripts/
+│   ├── agent/                   Autonomous crawl agent (builds the RAG DB) — see scripts/agent/README.md
+│   ├── forum-seed-*.mjs         One-shot per-brand forum seeders (legacy)
+│   └── nhtsa-*.mjs              NHTSA TSB ingestion pipeline
+├── tests/                       Unit + integration + crawl-agent tests
 ├── CLAUDE.md                    Claude Code instructions
 ├── HANDOVER.md                  Architecture & data flow docs
 └── package.json
@@ -68,7 +72,8 @@ drivecodex/
 ## Features
 
 - **AI Diagnosis** — DeepSeek-powered analysis with structured fault cards (probability, parts, OBD codes, repair steps)
-- **RAG Database** — ~920 verified cases, scored by vehicle/OBD/symptom similarity
+- **RAG Database** — thousands of verified cases, scored by vehicle/OBD/symptom similarity
+- **Autonomous Crawl Agent** — Claude-first pipeline that discovers automotive forums, extracts resolved fault cases, and feeds the RAG DB through a staged quality gate (classify → extract → validate → independent verify → dedup → import). See [scripts/agent/README.md](scripts/agent/README.md)
 - **Admin Review** — Cases go through pending → approved/rejected workflow before entering RAG
 - **Admin Analytics** — Usage stats, token consumption, registered users, top users
 - **Shareable Links** — Read-only diagnostic snapshots with OG meta tags for social media
@@ -79,6 +84,24 @@ drivecodex/
 
 ## Documentation
 
+**Start here.** This is the index to every doc in the repo — each lives next to
+the thing it describes, but they're all linked from here.
+
+**Architecture & operations**
 - [HANDOVER.md](HANDOVER.md) — architecture, data flow, deployment, known issues
+- [CLAUDE.md](CLAUDE.md) — Claude Code working instructions & conventions
+- [scripts/agent/README.md](scripts/agent/README.md) — the autonomous crawl agent (pipeline, providers, pause/resume, discovery, registry)
+
+**Crawl & data quality**
+- [CRAWL_AUDIT.md](CRAWL_AUDIT.md) — audit of the crawled RAG database (quality, coverage, issues)
+- [NHTSA_SUPERCRAWLER_SPEC.md](NHTSA_SUPERCRAWLER_SPEC.md) — NHTSA TSB ingestion pipeline spec
+- [NHTSA_STATUS.md](NHTSA_STATUS.md) — NHTSA ingestion progress/status
+- [scripts/agent/CRAWLED_INDEX.md](scripts/agent/CRAWLED_INDEX.md) — cross-source "already-extracted" index notes
+
+**Supabase**
 - [SUPABASE_SETUP.md](SUPABASE_SETUP.md) — Supabase project setup
 - [SUPABASE_GATEKEEPER.md](SUPABASE_GATEKEEPER.md) — RLS & security
+- [SUPABASE_EDGE_FUNCTION.md](SUPABASE_EDGE_FUNCTION.md) — edge function notes
+
+**Testing**
+- [TEST_SETUP.md](TEST_SETUP.md) — test environment & CI setup

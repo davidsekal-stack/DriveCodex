@@ -1,6 +1,6 @@
 ﻿# Handover
 
-Aktualizováno: 2026-04-03
+Aktualizováno: 2026-06-11
 
 ## Nepřekročitelné pravidlo pro seed importy
 
@@ -458,6 +458,23 @@ Autonomní crawl agent (`scripts/agent/`):
 - vypršené přihlášení Claude = `AuthError`: agent se zastaví bez pauzy (re-login
   musí udělat člověk), takže alarm dorazí; `ANTHROPIC_API_KEY` v prostředí
   plánovače NENASTAVOVAT (přepnulo by účtování na placené API)
+- **discovery (fáze 1):** `discover.mjs` hledá fóra přes Claude web search
+  (`--allowedTools WebSearch`), triage + dedup, zařadí jako `discovered` ke
+  kalibraci. Škrcené: jen při málo nakalibrovaných fórech, 1× za proces, 24h
+  interval; vypínač `AGENT_DISABLE_LIVE_DISCOVERY=1`
+- **online registr** `crawl_forums` (Supabase, migrace 020) = sdílený seznam fór
+  + stav „naposled scrapováno"; přístup `forum-registry.mjs` přes service key.
+  Bez klíče běží lokálně. Discovery zapisuje `mode:'ignore'` (nepřepíše aktivní
+  fórum), crawl `mode:'merge'` (aktualizuje stav)
+- **secrets:** git-ignored `scripts/agent/.env.local` (viz `.env.local.example`)
+  — `SUPABASE_SERVICE_KEY` (formát `sb_secret_…`), `SUPABASE_DB_PASSWORD`.
+  `run-agent-batch.ps1` je načítá automaticky
+- **provozní gotcha:** firemní síť blokuje DB port 5432, takže `supabase db push`
+  odsud nejede — **migrace schématu se dělají přes dashboard SQL editor**. Běžný
+  provoz (registr/import/crosscheck) jde přes HTTPS/443 a funguje. Pomocník na
+  migrace (mimo firewall): `scripts/agent/apply-migrations.ps1`
+- **stav:** agent NENÍ na plánovači (`register-agent-task.ps1` nespuštěn) —
+  časovaný provoz je potřeba zapnout
 - detail: `scripts/agent/README.md`
 
 Edge functions:
