@@ -69,7 +69,7 @@ async function testDiscoverDedupAndCaps() {
     maxQueries: 1,
     maxAdd: 5,
     fetchKnownDomainsImpl: async () => ({ ok: true, domains: new Set(['bmw-syndikat.de']) }),
-    upsertForumImpl: async (row) => { upserts.push(row); return { ok: true }; },
+    upsertForumImpl: async (row, o) => { upserts.push({ row, o }); return { ok: true }; },
     runLlmImpl: async (task, _prompt, o) => {
       assert.equal(task, 'discover');
       assert.deepEqual(o.allowedTools, ['WebSearch'], 'discovery must request WebSearch');
@@ -87,7 +87,9 @@ async function testDiscoverDedupAndCaps() {
   assert.equal(state.added.length, 1);
   assert.equal(forumDomain(state.added[0].url), 'novehoforum.cz');
   assert.equal(upserts.length, 1, 'registry upsert mirrors the local add');
-  assert.equal(upserts[0].discovered_via.startsWith('search:'), true);
+  assert.equal(upserts[0].row.discovered_via.startsWith('search:'), true);
+  assert.equal(upserts[0].row.status, 'discovered', 'new forum gets discovered status');
+  assert.equal(upserts[0].o?.mode, 'ignore', 'discovery uses insert-or-ignore so it never clobbers an existing active forum');
   assert.ok(result.skipped >= 3);
   assert.equal(state.getMeta('discover_cursor') !== null, true, 'cursor advances');
 }
