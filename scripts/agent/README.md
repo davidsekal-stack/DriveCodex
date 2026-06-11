@@ -37,10 +37,22 @@ The main entrypoint is [`orchestrator.mjs`](/C:/GB/scripts/agent/orchestrator.mj
 
 ### Phase 1: Discover
 
-- Current implementation is mostly manual seeding.
-- `--forum-url <url>` inserts a forum directly.
-- Automatic web discovery is still a TODO in the orchestrator.
-- Candidate lists can be bulk-seeded from [`forum-candidates.json`](/C:/GB/scripts/agent/forum-candidates.json) via [`seed-candidates.mjs`](/C:/GB/scripts/agent/seed-candidates.mjs).
+Three sources, cheapest first:
+
+- `--forum-url <url>` inserts a forum directly (domain-deduped).
+- Static candidates from [`forum-candidates.json`](/C:/GB/scripts/agent/forum-candidates.json) (one seed source, not the only one).
+- **Live web discovery** ([`discover.mjs`](/C:/GB/scripts/agent/discover.mjs)): the routed
+  `discover` task (Claude + `WebSearch`) finds automotive fault forums by a rotated
+  brand × language matrix (EU/CZ front-loaded), triages them in the same call, dedups
+  by domain against the registry + local state, and queues survivors as `discovered`.
+  Calibration then does the deep accessibility/structure check — discovery doesn't
+  duplicate it. Bounded: a couple of queries per run, only when the crawlable pool is
+  low and discovery hasn't run in 24 h (set `AGENT_DISABLE_LIVE_DISCOVERY=1` to turn off).
+
+The forum registry is the **online** [`crawl_forums`](/C:/GB/supabase/migrations/020_crawl_forums.sql)
+Supabase table (dedup by domain + last-scraped state across machines), accessed via
+[`forum-registry.mjs`](/C:/GB/scripts/agent/forum-registry.mjs). Without the migration/service
+key it degrades to local-only (SQLite) and discovery still works.
 
 ### Phase 2: Calibrate
 
