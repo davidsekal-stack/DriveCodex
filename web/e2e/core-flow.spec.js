@@ -131,8 +131,17 @@ test("core workflow: login -> new case -> diagnosis -> close/save -> DB verify -
     await page.getByTestId("submit-input-btn").click();
     await expect(page.getByTestId("diagnosis-result")).toBeVisible({ timeout: 30_000 });
 
-    // 5. Close / save the case
-    await page.getByTestId("close-case-btn").click();
+    // 4b. Repair guide: start it from the fault card and step through every step.
+    // The canned diagnosis has 2 repair actions, plus the always-present final check = 3 steps.
+    await page.getByTestId("start-repair-guide").first().click();
+    await expect(page.getByTestId("repair-guide")).toBeVisible();
+    for (let i = 0; i < 3; i++) {
+      await page.getByTestId("guide-step-done").click();
+    }
+
+    // 5. Close / save the case — via the completed guide's CTA (covers the new wiring;
+    // the header close button opens the same modal).
+    await page.getByTestId("guide-close-case").click();
     await page.getByTestId("resolution-other-input").fill(RESOLUTION_TEXT);
     const confirm = page.getByTestId("confirm-close-btn");
     await expect(confirm).toBeEnabled();

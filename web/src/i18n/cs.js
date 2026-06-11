@@ -237,6 +237,25 @@ export const strings = {
   'diag.aiFormat':            '✦ AI formát',
   'diag.aiFormatting':        'Formátuji...',
 
+  // Průvodce opravou
+  'guide.title':              'PRŮVODCE OPRAVOU',
+  'guide.start':              'Zahájit opravu',
+  'guide.continue':           'Pokračovat v opravě',
+  'guide.progress':           '{done} z {total} kroků',
+  'guide.stepParts':          'Připravit díly',
+  'guide.stepVerify':         'Závěrečná kontrola',
+  'guide.stepVerifyDefault':  'Zkušební jízda a kontrola chybových kódů',
+  'guide.stepDone':           'Krok dokončen',
+  'guide.stepSkip':           'Přeskočit',
+  'guide.skipped':            'přeskočeno',
+  'guide.completed':          'Oprava dokončena',
+  'guide.completedHint':      'Uzavřete případ a potvrďte, co pomohlo — oprava se uloží mezi ověřená řešení pro další mechaniky.',
+  'guide.closeCase':          'Uzavřít případ',
+  'guide.valuesNote':         'Utahovací momenty a plnicí množství AI negeneruje — ověřte je v dílenské příručce.',
+  'guide.replaceTitle':       'Nahradit rozpracovanou opravu?',
+  'guide.replaceMessage':     'Průvodce opravou „{fault}" je rozpracovaný. Zahájením nové opravy se jeho dosavadní postup smaže.',
+  'guide.replaceConfirm':     'Nahradit',
+
   // ConfirmModal
   'confirm.cancel':           'Zrušit',
 

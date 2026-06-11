@@ -237,6 +237,25 @@ export const strings = {
   'diag.aiFormat':            '✦ AI format',
   'diag.aiFormatting':        'Formatting...',
 
+  // Repair guide
+  'guide.title':              'REPAIR GUIDE',
+  'guide.start':              'Start repair',
+  'guide.continue':           'Continue repair',
+  'guide.progress':           '{done} of {total} steps',
+  'guide.stepParts':          'Prepare parts',
+  'guide.stepVerify':         'Final check',
+  'guide.stepVerifyDefault':  'Test drive and check for fault codes',
+  'guide.stepDone':           'Step done',
+  'guide.stepSkip':           'Skip',
+  'guide.skipped':            'skipped',
+  'guide.completed':          'Repair completed',
+  'guide.completedHint':      'Close the case and confirm what worked — the repair is saved as a verified solution for other mechanics.',
+  'guide.closeCase':          'Close case',
+  'guide.valuesNote':         'Torque values and fluid capacities are not AI-generated — verify them in the workshop manual.',
+  'guide.replaceTitle':       'Replace repair in progress?',
+  'guide.replaceMessage':     'The repair guide "{fault}" is in progress. Starting a new repair will discard its progress.',
+  'guide.replaceConfirm':     'Replace',
+
   // ConfirmModal
   'confirm.cancel':           'Cancel',
 

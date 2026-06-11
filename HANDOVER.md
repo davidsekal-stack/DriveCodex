@@ -101,6 +101,27 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
+### 0a. Průvodce opravou (web) — krokový checklist po diagnóze (2026-06-11)
+
+Nová funkce ve webové aplikaci (větev `feat/repair-guide`): u každé závady v diagnóze je tlačítko
+„Zahájit opravu", které z polí `řešení` + `díly` + `doporučené_testy` složí krokový checklist
+(příprava dílů → opravné akce → závěrečná kontrola). Mechanik kroky odbavuje tlačítkem
+Dokončen/Přeskočit; po posledním kroku průvodce nabídne uzavření případu (existující smart-close
+modal → potvrzená oprava jde do RAG).
+
+Klíčová rozhodnutí:
+- každý krok nese původ ze závady (`zdroj`: databáze s počtem shod vs. AI návrh) — zobrazeno badge
+- AI negeneruje žádné konkrétní hodnoty (momenty, náplně) — v UI je trvalá poznámka, hodnoty
+  přijdou až z licencovaných dílenských dat (HaynesPro/TecRMI — fáze 2, viz rešerše v session)
+- stav průvodce žije na případu (`case.repairGuide`, JSON v `gearbrain_web_sessions`) —
+  `startedAt`/`completedAt`/`doneAt` per krok slouží zároveň jako metrika používání funkce
+- rozdělaný průvodce se nenahrazuje mlčky — výměna závady vyžaduje potvrzení v modalu
+
+Soubory: `web/src/lib/repair-guide.js` (čistá logika + unit testy v `tests/unit.test.js`),
+`web/src/hooks/useRepairGuide.js`, `web/src/components/RepairGuideCard.jsx`, zapojení v
+`DiagCard/SessionTimeline/SessionView/App/CaseDialogs`, i18n klíče `guide.*` (CS/EN/DE).
+E2e test `web/e2e/core-flow.spec.js` rozšířen o průchod průvodcem.
+
 ### 0. Toyota 2020-2024 byla dotažená do final reviewed subsetu, ale live import blokuje edge config
 
 Nové artefakty:

@@ -11,9 +11,12 @@ export default function CaseDialogs({
   mobile,
   onCancelCloseCase,
   onCancelDeleteCase,
+  onCancelReplaceGuide,
   onChangeResolution,
   onConfirmCloseCase,
   onConfirmDeleteCase,
+  onConfirmReplaceGuide,
+  pendingGuideStart,
   resolution,
   tr,
 }) {
@@ -40,6 +43,17 @@ export default function CaseDialogs({
           danger
           onConfirm={onConfirmDeleteCase}
           onCancel={onCancelDeleteCase}
+        />
+      )}
+
+      {pendingGuideStart && (
+        <ConfirmModal
+          title={tr("guide.replaceTitle")}
+          message={tr("guide.replaceMessage", { fault: pendingGuideStart.faultName })}
+          confirmLabel={tr("guide.replaceConfirm")}
+          danger
+          onConfirm={onConfirmReplaceGuide}
+          onCancel={onCancelReplaceGuide}
         />
       )}
     </>

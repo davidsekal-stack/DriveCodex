@@ -13,10 +13,13 @@ export default function SessionView({
   lang,
   loading,
   mobile,
+  onCompleteGuideStep,
   onRequestCloseCase,
   onRequestDelete,
   onOpenManual,
   onRunDiag,
+  onSkipGuideStep,
+  onStartRepair,
   tr,
 }) {
   const chatEndRef = useRef(null);
@@ -51,7 +54,11 @@ export default function SessionView({
         lang={lang}
         loading={loading}
         mobile={mobile}
+        onCompleteGuideStep={onCompleteGuideStep}
         onOpenManual={onOpenManual}
+        onRequestCloseCase={onRequestCloseCase}
+        onSkipGuideStep={onSkipGuideStep}
+        onStartRepair={onStartRepair}
         tr={tr}
       />
 

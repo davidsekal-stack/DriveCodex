@@ -237,6 +237,25 @@ export const strings = {
   'diag.aiFormat':            '✦ AI-Format',
   'diag.aiFormatting':        'Formatierung...',
 
+  // Reparaturassistent
+  'guide.title':              'REPARATURASSISTENT',
+  'guide.start':              'Reparatur starten',
+  'guide.continue':           'Reparatur fortsetzen',
+  'guide.progress':           '{done} von {total} Schritten',
+  'guide.stepParts':          'Teile vorbereiten',
+  'guide.stepVerify':         'Abschlusskontrolle',
+  'guide.stepVerifyDefault':  'Probefahrt und Fehlercodes prüfen',
+  'guide.stepDone':           'Schritt erledigt',
+  'guide.stepSkip':           'Überspringen',
+  'guide.skipped':            'übersprungen',
+  'guide.completed':          'Reparatur abgeschlossen',
+  'guide.completedHint':      'Schließen Sie den Fall ab und bestätigen Sie, was geholfen hat — die Reparatur wird als verifizierte Lösung für andere Mechaniker gespeichert.',
+  'guide.closeCase':          'Fall abschließen',
+  'guide.valuesNote':         'Anzugsdrehmomente und Füllmengen werden nicht von der KI generiert — prüfen Sie diese im Werkstatthandbuch.',
+  'guide.replaceTitle':       'Laufende Reparatur ersetzen?',
+  'guide.replaceMessage':     'Der Reparaturassistent „{fault}" ist in Bearbeitung. Mit dem Start einer neuen Reparatur geht der bisherige Fortschritt verloren.',
+  'guide.replaceConfirm':     'Ersetzen',
+
   // ConfirmModal
   'confirm.cancel':           'Abbrechen',
 

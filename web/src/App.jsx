@@ -25,6 +25,7 @@ import useCaseDraft                         from "./hooks/useCaseDraft.js";
 import useCaseDialogs                       from "./hooks/useCaseDialogs.js";
 import useCaseWorkflow                      from "./hooks/useCaseWorkflow.js";
 import useCases                             from "./hooks/useCases.js";
+import useRepairGuide                       from "./hooks/useRepairGuide.js";
 import useGlobalShortcuts                   from "./hooks/useGlobalShortcuts.js";
 import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
@@ -118,6 +119,19 @@ function App() {
     handleCreateCase,
     runDiag,
     tr,
+  });
+
+  const {
+    cancelStartRepairGuide,
+    completeGuideStep,
+    confirmStartRepairGuide,
+    pendingGuideStart,
+    skipGuideStep,
+    startRepairGuide,
+  } = useRepairGuide({
+    activeId,
+    casesRef,
+    updateCase,
   });
 
   const diagCount   = activeCase?.messages.filter((m) => m.type === MSG.DIAGNOSIS).length ?? 0;
@@ -267,10 +281,13 @@ function App() {
               lang={lang}
               loading={loading}
               mobile={mobile}
+              onCompleteGuideStep={completeGuideStep}
               onOpenManual={handleOpenManual}
               onRequestCloseCase={openCloseModal}
               onRequestDelete={requestDeleteCase}
               onRunDiag={runDiag}
+              onSkipGuideStep={skipGuideStep}
+              onStartRepair={startRepairGuide}
               tr={tr}
             />
           )}
@@ -286,9 +303,12 @@ function App() {
         mobile={mobile}
         onCancelCloseCase={cancelCloseModal}
         onCancelDeleteCase={cancelDeleteCase}
+        onCancelReplaceGuide={cancelStartRepairGuide}
         onChangeResolution={changeResolution}
         onConfirmCloseCase={confirmCloseCase}
         onConfirmDeleteCase={confirmDeleteCase}
+        onConfirmReplaceGuide={confirmStartRepairGuide}
+        pendingGuideStart={pendingGuideStart}
         resolution={resolution}
         tr={tr}
       />

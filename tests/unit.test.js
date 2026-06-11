@@ -69,6 +69,16 @@ import {
   removeMessageById,
   searchSimilarCases,
 } from '../web/src/lib/diagnosis.js'
+import {
+  GUIDE_STEP,
+  GUIDE_STEP_STATUS,
+  buildRepairGuide,
+  getActiveGuideStep,
+  getGuideProgress,
+  hasGuideProgress,
+  isGuideForFault,
+  setGuideStepStatus,
+} from '../web/src/lib/repair-guide.js'
 import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
 import { uid, urgColor, fmtDate, fmtMileage } from '../web/src/lib/utils.js'
@@ -1951,6 +1961,135 @@ describe('filterManualRefs — relevance tier filtering', () => {
 
   test('MANUAL_LOOKUP_ENABLED je boolean', () => {
     strictEqual(typeof MANUAL_LOOKUP_ENABLED, 'boolean')
+  })
+})
+
+describe('repair-guide — průvodce opravou', () => {
+  const FAULT = {
+    název: 'Ucpaný DPF filtr',
+    zdroj: 'databáze',
+    početShod: 5,
+    díly: ['DPF filtr', 'čidlo diferenčního tlaku'],
+    řešení: ['nucená regenerace', 'výměna DPF filtru'],
+  }
+  const RESULT = {
+    doporučené_testy: ['kontrola protitlaku', 'zkušební jízda', 'čtení chybových kódů', 'čtvrtý test navíc'],
+  }
+
+  function makeGuide() {
+    return buildRepairGuide({ fault: FAULT, result: RESULT, diagnosisMsgId: 'msg-1', faultIndex: 0 })
+  }
+
+  test('buildRepairGuide skládá kroky: díly → akce → kontrola', () => {
+    const guide = makeGuide()
+    ok(guide)
+    strictEqual(guide.steps.length, 4)
+    strictEqual(guide.steps[0].kind, GUIDE_STEP.PARTS)
+    deepStrictEqual(guide.steps[0].detail, FAULT.díly)
+    strictEqual(guide.steps[1].kind, GUIDE_STEP.ACTION)
+    strictEqual(guide.steps[1].title, 'nucená regenerace')
+    strictEqual(guide.steps[2].title, 'výměna DPF filtru')
+    strictEqual(guide.steps[3].kind, GUIDE_STEP.VERIFY)
+    strictEqual(guide.steps[3].detail.length, 3, 'max 3 testy v závěrečné kontrole')
+  })
+
+  test('buildRepairGuide přebírá metadata závady (zdroj, počet shod, vazba na diagnózu)', () => {
+    const guide = makeGuide()
+    strictEqual(guide.faultName, 'Ucpaný DPF filtr')
+    strictEqual(guide.zdroj, 'databáze')
+    strictEqual(guide.početShod, 5)
+    strictEqual(guide.diagnosisMsgId, 'msg-1')
+    strictEqual(guide.faultIndex, 0)
+    ok(guide.startedAt)
+    strictEqual(guide.completedAt, null)
+  })
+
+  test('buildRepairGuide vrací null bez opravných akcí', () => {
+    strictEqual(buildRepairGuide({ fault: { ...FAULT, řešení: [] }, result: RESULT }), null)
+    strictEqual(buildRepairGuide({ fault: { ...FAULT, řešení: undefined }, result: RESULT }), null)
+    strictEqual(buildRepairGuide({ fault: null, result: RESULT }), null)
+  })
+
+  test('buildRepairGuide bez dílů nevkládá krok přípravy', () => {
+    const guide = buildRepairGuide({ fault: { ...FAULT, díly: [] }, result: RESULT, diagnosisMsgId: 'm', faultIndex: 1 })
+    strictEqual(guide.steps[0].kind, GUIDE_STEP.ACTION)
+    strictEqual(guide.steps.length, 3)
+  })
+
+  test('neznámý zdroj se normalizuje na "ai"', () => {
+    const guide = buildRepairGuide({ fault: { ...FAULT, zdroj: 'nesmysl' }, result: RESULT })
+    strictEqual(guide.zdroj, 'ai')
+  })
+
+  test('setGuideStepStatus označí krok a doplní doneAt', () => {
+    const guide = makeGuide()
+    const next = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
+    strictEqual(next.steps[0].status, GUIDE_STEP_STATUS.DONE)
+    ok(next.steps[0].doneAt)
+    strictEqual(next.completedAt, null)
+    strictEqual(guide.steps[0].status, GUIDE_STEP_STATUS.PENDING, 'původní průvodce zůstává nezměněn')
+  })
+
+  test('setGuideStepStatus nepřepíše už vyřízený krok', () => {
+    let guide = makeGuide()
+    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
+    const again = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.SKIPPED)
+    strictEqual(again.steps[0].status, GUIDE_STEP_STATUS.DONE)
+  })
+
+  test('setGuideStepStatus ignoruje neplatný stav', () => {
+    const guide = makeGuide()
+    const next = setGuideStepStatus(guide, guide.steps[0].id, 'pending')
+    strictEqual(next.steps[0].status, GUIDE_STEP_STATUS.PENDING)
+  })
+
+  test('po odbavení všech kroků se nastaví completedAt', () => {
+    let guide = makeGuide()
+    for (const step of guide.steps) {
+      guide = setGuideStepStatus(guide, step.id, GUIDE_STEP_STATUS.DONE)
+    }
+    ok(guide.completedAt)
+    strictEqual(getActiveGuideStep(guide), null)
+  })
+
+  test('přeskočené kroky počítají do dokončení', () => {
+    let guide = makeGuide()
+    for (const step of guide.steps) {
+      guide = setGuideStepStatus(guide, step.id, GUIDE_STEP_STATUS.SKIPPED)
+    }
+    ok(guide.completedAt)
+  })
+
+  test('getActiveGuideStep vrací první nevyřízený krok', () => {
+    let guide = makeGuide()
+    strictEqual(getActiveGuideStep(guide).id, guide.steps[0].id)
+    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
+    strictEqual(getActiveGuideStep(guide).id, guide.steps[1].id)
+  })
+
+  test('getGuideProgress počítá hotové i přeskočené kroky', () => {
+    let guide = makeGuide()
+    deepStrictEqual(getGuideProgress(guide), { done: 0, total: 4 })
+    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
+    guide = setGuideStepStatus(guide, guide.steps[1].id, GUIDE_STEP_STATUS.SKIPPED)
+    deepStrictEqual(getGuideProgress(guide), { done: 2, total: 4 })
+    deepStrictEqual(getGuideProgress(null), { done: 0, total: 0 })
+  })
+
+  test('hasGuideProgress chrání rozdělanou práci', () => {
+    let guide = makeGuide()
+    strictEqual(hasGuideProgress(guide), false)
+    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
+    strictEqual(hasGuideProgress(guide), true)
+    strictEqual(hasGuideProgress(null), false)
+  })
+
+  test('isGuideForFault páruje průvodce se závadou diagnózy', () => {
+    const guide = makeGuide()
+    strictEqual(isGuideForFault(guide, 'msg-1', 0), true)
+    strictEqual(isGuideForFault(guide, 'msg-1', 1), false)
+    strictEqual(isGuideForFault(guide, 'msg-2', 0), false)
+    strictEqual(isGuideForFault(null, 'msg-1', 0), false)
   })
 })
 

@@ -4,6 +4,7 @@ import { fmtDate } from "../lib/utils.js";
 import { getInputRoundNumber } from "../lib/session-view.js";
 import { SymptomChip, ObdChip } from "./Chip.jsx";
 import DiagCard from "./DiagCard.jsx";
+import RepairGuideCard from "./RepairGuideCard.jsx";
 
 export default function SessionTimeline({
   activeCase,
@@ -13,10 +14,16 @@ export default function SessionTimeline({
   lang,
   loading,
   mobile,
+  onCompleteGuideStep,
   onOpenManual,
+  onRequestCloseCase,
+  onSkipGuideStep,
+  onStartRepair,
   tr,
 }) {
   const { t } = useTheme();
+  const caseClosed = activeCase.status === CASE_STATUS.CLOSED;
+  const lastDiagnosisId = activeCase.messages.filter((m) => m.type === MSG.DIAGNOSIS).at(-1)?.id;
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "10px" : "20px", background: t.bg }}>
       <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: mobile ? 20 : 48 }}>
@@ -69,7 +76,17 @@ export default function SessionTimeline({
                   <div style={{ fontSize: "0.65rem", color: t.accentText, marginBottom: 4, letterSpacing: "0.06em" }}>
                     ◈ DriveCodex · {fmtDate(message.timestamp, lang)}
                   </div>
-                  <DiagCard result={message.result} ragMatches={ragSessions} vehicle={activeCase?.vehicle} onOpenManual={onOpenManual} />
+                  <DiagCard
+                    result={message.result}
+                    ragMatches={ragSessions}
+                    vehicle={activeCase?.vehicle}
+                    onOpenManual={onOpenManual}
+                    onStartRepair={!caseClosed && message.id === lastDiagnosisId && onStartRepair
+                      ? (faultIndex) => onStartRepair(message, faultIndex)
+                      : undefined}
+                    repairGuide={activeCase.repairGuide}
+                    messageId={message.id}
+                  />
                 </div>
               </div>
             );
@@ -77,6 +94,18 @@ export default function SessionTimeline({
 
           return null;
         })}
+
+        {activeCase.repairGuide && (
+          <RepairGuideCard
+            guide={activeCase.repairGuide}
+            caseClosed={caseClosed}
+            mobile={mobile}
+            onCompleteStep={onCompleteGuideStep}
+            onSkipStep={onSkipGuideStep}
+            onRequestCloseCase={onRequestCloseCase}
+            tr={tr}
+          />
+        )}
 
         {loading && (
           <div style={{ display: "flex", justifyContent: "flex-start" }}>
