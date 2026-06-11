@@ -84,6 +84,24 @@ drivecodex/
 
 ## Documentation
 
+**Start here.** This is the index to every doc in the repo — each lives next to
+the thing it describes, but they're all linked from here.
+
+**Architecture & operations**
 - [HANDOVER.md](HANDOVER.md) — architecture, data flow, deployment, known issues
+- [CLAUDE.md](CLAUDE.md) — Claude Code working instructions & conventions
+- [scripts/agent/README.md](scripts/agent/README.md) — the autonomous crawl agent (pipeline, providers, pause/resume, discovery, registry)
+
+**Crawl & data quality**
+- [CRAWL_AUDIT.md](CRAWL_AUDIT.md) — audit of the crawled RAG database (quality, coverage, issues)
+- [NHTSA_SUPERCRAWLER_SPEC.md](NHTSA_SUPERCRAWLER_SPEC.md) — NHTSA TSB ingestion pipeline spec
+- [NHTSA_STATUS.md](NHTSA_STATUS.md) — NHTSA ingestion progress/status
+- [scripts/agent/CRAWLED_INDEX.md](scripts/agent/CRAWLED_INDEX.md) — cross-source "already-extracted" index notes
+
+**Supabase**
 - [SUPABASE_SETUP.md](SUPABASE_SETUP.md) — Supabase project setup
 - [SUPABASE_GATEKEEPER.md](SUPABASE_GATEKEEPER.md) — RLS & security
+- [SUPABASE_EDGE_FUNCTION.md](SUPABASE_EDGE_FUNCTION.md) — edge function notes
+
+**Testing**
+- [TEST_SETUP.md](TEST_SETUP.md) — test environment & CI setup
