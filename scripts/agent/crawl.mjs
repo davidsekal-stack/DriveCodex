@@ -195,34 +195,23 @@ export async function enumerateThreadUrls(forum, calibration, maxThreads, sleepM
     return { hadError };
   }
 
-  let rootFallbackAttempted = false;
+  // Try EVERY configured section before any fallback. A single blocked
+  // section (e.g. one listing behind an anti-bot 406) must not abandon the
+  // remaining technical sections in favor of the noisy forum homepage.
   for (const rootSectionUrl of sectionUrls) {
-    const result = await enumerateSection(rootSectionUrl);
+    await enumerateSection(rootSectionUrl);
     if (urls.length >= maxThreads) break;
-
-    if (
-      !rootFallbackAttempted &&
-      urls.length === 0 &&
-      sections.length > 0 &&
-      forumRootUrl &&
-      canonicalizeTraversalUrl(rootSectionUrl) !== forumRootUrl &&
-      result?.hadError
-    ) {
-      rootFallbackAttempted = true;
-      console.warn(`  Section enumeration failed early for ${forum.url}; trying forum root immediately.`);
-      await enumerateSection(forum.url, 1);
-      if (urls.length > 0) break;
-    }
   }
 
+  // Only when all sections together yielded nothing, fall back to the forum
+  // root (homepage carousels still list recent threads on many platforms).
   if (
     urls.length === 0 &&
-    !rootFallbackAttempted &&
     sections.length > 0 &&
     forumRootUrl &&
     !sectionUrls.some(url => canonicalizeTraversalUrl(url) === forumRootUrl)
   ) {
-    console.warn(`  Section enumeration yielded no threads for ${forum.url}; retrying forum root.`);
+    console.warn(`  Section enumeration yielded no threads for ${forum.url}; falling back to forum root.`);
     await enumerateSection(forum.url, 1);
   }
 

@@ -31,7 +31,12 @@ const BROWSER_EXECUTABLE_CANDIDATES = [
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
 ];
 
-let cachedBrowserExecutable;
+// Cached only after a candidate produces a real DOM dump — some installs
+// (observed: Edge on this machine) exit 0 with EMPTY --dump-dom output, so
+// "the executable exists" is not enough to commit to it.
+let workingBrowserExecutable;
+// Session blacklist for executables that exit without producing any DOM.
+const brokenBrowserExecutables = new Set();
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -61,23 +66,19 @@ function resolveOrigin(url) {
   }
 }
 
-function resolveBrowserExecutable() {
-  if (cachedBrowserExecutable !== undefined) return cachedBrowserExecutable;
-
+export function listBrowserExecutables() {
   const localAppData = process.env.LOCALAPPDATA;
   const candidates = [...BROWSER_EXECUTABLE_CANDIDATES];
   if (localAppData) {
     candidates.unshift(join(localAppData, 'Microsoft', 'Edge', 'Application', 'msedge.exe'));
   }
-
-  cachedBrowserExecutable = candidates.find(path => {
+  return candidates.filter(path => {
     try {
       return existsSync(path);
     } catch {
       return false;
     }
-  }) || null;
-  return cachedBrowserExecutable;
+  });
 }
 
 function dumpDomWithBrowser(executable, url, userDataDir, timeoutMs) {
@@ -87,6 +88,9 @@ function dumpDomWithBrowser(executable, url, userDataDir, timeoutMs) {
       `--user-data-dir=${userDataDir}`,
       '--headless=new',
       '--disable-gpu',
+      '--no-first-run',
+      '--disable-extensions',
+      '--disable-sync',
       `--virtual-time-budget=${virtualTimeBudget}`,
       '--dump-dom',
       url,
@@ -139,10 +143,7 @@ async function tryBrowserFallback(url, options = {}) {
   }
 }
 
-async function fetchHtmlWithBrowser(url, options = {}) {
-  const executable = resolveBrowserExecutable();
-  if (!executable) return null;
-
+async function renderWithExecutable(executable, url, options = {}) {
   const profileDir = await mkdtemp(join(tmpdir(), 'agent-browser-'));
   const targetTimeoutMs = options.browserTimeoutMs ?? 30_000;
   const warmupTimeoutMs = options.browserWarmupTimeoutMs ?? 20_000;
@@ -154,18 +155,47 @@ async function fetchHtmlWithBrowser(url, options = {}) {
     }
 
     const result = await dumpDomWithBrowser(executable, url, profileDir, targetTimeoutMs);
-    const html = result.stdout ?? '';
-    if (result.code !== 0 && !isHtmlDocument(html)) {
+    const raw = result.stdout ?? '';
+    if (result.code !== 0 && !isHtmlDocument(raw)) {
       const detail = (result.stderr || result.stdout || '').trim().slice(0, 300);
       throw new Error(detail ? `Browser fallback exited ${result.code}: ${detail}` : `Browser fallback exited ${result.code}`);
     }
-    if (!isHtmlDocument(html) || isLikelyBrowserErrorHtml(html) || isLikelyChallengeHtml(html)) {
-      return null;
-    }
-    return html;
+    const producedDom = isHtmlDocument(raw);
+    const usable = producedDom && !isLikelyBrowserErrorHtml(raw) && !isLikelyChallengeHtml(raw);
+    return { html: usable ? raw : null, producedDom };
   } finally {
     await rm(profileDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+async function fetchHtmlWithBrowser(url, options = {}) {
+  // Try the cached known-good browser first; otherwise walk the candidates.
+  // An executable that exists but never produces a DOM (broken Edge installs
+  // exit 0 with empty --dump-dom output) must not block the next candidate.
+  // An error/challenge PAGE is a site-level block, not the browser's fault —
+  // those candidates stay eligible.
+  const candidates = workingBrowserExecutable
+    ? [workingBrowserExecutable]
+    : listBrowserExecutables().filter(exe => !brokenBrowserExecutables.has(exe));
+
+  let lastError = null;
+  for (const executable of candidates) {
+    try {
+      const { html, producedDom } = await renderWithExecutable(executable, url, options);
+      if (html) {
+        workingBrowserExecutable = executable;
+        return html;
+      }
+      if (!producedDom) {
+        brokenBrowserExecutables.add(executable);
+      }
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  if (lastError) throw lastError;
+  return null;
 }
 
 export async function fetchHtml(url, options = {}) {
