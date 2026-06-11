@@ -30,7 +30,8 @@ After completing any significant feature, refactoring, or architectural change:
 - `web/src/lib/` — pure functions (AI prompts, RAG scoring, validation, storage adapters).
 - `web/src/constants/` — vehicle catalogs, OBD codes, symptoms.
 - `supabase/functions/` — Deno edge functions (AI proxy, push-case, search-cases, review-cases).
-- `supabase/migrations/` — sequential SQL migrations (numbered 002–009).
+- `supabase/migrations/` — sequential SQL migrations (numbered 002–020).
+- `scripts/agent/` — autonomous crawl agent that builds the RAG DB (Claude-first pipeline: discover → calibrate → crawl → classify → extract → validate → verify → import). Has its own [README](scripts/agent/README.md); local state in `agent.db` (SQLite), secrets in git-ignored `.env.local`.
 
 ## Key Conventions
 - Status strings: `"rozpracovaný"` (in-progress), `"uzavřený"` (closed)
@@ -41,8 +42,9 @@ After completing any significant feature, refactoring, or architectural change:
 
 ## Testing
 ```bash
-npm test              # unit + i18n + validation + catalog tests
+npm test              # unit + i18n + validation + catalog + crawl-agent tests
 npm run test:unit     # just unit tests
+npm run test:agent    # crawl-agent tests only (LLM router, pause/resume, parsers, discovery, state)
 npm run test:integration  # Supabase integration (needs TEST_USER_EMAIL + TEST_USER_PASSWORD)
 ```
 
