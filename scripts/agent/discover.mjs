@@ -208,13 +208,13 @@ export async function discoverCandidates(state, opts = {}) {
           brands: c.brands,
           language: c.language || group.codes[0],
           engine: c.engine,
-          // status intentionally omitted: the column default ('discovered')
-          // applies on INSERT of a new domain, while a merge-update leaves an
-          // existing row's advanced status (active/calibrated) untouched.
+          status: 'discovered',
           discovered_via: `search:${brand}/${group.label}`,
           public_readable: c.public_readable,
           notes: c.why,
-        }, { env: opts.env });
+          // ignore-duplicates: insert only new domains; never reset an existing
+          // forum's advanced status (active/calibrated) on re-discovery.
+        }, { env: opts.env, mode: 'ignore' });
         added++;
         log(`  + ${c.name || c.root_url} (${domain}) [${brand}/${group.label}]`);
       } catch (err) {

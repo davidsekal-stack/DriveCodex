@@ -52,8 +52,14 @@ export async function fetchKnownDomains(opts = {}) {
 }
 
 /**
- * Upsert a forum row keyed by domain (Prefer: resolution=merge-duplicates).
- * Best-effort: returns { ok } and never throws.
+ * Insert/update a forum row keyed by domain. Best-effort: returns { ok }, never throws.
+ *
+ * @param {object} forum
+ * @param {object} [opts]
+ * @param {'merge'|'ignore'} [opts.mode='merge']
+ *   - 'merge'  (crawl/calibrate): update the row's provided columns on conflict.
+ *   - 'ignore' (discovery): INSERT new domains only; leave existing rows fully
+ *     untouched, so a re-discovery never resets an active forum to 'discovered'.
  */
 export async function upsertForum(forum, opts = {}) {
   const config = opts.config ?? registryConfig(opts.env);
@@ -83,6 +89,7 @@ export async function upsertForum(forum, opts = {}) {
   };
   for (const k of Object.keys(row)) if (row[k] === undefined) delete row[k];
 
+  const resolution = opts.mode === 'ignore' ? 'ignore-duplicates' : 'merge-duplicates';
   const url = `${config.supabaseUrl}/rest/v1/${REGISTRY_TABLE}?on_conflict=domain`;
   try {
     const res = await fetchImpl(url, {
@@ -91,7 +98,7 @@ export async function upsertForum(forum, opts = {}) {
         apikey: config.supabaseKey,
         Authorization: `Bearer ${config.supabaseKey}`,
         'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates,return=minimal',
+        Prefer: `resolution=${resolution},return=minimal`,
       },
       body: JSON.stringify(row),
     });
