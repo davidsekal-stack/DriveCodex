@@ -29,6 +29,7 @@ const DEFAULT_ROUTES = {
   verify: 'deepseek:deepseek-chat',
   calibrate: 'claude:sonnet',
   diary: 'claude:haiku',
+  discover: 'claude:sonnet', // forum discovery needs web search + judgment
 };
 
 /**
@@ -65,6 +66,7 @@ export function resolveRoute(task, env = process.env) {
  * @param {number} [options.maxTokens] - output cap (DeepSeek only; the CLI has no flag)
  * @param {number} [options.temperature] - DeepSeek only
  * @param {number} [options.timeoutMs] - hard timeout per call (both providers)
+ * @param {string[]} [options.allowedTools] - CLI tools to allow (claude only), e.g. ['WebSearch']
  * @param {string} [options.apiKey] - DeepSeek key override (default env DEEPSEEK_API_KEY)
  * @returns {Promise<string>} the model's text output
  * @throws {QuotaError} when the provider's quota/usage limit is exhausted
@@ -76,8 +78,12 @@ export async function runLlm(task, prompt, options = {}) {
     const { text } = await runClaudePrompt(prompt, {
       model: model || 'sonnet',
       timeoutMs: options.timeoutMs,
+      allowedTools: options.allowedTools,
     });
     return text;
+  }
+  if (options.allowedTools?.length) {
+    throw new Error(`allowedTools (web search) requires a claude provider, but task "${task}" is routed to ${provider}`);
   }
 
   const apiKey = options.apiKey || process.env.DEEPSEEK_API_KEY;

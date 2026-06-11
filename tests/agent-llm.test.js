@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { resolveRoute, deepseekChat } from '../scripts/agent/llm.mjs';
+import { resolveRoute, deepseekChat, runLlm } from '../scripts/agent/llm.mjs';
 import {
   isClaudeLimitMessage,
   parseClaudeResetAt,
@@ -14,6 +14,15 @@ function testDefaultRoutes() {
   assert.deepEqual(resolveRoute('verify', {}), { provider: 'deepseek', model: 'deepseek-chat' });
   assert.deepEqual(resolveRoute('calibrate', {}), { provider: 'claude', model: 'sonnet' });
   assert.deepEqual(resolveRoute('diary', {}), { provider: 'claude', model: 'haiku' });
+  assert.deepEqual(resolveRoute('discover', {}), { provider: 'claude', model: 'sonnet' });
+}
+
+async function testAllowedToolsRequiresClaude() {
+  // Web search routed to DeepSeek must be rejected, not silently dropped
+  await assert.rejects(
+    runLlm('verify', 'p', { allowedTools: ['WebSearch'], apiKey: 'k' }),
+    /requires a claude provider/,
+  );
 }
 
 function testEnvOverrides() {
@@ -147,5 +156,6 @@ testLimitMessageDetection();
 testResetTimeParsing();
 testQuotaErrorShape();
 await testDeepseekChatWithStub();
+await testAllowedToolsRequiresClaude();
 
 console.log('agent-llm.test.js passed');

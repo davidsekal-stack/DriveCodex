@@ -68,8 +68,18 @@ function psQuote(value) {
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
-export function buildClaudeRunSpec({ model, platform = process.platform }) {
+function sanitizeTools(allowedTools) {
+  if (!Array.isArray(allowedTools)) return [];
+  // Tool names are a closed vocabulary (WebSearch, WebFetch, …) — restrict to a
+  // safe alphabet so nothing can break out of the interpolated PS command.
+  return allowedTools
+    .map(t => String(t).trim())
+    .filter(t => /^[A-Za-z][A-Za-z0-9_]*$/.test(t));
+}
+
+export function buildClaudeRunSpec({ model, platform = process.platform, allowedTools = [] }) {
   if (!model) throw new Error('buildClaudeRunSpec requires a model');
+  const tools = sanitizeTools(allowedTools);
 
   if (platform === 'win32') {
     // Three encodings must all be UTF-8 (BOM-less) for Czech text to survive:
@@ -77,10 +87,11 @@ export function buildClaudeRunSpec({ model, platform = process.platform }) {
     // (WinPS 5.1 default is US-ASCII → diacritics become '?'), InputEncoding
     // decodes our stdin, OutputEncoding decodes the CLI's stdout. The Console
     // setters can throw on exotic console states, so they are best-effort.
+    const toolsPart = tools.length > 0 ? ` --allowedTools ${psQuote(tools.join(','))}` : '';
     const script =
       `$OutputEncoding = New-Object System.Text.UTF8Encoding $false; ` +
       `try { [Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false; [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch {}; ` +
-      `$prompt = [Console]::In.ReadToEnd(); $prompt | claude -p --output-format json --model ${psQuote(model)}`;
+      `$prompt = [Console]::In.ReadToEnd(); $prompt | claude -p --output-format json --model ${psQuote(model)}${toolsPart}`;
     return {
       command: 'powershell.exe',
       args: [
@@ -95,10 +106,9 @@ export function buildClaudeRunSpec({ model, platform = process.platform }) {
     };
   }
 
-  return {
-    command: 'claude',
-    args: ['-p', '--output-format', 'json', '--model', model],
-  };
+  const args = ['-p', '--output-format', 'json', '--model', model];
+  if (tools.length > 0) args.push('--allowedTools', tools.join(','));
+  return { command: 'claude', args };
 }
 
 /**
@@ -217,10 +227,10 @@ function spawnWithInput(command, args, input, timeoutMs, env) {
  * @returns {Promise<{ text: string, usage: object|null, costUsd: number|null }>}
  * @throws {QuotaError} on subscription usage limits
  */
-export async function runClaudePrompt(prompt, { model, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+export async function runClaudePrompt(prompt, { model, timeoutMs = DEFAULT_TIMEOUT_MS, allowedTools = [] } = {}) {
   if (!model) throw new Error('runClaudePrompt requires a model');
 
-  const spec = buildClaudeRunSpec({ model });
+  const spec = buildClaudeRunSpec({ model, allowedTools });
   const env = buildChildEnv();
   const { code, stdout, stderr } = await spawnWithInput(spec.command, spec.args, prompt, timeoutMs, env);
 

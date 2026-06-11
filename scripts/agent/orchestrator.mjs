@@ -29,6 +29,8 @@ import { verifyCase } from './verify.mjs';
 import { createCrawlPipeline, processThread } from './crawl.mjs';
 import { loadCrawledIndex, isThreadAlreadyExtracted } from './crawled-index.mjs';
 import { writeDiary } from './diary.mjs';
+import { discoverCandidates } from './discover.mjs';
+import { upsertForum } from './forum-registry.mjs';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { QuotaError, AuthError, isStoppingError, formatQuotaMessage } from './quota.mjs';
@@ -258,6 +260,57 @@ async function phaseDiscover(state, opts) {
   }
 
   console.log(`  Discovery seeded ${added} candidate(s), skipped ${skipped}.`);
+
+  // Live web discovery — only when the crawlable pool is running low and we
+  // haven't searched recently. Bounded + rotated inside discoverCandidates.
+  await maybeRunLiveDiscovery(state, opts);
+}
+
+// Run live discovery sparingly: it costs web-search calls and we usually have
+// a backlog. Trigger only when few forums are ready to crawl AND discovery
+// hasn't run in the last DISCOVERY_MIN_INTERVAL_MS.
+const DISCOVERY_MIN_INTERVAL_MS = 24 * 3600_000;
+const DISCOVERY_LOW_POOL = 3;
+// Hard cap: at most one live-discovery attempt per process, so a `--continuous`
+// loop (or `--phase discover --continuous`) can never re-fire web searches every
+// 60s. The scheduled wrapper runs one-shot, so this doesn't limit production.
+let liveDiscoveryAttemptedThisProcess = false;
+
+async function maybeRunLiveDiscovery(state, opts) {
+  if (opts.phase && opts.phase !== 'discover') return; // only in full runs / explicit discover
+  if (process.env.AGENT_DISABLE_LIVE_DISCOVERY === '1') return;
+  if (liveDiscoveryAttemptedThisProcess) return;
+
+  // "Crawlable" means calibrated (matches phaseCrawl) — discovered-but-uncalibrated
+  // forums are pipeline backlog, not ready targets.
+  const ready = state.getForumsToProcess(50).filter(f => f.calibration_status === 'calibrated').length;
+  // A manual `--phase discover`/`--force` may run on a full pool, but the 24h
+  // interval is ALWAYS honored so nothing can hammer web search.
+  const force = opts.phase === 'discover' || opts.force;
+  if (!force && ready >= DISCOVERY_LOW_POOL) {
+    console.log(`  Live discovery skipped: ${ready} calibrated forum(s) still crawlable.`);
+    return;
+  }
+
+  const last = Number(state.getMeta('last_discovery_at')) || 0;
+  const since = Date.now() - last;
+  if (since < DISCOVERY_MIN_INTERVAL_MS) {
+    console.log(`  Live discovery skipped: ran ${Math.round(since / 3600_000)}h ago (min interval 24h).`);
+    return;
+  }
+
+  console.log('  Running live web discovery...');
+  liveDiscoveryAttemptedThisProcess = true;
+  // Stamp before the attempt so even a thrown failure counts against the 24h
+  // window (a persistently failing discovery must not retry every batch).
+  state.setMeta('last_discovery_at', String(Date.now()));
+  try {
+    const result = await discoverCandidates(state, { log: msg => console.log(msg) });
+    logInfo(`Live discovery queued ${result.added} forum(s) from ${result.queries} queries.`);
+  } catch (err) {
+    if (isStoppingError(err)) throw err;
+    logWarn(`Live discovery failed: ${err.message}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -486,14 +539,30 @@ async function phaseCrawl(state, opts) {
     // Update forum stats
     const crawled = state.countCrawledThreads(forum.id);
     const forumCases = state.countForumCases(forum.id);
+    const crawledAt = new Date().toISOString();
     state.updateForum(forum.id, {
-      last_crawled_at: new Date().toISOString(),
+      last_crawled_at: crawledAt,
       threads_crawled: crawled,
       new_threads_last_batch: newUrls.length,
       cases_total: forumCases,
       status: 'active',
     });
     console.log(`  Forum done: +${newUrls.length} threads, +${batchCases} cases (total: ${crawled} threads, ${forumCases} cases).`);
+
+    // Mirror last-scraped state to the online registry (best-effort; no-op
+    // without a service key). This is what makes crawl_forums the shared
+    // "last-scraped" list, not just a discovery ledger.
+    await upsertForum({
+      root_url: forum.url,
+      name: forum.name,
+      engine: forum.parser,
+      language: forum.language,
+      status: 'active',
+      threads_crawled: crawled,
+      cases_total: forumCases,
+      yield_rate: crawled > 0 ? forumCases / crawled : 0,
+      last_crawled_at: crawledAt,
+    }, { now: crawledAt }).catch(() => {});
 
     // ── Write LLM diary entry for this forum ──
     // Collect top discard reasons from this batch for diary context

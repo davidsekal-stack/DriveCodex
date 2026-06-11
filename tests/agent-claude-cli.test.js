@@ -37,6 +37,27 @@ function testModelRequired() {
   assert.throws(() => buildClaudeRunSpec({ platform: 'win32' }), /requires a model/);
 }
 
+function testAllowedTools() {
+  // POSIX: --allowedTools passed as a joined arg
+  const posix = buildClaudeRunSpec({ model: 'sonnet', platform: 'linux', allowedTools: ['WebSearch', 'WebFetch'] });
+  const idx = posix.args.indexOf('--allowedTools');
+  assert.ok(idx !== -1);
+  assert.equal(posix.args[idx + 1], 'WebSearch,WebFetch');
+
+  // win32: embedded in the PS command string
+  const win = buildClaudeRunSpec({ model: 'sonnet', platform: 'win32', allowedTools: ['WebSearch'] });
+  assert.match(win.args[6], /--allowedTools 'WebSearch'/);
+
+  // No tools → no flag
+  const none = buildClaudeRunSpec({ model: 'haiku', platform: 'linux' });
+  assert.equal(none.args.includes('--allowedTools'), false);
+
+  // Injection-shaped tool names are dropped (closed vocabulary)
+  const dirty = buildClaudeRunSpec({ model: 'haiku', platform: 'linux', allowedTools: ["WebSearch'; rm -rf /", 'Bad Tool', 'WebFetch'] });
+  const di = dirty.args.indexOf('--allowedTools');
+  assert.equal(dirty.args[di + 1], 'WebFetch', 'only the clean tool name survives');
+}
+
 function testChildEnvSanitization() {
   // Nested inside a Claude Code session → session vars must be stripped
   const nested = buildChildEnv({
@@ -152,6 +173,7 @@ function testEnvelopeErrors() {
 testWindowsSpec();
 testPosixSpec();
 testModelRequired();
+testAllowedTools();
 testChildEnvSanitization();
 testParseEnvelope();
 testEnvelopeErrors();
