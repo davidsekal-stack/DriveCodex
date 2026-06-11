@@ -702,6 +702,19 @@ export function extractThreadLinks(html, baseUrl) {
 // Pagination — find "next page" link
 // ---------------------------------------------------------------------------
 
+// Resolve a pagination href and strip the fragment — some WAFs (observed on
+// toyotanation.com) reject otherwise-valid pagination URLs carrying #replies
+// or #post-N fragments, and fragments never change the fetched content.
+function resolvePageLink(href, baseUrl) {
+  try {
+    const url = new URL(href, baseUrl);
+    url.hash = '';
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
 export function findNextPageLink(html, baseUrl, paginationSelector) {
   const selectors = (paginationSelector ?? '')
     .toString()
@@ -716,7 +729,8 @@ export function findNextPageLink(html, baseUrl, paginationSelector) {
       const attrMap = parseTagAttrs(anchor.attrText);
       const href = decodeHtmlAttribute(attrMap.get('href') ?? '');
       if (!href) continue;
-      try { return new URL(href, baseUrl).href; } catch { /* skip */ }
+      const resolved = resolvePageLink(href, baseUrl);
+      if (resolved) return resolved;
     }
   }
 
@@ -732,7 +746,8 @@ export function findNextPageLink(html, baseUrl, paginationSelector) {
   for (const p of patterns) {
     const m = html.match(p);
     if (m?.[1]) {
-      try { return new URL(m[1], baseUrl).href; } catch { /* skip */ }
+      const resolved = resolvePageLink(decodeHtmlAttribute(m[1]), baseUrl);
+      if (resolved) return resolved;
     }
   }
 

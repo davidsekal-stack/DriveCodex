@@ -98,6 +98,30 @@ export function canonicalizeTraversalUrl(input) {
   return url.href;
 }
 
+// Thread-position path suffixes (XenForo: /latest, /unread, /post-123,
+// /page-7; Invision: /page/2/). They point INTO a thread, not at it — the
+// canonical thread URL is the thread root. Stripping them also dodges WAFs
+// that block the /latest jump endpoint (observed on toyotanation.com) and
+// makes the parser start pagination from page 1.
+const THREAD_POSITION_SUFFIXES = /\/(?:latest|unread|post-\d+|page-\d+|page\/\d+)\/?$/i;
+
 export function canonicalizeThreadUrl(input) {
-  return canonicalizeTraversalUrl(input);
+  const traversal = canonicalizeTraversalUrl(input);
+
+  let url;
+  try {
+    url = new URL(traversal);
+  } catch {
+    return traversal;
+  }
+
+  if (/\/(threads?|topic)\//i.test(url.pathname)) {
+    let previous;
+    do {
+      previous = url.pathname;
+      url.pathname = url.pathname.replace(THREAD_POSITION_SUFFIXES, '/');
+    } while (url.pathname !== previous);
+  }
+
+  return url.href;
 }
