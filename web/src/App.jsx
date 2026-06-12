@@ -25,6 +25,7 @@ import useCaseDraft                         from "./hooks/useCaseDraft.js";
 import useCaseDialogs                       from "./hooks/useCaseDialogs.js";
 import useCaseWorkflow                      from "./hooks/useCaseWorkflow.js";
 import useCases                             from "./hooks/useCases.js";
+import useRepairGuide                       from "./hooks/useRepairGuide.js";
 import useGlobalShortcuts                   from "./hooks/useGlobalShortcuts.js";
 import useIsMobile                          from "./hooks/useIsMobile.js";
 import { useI18n }                          from "./i18n/index.jsx";
@@ -118,6 +119,21 @@ function App() {
     handleCreateCase,
     runDiag,
     tr,
+  });
+
+  const {
+    cancelEndAttempt,
+    cancelStartRepairGuide,
+    confirmEndAttempt,
+    confirmStartRepairGuide,
+    pendingEndAttempt,
+    pendingGuideStart,
+    startRepairGuide,
+    ...guideActions
+  } = useRepairGuide({
+    activeId,
+    casesRef,
+    updateCase,
   });
 
   const diagCount   = activeCase?.messages.filter((m) => m.type === MSG.DIAGNOSIS).length ?? 0;
@@ -266,11 +282,13 @@ function App() {
               error={error}
               lang={lang}
               loading={loading}
+              guideActions={guideActions}
               mobile={mobile}
               onOpenManual={handleOpenManual}
               onRequestCloseCase={openCloseModal}
               onRequestDelete={requestDeleteCase}
               onRunDiag={runDiag}
+              onStartRepair={startRepairGuide}
               tr={tr}
             />
           )}
@@ -286,9 +304,15 @@ function App() {
         mobile={mobile}
         onCancelCloseCase={cancelCloseModal}
         onCancelDeleteCase={cancelDeleteCase}
+        onCancelEndAttempt={cancelEndAttempt}
+        onCancelReplaceGuide={cancelStartRepairGuide}
         onChangeResolution={changeResolution}
         onConfirmCloseCase={confirmCloseCase}
         onConfirmDeleteCase={confirmDeleteCase}
+        onConfirmEndAttempt={confirmEndAttempt}
+        onConfirmReplaceGuide={confirmStartRepairGuide}
+        pendingEndAttempt={pendingEndAttempt}
+        pendingGuideStart={pendingGuideStart}
         resolution={resolution}
         tr={tr}
       />

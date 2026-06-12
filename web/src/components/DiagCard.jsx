@@ -5,6 +5,7 @@ import useIsMobile from "../hooks/useIsMobile.js";
 import { ObdChip } from "./Chip.jsx";
 import { lookupManual } from "../lib/storage-edge.js";
 import { filterManualRefs, MANUAL_LOOKUP_ENABLED } from "../lib/manual-refs.js";
+import { GUIDE_VERSION, REPAIR_GUIDE_CARD_ID, isGuideForFault } from "../lib/repair-guide.js";
 
 // ── Source-based colors ──────────────────────────────────────────────────────
 // Green = from database (verified), Blue = AI-generated
@@ -28,7 +29,7 @@ function SectionLabel({ children }) {
   );
 }
 
-function SourceBadge({ fault, tr }) {
+export function SourceBadge({ fault, tr }) {
   const { t } = useTheme();
   const isDb = fault.zdroj === "databáze";
   const sc = sourceColor(fault);
@@ -190,9 +191,18 @@ function FaultManualRef({ vehicle, fault, tr, onOpenManual }) {
 
 // ── Jedna závada ──────────────────────────────────────────────────────────────
 
-function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual }) {
+function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual, onStartRepair, guideActive }) {
   const { t } = useTheme();
   const sc = sourceColor(f);
+
+  const handleRepairClick = () => {
+    if (guideActive) {
+      document.getElementById(REPAIR_GUIDE_CARD_ID)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    onStartRepair?.();
+  };
+
   return (
     <div style={{ background: t.bgCard, border: `2px solid ${isPrimary ? sc.accent : t.border}`, padding: mobile ? "12px" : "16px", borderLeft: `5px solid ${sc.accent}`, marginBottom: 16, borderRadius: 3 }}>
 
@@ -250,6 +260,23 @@ function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual }) {
         </div>
       )}
 
+      {/* Zahájení průvodce opravou */}
+      {onStartRepair && f.řešení?.length > 0 && (
+        <button
+          data-testid="start-repair-guide"
+          onClick={handleRepairClick}
+          style={{
+            background: guideActive ? "transparent" : sc.accent,
+            border: `1px solid ${sc.accent}`,
+            color: guideActive ? sc.accent : "#fff",
+            padding: "8px 18px", fontSize: "0.76rem", fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit", borderRadius: 2,
+            letterSpacing: "0.04em", marginTop: 2,
+          }}>
+          {guideActive ? `▾ ${tr("guide.continue")}` : `▸ ${tr("guide.start")}`}
+        </button>
+      )}
+
       {/* Workshop Manual Reference — per-fault, interactive */}
       {vehicle && (
         <FaultManualRef vehicle={vehicle} fault={f} tr={tr} onOpenManual={onOpenManual} />
@@ -260,7 +287,7 @@ function FaultCard({ fault: f, isPrimary, tr, mobile, vehicle, onOpenManual }) {
 
 // ── Hlavní komponenta ─────────────────────────────────────────────────────────
 
-export default function DiagCard({ result, ragMatches = [], vehicle, onOpenManual }) {
+export default function DiagCard({ result, ragMatches = [], vehicle, onOpenManual, onStartRepair, repairGuide, messageId }) {
   const { t } = useTheme();
   const { tr } = useI18n();
   const mobile = useIsMobile();
@@ -323,7 +350,17 @@ export default function DiagCard({ result, ragMatches = [], vehicle, onOpenManua
 
       {/* Závady — each with its own manual reference */}
       {result.závady?.map((f, i) => (
-        <FaultCard key={i} fault={f} isPrimary={i === 0} tr={tr} mobile={mobile} vehicle={vehicle} onOpenManual={onOpenManual} />
+        <FaultCard
+          key={i}
+          fault={f}
+          isPrimary={i === 0}
+          tr={tr}
+          mobile={mobile}
+          vehicle={vehicle}
+          onOpenManual={onOpenManual}
+          onStartRepair={onStartRepair ? () => onStartRepair(i) : undefined}
+          guideActive={repairGuide?.version === GUIDE_VERSION && isGuideForFault(repairGuide, messageId, i)}
+        />
       ))}
 
       {/* Doporučené testy + poznámky */}

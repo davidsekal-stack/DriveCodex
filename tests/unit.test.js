@@ -69,6 +69,31 @@ import {
   removeMessageById,
   searchSimilarCases,
 } from '../web/src/lib/diagnosis.js'
+import {
+  ACTION_STATUS,
+  GUIDE_OUTCOME,
+  GUIDE_PHASE,
+  GUIDE_VERSION,
+  TEST_STATUS,
+  allActionsFailed,
+  archiveGuide,
+  buildRepairGuide,
+  chooseAction,
+  getActiveTest,
+  getAttemptSummary,
+  getChosenAction,
+  getGuidePhase,
+  getGuideProgress,
+  hasGuideProgress,
+  isGuideForFault,
+  resolveAction,
+  setGuideOutcome,
+  setTestStatus,
+  unchooseAction,
+  undoAction,
+  undoGuideOutcome,
+  undoTest,
+} from '../web/src/lib/repair-guide.js'
 import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
 import { uid, urgColor, fmtDate, fmtMileage } from '../web/src/lib/utils.js'
@@ -1951,6 +1976,211 @@ describe('filterManualRefs — relevance tier filtering', () => {
 
   test('MANUAL_LOOKUP_ENABLED je boolean', () => {
     strictEqual(typeof MANUAL_LOOKUP_ENABLED, 'boolean')
+  })
+})
+
+describe('repair-guide — průvodce opravou (v2)', () => {
+  const FAULT = {
+    název: 'Ucpaný DPF filtr',
+    zdroj: 'databáze',
+    početShod: 5,
+    díly: ['DPF filtr', 'čidlo diferenčního tlaku'],
+    řešení: ['nucená regenerace', 'výměna DPF filtru', 'čištění DPF'],
+  }
+  const RESULT = {
+    doporučené_testy: ['kontrola protitlaku', 'test čidla diferenčního tlaku'],
+    varování: 'Pozor na horký výfuk.',
+  }
+
+  function makeGuide() {
+    return buildRepairGuide({ fault: FAULT, result: RESULT, diagnosisMsgId: 'msg-1', faultIndex: 0 })
+  }
+
+  // Pomocník: odbaví všechny testy, vrátí průvodce ve fázi oprav
+  function guideInActionsPhase() {
+    let guide = makeGuide()
+    for (const t of guide.tests) guide = setTestStatus(guide, t.id, TEST_STATUS.DONE)
+    return guide
+  }
+
+  test('buildRepairGuide: testy PŘED opravami, opravy jako možnosti, díly jen informativně', () => {
+    const guide = makeGuide()
+    ok(guide)
+    strictEqual(guide.version, GUIDE_VERSION)
+    strictEqual(guide.tests.length, 2, 'všechny doporučené testy, žádné ořezání')
+    strictEqual(guide.tests[0].title, 'kontrola protitlaku')
+    strictEqual(guide.actions.length, 3)
+    ok(guide.actions.every((a) => a.status === ACTION_STATUS.PENDING))
+    deepStrictEqual(guide.díly, FAULT.díly, 'díly nejsou krok, jen info')
+    strictEqual(guide.varování, 'Pozor na horký výfuk.', 'varování z diagnózy se přenáší')
+    strictEqual(guide.outcome, null)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.TESTS)
+  })
+
+  test('buildRepairGuide vrací null bez opravných akcí', () => {
+    strictEqual(buildRepairGuide({ fault: { ...FAULT, řešení: [] }, result: RESULT }), null)
+    strictEqual(buildRepairGuide({ fault: null, result: RESULT }), null)
+  })
+
+  test('bez testů začíná průvodce rovnou fází oprav', () => {
+    const guide = buildRepairGuide({ fault: FAULT, result: {}, diagnosisMsgId: 'm', faultIndex: 0 })
+    strictEqual(guide.tests.length, 0)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.ACTIONS)
+  })
+
+  test('neznámý zdroj se normalizuje na "ai"', () => {
+    const guide = buildRepairGuide({ fault: { ...FAULT, zdroj: 'nesmysl' }, result: RESULT })
+    strictEqual(guide.zdroj, 'ai')
+  })
+
+  test('testy: odbavení, přeskočení a vrácení', () => {
+    let guide = makeGuide()
+    strictEqual(getActiveTest(guide).id, guide.tests[0].id)
+    guide = setTestStatus(guide, guide.tests[0].id, TEST_STATUS.DONE)
+    ok(guide.tests[0].doneAt)
+    guide = setTestStatus(guide, guide.tests[1].id, TEST_STATUS.SKIPPED)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.ACTIONS)
+    guide = undoTest(guide, guide.tests[1].id)
+    strictEqual(guide.tests[1].status, TEST_STATUS.PENDING)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.TESTS)
+  })
+
+  test('opravu nelze vybrat ve fázi testů ani dvě najednou', () => {
+    let guide = makeGuide()
+    const inTests = chooseAction(guide, guide.actions[0].id)
+    strictEqual(getChosenAction(inTests), null, 'fáze testů — lze vybrat, až jsou testy odbavené')
+
+    guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    strictEqual(getChosenAction(guide).id, guide.actions[0].id)
+    const second = chooseAction(guide, guide.actions[1].id)
+    strictEqual(second.actions[1].status, ACTION_STATUS.PENDING, 'druhou rozpracovat nejde')
+  })
+
+  test('oprava POMOHLA → zbylé možnosti „nebylo potřeba", fáze final', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.HELPED)
+    strictEqual(guide.actions[1].status, ACTION_STATUS.NOT_NEEDED)
+    strictEqual(guide.actions[2].status, ACTION_STATUS.NOT_NEEDED)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.FINAL)
+  })
+
+  test('oprava NEPOMOHLA → zkouší se další možnost', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, false)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.FAILED)
+    strictEqual(guide.actions[1].status, ACTION_STATUS.PENDING, 'ostatní zůstávají k dispozici')
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.ACTIONS)
+  })
+
+  test('všechny opravy selhaly → allActionsFailed, výsledek „přetrvává" jde nastavit', () => {
+    let guide = guideInActionsPhase()
+    for (const a of guide.actions) {
+      guide = chooseAction(guide, a.id)
+      guide = resolveAction(guide, a.id, false)
+    }
+    strictEqual(allActionsFailed(guide), true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.PERSISTS)
+    strictEqual(guide.outcome, GUIDE_OUTCOME.PERSISTS)
+    ok(guide.completedAt)
+  })
+
+  test('„vyřešeno" jde nastavit jen po závěrečné kontrole (fáze final)', () => {
+    let guide = guideInActionsPhase()
+    const tooEarly = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    strictEqual(tooEarly.outcome, null, 'bez provedené opravy nelze uzavřít jako vyřešené')
+
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    strictEqual(guide.outcome, GUIDE_OUTCOME.SOLVED)
+    strictEqual(guide.finalCheck.status, TEST_STATUS.DONE)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.DONE)
+  })
+
+  test('vrácení kroků: unchoose, undo failed, undo helped vrací celou větev', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = unchooseAction(guide, guide.actions[0].id)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.PENDING)
+
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, false)
+    guide = undoAction(guide, guide.actions[0].id)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.PENDING)
+
+    guide = chooseAction(guide, guide.actions[1].id)
+    guide = resolveAction(guide, guide.actions[1].id, true)
+    guide = undoAction(guide, guide.actions[1].id)
+    strictEqual(guide.actions[1].status, ACTION_STATUS.PENDING)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.PENDING, 'nepotřebné možnosti se vrací')
+    strictEqual(guide.finalCheck.status, TEST_STATUS.PENDING)
+  })
+
+  test('vrácení výsledku pokusu (omyl při závěru)', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    guide = undoGuideOutcome(guide)
+    strictEqual(guide.outcome, null)
+    strictEqual(guide.completedAt, null)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.FINAL)
+  })
+
+  test('po nastavení výsledku jsou přechody zamčené', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    const locked = undoAction(guide, guide.actions[0].id)
+    strictEqual(locked.actions[0].status, ACTION_STATUS.HELPED)
+    const lockedTest = undoTest(guide, guide.tests[0].id)
+    strictEqual(lockedTest.tests[0].status, TEST_STATUS.DONE)
+  })
+
+  test('getGuideProgress: testy + oprava + kontrola', () => {
+    let guide = makeGuide()
+    deepStrictEqual(getGuideProgress(guide), { done: 0, total: 4 })
+    guide = guideInActionsPhase()
+    deepStrictEqual(getGuideProgress(guide), { done: 2, total: 4 })
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    deepStrictEqual(getGuideProgress(guide), { done: 3, total: 4 })
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    deepStrictEqual(getGuideProgress(guide), { done: 4, total: 4 })
+    deepStrictEqual(getGuideProgress(null), { done: 0, total: 0 })
+  })
+
+  test('hasGuideProgress chrání rozdělanou práci', () => {
+    let guide = makeGuide()
+    strictEqual(hasGuideProgress(guide), false)
+    guide = setTestStatus(guide, guide.tests[0].id, TEST_STATUS.DONE)
+    strictEqual(hasGuideProgress(guide), true)
+    strictEqual(hasGuideProgress(null), false)
+    strictEqual(hasGuideProgress({ steps: [{ status: 'done' }] }), false, 'starý formát v1 se nepočítá')
+  })
+
+  test('archiveGuide + getAttemptSummary pro historii pokusů', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, false)
+    const archived = archiveGuide(guide)
+    ok(archived.archivedAt)
+    const summary = getAttemptSummary(archived)
+    strictEqual(summary.faultName, 'Ucpaný DPF filtr')
+    deepStrictEqual(summary.failedActions, ['nucená regenerace'])
+    strictEqual(summary.helpedAction, null)
+  })
+
+  test('isGuideForFault páruje průvodce se závadou diagnózy', () => {
+    const guide = makeGuide()
+    strictEqual(isGuideForFault(guide, 'msg-1', 0), true)
+    strictEqual(isGuideForFault(guide, 'msg-1', 1), false)
+    strictEqual(isGuideForFault(null, 'msg-1', 0), false)
   })
 })
 
