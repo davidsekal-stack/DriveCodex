@@ -122,8 +122,11 @@ function App() {
   });
 
   const {
+    cancelEndAttempt,
     cancelStartRepairGuide,
+    confirmEndAttempt,
     confirmStartRepairGuide,
+    pendingEndAttempt,
     pendingGuideStart,
     startRepairGuide,
     ...guideActions
@@ -301,11 +304,14 @@ function App() {
         mobile={mobile}
         onCancelCloseCase={cancelCloseModal}
         onCancelDeleteCase={cancelDeleteCase}
+        onCancelEndAttempt={cancelEndAttempt}
         onCancelReplaceGuide={cancelStartRepairGuide}
         onChangeResolution={changeResolution}
         onConfirmCloseCase={confirmCloseCase}
         onConfirmDeleteCase={confirmDeleteCase}
+        onConfirmEndAttempt={confirmEndAttempt}
         onConfirmReplaceGuide={confirmStartRepairGuide}
+        pendingEndAttempt={pendingEndAttempt}
         pendingGuideStart={pendingGuideStart}
         resolution={resolution}
         tr={tr}

@@ -87,12 +87,21 @@ function PreviousAttempts({ history, lang, tr }) {
       </div>
       {history.map((attempt, index) => {
         const summary = getAttemptSummary(attempt);
-        const line = summary.failedActions.length > 0
-          ? tr("guide.attemptFailed", { fault: summary.faultName, actions: summary.failedActions.join(", ") })
-          : tr("guide.attemptNone", { fault: summary.faultName });
+        const wasSolved = attempt.outcome === GUIDE_OUTCOME.SOLVED && summary.helpedAction;
+        // Oprava, která „pomohla", ale závada se pak vrátila, patří mezi provedené
+        // neúspěšné akce — nesmí ze záznamu zmizet (zpětná vazba panelu mechaniků).
+        const performed = [
+          ...(!wasSolved && summary.helpedAction ? [summary.helpedAction] : []),
+          ...summary.failedActions,
+        ];
+        const line = wasSolved
+          ? tr("guide.attemptSolved", { fault: summary.faultName, action: summary.helpedAction })
+          : performed.length > 0
+            ? tr("guide.attemptFailed", { fault: summary.faultName, actions: performed.join(", ") })
+            : tr("guide.attemptNone", { fault: summary.faultName });
         return (
           <div key={attempt.archivedAt ?? index} style={{ fontSize: "0.78rem", color: t.textMuted, padding: "3px 0", display: "flex", gap: 8, alignItems: "baseline" }}>
-            <span style={{ color: "#dc2626", flexShrink: 0 }}>✗</span>
+            <span style={{ color: wasSolved ? t.doneStatusColor : "#dc2626", flexShrink: 0 }}>{wasSolved ? "✓" : "✗"}</span>
             <span style={{ flex: 1 }}>{line}</span>
             {attempt.archivedAt && (
               <span style={{ fontSize: "0.66rem", color: t.textFaint, flexShrink: 0 }}>{fmtDate(attempt.archivedAt, lang)}</span>

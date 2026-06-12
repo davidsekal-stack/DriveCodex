@@ -27,6 +27,7 @@ import {
  */
 export default function useRepairGuide({ activeId, casesRef, updateCase }) {
   const [pendingGuideStart, setPendingGuideStart] = useState(null);
+  const [pendingEndAttempt, setPendingEndAttempt] = useState(null);
 
   const updateGuide = useCallback((transform) => {
     if (!activeId) return;
@@ -126,8 +127,20 @@ export default function useRepairGuide({ activeId, casesRef, updateCase }) {
     updateGuide((guide) => undoGuideOutcome(guide));
   }, [updateGuide]);
 
-  /** Ukončí neúspěšný pokus: archivuje ho a uvolní místo pro další závadu. */
+  /**
+   * Ukončení neúspěšného pokusu je jediný nevratný krok průvodce —
+   * proto jde přes potvrzovací dialog (pendingEndAttempt → ConfirmModal).
+   */
   const endAttempt = useCallback(() => {
+    if (!activeId) return;
+    const currentCase = casesRef.current.find((item) => item.id === activeId);
+    const guide = currentCase?.repairGuide;
+    if (!guide) return;
+    setPendingEndAttempt({ faultName: guide.faultName });
+  }, [activeId, casesRef]);
+
+  const confirmEndAttempt = useCallback(() => {
+    setPendingEndAttempt(null);
     if (!activeId) return;
     updateCase(activeId, (storedCase) => {
       const existing = storedCase.repairGuide;
@@ -139,16 +152,23 @@ export default function useRepairGuide({ activeId, casesRef, updateCase }) {
     });
   }, [activeId, updateCase]);
 
+  const cancelEndAttempt = useCallback(() => {
+    setPendingEndAttempt(null);
+  }, []);
+
   return {
     actionFailed,
     actionHelped,
     cancelAction,
+    cancelEndAttempt,
     cancelStartRepairGuide,
     completeTest,
+    confirmEndAttempt,
     confirmStartRepairGuide,
     endAttempt,
     finalPersists,
     finalSolved,
+    pendingEndAttempt,
     pendingGuideStart,
     revertAction,
     revertOutcome,

@@ -11,11 +11,14 @@ export default function CaseDialogs({
   mobile,
   onCancelCloseCase,
   onCancelDeleteCase,
+  onCancelEndAttempt,
   onCancelReplaceGuide,
   onChangeResolution,
   onConfirmCloseCase,
   onConfirmDeleteCase,
+  onConfirmEndAttempt,
   onConfirmReplaceGuide,
+  pendingEndAttempt,
   pendingGuideStart,
   resolution,
   tr,
@@ -54,6 +57,17 @@ export default function CaseDialogs({
           danger
           onConfirm={onConfirmReplaceGuide}
           onCancel={onCancelReplaceGuide}
+        />
+      )}
+
+      {pendingEndAttempt && (
+        <ConfirmModal
+          title={tr("guide.endTitle")}
+          message={tr("guide.endMessage", { fault: pendingEndAttempt.faultName })}
+          confirmLabel={tr("guide.endAttempt")}
+          danger
+          onConfirm={onConfirmEndAttempt}
+          onCancel={onCancelEndAttempt}
         />
       )}
     </>
