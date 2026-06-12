@@ -582,11 +582,29 @@ export function selectElements(html, selectorList) {
   return results;
 }
 
+// Attributes that carry author/date values when an element has no text — e.g.
+// IPS4 puts the username in `data-mentionname` on an anchor that wraps only an
+// avatar image, and dates live in `datetime`/`data-time`. Ordered most-specific
+// first. Without this, calibrated author_selector/date_selector silently yield
+// empty strings on modern JS forums, which fails the same-author validation
+// gate and discards every case.
+const VALUE_BEARING_ATTRS = [
+  'datetime', 'data-mentionname', 'data-author', 'data-username',
+  'data-date', 'data-time', 'data-timestamp', 'content', 'title', 'aria-label', 'alt',
+];
+
 function firstElementText(html, selectorList) {
   const els = selectElements(html, selectorList);
   if (els.length === 0) return '';
-  // Prefer an element with an itemprop/title-ish attribute, else the first
-  return htmlToText(els[0].innerHtml).trim();
+  const text = htmlToText(els[0].innerHtml).trim();
+  if (text) return text;
+  // No text — fall back to a value-bearing attribute on the matched element.
+  const attrs = parseTagAttrs(els[0].attrText);
+  for (const key of VALUE_BEARING_ATTRS) {
+    const v = (attrs.get(key) || '').trim();
+    if (v) return v;
+  }
+  return '';
 }
 
 function removeElementsBySelector(html, selectorList) {
