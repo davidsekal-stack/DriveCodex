@@ -28,6 +28,7 @@ import { extractCases } from './extract.mjs';
 import { validateCase } from './validate.mjs';
 import { fetchHtml } from './fetch-utils.mjs';
 import { canonicalizeThreadUrl, canonicalizeTraversalUrl } from './url-utils.mjs';
+import { pickCalibrationSample } from './resolution-signal.mjs';
 
 // ---------------------------------------------------------------------------
 // Parser dispatch
@@ -237,7 +238,12 @@ export function createCrawlPipeline(opts = {}) {
 
   return {
     /**
-     * Sample thread URLs from a forum for calibration probing.
+     * Sample thread URLs from a forum for the production crawl.
+     *
+     * Intentionally RANDOM: the sampled set feeds the exhaustion/cooldown math
+     * (computeCooldown in orchestrator.mjs). A deterministic bias here would
+     * re-pick the same threads every batch and trip a premature "exhausted"
+     * cooldown. Calibration uses sampleThreadUrlsForCalibration() instead.
      */
     async sampleThreadUrls(forum, count) {
       const calibration = safeJsonParse(forum.calibration_json);
@@ -245,6 +251,21 @@ export function createCrawlPipeline(opts = {}) {
       // Shuffle and take `count`
       const shuffled = allUrls.sort(() => Math.random() - 0.5);
       return shuffled.slice(0, count).map(l => l.url);
+    },
+
+    /**
+     * Sample thread URLs for the CALIBRATION probe, biased toward likely-resolved
+     * threads. Calibration must measure the forum's true potential; sampling the
+     * newest (unanswered) threads makes good forums fail. Enumerates a wider,
+     * deeper window than the production sampler so scoring can reach older
+     * (likelier-resolved) threads, then prioritises resolution-signal titles.
+     * This is calibration-only and never touches the cooldown math.
+     */
+    async sampleThreadUrlsForCalibration(forum, count) {
+      const calibration = safeJsonParse(forum.calibration_json);
+      const allUrls = await enumerateThreadUrls(forum, calibration, count * 6, sleepMs);
+      const language = calibration.language || forum.language || '';
+      return pickCalibrationSample(allUrls, count, language).map(l => l.url);
     },
 
     /**

@@ -567,10 +567,15 @@ async function runProbe(forum, calibration, pipeline) {
     transient_failure: null,
   };
 
-  // Get sample thread URLs
+  // Get sample thread URLs — prefer the resolution-signal-biased calibration
+  // sampler so the probe measures the forum's true potential instead of its
+  // newest (unanswered) threads. Falls back to the plain sampler for older
+  // pipelines / test mocks that don't define it.
   let urls;
   try {
-    urls = await pipeline.sampleThreadUrls(forum, PROBE_SIZE);
+    urls = pipeline.sampleThreadUrlsForCalibration
+      ? await pipeline.sampleThreadUrlsForCalibration(forum, PROBE_SIZE)
+      : await pipeline.sampleThreadUrls(forum, PROBE_SIZE);
   } catch (err) {
     result.sample_discards.push(`sampleThreadUrls failed: ${err.message}`);
     if (isTransientCrawlerError(err)) {
