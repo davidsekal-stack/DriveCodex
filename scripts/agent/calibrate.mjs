@@ -265,11 +265,14 @@ async function discoverForumStructure(forum, state = null) {
     return null;
   }
 
-  // Skip <head> (GDPR scripts dominate first 10-15K on European forums)
-  // Take 20K of body content — enough to see forum section links
+  // Skip <head>, then strip script/style/svg/comment noise and collapse
+  // whitespace so the budget is spent on real section links. On large forums
+  // the fault/technical subforum link sits deep in a category tree and was
+  // being cut off by a raw 20K slice (observed: OctaviaClub's Závady section
+  // was beyond the cut, so discovery only found guides/news sections).
   const bodyStart = rootHtml.indexOf('<body');
   const usefulRoot = bodyStart !== -1 ? rootHtml.slice(bodyStart) : rootHtml;
-  const htmlSample = usefulRoot.slice(0, 20_000);
+  const htmlSample = stripNoiseHtml(usefulRoot).slice(0, 30_000);
 
   // Inject lessons from past similar forums (same parser type or language)
   const diaryContext = state
@@ -317,7 +320,7 @@ TASK 3 — DETECT: Identify forum software type and initial parser configuration
 FORUM ROOT URL: ${forum.url}
 FORUM NAME: ${forum.name || 'unknown'}
 
-ROOT PAGE HTML (first 15K chars):
+ROOT PAGE HTML (scripts/styles stripped, first 30K chars):
 ---
 ${htmlSample}
 ---
@@ -679,4 +682,20 @@ function safeJsonParse(str) {
   } catch {
     return {};
   }
+}
+
+/**
+ * Strip script/style/svg/comment noise and collapse whitespace so the limited
+ * structure-discovery HTML budget is spent on real section links rather than
+ * inline JS/CSS. Keeps anchor tags (the section links) intact.
+ */
+export function stripNoiseHtml(html) {
+  return (html ?? '')
+    .toString()
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
