@@ -101,26 +101,36 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
-### 0a. Průvodce opravou (web) — krokový checklist po diagnóze (2026-06-11)
+### 0a. Průvodce opravou (web) — vedený postup po diagnóze, v2 (2026-06-11/12)
 
-Nová funkce ve webové aplikaci (větev `feat/repair-guide`): u každé závady v diagnóze je tlačítko
-„Zahájit opravu", které z polí `řešení` + `díly` + `doporučené_testy` složí krokový checklist
-(příprava dílů → opravné akce → závěrečná kontrola). Mechanik kroky odbavuje tlačítkem
-Dokončen/Přeskočit; po posledním kroku průvodce nabídne uzavření případu (existující smart-close
-modal → potvrzená oprava jde do RAG).
+Nová funkce ve webové aplikaci (větev `feat/repair-guide`, PR #11): u každé závady v diagnóze
+je tlačítko „Zahájit opravu". Model v2 vznikl po panelové revizi pěti person mechaniků
+(veterán/junior/majitel/diagnostik/mobilní — skóre v1: 3-4/10, jednomyslná kritika), která
+odhalila zásadní chybu v1: pole `řešení` jsou ALTERNATIVNÍ opravy, ne sekvence kroků.
 
-Klíčová rozhodnutí:
-- každý krok nese původ ze závady (`zdroj`: databáze s počtem shod vs. AI návrh) — zobrazeno badge
-- AI negeneruje žádné konkrétní hodnoty (momenty, náplně) — v UI je trvalá poznámka, hodnoty
-  přijdou až z licencovaných dílenských dat (HaynesPro/TecRMI — fáze 2, viz rešerše v session)
-- stav průvodce žije na případu (`case.repairGuide`, JSON v `gearbrain_web_sessions`) —
-  `startedAt`/`completedAt`/`doneAt` per krok slouží zároveň jako metrika používání funkce
-- rozdělaný průvodce se nenahrazuje mlčky — výměna závady vyžaduje potvrzení v modalu
+Model v2 (`case.repairGuide`, `version: 2`) — tři fáze v řemeslně správném pořadí:
+1. OVĚŘENÍ PŘÍČINY — `doporučené_testy` PŘED opravami (nejdřív měřit, pak měnit)
+2. MOŽNÉ OPRAVY — mechanik VYBERE jednu akci („Provedu tuto opravu") → provede →
+   „Pomohlo/Nepomohlo"; při úspěchu se zbylé označí „nebylo potřeba", při neúspěchu zkouší dál
+3. ZÁVĚREČNÁ KONTROLA — výsledek „Vyřešeno" NEBO „Závada přetrvává" (neúspěch je platný konec)
 
-Soubory: `web/src/lib/repair-guide.js` (čistá logika + unit testy v `tests/unit.test.js`),
-`web/src/hooks/useRepairGuide.js`, `web/src/components/RepairGuideCard.jsx`, zapojení v
-`DiagCard/SessionTimeline/SessionView/App/CaseDialogs`, i18n klíče `guide.*` (CS/EN/DE).
-E2e test `web/e2e/core-flow.spec.js` rozšířen o průchod průvodcem.
+Klíčová rozhodnutí v2:
+- díly NEJSOU krok 1 — jen informační řádek „Může být potřeba… neobjednávejte předem"
+- každý krok jde VRÁTIT (↺), dokud případ není uzavřen — ochrana proti mastnému prstu
+- pokusy se NIKDY nemažou: nahrazení/ukončení archivuje do `case.repairGuideHistory`,
+  v UI box „Předchozí pokusy" („nepomohlo: nucená regenerace…")
+- `varování` z diagnózy se přenáší do hlavičky průvodce; výzva k ověření momentů je
+  zvýrazněná přímo u rozpracované opravy (ne jen petitem v patičce)
+- AI negeneruje žádné konkrétní hodnoty (momenty, náplně) — přijdou až z licencovaných dat
+  (HaynesPro/TecRMI — fáze 2); původ návrhů značen badge (databáze s počtem shod vs. AI)
+- `startedAt`/`completedAt`/`doneAt`/`chosenAt` slouží zároveň jako metrika používání funkce
+- známé limity (vědomě odložené): offline režim pro mobilní mechaniky, OE čísla dílů,
+  poznámky/naměřené hodnoty ke krokům, tisk zakázkového listu, ukládání neúspěchů do RAG
+
+Soubory: `web/src/lib/repair-guide.js` (čistý stavový automat + unit testy v
+`tests/unit.test.js`), `web/src/hooks/useRepairGuide.js`, `web/src/components/RepairGuideCard.jsx`,
+zapojení v `DiagCard/SessionTimeline/SessionView/App/CaseDialogs`, i18n klíče `guide.*` (CS/EN/DE).
+E2e test `web/e2e/core-flow.spec.js` pokrývá průchod průvodcem.
 
 ### 0. Toyota 2020-2024 byla dotažená do final reviewed subsetu, ale live import blokuje edge config
 

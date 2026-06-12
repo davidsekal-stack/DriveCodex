@@ -11,13 +11,12 @@ export default function SessionTimeline({
   cases,
   chatEndRef,
   error,
+  guideActions,
   lang,
   loading,
   mobile,
-  onCompleteGuideStep,
   onOpenManual,
   onRequestCloseCase,
-  onSkipGuideStep,
   onStartRepair,
   tr,
 }) {
@@ -95,13 +94,25 @@ export default function SessionTimeline({
           return null;
         })}
 
-        {activeCase.repairGuide && (
+        {(activeCase.repairGuide || activeCase.repairGuideHistory?.length > 0) && (
           <RepairGuideCard
             guide={activeCase.repairGuide}
+            history={activeCase.repairGuideHistory}
             caseClosed={caseClosed}
+            lang={lang}
             mobile={mobile}
-            onCompleteStep={onCompleteGuideStep}
-            onSkipStep={onSkipGuideStep}
+            onCompleteTest={guideActions.completeTest}
+            onSkipTest={guideActions.skipTest}
+            onRevertTest={guideActions.revertTest}
+            onStartAction={guideActions.startAction}
+            onCancelAction={guideActions.cancelAction}
+            onActionHelped={guideActions.actionHelped}
+            onActionFailed={guideActions.actionFailed}
+            onRevertAction={guideActions.revertAction}
+            onFinalSolved={guideActions.finalSolved}
+            onFinalPersists={guideActions.finalPersists}
+            onRevertOutcome={guideActions.revertOutcome}
+            onEndAttempt={guideActions.endAttempt}
             onRequestCloseCase={onRequestCloseCase}
             tr={tr}
           />

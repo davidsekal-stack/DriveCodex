@@ -72,7 +72,7 @@ drivecodex/
 ## Features
 
 - **AI Diagnosis** — DeepSeek-powered analysis with structured fault cards (probability, parts, OBD codes, repair steps)
-- **Repair Guide** — step-by-step checklist built from a diagnosed fault (prepare parts → repair actions → final check); each step is labeled by source (verified DB cases vs. AI suggestion), progress persists with the case, and completing the guide leads into the close-case flow
+- **Repair Guide** — guided repair flow built from a diagnosed fault, in craft-correct order: verify the cause (recommended tests first) → pick ONE of the suggested repairs (they are alternatives, not a sequence) → "did it help?" → final check with an honest outcome (resolved / fault persists). Every step is undoable until the case closes, failed attempts are archived with the case (never deleted), parts are shown as a hint (not a buy-first step), and each suggestion is labeled by source (verified DB cases vs. AI)
 - **RAG Database** — thousands of verified cases, scored by vehicle/OBD/symptom similarity
 - **Autonomous Crawl Agent** — Claude-first pipeline that discovers automotive forums, extracts resolved fault cases, and feeds the RAG DB through a staged quality gate (classify → extract → validate → independent verify → dedup → import). See [scripts/agent/README.md](scripts/agent/README.md)
 - **Admin Review** — Cases go through pending → approved/rejected workflow before entering RAG

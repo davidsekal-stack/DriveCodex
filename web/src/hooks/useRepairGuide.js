@@ -1,21 +1,39 @@
 import { useCallback, useState } from "react";
 
 import {
-  GUIDE_STEP_STATUS,
+  GUIDE_OUTCOME,
+  TEST_STATUS,
+  archiveGuide,
   buildRepairGuide,
+  chooseAction,
   hasGuideProgress,
-  setGuideStepStatus,
+  resolveAction,
+  setGuideOutcome,
+  setTestStatus,
+  unchooseAction,
+  undoAction,
+  undoGuideOutcome,
+  undoTest,
 } from "../lib/repair-guide.js";
 
 /**
  * useRepairGuide — akce průvodce opravou nad aktivním případem.
  *
  * Průvodce se ukládá jako case.repairGuide přes updateCase (debounced save).
- * Rozdělaný průvodce se nenahrazuje mlčky — startRepairGuide si vyžádá
- * potvrzení přes pendingGuideStart (App renderuje ConfirmModal).
+ * Pokusy se NIKDY nemažou: nahrazení i ukončení neúspěšného pokusu
+ * archivuje průvodce do case.repairGuideHistory. Rozdělaný pokus se
+ * nenahrazuje mlčky — startRepairGuide si vyžádá potvrzení přes
+ * pendingGuideStart (App renderuje ConfirmModal).
  */
 export default function useRepairGuide({ activeId, casesRef, updateCase }) {
   const [pendingGuideStart, setPendingGuideStart] = useState(null);
+
+  const updateGuide = useCallback((transform) => {
+    if (!activeId) return;
+    updateCase(activeId, (storedCase) => ({
+      repairGuide: transform(storedCase.repairGuide),
+    }));
+  }, [activeId, updateCase]);
 
   const applyGuide = useCallback((message, faultIndex) => {
     if (!activeId) return;
@@ -27,7 +45,16 @@ export default function useRepairGuide({ activeId, casesRef, updateCase }) {
       faultIndex,
     });
     if (!guide) return;
-    updateCase(activeId, () => ({ repairGuide: guide }));
+    updateCase(activeId, (storedCase) => {
+      const existing = storedCase.repairGuide;
+      const history = storedCase.repairGuideHistory ?? [];
+      return {
+        repairGuide: guide,
+        repairGuideHistory: existing && hasGuideProgress(existing)
+          ? [...history, archiveGuide(existing)]
+          : history,
+      };
+    });
   }, [activeId, updateCase]);
 
   const startRepairGuide = useCallback((message, faultIndex) => {
@@ -52,26 +79,82 @@ export default function useRepairGuide({ activeId, casesRef, updateCase }) {
     setPendingGuideStart(null);
   }, []);
 
-  const completeGuideStep = useCallback((stepId) => {
-    if (!activeId) return;
-    updateCase(activeId, (storedCase) => ({
-      repairGuide: setGuideStepStatus(storedCase.repairGuide, stepId, GUIDE_STEP_STATUS.DONE),
-    }));
-  }, [activeId, updateCase]);
+  // ── Testy (ověření příčiny) ────────────────────────────────────────────────
+  const completeTest = useCallback((testId) => {
+    updateGuide((guide) => setTestStatus(guide, testId, TEST_STATUS.DONE));
+  }, [updateGuide]);
 
-  const skipGuideStep = useCallback((stepId) => {
+  const skipTest = useCallback((testId) => {
+    updateGuide((guide) => setTestStatus(guide, testId, TEST_STATUS.SKIPPED));
+  }, [updateGuide]);
+
+  const revertTest = useCallback((testId) => {
+    updateGuide((guide) => undoTest(guide, testId));
+  }, [updateGuide]);
+
+  // ── Opravy (volba + výsledek) ──────────────────────────────────────────────
+  const startAction = useCallback((actionId) => {
+    updateGuide((guide) => chooseAction(guide, actionId));
+  }, [updateGuide]);
+
+  const cancelAction = useCallback((actionId) => {
+    updateGuide((guide) => unchooseAction(guide, actionId));
+  }, [updateGuide]);
+
+  const actionHelped = useCallback((actionId) => {
+    updateGuide((guide) => resolveAction(guide, actionId, true));
+  }, [updateGuide]);
+
+  const actionFailed = useCallback((actionId) => {
+    updateGuide((guide) => resolveAction(guide, actionId, false));
+  }, [updateGuide]);
+
+  const revertAction = useCallback((actionId) => {
+    updateGuide((guide) => undoAction(guide, actionId));
+  }, [updateGuide]);
+
+  // ── Závěr pokusu ───────────────────────────────────────────────────────────
+  const finalSolved = useCallback(() => {
+    updateGuide((guide) => setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED));
+  }, [updateGuide]);
+
+  const finalPersists = useCallback(() => {
+    updateGuide((guide) => setGuideOutcome(guide, GUIDE_OUTCOME.PERSISTS));
+  }, [updateGuide]);
+
+  const revertOutcome = useCallback(() => {
+    updateGuide((guide) => undoGuideOutcome(guide));
+  }, [updateGuide]);
+
+  /** Ukončí neúspěšný pokus: archivuje ho a uvolní místo pro další závadu. */
+  const endAttempt = useCallback(() => {
     if (!activeId) return;
-    updateCase(activeId, (storedCase) => ({
-      repairGuide: setGuideStepStatus(storedCase.repairGuide, stepId, GUIDE_STEP_STATUS.SKIPPED),
-    }));
+    updateCase(activeId, (storedCase) => {
+      const existing = storedCase.repairGuide;
+      if (!existing) return {};
+      return {
+        repairGuide: null,
+        repairGuideHistory: [...(storedCase.repairGuideHistory ?? []), archiveGuide(existing)],
+      };
+    });
   }, [activeId, updateCase]);
 
   return {
+    actionFailed,
+    actionHelped,
+    cancelAction,
     cancelStartRepairGuide,
-    completeGuideStep,
+    completeTest,
     confirmStartRepairGuide,
+    endAttempt,
+    finalPersists,
+    finalSolved,
     pendingGuideStart,
-    skipGuideStep,
+    revertAction,
+    revertOutcome,
+    revertTest,
+    skipTest,
+    startAction,
     startRepairGuide,
   };
 }

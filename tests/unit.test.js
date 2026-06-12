@@ -70,14 +70,29 @@ import {
   searchSimilarCases,
 } from '../web/src/lib/diagnosis.js'
 import {
-  GUIDE_STEP,
-  GUIDE_STEP_STATUS,
+  ACTION_STATUS,
+  GUIDE_OUTCOME,
+  GUIDE_PHASE,
+  GUIDE_VERSION,
+  TEST_STATUS,
+  allActionsFailed,
+  archiveGuide,
   buildRepairGuide,
-  getActiveGuideStep,
+  chooseAction,
+  getActiveTest,
+  getAttemptSummary,
+  getChosenAction,
+  getGuidePhase,
   getGuideProgress,
   hasGuideProgress,
   isGuideForFault,
-  setGuideStepStatus,
+  resolveAction,
+  setGuideOutcome,
+  setTestStatus,
+  unchooseAction,
+  undoAction,
+  undoGuideOutcome,
+  undoTest,
 } from '../web/src/lib/repair-guide.js'
 import { validateResolution } from '../web/src/lib/validation.js'
 import { translate } from '../web/src/i18n/translate.js'
@@ -1964,56 +1979,53 @@ describe('filterManualRefs — relevance tier filtering', () => {
   })
 })
 
-describe('repair-guide — průvodce opravou', () => {
+describe('repair-guide — průvodce opravou (v2)', () => {
   const FAULT = {
     název: 'Ucpaný DPF filtr',
     zdroj: 'databáze',
     početShod: 5,
     díly: ['DPF filtr', 'čidlo diferenčního tlaku'],
-    řešení: ['nucená regenerace', 'výměna DPF filtru'],
+    řešení: ['nucená regenerace', 'výměna DPF filtru', 'čištění DPF'],
   }
   const RESULT = {
-    doporučené_testy: ['kontrola protitlaku', 'zkušební jízda', 'čtení chybových kódů', 'čtvrtý test navíc'],
+    doporučené_testy: ['kontrola protitlaku', 'test čidla diferenčního tlaku'],
+    varování: 'Pozor na horký výfuk.',
   }
 
   function makeGuide() {
     return buildRepairGuide({ fault: FAULT, result: RESULT, diagnosisMsgId: 'msg-1', faultIndex: 0 })
   }
 
-  test('buildRepairGuide skládá kroky: díly → akce → kontrola', () => {
+  // Pomocník: odbaví všechny testy, vrátí průvodce ve fázi oprav
+  function guideInActionsPhase() {
+    let guide = makeGuide()
+    for (const t of guide.tests) guide = setTestStatus(guide, t.id, TEST_STATUS.DONE)
+    return guide
+  }
+
+  test('buildRepairGuide: testy PŘED opravami, opravy jako možnosti, díly jen informativně', () => {
     const guide = makeGuide()
     ok(guide)
-    strictEqual(guide.steps.length, 4)
-    strictEqual(guide.steps[0].kind, GUIDE_STEP.PARTS)
-    deepStrictEqual(guide.steps[0].detail, FAULT.díly)
-    strictEqual(guide.steps[1].kind, GUIDE_STEP.ACTION)
-    strictEqual(guide.steps[1].title, 'nucená regenerace')
-    strictEqual(guide.steps[2].title, 'výměna DPF filtru')
-    strictEqual(guide.steps[3].kind, GUIDE_STEP.VERIFY)
-    strictEqual(guide.steps[3].detail.length, 3, 'max 3 testy v závěrečné kontrole')
-  })
-
-  test('buildRepairGuide přebírá metadata závady (zdroj, počet shod, vazba na diagnózu)', () => {
-    const guide = makeGuide()
-    strictEqual(guide.faultName, 'Ucpaný DPF filtr')
-    strictEqual(guide.zdroj, 'databáze')
-    strictEqual(guide.početShod, 5)
-    strictEqual(guide.diagnosisMsgId, 'msg-1')
-    strictEqual(guide.faultIndex, 0)
-    ok(guide.startedAt)
-    strictEqual(guide.completedAt, null)
+    strictEqual(guide.version, GUIDE_VERSION)
+    strictEqual(guide.tests.length, 2, 'všechny doporučené testy, žádné ořezání')
+    strictEqual(guide.tests[0].title, 'kontrola protitlaku')
+    strictEqual(guide.actions.length, 3)
+    ok(guide.actions.every((a) => a.status === ACTION_STATUS.PENDING))
+    deepStrictEqual(guide.díly, FAULT.díly, 'díly nejsou krok, jen info')
+    strictEqual(guide.varování, 'Pozor na horký výfuk.', 'varování z diagnózy se přenáší')
+    strictEqual(guide.outcome, null)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.TESTS)
   })
 
   test('buildRepairGuide vrací null bez opravných akcí', () => {
     strictEqual(buildRepairGuide({ fault: { ...FAULT, řešení: [] }, result: RESULT }), null)
-    strictEqual(buildRepairGuide({ fault: { ...FAULT, řešení: undefined }, result: RESULT }), null)
     strictEqual(buildRepairGuide({ fault: null, result: RESULT }), null)
   })
 
-  test('buildRepairGuide bez dílů nevkládá krok přípravy', () => {
-    const guide = buildRepairGuide({ fault: { ...FAULT, díly: [] }, result: RESULT, diagnosisMsgId: 'm', faultIndex: 1 })
-    strictEqual(guide.steps[0].kind, GUIDE_STEP.ACTION)
-    strictEqual(guide.steps.length, 3)
+  test('bez testů začíná průvodce rovnou fází oprav', () => {
+    const guide = buildRepairGuide({ fault: FAULT, result: {}, diagnosisMsgId: 'm', faultIndex: 0 })
+    strictEqual(guide.tests.length, 0)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.ACTIONS)
   })
 
   test('neznámý zdroj se normalizuje na "ai"', () => {
@@ -2021,74 +2033,153 @@ describe('repair-guide — průvodce opravou', () => {
     strictEqual(guide.zdroj, 'ai')
   })
 
-  test('setGuideStepStatus označí krok a doplní doneAt', () => {
-    const guide = makeGuide()
-    const next = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
-    strictEqual(next.steps[0].status, GUIDE_STEP_STATUS.DONE)
-    ok(next.steps[0].doneAt)
-    strictEqual(next.completedAt, null)
-    strictEqual(guide.steps[0].status, GUIDE_STEP_STATUS.PENDING, 'původní průvodce zůstává nezměněn')
-  })
-
-  test('setGuideStepStatus nepřepíše už vyřízený krok', () => {
+  test('testy: odbavení, přeskočení a vrácení', () => {
     let guide = makeGuide()
-    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
-    const again = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.SKIPPED)
-    strictEqual(again.steps[0].status, GUIDE_STEP_STATUS.DONE)
+    strictEqual(getActiveTest(guide).id, guide.tests[0].id)
+    guide = setTestStatus(guide, guide.tests[0].id, TEST_STATUS.DONE)
+    ok(guide.tests[0].doneAt)
+    guide = setTestStatus(guide, guide.tests[1].id, TEST_STATUS.SKIPPED)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.ACTIONS)
+    guide = undoTest(guide, guide.tests[1].id)
+    strictEqual(guide.tests[1].status, TEST_STATUS.PENDING)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.TESTS)
   })
 
-  test('setGuideStepStatus ignoruje neplatný stav', () => {
-    const guide = makeGuide()
-    const next = setGuideStepStatus(guide, guide.steps[0].id, 'pending')
-    strictEqual(next.steps[0].status, GUIDE_STEP_STATUS.PENDING)
-  })
-
-  test('po odbavení všech kroků se nastaví completedAt', () => {
+  test('opravu nelze vybrat ve fázi testů ani dvě najednou', () => {
     let guide = makeGuide()
-    for (const step of guide.steps) {
-      guide = setGuideStepStatus(guide, step.id, GUIDE_STEP_STATUS.DONE)
+    const inTests = chooseAction(guide, guide.actions[0].id)
+    strictEqual(getChosenAction(inTests), null, 'fáze testů — lze vybrat, až jsou testy odbavené')
+
+    guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    strictEqual(getChosenAction(guide).id, guide.actions[0].id)
+    const second = chooseAction(guide, guide.actions[1].id)
+    strictEqual(second.actions[1].status, ACTION_STATUS.PENDING, 'druhou rozpracovat nejde')
+  })
+
+  test('oprava POMOHLA → zbylé možnosti „nebylo potřeba", fáze final', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.HELPED)
+    strictEqual(guide.actions[1].status, ACTION_STATUS.NOT_NEEDED)
+    strictEqual(guide.actions[2].status, ACTION_STATUS.NOT_NEEDED)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.FINAL)
+  })
+
+  test('oprava NEPOMOHLA → zkouší se další možnost', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, false)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.FAILED)
+    strictEqual(guide.actions[1].status, ACTION_STATUS.PENDING, 'ostatní zůstávají k dispozici')
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.ACTIONS)
+  })
+
+  test('všechny opravy selhaly → allActionsFailed, výsledek „přetrvává" jde nastavit', () => {
+    let guide = guideInActionsPhase()
+    for (const a of guide.actions) {
+      guide = chooseAction(guide, a.id)
+      guide = resolveAction(guide, a.id, false)
     }
-    ok(guide.completedAt)
-    strictEqual(getActiveGuideStep(guide), null)
-  })
-
-  test('přeskočené kroky počítají do dokončení', () => {
-    let guide = makeGuide()
-    for (const step of guide.steps) {
-      guide = setGuideStepStatus(guide, step.id, GUIDE_STEP_STATUS.SKIPPED)
-    }
+    strictEqual(allActionsFailed(guide), true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.PERSISTS)
+    strictEqual(guide.outcome, GUIDE_OUTCOME.PERSISTS)
     ok(guide.completedAt)
   })
 
-  test('getActiveGuideStep vrací první nevyřízený krok', () => {
-    let guide = makeGuide()
-    strictEqual(getActiveGuideStep(guide).id, guide.steps[0].id)
-    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
-    strictEqual(getActiveGuideStep(guide).id, guide.steps[1].id)
+  test('„vyřešeno" jde nastavit jen po závěrečné kontrole (fáze final)', () => {
+    let guide = guideInActionsPhase()
+    const tooEarly = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    strictEqual(tooEarly.outcome, null, 'bez provedené opravy nelze uzavřít jako vyřešené')
+
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    strictEqual(guide.outcome, GUIDE_OUTCOME.SOLVED)
+    strictEqual(guide.finalCheck.status, TEST_STATUS.DONE)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.DONE)
   })
 
-  test('getGuideProgress počítá hotové i přeskočené kroky', () => {
+  test('vrácení kroků: unchoose, undo failed, undo helped vrací celou větev', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = unchooseAction(guide, guide.actions[0].id)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.PENDING)
+
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, false)
+    guide = undoAction(guide, guide.actions[0].id)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.PENDING)
+
+    guide = chooseAction(guide, guide.actions[1].id)
+    guide = resolveAction(guide, guide.actions[1].id, true)
+    guide = undoAction(guide, guide.actions[1].id)
+    strictEqual(guide.actions[1].status, ACTION_STATUS.PENDING)
+    strictEqual(guide.actions[0].status, ACTION_STATUS.PENDING, 'nepotřebné možnosti se vrací')
+    strictEqual(guide.finalCheck.status, TEST_STATUS.PENDING)
+  })
+
+  test('vrácení výsledku pokusu (omyl při závěru)', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    guide = undoGuideOutcome(guide)
+    strictEqual(guide.outcome, null)
+    strictEqual(guide.completedAt, null)
+    strictEqual(getGuidePhase(guide), GUIDE_PHASE.FINAL)
+  })
+
+  test('po nastavení výsledku jsou přechody zamčené', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    const locked = undoAction(guide, guide.actions[0].id)
+    strictEqual(locked.actions[0].status, ACTION_STATUS.HELPED)
+    const lockedTest = undoTest(guide, guide.tests[0].id)
+    strictEqual(lockedTest.tests[0].status, TEST_STATUS.DONE)
+  })
+
+  test('getGuideProgress: testy + oprava + kontrola', () => {
     let guide = makeGuide()
     deepStrictEqual(getGuideProgress(guide), { done: 0, total: 4 })
-    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
-    guide = setGuideStepStatus(guide, guide.steps[1].id, GUIDE_STEP_STATUS.SKIPPED)
+    guide = guideInActionsPhase()
     deepStrictEqual(getGuideProgress(guide), { done: 2, total: 4 })
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, true)
+    deepStrictEqual(getGuideProgress(guide), { done: 3, total: 4 })
+    guide = setGuideOutcome(guide, GUIDE_OUTCOME.SOLVED)
+    deepStrictEqual(getGuideProgress(guide), { done: 4, total: 4 })
     deepStrictEqual(getGuideProgress(null), { done: 0, total: 0 })
   })
 
   test('hasGuideProgress chrání rozdělanou práci', () => {
     let guide = makeGuide()
     strictEqual(hasGuideProgress(guide), false)
-    guide = setGuideStepStatus(guide, guide.steps[0].id, GUIDE_STEP_STATUS.DONE)
+    guide = setTestStatus(guide, guide.tests[0].id, TEST_STATUS.DONE)
     strictEqual(hasGuideProgress(guide), true)
     strictEqual(hasGuideProgress(null), false)
+    strictEqual(hasGuideProgress({ steps: [{ status: 'done' }] }), false, 'starý formát v1 se nepočítá')
+  })
+
+  test('archiveGuide + getAttemptSummary pro historii pokusů', () => {
+    let guide = guideInActionsPhase()
+    guide = chooseAction(guide, guide.actions[0].id)
+    guide = resolveAction(guide, guide.actions[0].id, false)
+    const archived = archiveGuide(guide)
+    ok(archived.archivedAt)
+    const summary = getAttemptSummary(archived)
+    strictEqual(summary.faultName, 'Ucpaný DPF filtr')
+    deepStrictEqual(summary.failedActions, ['nucená regenerace'])
+    strictEqual(summary.helpedAction, null)
   })
 
   test('isGuideForFault páruje průvodce se závadou diagnózy', () => {
     const guide = makeGuide()
     strictEqual(isGuideForFault(guide, 'msg-1', 0), true)
     strictEqual(isGuideForFault(guide, 'msg-1', 1), false)
-    strictEqual(isGuideForFault(guide, 'msg-2', 0), false)
     strictEqual(isGuideForFault(null, 'msg-1', 0), false)
   })
 })

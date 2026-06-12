@@ -123,11 +123,10 @@ function App() {
 
   const {
     cancelStartRepairGuide,
-    completeGuideStep,
     confirmStartRepairGuide,
     pendingGuideStart,
-    skipGuideStep,
     startRepairGuide,
+    ...guideActions
   } = useRepairGuide({
     activeId,
     casesRef,
@@ -280,13 +279,12 @@ function App() {
               error={error}
               lang={lang}
               loading={loading}
+              guideActions={guideActions}
               mobile={mobile}
-              onCompleteGuideStep={completeGuideStep}
               onOpenManual={handleOpenManual}
               onRequestCloseCase={openCloseModal}
               onRequestDelete={requestDeleteCase}
               onRunDiag={runDiag}
-              onSkipGuideStep={skipGuideStep}
               onStartRepair={startRepairGuide}
               tr={tr}
             />

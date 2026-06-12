@@ -10,15 +10,14 @@ export default function SessionView({
   cases,
   diagCount,
   error,
+  guideActions,
   lang,
   loading,
   mobile,
-  onCompleteGuideStep,
   onRequestCloseCase,
   onRequestDelete,
   onOpenManual,
   onRunDiag,
-  onSkipGuideStep,
   onStartRepair,
   tr,
 }) {
@@ -51,13 +50,12 @@ export default function SessionView({
         cases={cases}
         chatEndRef={chatEndRef}
         error={error}
+        guideActions={guideActions}
         lang={lang}
         loading={loading}
         mobile={mobile}
-        onCompleteGuideStep={onCompleteGuideStep}
         onOpenManual={onOpenManual}
         onRequestCloseCase={onRequestCloseCase}
-        onSkipGuideStep={onSkipGuideStep}
         onStartRepair={onStartRepair}
         tr={tr}
       />

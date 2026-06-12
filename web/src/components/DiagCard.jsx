@@ -5,7 +5,7 @@ import useIsMobile from "../hooks/useIsMobile.js";
 import { ObdChip } from "./Chip.jsx";
 import { lookupManual } from "../lib/storage-edge.js";
 import { filterManualRefs, MANUAL_LOOKUP_ENABLED } from "../lib/manual-refs.js";
-import { REPAIR_GUIDE_CARD_ID, isGuideForFault } from "../lib/repair-guide.js";
+import { GUIDE_VERSION, REPAIR_GUIDE_CARD_ID, isGuideForFault } from "../lib/repair-guide.js";
 
 // ── Source-based colors ──────────────────────────────────────────────────────
 // Green = from database (verified), Blue = AI-generated
@@ -359,7 +359,7 @@ export default function DiagCard({ result, ragMatches = [], vehicle, onOpenManua
           vehicle={vehicle}
           onOpenManual={onOpenManual}
           onStartRepair={onStartRepair ? () => onStartRepair(i) : undefined}
-          guideActive={isGuideForFault(repairGuide, messageId, i) && !repairGuide?.completedAt}
+          guideActive={repairGuide?.version === GUIDE_VERSION && isGuideForFault(repairGuide, messageId, i)}
         />
       ))}
 
