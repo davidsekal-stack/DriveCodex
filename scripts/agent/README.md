@@ -169,6 +169,7 @@ Default routing (override per task via `AGENT_LLM_<TASK>=provider:model`):
 | verify | `deepseek:deepseek-chat` | [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs) | tiny volume; independent second AI from a different vendor |
 | calibrate | `claude:sonnet` | [`calibrate.mjs`](/C:/GB/scripts/agent/calibrate.mjs) | rare, needs good HTML reasoning |
 | diary | `claude:haiku` | [`diary.mjs`](/C:/GB/scripts/agent/diary.mjs) | short free-form summaries |
+| translate | `claude:haiku` | [`backfill-resolution-i18n.mjs`](/C:/GB/scripts/agent/backfill-resolution-i18n.mjs) | high-volume cs/de backfill of resolution texts |
 
 Providers:
 
@@ -303,6 +304,7 @@ So this is meant to become better over time per forum type, not just run statele
 - [`seed-candidates.mjs`](/C:/GB/scripts/agent/seed-candidates.mjs): imports ranked forum candidates into SQLite
 - [`reset-forum.mjs`](/C:/GB/scripts/agent/reset-forum.mjs): clears failed calibration state so a forum can be retried
 - [`patch-symptoms.mjs`](/C:/GB/scripts/agent/patch-symptoms.mjs): re-extracts symptoms for already imported cases and patches Supabase/local payloads
+- [`backfill-resolution-i18n.mjs`](/C:/GB/scripts/agent/backfill-resolution-i18n.mjs): translates the English `resolution` of approved cases into Czech/German (`resolution_cs`/`resolution_de` + detected `resolution_lang`) for the "Known Faults" panel. Routed via Claude (task `translate`), resumable (queue = `resolution_lang IS NULL`); run nightly as Step 3 of `run-agent-batch.ps1`. Never modifies the canonical English `resolution`
 - [`run-agent-batch.ps1`](/C:/GB/scripts/agent/run-agent-batch.ps1): Windows-safe one-shot batch wrapper with process mutex and daily log files (loads `.env.local` automatically)
 - [`register-agent-task.ps1`](/C:/GB/scripts/agent/register-agent-task.ps1): creates or updates a Windows Task Scheduler job that runs the batch wrapper every few minutes
 - [`apply-migrations.ps1`](/C:/GB/scripts/agent/apply-migrations.ps1): applies pending Supabase migrations to the linked project non-interactively (reads `SUPABASE_DB_PASSWORD` from `.env.local`); `-DryRun` to preview

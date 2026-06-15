@@ -23,6 +23,18 @@ export function pickFaultLabel(fault, lang) {
   return byLang[lang] || fault.labelEn || fault.faultId || "";
 }
 
+/**
+ * Lokalizovaný text opravy s fallbackem na kanonickou angličtinu (`resolution`).
+ * cs/de varianty se plní při importu (push-case) a doplňují backfillem; když
+ * pro daný jazyk chybí, zobrazí se anglický originál. Stejný vzor jako
+ * pickFaultLabel — výběr jazyka je na klientu, edge fn vrací všechny varianty.
+ */
+export function localizeResolution(c, lang) {
+  if (!c) return "";
+  const byLang = { cs: c.resolutionCs, de: c.resolutionDe };
+  return byLang[lang] || c.resolution || "";
+}
+
 /** Počet případů závady v daném pásmu ("all" = všechna pásma). */
 export function countForBand(fault, band) {
   if (!fault?.counts) return 0;

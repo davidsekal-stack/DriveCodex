@@ -3,7 +3,7 @@ import { useI18n } from "../i18n/index.jsx";
 import { useTheme } from "../contexts/ThemeContext.jsx";
 import useIsMobile from "../hooks/useIsMobile.js";
 import { fetchKnownFaults, fetchKnownFaultCases } from "../lib/storage-edge.js";
-import { BANDS, bandTotals, countForBand, pickFaultLabel, sourceLabelFor, topObdCodes } from "../lib/known-faults.js";
+import { BANDS, bandTotals, countForBand, localizeResolution, pickFaultLabel, sourceLabelFor, topObdCodes } from "../lib/known-faults.js";
 import { fmtDate, fmtMileage } from "../lib/utils.js";
 
 const FETCH_DEBOUNCE_MS = 400;
@@ -231,7 +231,7 @@ export default function KnownFaultsPanel({ brand, model, onPrefill }) {
                   const source = sourceLabelFor(c.threadUrl);
                   return (
                     <div key={c.id} style={{ padding: "7px 0", borderBottom: `1px solid ${t.border}` }}>
-                      <div style={{ fontSize: "0.72rem", color: t.diagText, lineHeight: 1.5 }}>{c.resolution}</div>
+                      <div style={{ fontSize: "0.72rem", color: t.diagText, lineHeight: 1.5 }}>{localizeResolution(c, lang)}</div>
                       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4, fontSize: "0.62rem", color: t.textFaint }}>
                         <span>{c.vehicleModel}</span>
                         {c.enginePower && <span>{c.enginePower}</span>}

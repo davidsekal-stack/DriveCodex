@@ -143,6 +143,39 @@ Nasazení (2026-06-15, produkce):
   případy bez `canonical_fault_id` (push-case klasifikuje jen na měkko a skip_translation
   importy ji přeskakují). Drží panel aktuální bez ruční práce; resumovatelné.
 
+### 0c. Lokalizace textů oprav v panelu „Známé závady" (migrace `022_resolution_i18n.sql`)
+
+Problém: text potvrzené opravy (`gearbrain_cases.resolution`) je v DB **vždy anglicky**
+— `push-case` i crawl agent překládají vstup do angličtiny kvůli jazykově nezávislému
+RAG. Rozhraní se přepne, ale text opravy zůstal anglicky.
+
+Řešení: vedle kanonického anglického `resolution` (zůstává beze změny — **RAG na něm
+závisí, nikdy ho neměnit**) se ukládají lokalizované varianty:
+- `resolution_cs` / `resolution_de` — česká/německá verze (NULL = nepřeloženo → panel
+  zobrazí anglický originál).
+- `resolution_lang` — detekovaný jazyk **originálu vstupu**; do shodného jazyka se
+  nepřekládá (uloží se původní text, autenticky) a slouží i jako značka „zpracováno"
+  pro resumovatelný backfill.
+
+Výběr jazyka je **na klientu** (`web/src/lib/known-faults.js → localizeResolution`,
+stejný vzor jako `pickFaultLabel`), edge fn `known-faults` proto vrací všechny varianty.
+
+Plnění dat:
+- **Nové záznamy:** `push-case` ve STEJNÉM DeepSeek volání jako překlad+klasifikace
+  detekuje jazyk a vrátí cs/de (fail-open na NULL → dobere backfill).
+- **Staré záznamy (~5,4k):** `scripts/agent/backfill-resolution-i18n.mjs` — **záměrně
+  přes Claude** (router task `translate` → claude:haiku, předplatné), ne DeepSeek, protože
+  edge fn běží v cloudu bez Claude. Noční NON-FATAL Krok 3 v `run-agent-batch.ps1`
+  (`--batch 15 --max 500`), resumovatelné (fronta = `resolution_lang IS NULL`). PATCHuje
+  jen `resolution_cs/de/lang`, `resolution` se nikdy nedotkne.
+
+Nasazení (TODO až proběhne): migraci 022 aplikovat **ručně přes dashboard SQL editor**
+(DB porty 5432/6543 blokované z dev sítě, jako u 021; je idempotentní + DROP/CREATE
+`known_fault_cases` kvůli rozšíření RETURNS TABLE); edge fn `push-case` + `known-faults`
+přes `functions deploy`; staré záznamy dobere noční Claude backfill (nebo jednorázově
+`node --env-file=… backfill-resolution-i18n.mjs`). Kryto testy
+`tests/known-faults.test.js` (localizeResolution) a `tests/agent-resolution-i18n-backfill.test.js`.
+
 Vědomě odložené / známé limity:
 - ~42 % případů spadlo do `'other'` (číselník 118 závad nepokryje vše) — panel je
   nezobrazuje; lze zlepšit rozšířením číselníku (re-seed s víc položkami; pozor na
