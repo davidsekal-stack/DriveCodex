@@ -41,6 +41,7 @@ Return ONLY a JSON array, no other text.
 
 Rules:
 - Do not guess or infer missing facts.
+- VEHICLE IDENTIFICATION: the brand/model/engine is often stated in the THREAD TITLE or in a user's signature, NOT in the post body — on many forums the whole section is model-specific (e.g. a "1.9 TDi 81kW" subforum) or the title names the car. Read brand_raw/model_raw/engine_raw from the TITLE line and any signature text as valid EXPLICIT sources, not just the post body. This is not guessing — it is reading what is stated. Do not invent a vehicle that appears nowhere in the thread.
 - Each case must belong to one forum user: the same user must explicitly describe the fault/symptoms and later confirm the successful repair for that same case.
 - The case author does NOT need to be the original thread author.
 - A thread may contain multiple independent resolved cases from different users. Return all qualifying cases.
