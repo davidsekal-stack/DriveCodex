@@ -139,6 +139,31 @@ function makeCanonicalDedupKey(row: any): string {
   ].join('||')
 }
 
+// Pomocné funkce pro výběr kandidátů. Edge fn nemá lokální Deno unit testy —
+// ověřuje se živě integračními testy search-cases (tests/supabase-live/suites/edge-functions.js).
+/** První token názvu modelu jako prefix pro shodu rodiny modelu (napříč generacemi). */
+function modelFamilyPrefix(model: any): string {
+  if (typeof model !== 'string') return ''
+  const first = model.trim().split(/\s+/)[0] ?? ''
+  return first.replace(/[%_]/g, '')   // odstranění zástupných znaků ILIKE z uživatelského vstupu
+}
+
+/** Sjednocení výsledků dílčích dotazů + deduplikace podle row.id (zachová první výskyt). */
+function buildCandidateRows(results: any[]): any[] {
+  const seen = new Set<string>()
+  const out: any[] = []
+  for (const data of results) {
+    if (!Array.isArray(data)) continue
+    for (const row of data) {
+      if (row?.id != null && !seen.has(row.id)) {
+        seen.add(row.id)
+        out.push(row)
+      }
+    }
+  }
+  return out
+}
+
 function computeSimilarity(row: any, input: any): number {
   const allText = [
     ...(row.symptoms  ?? []),
@@ -263,26 +288,44 @@ Return format: {"symptoms":["..."],"text":"..."}`,
       return json({ cases: [], count: 0 })
     }
 
-    // Předfiltrování na DB úrovni:
-    // 1) Značka — povinný filtr
-    // 2) Model — nepovinný (dává extra body ve scoringu)
-    // 3) OBD kódy — doplňující filtr (overlaps)
-    // (max 200 kandidátů, scoring proběhne zde)
-    let query = supabase
+    // Předfiltrování na DB úrovni — výběr kandidátů podle SÍLY SIGNÁLU, ne podle stáří.
+    // Sjednocení až tří paralelních dotazů (každý krytý existujícím indexem), dedup podle id:
+    //   A) překryv OBD kódů (jen jsou-li zadány) — GIN(obd_codes), řazeno dle data jen jako tiebreak
+    //   B) rodina modelu (jen je-li model) — ilike prefix na vehicle_model, napříč generacemi
+    //   C) nejnovější případy značky (VŽDY) — záchytná síť pro dotazy bez silného signálu
+    // Limity jsou vázané na signál, takže starší vysoce relevantní případ se do množiny
+    // dostane bez ohledu na to, kolik je novějších (dřív ho strop „200 nejnovějších" tiše zahodil).
+    // Značka je povinný filtr; model i OBD jsou nepovinné. Scoring + brány + řazení dle F1 +
+    // dedup zůstávají beze změny níže — jen dostanou lepší množinu kandidátů (max ~450 řádků).
+    const baseFilter = () => supabase
       .from('gearbrain_cases')
       .select('*')
       .eq('status', 'approved')
       .eq('vehicle_brand', vehicle.brand)
-      .order('closed_at', { ascending: false })
-      .limit(200)
 
+    // C) záchytná síť dle data (vždy) — zachovává dosavadní chování jako spodní hranici
+    const queries: any[] = [
+      baseFilter().order('closed_at', { ascending: false }).limit(200),
+    ]
+    // A) OBD překryv — filtrem je OBD kód (ne stáří všech případů značky), takže relevantní
+    //    starší shody přežijí; řazení dle data je jen deterministický tiebreak při překročení limitu.
     if (obdCodes?.length > 0) {
-      query = query.overlaps('obd_codes', obdCodes)
+      queries.push(baseFilter().overlaps('obd_codes', obdCodes).order('closed_at', { ascending: false }).limit(150))
+    }
+    // B) rodina modelu (např. „Octavia") — pokrývá stejný model napříč generacemi;
+    //    řazení dle data opět jen deterministický tiebreak při překročení limitu.
+    const modelPrefix = modelFamilyPrefix(vehicle.model)
+    if (modelPrefix) {
+      queries.push(baseFilter().ilike('vehicle_model', `${modelPrefix}%`).order('closed_at', { ascending: false }).limit(100))
     }
 
-    const { data: rows, error } = await query
-
-    if (error) throw error
+    const settled = await Promise.all(queries)
+    // Chyba kteréhokoli dílčího dotazu MUSÍ shodit — jinak by se recall tiše zhoršil
+    // (přesně ta třída chyby, kterou opravujeme).
+    for (const r of settled) {
+      if (r.error) throw r.error
+    }
+    const rows = buildCandidateRows(settled.map((r: any) => r.data))
 
     // Scoring používá přeložené příznaky a text (ostatní jsou jazykově neutrální)
     const input = { vehicle, symptoms: searchSymptoms, obdCodes, text: searchText }
@@ -307,7 +350,10 @@ Return format: {"symptoms":["..."],"text":"..."}`,
     const ranked = scored
       .filter((x: any) => x.passes)
       .filter((x: any) => !shouldSuppressRow(x.row))
-      .sort((a: any, b: any) => b.score - a.score)
+      // Řazení podle normalizované F1 shody (0–1), absolutní skóre jen jako tiebreak.
+      // F1 je nezávislé na bohatosti dotazu, takže pořadí je stabilní napříč scénáři;
+      // toto pořadí zároveň určuje, kterých 5 unikátních případů přežije dedup níže.
+      .sort((a: any, b: any) => (b.matchRatio - a.matchRatio) || (b.score - a.score))
 
     const deduped = new Map<string, any>()
     for (const item of ranked) {
