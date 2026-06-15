@@ -87,9 +87,38 @@ function testMinLengthFilter() {
   assert.equal(posts.length, 1, 'too-short post filtered out');
 }
 
+// IPS4-style: the author lives in the data-mentionname attribute on an anchor
+// that wraps only an avatar image (no text). Without the attribute fallback the
+// author is empty → same-author validation rejects every case (real OctaviaClub
+// failure). The date sits in a <time datetime="..."> with no text too.
+function testAuthorFromAttribute() {
+  const html = `
+    <article data-role="comment" id="comment-501">
+      <aside class="ipsComment_author">
+        <a data-mentionname="HynekTomas" href="/profile/42-hynektomas/"><img src="/avatar.jpg" alt=""></a>
+      </aside>
+      <div class="ipsComment_content">
+        <time datetime="2026-04-10T08:00:00Z"></time>
+        <div class="cPost_contentWrap">After a cold start the engine ran rough and the EPC light flashed; replacing the throttle body fixed it for good.</div>
+      </div>
+    </article>`;
+  const cal = {
+    post_selector: "article[data-role='comment']",
+    content_selector: '.cPost_contentWrap',
+    author_selector: 'a[data-mentionname]',
+    date_selector: 'time[datetime]',
+    min_post_length: 20,
+  };
+  const posts = selectPosts(html, cal);
+  assert.equal(posts.length, 1, 'extracts the IPS4 comment');
+  assert.equal(posts[0].author, 'HynekTomas', 'author read from data-mentionname attribute');
+  assert.equal(posts[0].when, '2026-04-10T08:00:00Z', 'date read from datetime attribute');
+}
+
 testForaExtraction();
 testNoSelectorReturnsEmpty();
 testNestedSameTagContainers();
 testMinLengthFilter();
+testAuthorFromAttribute();
 
 console.log('agent-post-selector.test.js passed');

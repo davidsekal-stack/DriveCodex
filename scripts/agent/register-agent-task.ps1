@@ -7,7 +7,14 @@ param(
   [string]$Phase,
   [string]$NodePath,
   [string]$LogDir,
-  [switch]$RunNow
+  [switch]$RunNow,
+  # Night-only mode: run only inside a nightly window so the crawler never
+  # competes with the owner's daytime Claude subscription usage. When set, the
+  # task fires daily at -NightlyStart and repeats every -IntervalMinutes for
+  # -NightlyWindowHours, instead of running 24/7.
+  [switch]$Nightly,
+  [string]$NightlyStart = '23:00',
+  [int]$NightlyWindowHours = 7
 )
 
 Set-StrictMode -Version Latest
@@ -56,17 +63,33 @@ $action = New-ScheduledTaskAction `
   -Argument ($argParts -join ' ') `
   -WorkingDirectory $repoRoot
 
-$startAt = (Get-Date).AddMinutes(1)
 $repeat = New-TimeSpan -Minutes $IntervalMinutes
-$repeatDuration = New-TimeSpan -Days 3650
 
-$onceTrigger = New-ScheduledTaskTrigger `
-  -Once `
-  -At $startAt `
-  -RepetitionInterval $repeat `
-  -RepetitionDuration $repeatDuration
-
-$logonTrigger = New-ScheduledTaskTrigger -AtLogOn -User $currentUser
+if ($Nightly) {
+  # Daily trigger at NightlyStart, repeating every IntervalMinutes for the
+  # window duration. Daily triggers don't take -RepetitionInterval directly, so
+  # borrow the Repetition object from a -Once trigger (documented pattern).
+  $windowDuration = New-TimeSpan -Hours $NightlyWindowHours
+  $nightlyTrigger = New-ScheduledTaskTrigger -Daily -At $NightlyStart
+  $repTemplate = New-ScheduledTaskTrigger `
+    -Once `
+    -At $NightlyStart `
+    -RepetitionInterval $repeat `
+    -RepetitionDuration $windowDuration
+  $nightlyTrigger.Repetition = $repTemplate.Repetition
+  $triggers = @($nightlyTrigger)
+} else {
+  # 24/7: start in a minute, repeat indefinitely; also kick off at logon.
+  $startAt = (Get-Date).AddMinutes(1)
+  $repeatDuration = New-TimeSpan -Days 3650
+  $onceTrigger = New-ScheduledTaskTrigger `
+    -Once `
+    -At $startAt `
+    -RepetitionInterval $repeat `
+    -RepetitionDuration $repeatDuration
+  $logonTrigger = New-ScheduledTaskTrigger -AtLogOn -User $currentUser
+  $triggers = @($onceTrigger, $logonTrigger)
+}
 
 $settings = New-ScheduledTaskSettingsSet `
   -StartWhenAvailable `
@@ -85,7 +108,7 @@ $principal = New-ScheduledTaskPrincipal `
 Register-ScheduledTask `
   -TaskName $TaskName `
   -Action $action `
-  -Trigger @($onceTrigger, $logonTrigger) `
+  -Trigger $triggers `
   -Settings $settings `
   -Principal $principal `
   -Description 'DriveCodex autonomous crawl agent batch runner' `
@@ -99,6 +122,7 @@ $info = Get-ScheduledTaskInfo -TaskName $TaskName
 [pscustomobject]@{
   TaskName = $TaskName
   User = $currentUser
+  Mode = if ($Nightly) { "nightly ($NightlyStart, ${NightlyWindowHours}h window)" } else { '24/7' }
   NextRunTime = $info.NextRunTime
   LastRunTime = $info.LastRunTime
   LastTaskResult = $info.LastTaskResult

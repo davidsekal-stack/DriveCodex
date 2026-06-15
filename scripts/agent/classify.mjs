@@ -44,8 +44,8 @@ JSON schema:
 {"should_seed":false,"is_relevant":false,"has_explicit_fault":false,"has_confirmed_resolution":false,"same_user_confirms_resolution":false,"has_required_fields":false,"reason":"","evidence_post_numbers":[]}
 
 Definitions:
-- should_seed should focus on whether the thread contains at least one usable resolved case.
-- has_required_fields means forum context plus thread text explicitly contain enough information for at least one case: brand, model, engine, symptoms, description, and confirmed resolution.
+- should_seed should focus on whether the thread contains at least one usable resolved case. Do NOT set should_seed false solely because engine/displacement, mileage, or OBD codes are unstated — those are optional metadata, not part of the resolved-case requirement.
+- has_required_fields means forum context plus thread text explicitly contain enough information for at least one case: brand, model, symptoms, description, and confirmed resolution. Engine/displacement is OPTIONAL: do NOT require it for faults that are independent of the engine (e.g. starter, battery, alternator, lighting, body/trim, central locking, windows, wipers, door locks, infotainment). Expect engine only when the fault is engine-related (e.g. misfire, oil/coolant consumption, turbo, DPF/EGR, timing).
 - evidence_post_numbers should list the post numbers that support at least one valid case.
 
 Forum thread text:

@@ -143,6 +143,24 @@ async function tryBrowserFallback(url, options = {}) {
   }
 }
 
+// Strongest fallback: Crawlee's fingerprinted (and optionally residential-proxied)
+// browser, for WAFs that block both plain fetch AND the system-Chrome DOM dump
+// (e.g. VerticalScope's 403/406). Lazy-imported so the normal crawl path stays
+// dependency-free; if crawlee/playwright isn't installed, this degrades to a
+// no-op. Disable with AGENT_DISABLE_CRAWLEE=1.
+async function tryCrawleeFallback(url, options = {}) {
+  if (process.env.AGENT_DISABLE_CRAWLEE === '1') {
+    return { html: null, error: new Error('Crawlee fallback disabled') };
+  }
+  try {
+    const { fetchHtmlWithCrawlee } = await import('./crawlee-fetch.mjs');
+    const html = await fetchHtmlWithCrawlee(url, options);
+    return { html: html || null, error: html ? null : new Error('Crawlee returned no HTML') };
+  } catch (err) {
+    return { html: null, error: err };
+  }
+}
+
 async function renderWithExecutable(executable, url, options = {}) {
   const profileDir = await mkdtemp(join(tmpdir(), 'agent-browser-'));
   const targetTimeoutMs = options.browserTimeoutMs ?? 30_000;
@@ -230,9 +248,13 @@ export async function fetchHtml(url, options = {}) {
 
       if (!res.ok) {
         if (options.allowBrowserFallback !== false && BROWSER_BLOCK_STATUSES.has(res.status)) {
-          const { html: browserHtml, error: browserError } = await tryBrowserFallback(url, options);
+          const { html: browserHtml } = await tryBrowserFallback(url, options);
           if (browserHtml) return browserHtml;
-          const fallbackDetail = browserError ? `; browser fallback failed: ${browserError.message}` : '';
+          // Escalate to the fingerprinted/proxied Crawlee browser — defeats
+          // VerticalScope-style WAFs (403/406) that the system-Chrome dump can't.
+          const { html: crawleeHtml, error: crawleeError } = await tryCrawleeFallback(url, options);
+          if (crawleeHtml) return crawleeHtml;
+          const fallbackDetail = crawleeError ? `; anti-bot fallback failed: ${crawleeError.message}` : '';
           const err = new Error(`HTTP ${res.status} fetching ${url}${fallbackDetail}`);
           err.nonRetryable = true;
           throw err;
@@ -248,9 +270,11 @@ export async function fetchHtml(url, options = {}) {
 
       const html = await res.text();
       if (options.allowBrowserFallback !== false && isLikelyChallengeHtml(html)) {
-        const { html: browserHtml, error: browserError } = await tryBrowserFallback(url, options);
+        const { html: browserHtml } = await tryBrowserFallback(url, options);
         if (browserHtml) return browserHtml;
-        const fallbackDetail = browserError ? `: ${browserError.message}` : '';
+        const { html: crawleeHtml, error: crawleeError } = await tryCrawleeFallback(url, options);
+        if (crawleeHtml) return crawleeHtml;
+        const fallbackDetail = crawleeError ? `: ${crawleeError.message}` : '';
         const err = new Error(`Browser challenge fallback failed for ${url}${fallbackDetail}`);
         err.nonRetryable = true;
         throw err;
