@@ -9,6 +9,7 @@ import {
   BANDS,
   bandForMileage,
   pickFaultLabel,
+  localizeResolution,
   countForBand,
   bandTotals,
   topObdCodes,
@@ -50,6 +51,27 @@ assert.equal(pickFaultLabel(fault, 'fr'), 'EGR valve clogged or faulty');
 assert.equal(pickFaultLabel({ faultId: 'x', labelEn: 'X fault' }, 'cs'), 'X fault');
 assert.equal(pickFaultLabel({ faultId: 'x-slug' }, 'cs'), 'x-slug');
 assert.equal(pickFaultLabel(null, 'cs'), '');
+
+// ── localizeResolution — lokalizace textu opravy s fallbackem na EN ──────────
+
+const caseFull = {
+  resolution: 'Replaced the in-tank fuel pump.',
+  resolutionCs: 'Vyměněno palivové čerpadlo v nádrži.',
+  resolutionDe: 'Kraftstoffpumpe im Tank ersetzt.',
+  resolutionLang: 'en',
+};
+assert.equal(localizeResolution(caseFull, 'cs'), 'Vyměněno palivové čerpadlo v nádrži.');
+assert.equal(localizeResolution(caseFull, 'de'), 'Kraftstoffpumpe im Tank ersetzt.');
+assert.equal(localizeResolution(caseFull, 'en'), 'Replaced the in-tank fuel pump.');
+// Neznámý jazyk → kanonická angličtina
+assert.equal(localizeResolution(caseFull, 'fr'), 'Replaced the in-tank fuel pump.');
+// Chybějící CZ/DE varianta → fallback na anglický originál
+assert.equal(localizeResolution({ resolution: 'English only.' }, 'cs'), 'English only.');
+assert.equal(localizeResolution({ resolution: 'English only.', resolutionCs: null }, 'cs'), 'English only.');
+assert.equal(localizeResolution({ resolution: 'English only.', resolutionDe: '' }, 'de'), 'English only.');
+// Prázdný/chybný vstup
+assert.equal(localizeResolution(null, 'cs'), '');
+assert.equal(localizeResolution({}, 'cs'), '');
 
 // ── countForBand + bandTotals ────────────────────────────────────────────────
 

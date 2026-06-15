@@ -32,6 +32,7 @@ const DEFAULT_ROUTES = {
   discover: 'claude:sonnet', // forum discovery needs web search + judgment
   'taxonomy-seed': 'claude:sonnet', // one-shot fault-taxonomy proposal (fault-taxonomy.mjs)
   'taxonomy-classify': 'claude:haiku', // high-volume case→taxonomy backfill
+  translate: 'claude:haiku', // high-volume resolution cs/de backfill (backfill-resolution-i18n.mjs)
 };
 
 /**

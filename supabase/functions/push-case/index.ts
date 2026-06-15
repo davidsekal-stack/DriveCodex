@@ -79,11 +79,25 @@ Deno.serve(async (req) => {
       return json({ error: 'Chybí popis opravy.' }, 400)
     }
 
-    // ── Překlad do angličtiny ──────────────────────────────────────────────────
+    // ── Překlad do angličtiny + lokalizované varianty opravy ────────────────────
+    // `resolution` (kanonický) má být anglicky kvůli jazykově nezávislému RAG
+    // (při úspěšném překladu = anglický překlad; fail-open při výpadku DeepSeeku).
+    // Vedle toho ukládáme i resolution_cs / resolution_de pro panel „Známé
+    // závady" — do jazyka shodného s originálem se nepřekládá, uloží se původní
+    // text (autentický, bez zpětného překladu). resolution_lang = detekovaný
+    // jazyk originálu (a značka „zpracováno" pro pozdější Claude backfill).
+    // Předem ořízneme na importní délku (≤400 znaků) — DeepSeek pak lokalizuje
+    // krátký text do 3 jazyků v rámci max_tokens (jinak hrozí oříznutá JSON
+    // odpověď → parse spadne → do kanonického `resolution` by zůstal originál).
+    const baseResolution: string = clampResolutionForImport(resolution)
     let translatedSymptoms:    string[] = symptoms    ?? []
     let translatedDescription: string   = description ?? ''
-    let translatedResolution:  string   = resolution
-    let canonicalFaultId: string | null = null
+    let translatedResolution:  string   = baseResolution
+    let canonicalFaultId:  string | null = null
+    let resolutionCs:      string | null = null
+    let resolutionDe:      string | null = null
+    let resolutionLang:    string | null = null
+    const originalResolution: string = baseResolution
 
     const supabase = getServiceClient()
 
@@ -111,15 +125,18 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               model:      'deepseek-chat',
-              max_tokens: 700,
+              max_tokens: 2000,
               messages: [{
                 role:    'user',
                 content: `Translate these automotive diagnostic fields to English. Keep OBD codes unchanged. If already in English, return as-is. Return ONLY valid JSON, no other text.
 ${faultInstruction}
+Additionally for the "resolution" field:
+- Detect its source language and return "lang": one of "cs", "en", "de", or "other".
+- Provide the resolution ALSO in Czech ("resolution_cs") and German ("resolution_de"). If the resolution is already in that language, return its original text verbatim for that field.
 Input:
 ${JSON.stringify({ symptoms: translatedSymptoms, description: translatedDescription, resolution: translatedResolution }, null, 2)}
 
-Return format: {"symptoms":["..."],"description":"...","resolution":"..."${faultField}}`,
+Return format: {"symptoms":["..."],"description":"...","resolution":"...","resolution_cs":"...","resolution_de":"...","lang":"cs|en|de|other"${faultField}}`,
               }],
             }),
           })
@@ -128,11 +145,18 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."${fault
             const data    = await translateRes.json()
             const raw     = (data.choices?.[0]?.message?.content ?? '').trim()
             const start   = raw.indexOf('{')
-            if (start !== -1) {
-              const parsed = JSON.parse(raw.slice(start))
+            const end     = raw.lastIndexOf('}')
+            if (start !== -1 && end > start) {
+              const parsed = JSON.parse(raw.slice(start, end + 1))
               if (Array.isArray(parsed.symptoms))    translatedSymptoms    = parsed.symptoms
               if (parsed.description?.trim())        translatedDescription = parsed.description
               if (parsed.resolution?.trim())         translatedResolution  = parsed.resolution
+              if (typeof parsed.resolution_cs === 'string' && parsed.resolution_cs.trim()) resolutionCs = parsed.resolution_cs
+              if (typeof parsed.resolution_de === 'string' && parsed.resolution_de.trim()) resolutionDe = parsed.resolution_de
+              if (typeof parsed.lang === 'string') {
+                const l = parsed.lang.trim().toLowerCase()
+                resolutionLang = (l === 'cs' || l === 'en' || l === 'de') ? l : 'other'
+              }
               if (slugs && typeof parsed.fault === 'string' && slugs.has(parsed.fault)) {
                 canonicalFaultId = parsed.fault
               }
@@ -145,10 +169,22 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."${fault
     }
 
     translatedDescription = normalizeImportText(translatedDescription)
+
+    // Do jazyka shodného s originálem se nepřekládá — uloží se původní text
+    // (autentický, bez zpětného překladu). Kanonický `resolution` zůstává VŽDY
+    // anglickým překladem (parsed.resolution) — nikdy do něj nedáváme neanglický
+    // originál (i kdyby model omylem detekoval cizí text jako 'en'); RAG na něm závisí.
+    if (resolutionLang === 'cs') resolutionCs = originalResolution
+    else if (resolutionLang === 'de') resolutionDe = originalResolution
+
     translatedResolution = clampResolutionForImport(translatedResolution)
     if (translatedResolution.length < RESOLUTION_MIN_LENGTH) {
       return json({ error: 'Popis opravy je příliš krátký.' }, 400)
     }
+    // Lokalizované varianty jsou volitelné — při prázdném/selhalém překladu
+    // zůstanou NULL a panel zobrazí angličtinu (fallback v localizeResolution).
+    resolutionCs = resolutionCs && resolutionCs.trim() ? clampResolutionForImport(resolutionCs) : null
+    resolutionDe = resolutionDe && resolutionDe.trim() ? clampResolutionForImport(resolutionDe) : null
 
     // ── Uložení do gearbrain_cases ─────────────────────────────────────────────
     const row = {
@@ -164,6 +200,9 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."${fault
       obd_codes:       obd_codes       ?? [],
       description:     translatedDescription || null,
       resolution:      translatedResolution,
+      resolution_cs:   resolutionCs,
+      resolution_de:   resolutionDe,
+      resolution_lang: resolutionLang,
       closed_at:       closed_at       ?? new Date().toISOString(),
       status:          'pending',
       ...(canonicalFaultId ? { canonical_fault_id: canonicalFaultId } : {}),
@@ -188,6 +227,16 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."${fault
       if (row.thread_url) patch.thread_url = row.thread_url
       if (row.source_ref) patch.source_ref = row.source_ref
       if (canonicalFaultId) patch.canonical_fault_id = canonicalFaultId
+      // Lokalizované varianty osvěž jen tím, co tenhle běh skutečně přeložil:
+      // resolution_lang nastav (značka „zpracováno"), cs/de přepiš jen když mají
+      // novou NEnulovou hodnotu. Bez téhle granularity by re-import s částečným/
+      // žádným překladem (DeepSeek nedostupný / neúplná odpověď) smazal dříve
+      // doplněné překlady na NULL. Nedoplněné dobere noční Claude backfill.
+      if (resolutionLang) {
+        patch.resolution_lang = row.resolution_lang
+        if (resolutionCs) patch.resolution_cs = row.resolution_cs
+        if (resolutionDe) patch.resolution_de = row.resolution_de
+      }
 
       if (Object.keys(patch).length > 0) {
         const { error: updateError } = await supabase

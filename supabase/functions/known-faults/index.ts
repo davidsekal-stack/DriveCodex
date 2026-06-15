@@ -16,9 +16,12 @@
  *                              counts: { all, '0-100', '100-150', '150-200',
  *                                        '200+', unknown } }],
  *                   familyFaults: [...stejný tvar přes všechny generace...] }
- * mode 'cases'  → { ok, cases: [{ id, resolution, mileage, closedAt, threadUrl,
+ * mode 'cases'  → { ok, cases: [{ id, resolution, resolutionCs, resolutionDe,
+ *                                 resolutionLang, mileage, closedAt, threadUrl,
  *                                 sourceRef, enginePower, vehicleModel,
  *                                 obdCodes }] }
+ *                 (resolution = kanonická EN; výběr jazyka řeší klient přes
+ *                  known-faults.js → localizeResolution, jako u pickFaultLabel)
  */
 
 import { optionsResponse } from '../_shared/cors.ts'
@@ -135,6 +138,9 @@ Deno.serve(async (req) => {
       const cases = (data ?? []).map((row: any) => ({
         id: row.id,
         resolution: row.resolution,
+        resolutionCs: row.resolution_cs ?? null,
+        resolutionDe: row.resolution_de ?? null,
+        resolutionLang: row.resolution_lang ?? null,
         mileage: row.mileage,
         closedAt: row.closed_at,
         threadUrl: row.thread_url,

@@ -332,6 +332,42 @@ Tento soubor zmizi sam, jakmile crawler zase pobezi.
     }
   }
 
+  # ── Step 3: doplnění lokalizovaných textů oprav (NON-FATAL) ──
+  # Přeloží resolution do CZ/DE u approved případů, kde resolution_lang IS NULL
+  # (migrace 022). Záměrně přes Claude (router task `translate`), ne DeepSeek —
+  # využívá předplatné jako fault-classify sweep. Tím se panel „Známé závady"
+  # zobrazuje v jazyce aplikace. Resumovatelné, --max ohraničí délku běhu.
+  # Selhání NESMÍ ovlivnit výsledek crawl běhu — jen se zaloguje.
+  $resI18n = Join-Path $agentDir 'backfill-resolution-i18n.mjs'
+  if (Test-Path $resI18n) {
+    Write-LogLine -Path $logPath -Message "Backfilling localized resolution texts (cs/de)..."
+    $i18nOut = [System.IO.Path]::GetTempFileName()
+    $i18nErr = [System.IO.Path]::GetTempFileName()
+    try {
+      $i18nProc = Start-Process `
+        -FilePath $nodeExe `
+        -ArgumentList @($resI18n, '--batch', '15', '--max', '500') `
+        -WorkingDirectory $repoRoot `
+        -NoNewWindow `
+        -Wait `
+        -PassThru `
+        -RedirectStandardOutput $i18nOut `
+        -RedirectStandardError $i18nErr
+
+      foreach ($i18nStream in @($i18nOut, $i18nErr)) {
+        if (-not (Test-Path $i18nStream)) { continue }
+        $i18nContent = Get-Content $i18nStream -Raw
+        if ([string]::IsNullOrWhiteSpace($i18nContent)) { continue }
+        Add-Content -Path $logPath -Value $i18nContent.TrimEnd("`r", "`n")
+      }
+      Write-LogLine -Path $logPath -Message ("Resolution i18n backfill exit_code={0}." -f [int]$i18nProc.ExitCode)
+    } catch {
+      Write-LogLine -Path $logPath -Message ("WARN: resolution i18n backfill failed ({0}); ignoring." -f $_.Exception.Message)
+    } finally {
+      Remove-Item $i18nOut, $i18nErr -ErrorAction SilentlyContinue
+    }
+  }
+
   Write-LogLine -Path $logPath -Message ("END exit_code={0}" -f $exitCode)
   exit $exitCode
 }
