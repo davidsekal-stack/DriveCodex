@@ -138,6 +138,10 @@ Nasazení (2026-06-15, produkce):
 - Edge funkce `known-faults` + `push-case` nasazeny přes `functions deploy` (jede přes HTTPS,
   Docker netřeba).
 - Číselník naseedován (118 závad), case backfill: **99,8 % zařazeno, generace u 97,9 %**.
+- Průběžné zatřídění: noční runner `scripts/agent/run-agent-batch.ps1` (Krok 2) spouští
+  `fault-taxonomy.mjs --classify --max 1000` jako NON-FATAL krok — dobere approved
+  případy bez `canonical_fault_id` (push-case klasifikuje jen na měkko a skip_translation
+  importy ji přeskakují). Drží panel aktuální bez ruční práce; resumovatelné.
 
 Vědomě odložené / známé limity:
 - ~42 % případů spadlo do `'other'` (číselník 118 závad nepokryje vše) — panel je
