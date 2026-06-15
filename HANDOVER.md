@@ -101,6 +101,52 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
+### 0b. Panel „Známé závady tohoto vozu" (web) — statistiky závad z RAG (2026-06-15)
+
+Nová funkce (větev `feat/known-faults-panel`): na obrazovce nového případu se po
+výběru vozidla zobrazí žebříček nejčastějších potvrzených závad pro danou
+**rodinu modelu + generaci** z `gearbrain_cases`. Bez AI tokenů (čisté DB čtení),
+fail-quiet (při chybě se nevykreslí nic).
+
+Datové vrstvy (migrace `021_known_faults.sql`):
+- `gearbrain_fault_taxonomy` — číselník kanonických závad (slug + label_cs/en/de + category).
+- `gearbrain_cases.canonical_fault_id` (NULL = nezařazeno, `'other'` = nezařaditelné)
+  a `vehicle_generation` (generace doplněná backfillem, když nejde z `vehicle_model`).
+- Generované STORED sloupce `model_base`/`model_gen`/`model_year` přes IMMUTABLE funkce
+  `normalize_model_family`/`extract_model_gen`/`extract_model_year`. **POZOR: změna
+  těchto funkcí NEpřepočítá stored sloupce — nutné je dropnout a přidat znovu.**
+- RPC `known_faults_for_vehicle` (agregace × pásmo × gen_match) a `known_fault_cases`
+  (detail, dedup podle source_ref).
+
+Backend/skripty: edge fn `known-faults` (mode stats/cases, TTL cache, fail-quiet),
+`push-case` rozšířen o klasifikaci nového případu do číselníku ve stejném DeepSeek
+volání jako překlad (fail-open na NULL), standalone `scripts/agent/fault-taxonomy.mjs`
+(`--seed` číselník přes LLM, `--classify` dávkové roztřídění + generační inference,
+`--stats`). JS normalizace modelu (`splitModel`) je zrcadlo SQL funkcí — musí zůstat
+v souladu (kryto testy `tests/agent-fault-taxonomy.test.js`).
+
+Frontend: `web/src/components/KnownFaultsPanel.jsx`, `web/src/lib/known-faults.js`,
+wrappery ve `storage-edge.js`, zapojení v `NewCaseView`, předvyplnění hypotézy do
+`InputForm` (OBD kódy projdou stejnou validací jako ruční zadání), i18n `known.*` (CS/EN/DE).
+
+Nasazení (2026-06-15, produkce):
+- **Migrace 021 byla provedena RUČNĚ přes Supabase dashboard SQL editor**, ne přes
+  `supabase db push` — z dev sítě jsou blokované DB porty (5432/6543), projde jen HTTPS.
+  Migrace tedy NENÍ v `supabase_migrations.schema_migrations`. Je idempotentní
+  (IF NOT EXISTS / CREATE OR REPLACE), takže příští `db push` z funkční sítě ji bezpečně
+  „přejede" nebo přeskočí; případně doplnit záznam do historie ručně.
+- Edge funkce `known-faults` + `push-case` nasazeny přes `functions deploy` (jede přes HTTPS,
+  Docker netřeba).
+- Číselník naseedován (118 závad), case backfill: **99,8 % zařazeno, generace u 97,9 %**.
+
+Vědomě odložené / známé limity:
+- ~42 % případů spadlo do `'other'` (číselník 118 závad nepokryje vše) — panel je
+  nezobrazuje; lze zlepšit rozšířením číselníku (re-seed s víc položkami; pozor na
+  8k-token strop DeepSeeku → seed cílí 70-90 položek a 3 vzorky/značku, aby se výstup vešel).
+- Počty v `counts.all` mohou drobně nadhodnotit, kdyby jeden source_ref spadal do více
+  pásem nájezdu (dedup je v rámci bucketu) — v praxi zanedbatelné (~90 % případů má prázdný nájezd).
+- Anglické texty řešení se v detailu zobrazují bez překladu (v1).
+
 ### 0a. Průvodce opravou (web) — vedený postup po diagnóze, v2 (2026-06-11/12)
 
 Nová funkce ve webové aplikaci (větev `feat/repair-guide`, PR #11): u každé závady v diagnóze

@@ -231,6 +231,24 @@ export async function searchCases(ragInput) {
   }
 }
 
+export async function fetchKnownFaults({ brand, model }) {
+  try {
+    const result = await edgeFetch("known-faults", { brand, model, mode: "stats" });
+    return result?.ok ? result : { ok: false };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function fetchKnownFaultCases({ brand, model, faultId, band, gen }) {
+  try {
+    const result = await edgeFetch("known-faults", { brand, model, mode: "cases", faultId, band: band ?? null, gen: gen ?? "exact" });
+    return { ok: !!result?.ok, cases: result?.cases ?? [] };
+  } catch {
+    return { ok: false, cases: [] };
+  }
+}
+
 export async function lookupManual({ brand, model, enginePower, components, faultNames }) {
   try {
     const result = await edgeFetch("manual-lookup", {

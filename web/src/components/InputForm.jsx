@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { SYMPTOM_CATEGORIES, getObdCodes } from "../constants/index.js";
 import { useI18n } from "../i18n/index.jsx";
 import { useTheme } from "../contexts/ThemeContext.jsx";
@@ -7,7 +7,7 @@ import useBleReader from "../hooks/useBleReader.js";
 
 const OBD_REGEX = /^[PCBU][0-9A-F]{4}$/;
 
-export default function InputForm({ onSubmit, loading, label, vehicle }) {
+export default function InputForm({ onSubmit, loading, label, vehicle, injectedInput }) {
   const { t } = useTheme();
   const { tr } = useI18n();
   const mobile = useIsMobile();
@@ -24,6 +24,22 @@ export default function InputForm({ onSubmit, loading, label, vehicle }) {
   const [obdCodes, setObdCodes] = useState([]);
   const [text,     setText]     = useState("");
   const [openCat,  setOpenCat]  = useState(SYMPTOM_CATEGORIES[0]?.catKey ?? "");
+
+  // Předvyplnění hypotézy z panelu známých závad (KnownFaultsPanel) — kódy se
+  // slučují, text se připojuje; nonce zajistí re-trigger i pro stejný obsah
+  useEffect(() => {
+    if (!injectedInput) return;
+    // Kódy z databáze projdou stejnou validací jako ruční zadání — surová
+    // fórová data (např. "EGR fault") nesmí proklouznout do diagnózy jako DTC.
+    const validCodes = (injectedInput.obdCodes ?? []).filter((c) => OBD_REGEX.test(c));
+    if (validCodes.length) {
+      setObdCodes((prev) => [...new Set([...prev, ...validCodes])]);
+    }
+    if (injectedInput.text) {
+      setText((prev) => (prev ? `${prev}\n${injectedInput.text}` : injectedInput.text));
+    }
+    setTab(validCodes.length ? "obd" : "text");
+  }, [injectedInput]);
 
   const addBleCodes = useCallback((codes) => {
     setObdCodes((prev) => [...new Set([...prev, ...codes])]);

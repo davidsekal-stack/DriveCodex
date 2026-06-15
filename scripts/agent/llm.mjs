@@ -30,6 +30,8 @@ const DEFAULT_ROUTES = {
   calibrate: 'claude:sonnet',
   diary: 'claude:haiku',
   discover: 'claude:sonnet', // forum discovery needs web search + judgment
+  'taxonomy-seed': 'claude:sonnet', // one-shot fault-taxonomy proposal (fault-taxonomy.mjs)
+  'taxonomy-classify': 'claude:haiku', // high-volume case→taxonomy backfill
 };
 
 /**
