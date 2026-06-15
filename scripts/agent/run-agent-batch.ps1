@@ -296,6 +296,42 @@ Tento soubor zmizi sam, jakmile crawler zase pobezi.
     Remove-Item $stdoutPath, $stderrPath -ErrorAction SilentlyContinue
   }
 
+  # ── Step 2: zatřídění nově schválených případů do číselníku závad (NON-FATAL) ──
+  # Doplní canonical_fault_id u approved případů, které ho nemají (push-case
+  # klasifikuje jen "na měkko" a importy se skip_translation ji přeskakují).
+  # Tím se panel "Známé závady tohoto vozu" drží aktuální. Resumovatelné
+  # (--classify bere jen NULL případy), --max ohraničí délku jednoho běhu.
+  # Selhání NESMÍ ovlivnit výsledek crawl běhu — jen se zaloguje.
+  $faultTaxonomy = Join-Path $agentDir 'fault-taxonomy.mjs'
+  if (Test-Path $faultTaxonomy) {
+    Write-LogLine -Path $logPath -Message "Classifying newly approved cases into fault taxonomy..."
+    $clsOut = [System.IO.Path]::GetTempFileName()
+    $clsErr = [System.IO.Path]::GetTempFileName()
+    try {
+      $clsProc = Start-Process `
+        -FilePath $nodeExe `
+        -ArgumentList @($faultTaxonomy, '--classify', '--max', '1000') `
+        -WorkingDirectory $repoRoot `
+        -NoNewWindow `
+        -Wait `
+        -PassThru `
+        -RedirectStandardOutput $clsOut `
+        -RedirectStandardError $clsErr
+
+      foreach ($clsStream in @($clsOut, $clsErr)) {
+        if (-not (Test-Path $clsStream)) { continue }
+        $clsContent = Get-Content $clsStream -Raw
+        if ([string]::IsNullOrWhiteSpace($clsContent)) { continue }
+        Add-Content -Path $logPath -Value $clsContent.TrimEnd("`r", "`n")
+      }
+      Write-LogLine -Path $logPath -Message ("Fault classification sweep exit_code={0}." -f [int]$clsProc.ExitCode)
+    } catch {
+      Write-LogLine -Path $logPath -Message ("WARN: fault classification sweep failed ({0}); ignoring." -f $_.Exception.Message)
+    } finally {
+      Remove-Item $clsOut, $clsErr -ErrorAction SilentlyContinue
+    }
+  }
+
   Write-LogLine -Path $logPath -Message ("END exit_code={0}" -f $exitCode)
   exit $exitCode
 }
