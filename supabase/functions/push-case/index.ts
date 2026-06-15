@@ -23,6 +23,35 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const RESOLUTION_MIN_LENGTH = 10
 const RESOLUTION_MAX_LENGTH = 400
 
+// ── Cache slugů taxonomie závad ───────────────────────────────────────────────
+// Klasifikace případu do číselníku (canonical_fault_id) jede ve STEJNÉM
+// DeepSeek volání jako překlad — žádná extra latence. Je fail-open: když
+// taxonomie není dostupná (prázdná tabulka, výpadek), případ se uloží
+// s canonical_fault_id = NULL a doklasifikuje ho pozdější běh
+// scripts/agent/fault-taxonomy.mjs --classify.
+const TAXONOMY_TTL_MS = 10 * 60_000
+let taxonomyCache: { at: number; slugs: Set<string> } | null = null
+
+async function getTaxonomySlugs(supabase: any): Promise<Set<string> | null> {
+  if (taxonomyCache && Date.now() - taxonomyCache.at < TAXONOMY_TTL_MS) {
+    return taxonomyCache.slugs.size ? taxonomyCache.slugs : null
+  }
+  try {
+    const { data, error } = await supabase
+      .from('gearbrain_fault_taxonomy')
+      .select('id')
+      .limit(1000)
+    if (error) return null  // přechodná chyba: necachovat, zkusit příště
+    // Cachuj i prázdný výsledek (před seedem) — jinak by se dotaz opakoval
+    // při každém importovaném případu, dokud číselník nevznikne.
+    const slugs = new Set<string>((data ?? []).map((r: { id: string }) => r.id))
+    taxonomyCache = { at: Date.now(), slugs }
+    return slugs.size ? slugs : null
+  } catch {
+    return null
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return optionsResponse()
 
@@ -54,6 +83,9 @@ Deno.serve(async (req) => {
     let translatedSymptoms:    string[] = symptoms    ?? []
     let translatedDescription: string   = description ?? ''
     let translatedResolution:  string   = resolution
+    let canonicalFaultId: string | null = null
+
+    const supabase = getServiceClient()
 
     const apiKey = Deno.env.get('DEEPSEEK_API_KEY')
     if (apiKey && skip_translation !== true) {
@@ -64,6 +96,12 @@ Deno.serve(async (req) => {
       )
 
       if (hasContent) {
+        const slugs = await getTaxonomySlugs(supabase)
+        const faultInstruction = slugs
+          ? `\nAdditionally classify the CONFIRMED ROOT CAUSE from the resolution into exactly one fault id from this taxonomy (or "other" if nothing fits, never invent ids):\n${[...slugs].filter(s => s !== 'other').join(', ')}\n`
+          : ''
+        const faultField = slugs ? ',"fault":"<taxonomy id or other>"' : ''
+
         try {
           const translateRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
@@ -73,15 +111,15 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               model:      'deepseek-chat',
-              max_tokens: 600,
+              max_tokens: 700,
               messages: [{
                 role:    'user',
                 content: `Translate these automotive diagnostic fields to English. Keep OBD codes unchanged. If already in English, return as-is. Return ONLY valid JSON, no other text.
-
+${faultInstruction}
 Input:
 ${JSON.stringify({ symptoms: translatedSymptoms, description: translatedDescription, resolution: translatedResolution }, null, 2)}
 
-Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
+Return format: {"symptoms":["..."],"description":"...","resolution":"..."${faultField}}`,
               }],
             }),
           })
@@ -95,6 +133,9 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
               if (Array.isArray(parsed.symptoms))    translatedSymptoms    = parsed.symptoms
               if (parsed.description?.trim())        translatedDescription = parsed.description
               if (parsed.resolution?.trim())         translatedResolution  = parsed.resolution
+              if (slugs && typeof parsed.fault === 'string' && slugs.has(parsed.fault)) {
+                canonicalFaultId = parsed.fault
+              }
             }
           }
         } catch {
@@ -110,8 +151,6 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
     }
 
     // ── Uložení do gearbrain_cases ─────────────────────────────────────────────
-    const supabase = getServiceClient()
-
     const row = {
       local_id:        local_id        ?? null,
       user_id:         resolvedUserId.userId,
@@ -127,6 +166,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
       resolution:      translatedResolution,
       closed_at:       closed_at       ?? new Date().toISOString(),
       status:          'pending',
+      ...(canonicalFaultId ? { canonical_fault_id: canonicalFaultId } : {}),
     }
 
     const { error } = await supabase
@@ -147,6 +187,7 @@ Return format: {"symptoms":["..."],"description":"...","resolution":"..."}`,
       }
       if (row.thread_url) patch.thread_url = row.thread_url
       if (row.source_ref) patch.source_ref = row.source_ref
+      if (canonicalFaultId) patch.canonical_fault_id = canonicalFaultId
 
       if (Object.keys(patch).length > 0) {
         const { error: updateError } = await supabase

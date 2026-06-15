@@ -4,6 +4,7 @@ import { useTheme } from "../contexts/ThemeContext.jsx";
 import { fmtDate } from "../lib/utils.js";
 import { isValidVin, decodeVin } from "../lib/vin-decoder.js";
 import InputForm from "./InputForm.jsx";
+import KnownFaultsPanel from "./KnownFaultsPanel.jsx";
 
 export default function NewCaseView({
   cases,
@@ -27,6 +28,7 @@ export default function NewCaseView({
 
   const [vinLoading, setVinLoading] = useState(false);
   const [vinResult, setVinResult] = useState(null); // { ok, brand, model, year, engineDesc, ... } or { ok: false, error }
+  const [injectedInput, setInjectedInput] = useState(null);
 
   const handleVinDecode = useCallback(async () => {
     const vin = newVehicle.identValue?.trim();
@@ -217,8 +219,14 @@ export default function NewCaseView({
           </div>
         </div>
 
+        <KnownFaultsPanel
+          brand={newVehicle.brand}
+          model={newVehicle.model}
+          onPrefill={(prefill) => setInjectedInput({ ...prefill, nonce: Date.now() })}
+        />
+
         {error && <div style={{ marginBottom: 14, padding: "10px 13px", background: "rgba(220,38,38,0.08)", border: "1px solid #dc2626", color: "#dc2626", fontSize: "0.82rem", borderRadius: 2 }}>⚠ {error}</div>}
-        <InputForm onSubmit={onSubmit} loading={loading} label={tr("app.startDiag")} vehicle={newVehicle} />
+        <InputForm onSubmit={onSubmit} loading={loading} label={tr("app.startDiag")} vehicle={newVehicle} injectedInput={injectedInput} />
       </div>
     </div>
   );
