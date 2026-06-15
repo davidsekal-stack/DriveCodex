@@ -70,6 +70,7 @@ async function run() {
   const RAG_CASE = {
     id: 'test-1',
     ragScore: 9.5,
+    ragMatchRatio: 0.85,
     vehicle: { brand: 'Ford', model: 'Transit MK8', enginePower: '96 kW' },
     resolution: 'Replaced EGR valve',
     messages: [{ type: 'input', symptoms: ['Loss of power'], obdCodes: ['P0401'], text: '' }],
@@ -96,18 +97,35 @@ async function run() {
     assert(p.includes('Verifizierte Lösung'), 'Chybí DE solution label')
   })
 
-  test('RAG skóre určuje sílu shody (≥8 = vysoká)', () => {
-    const high = { ...RAG_CASE, ragScore: 9.5 }
-    const mid  = { ...RAG_CASE, ragScore: 6.0 }
-    const low  = { ...RAG_CASE, ragScore: 3.0 }
+  // Pozn.: edge fn pouští dál jen F1 ≥ 0.5 (MATCH_RATIO_MIN), takže na web nikdy nedorazí ratio < 0.5.
+  test('RAG matchRatio určuje sílu shody (F1 ≥0.72 = vysoká)', () => {
+    const high = { ...RAG_CASE, ragMatchRatio: 0.80 }
+    const mid  = { ...RAG_CASE, ragMatchRatio: 0.65 }
+    const low  = { ...RAG_CASE, ragMatchRatio: 0.52 }
 
     const pH = buildSystemPrompt([high], VEHICLE, 'en')
     const pM = buildSystemPrompt([mid], VEHICLE, 'en')
     const pL = buildSystemPrompt([low], VEHICLE, 'en')
 
-    assert(pH.includes('HIGH MATCH'), 'score ≥8 → HIGH')
-    assert(pM.includes('MEDIUM MATCH'), 'score ≥5 → MEDIUM')
-    assert(pL.includes('PARTIAL MATCH'), 'score <5 → PARTIAL')
+    assert(pH.includes('HIGH MATCH'), 'ratio ≥0.72 → HIGH')
+    assert(pM.includes('MEDIUM MATCH'), 'ratio ≥0.58 → MEDIUM')
+    assert(pL.includes('PARTIAL MATCH'), 'ratio <0.58 → PARTIAL')
+  })
+
+  test('RAG fallback na absolutní skóre když chybí matchRatio', () => {
+    const base = { ...RAG_CASE }
+    delete base.ragMatchRatio
+    const high = { ...base, ragScore: 9.5 }
+    const mid  = { ...base, ragScore: 6.0 }
+    const low  = { ...base, ragScore: 3.0 }
+
+    const pH = buildSystemPrompt([high], VEHICLE, 'en')
+    const pM = buildSystemPrompt([mid], VEHICLE, 'en')
+    const pL = buildSystemPrompt([low], VEHICLE, 'en')
+
+    assert(pH.includes('HIGH MATCH'), 'score ≥8 → HIGH (legacy)')
+    assert(pM.includes('MEDIUM MATCH'), 'score ≥5 → MEDIUM (legacy)')
+    assert(pL.includes('PARTIAL MATCH'), 'score <5 → PARTIAL (legacy)')
   })
 
   // ── checkTopicRelevance: lokalizace ────────────────────────────────────────

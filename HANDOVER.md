@@ -101,6 +101,32 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
+### 0a. RAG: lepší výběr a řazení podobných případů (2026-06-15)
+
+`search-cases` filtruje kandidáty dvěma branami — (1) absolutní skóre ≥ dynamický
+práh `min(8; 0.7·inputMax)` a (2) F1 oboustranná shoda ≥ `MATCH_RATIO_MIN` (0.5) —
+a nově **řadí podle F1 shody** (`matchRatio` ↓, absolutní skóre jen tiebreak), ne podle
+absolutního skóre. F1 = 2·fwd·rev/(fwd+rev), kde fwd = skóre/inputMax, rev = skóre/candidateMax.
+Důvod: F1 je v rozsahu ⟨0,1⟩ nezávisle na tom, jak bohatý dotaz uživatel zadal, takže
+„vysoká shoda" znamená totéž u stručného i podrobného dotazu a pořadí je stabilní, jak DB
+roste. Toto pořadí zároveň určuje, kterých max 5 unikátních případů projde do promptu.
+
+Frontend `buildRagBlock` ([web/src/lib/ai-prompts.js](/C:/GB/web/src/lib/ai-prompts.js)) štítkuje
+🔴/🟡/🟢 podle `ragMatchRatio` (≥0.72 / ≥0.58 / zbytek), s fallbackem na původní absolutní práh
+skóre (8/5), když pole chybí. Edge fn `ragMatchRatio` vrací už dnes — při nasazení nasadit edge
+fn a web blízko po sobě (edge napřed), ať se štítek a pořadí nerozejdou. Bez změny vah, bez změny bran.
+
+**Výběr kandidátů (recall).** Dřív se skórovalo jen 200 NEJNOVĚJŠÍCH případů značky → u velkých
+značek mohla nejlepší shoda být starší a tiše vypadnout. Nově `search-cases` sjednocuje až tři
+paralelní indexované dotazy podle SÍLY SIGNÁLU, ne stáří: (A) překryv OBD kódů (limit 150, GIN
+index), (B) rodina modelu přes `ilike('vehicle_model','<prefix>%')` (limit 100, napříč generacemi),
+(C) nejnovější případy značky (limit 200, záchytná síť pro dotazy bez signálu). U A i B je řazení
+dle data jen deterministický tiebreak při překročení limitu — filtr (OBD/model) drží relevanci.
+Sjednoceno a deduplikováno podle `id` (čistá funkce `buildCandidateRows`), pak beze změny vstupuje
+do scoringu. Max ~450 řádků, vše server-side (edge↔DB v rámci Supabase); k uživateli jde stále jen
+top-5. Bez nové migrace/indexu. Zbývající okrajový případ (>150 případů se stejným OBD kódem u jedné
+značky) plně řeší až Krok 3 (řazení uvnitř DB).
+
 ### 0b. Panel „Známé závady tohoto vozu" (web) — statistiky závad z RAG (2026-06-15)
 
 Nová funkce (větev `feat/known-faults-panel`): na obrazovce nového případu se po

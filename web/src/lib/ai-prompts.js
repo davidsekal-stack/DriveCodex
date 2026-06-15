@@ -80,6 +80,17 @@ const RAG_LABELS = {
   },
 }
 
+// Síla shody se odvozuje z normalizované oboustranné shody (F1 = ragMatchRatio ∈ ⟨0,1⟩),
+// kterou počítá edge funkce search-cases. Tam případ projde jen při F1 ≥ 0.5 (MATCH_RATIO_MIN),
+// takže živé pásmo je ⟨0.5, 1.0⟩ — prahy 0.72 / 0.58 ho dělí na vysokou / střední / částečnou shodu.
+// Norma 0–1 je stabilní bez ohledu na to, jak bohatý dotaz uživatel zadal (na rozdíl od absolutního skóre).
+// Když ragMatchRatio chybí (starší payload / testy), padáme na původní absolutní práh skóre (8 / 5).
+// Pozn.: prahy jsou navázané na MATCH_RATIO_MIN v search-cases — při jeho změně je přehodnotit.
+const RAG_STRENGTH_HIGH_RATIO = 0.72
+const RAG_STRENGTH_MID_RATIO  = 0.58
+const RAG_STRENGTH_HIGH_SCORE = 8
+const RAG_STRENGTH_MID_SCORE  = 5
+
 function buildRagBlock(cases, lang) {
   const L = RAG_LABELS[lang] || RAG_LABELS.cs
 
@@ -87,14 +98,17 @@ function buildRagBlock(cases, lang) {
     const { symptoms, obdCodes } = extractSignals(c)
     const vehicle = [c.vehicle?.brand, c.vehicle?.model, c.vehicle?.enginePower].filter(Boolean).join(" ") || "?"
     const score   = c.ragScore ?? 0
+    const ratio   = typeof c.ragMatchRatio === "number" ? c.ragMatchRatio : null
 
-    const strength = score >= 8 ? L.high : score >= 5 ? L.mid : L.low
+    const strength = ratio !== null
+      ? (ratio >= RAG_STRENGTH_HIGH_RATIO ? L.high : ratio >= RAG_STRENGTH_MID_RATIO ? L.mid : L.low)
+      : (score >= RAG_STRENGTH_HIGH_SCORE ? L.high : score >= RAG_STRENGTH_MID_SCORE ? L.mid : L.low)
     const sourceLines = []
     if (c.sourceRef) sourceLines.push(`   ${L.source}: ${c.sourceRef}`)
     if (c.threadUrl) sourceLines.push(`   ${L.link}: ${c.threadUrl}`)
 
     return (
-      `[${i + 1}] ${strength} (${L.score}: ${score.toFixed(1)}) | ${vehicle}\n` +
+      `[${i + 1}] ${strength} (${L.score}: ${ratio !== null ? ratio.toFixed(2) : score.toFixed(1)}) | ${vehicle}\n` +
       `   ${L.symptoms}: ${symptoms.join(", ") || "—"}\n` +
       `   OBD: ${obdCodes.join(", ") || "—"}\n` +
       `   ${L.solution}: ${c.resolution}` +
