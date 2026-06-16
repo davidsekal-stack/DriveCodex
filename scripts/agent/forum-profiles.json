@@ -1884,6 +1884,86 @@
         "max_section_pages": 10
       },
       "notes": "Verdict profilable: both gates verified through the actual production pipeline, not just the recon tool. Root cause of the original 0-post failure: Kunena under a custom skin emits thread URLs as /for"
+    },
+    {
+      "match": "toyotanation.com",
+      "name": "ToyotaNation",
+      "engine": "xenforo",
+      "language": "en",
+      "brands": [
+        "Toyota",
+        "Lexus",
+        "Scion"
+      ],
+      "sections": [
+        "https://www.toyotanation.com/forums/hardcore-tech-and-competition.10/",
+        "https://www.toyotanation.com/forums/tire-wheel-brake-suspension.108/",
+        "https://www.toyotanation.com/forums/general-automotive-discussion.8/",
+        "https://www.toyotanation.com/forums/tacoma-2nd-gen-2005-2015.61/",
+        "https://www.toyotanation.com/forums/tacoma-3rd-gen-2016-2023.617/",
+        "https://www.toyotanation.com/forums/camry-5th-and-6th-gen-02-11-solara-04-08.104/",
+        "https://www.toyotanation.com/forums/camry-7th-gen-2012-2017.310/",
+        "https://www.toyotanation.com/forums/camry-8th-gen-2018-2024.802/",
+        "https://www.toyotanation.com/forums/corolla-9th-gen-1st-gen-matrix-2003-2008.132/",
+        "https://www.toyotanation.com/forums/corolla-10th-gen-2nd-gen-matrix-2009-2013.149/",
+        "https://www.toyotanation.com/forums/corolla-11th-gen-sedan-2014-19-scion-im-2016-18.377/",
+        "https://www.toyotanation.com/forums/rav4-3rd-gen-2006-2012.721/",
+        "https://www.toyotanation.com/forums/rav4-4th-gen-2013-2018.729/",
+        "https://www.toyotanation.com/forums/rav4-5th-gen-2019-2025.946/",
+        "https://www.toyotanation.com/forums/highlander-2nd-gen-2008-2013.122/",
+        "https://www.toyotanation.com/forums/highlander-3rd-gen-2014-2019.333/",
+        "https://www.toyotanation.com/forums/prius-hybrid-prime.62/",
+        "https://www.toyotanation.com/forums/4runner-forum.266/",
+        "https://www.toyotanation.com/forums/tundra-forum.22/",
+        "https://www.toyotanation.com/forums/lexus-forum.234/"
+      ],
+      "calibration": {
+        "post_selector": "div.MessageCard",
+        "author_selector": "a.MessageCard__user-info__name",
+        "content_selector": "div.bbWrapper",
+        "quote_selector": "blockquote.bbCodeBlock",
+        "min_post_length": 40,
+        "max_section_pages": 10
+      },
+      "notes": "XenForo California skin (data-project=cali) on VerticalScope. EN, Toyota/Lexus/Scion. Thread URLs are standard /threads/<slug>.<id>/ (generic filter matches, NO thread_url_pattern). DO NOT set force_browser: plain fetch auto-escalates through the Apache soft-403 WAF to the fingerprinted Crawlee browser (~4-5s) and returns full HTML (root 343KB, /forums/ 1.28MB, sections 240-560KB); the system-Chrome --dump-dom path would get the block page. CUSTOM SELECTORS REQUIRED: default xenforo parser returns EMPTY authors on this skin (verified: posts 1-2 author=''), so use div.MessageCard / a.MessageCard__user-info__name / div.bbWrapper / blockquote.bbCodeBlock (same fix as swedespeed.com). GATES VERIFIED: (a) leaf sub-forum tacoma-2nd-gen.61 -> 43 distinct /threads/ URLs (incl. fault threads ac-blowing-cold..., overhead-console-...); hardcore-tech.10 -> 40; tire-wheel-brake-suspension.108 -> 35. (b) thread 1769212 -> 3 posts authors lcortez59/RTFM/Crbake4 clean text; thread 172978 -> 30 posts authors bumpinbass77/Flash550/movielife/TAZZX2. STRUCTURE: model 'forum' pages (e.g. tacoma-forum.164, camry-and-solara-forum.15) are CONTAINERS holding per-generation leaf sub-forums where threads actually live; cross-cutting tech forums (hardcore-tech, tire-wheel-brake) ARE direct thread-listing leaves. Sections listed are thread-listing leaves + the highest-traffic model-container forums (266/22/234) for crawler sub-forum following. WAF rate-limits rapid consecutive section requests (transient 116-byte/403 responses seen when hammering; Crawlee retry + fetchHtml retries + normal crawl spacing handle it). Crawlee/Playwright must be installed (it is). Marketplace/classifieds/news/lounge/off-topic/intro/regional sections omitted."
+    },
+    {
+      "match": "briskoda.net",
+      "name": "BRISKODA",
+      "engine": "invision",
+      "language": "en",
+      "brands": [
+        "Skoda"
+      ],
+      "sections": [
+        "https://www.briskoda.net/forums/forum/103-general-maintenance/",
+        "https://www.briskoda.net/forums/forum/23-diagnostics-amp-vcds/",
+        "https://www.briskoda.net/forums/forum/403-obdeleven-diagnostic-tool/",
+        "https://www.briskoda.net/forums/forum/7-audio-electronics-and-security/",
+        "https://www.briskoda.net/forums/forum/212-performance-tuning-upgrades/",
+        "https://www.briskoda.net/forums/forum/213-tyres-wheels/",
+        "https://www.briskoda.net/forums/forum/113-skoda-fabia-mk2-2007-2014/",
+        "https://www.briskoda.net/forums/forum/298-skoda-fabia-mk3-2014-2021/",
+        "https://www.briskoda.net/forums/forum/402-skoda-fabia-mk4-2021/",
+        "https://www.briskoda.net/forums/forum/28-skoda-octavia-mk2-2004-2013/",
+        "https://www.briskoda.net/forums/forum/235-skoda-octavia-mk3-2013-2020/",
+        "https://www.briskoda.net/forums/forum/396-skoda-octavia-mk4-2020/",
+        "https://www.briskoda.net/forums/forum/136-skoda-superb-mk2-2008-2015/",
+        "https://www.briskoda.net/forums/forum/299-skoda-superb-mk3-2015-2023/",
+        "https://www.briskoda.net/forums/forum/151-skoda-yeti/",
+        "https://www.briskoda.net/forums/forum/339-skoda-kodiaq-mk1-2017-2023/",
+        "https://www.briskoda.net/forums/forum/364-skoda-karoq/",
+        "https://www.briskoda.net/forums/forum/216-%C5%A1koda-citigo/",
+        "https://www.briskoda.net/forums/forum/90-skoda-favorit-skoda-felicia-skoda-fun-and-skoda-forman/"
+      ],
+      "calibration": {
+        "post_selector": "article[data-ips-hook=\"postWrapper\"]",
+        "author_selector": "h3[data-ips-hook=\"postUsername\"] a",
+        "content_selector": "[data-role=\"commentContent\"]",
+        "quote_selector": "blockquote.ipsQuote",
+        "max_section_pages": 10
+      },
+      "notes": "Invision IPS4, Skoda UK. Cloudflare → fetchHtml auto-eskaluje na Crawlee (force_browser NEnastavovat). Sekce /forums/forum/<id>-, vlákna /forums/topic/<id>-. Custom IPS selektory (engine parser vrací prázdné autory)."
     }
   ]
 }
