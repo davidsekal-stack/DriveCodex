@@ -102,7 +102,7 @@ async function fetchThreadPages(url, parserKey, calibration, sleepMs) {
   const maxPages = 10;
 
   while (currentUrl && pageNumber <= maxPages) {
-    let html = await fetchHtml(currentUrl, { cookie: calibration.cookie });
+    let html = await fetchHtml(currentUrl, { cookie: calibration.cookie, forceBrowser: calibration.force_browser });
     if (pageNumber === 1) {
       // Auto-detect forum type on first page if parser is unknown/generic
       if (!resolvedParser || resolvedParser === 'generic' || resolvedParser === 'unknown') {
@@ -180,7 +180,7 @@ export async function enumerateThreadUrls(forum, calibration, maxThreads, sleepM
       sectionPageCount++;
 
       try {
-        const html = await fetcher(sectionUrl, { cookie: calibration.cookie });
+        const html = await fetcher(sectionUrl, { cookie: calibration.cookie, forceBrowser: calibration.force_browser });
 
         let links = [];
         if (calibration.thread_list_selector) {
