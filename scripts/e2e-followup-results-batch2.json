@@ -1,0 +1,469 @@
+{
+  "model": "deepseek-reasoner",
+  "ranAt": "2026-06-16T12:15:35.239Z",
+  "results": [
+    {
+      "id": 1,
+      "title": "Benzín zapalování — Q cívka vs svíčka",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Poradí přehození cívky/svíčky na jiný válec a sledování, zda se chyba přesune; text.",
+      "reply": "Nejprve přehoď zapalovací cívku z válce 1 na jiný válec (např. válec 2) a vymaž chybové kódy. Pokud se chyba přesune na ten válec, je vadná cívka. Pokud zůstane na válci 1, zkus vyměnit svíčku za novou nebo ji přehoď s jinou svíčkou. Dalším testem je změřit odpor primárního vinutí cívky (specifikace v manuálu) a vizuálně zkontrolovat svíčku na olejové usazeniny nebo opálení. Žádný test nenahradí jednoduché přehození dílů.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2758,
+      "elapsedMs": 9228,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Nejprve přehoď zapalovací cívku z válce 1 na jiný válec (např. válec 2) a vymaž chybové kódy. Pokud se chyba přesune na ten válec, je vadná cívka. Pokud zůstane na válci 1, zkus vyměnit svíčku za novou nebo ji přehoď s jinou svíčkou. Dalším testem je změřit odpor primárního vinutí cívky (specifikace v manuálu) a vizuálně zkontrolovat svíčku na olejové usazeniny nebo opálení. Žádný test nenahradí jednoduché přehození dílů.\"}"
+    },
+    {
+      "id": 2,
+      "title": "Benzín zapalování — F přehození cívky",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Vadná cívka jednoznačně potvrzena (přesun chyby) → nahoru ~95 %; svíčka/sání dolů.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Vadná zapalovací cívka (původně na válci 1)",
+          "pravděpodobnost": 95
+        },
+        {
+          "název": "Opotřebená zapalovací svíčka (válec 1 nebo 3)",
+          "pravděpodobnost": 20
+        },
+        {
+          "název": "Netěsnost sacího potrubí (falešný vzduch)",
+          "pravděpodobnost": 10
+        }
+      ],
+      "shrnutí": "Aktualizace po přemístění cívky z válce 1 na válec 3 – chyba se přesunula na válec 3 (P0303), potvrzuje vadnou zapalovací cívku.",
+      "usedTokens": 5251,
+      "elapsedMs": 39111,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Aktualizace po přemístění cívky z válce 1 na válec 3 – chyba se přesunula na válec 3 (P0303), potvrzuje vadnou zapalovací cívku.\",\n  \"závady\": [\n    {\n      \"název\": \"Vadná zapalovací cívka (původně na válci 1)\",\n      \"pravděpodobnost\": 95,\n      \"popis\": \"Přemístění cívky z válce 1 na válec 3 způsobilo přesun chyby P0303 – cívka je jednoznačně vadná. Nyní způsobuje vynechávání na válci 3.\",\n      \"příznaky_shoda\": [\"vynechávání na válci 1\", \"vynechávání na válci 3 po přemístění cívky\"],\n      \"obd_kódy\": [\"P0301\", \"P0303\"],\n      \"díly\": [\"zapalovací cívka\"],\n      \"řešení\": [\"výměna zapalovací cívky (původně na válci 1)\", \"výmaz adaptací a chybových kódů\"],\n      \"postup\": \"Vyměňte zapalovací cívku, která byla přemístěna z válce 1 na válec 3. Po výměně vymažte chybové kódy a proveďte testovací jízdu.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Potvrzeno přemístěním cívky – chyba sledovala cívku.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Opotřebená zapalovací svíčka (válec 1 nebo 3)\",\n      \"pravděpodobnost\": 20,\n      \"popis\": \"I když se chyba přesunula s cívkou, svíčka na válci 1 nebo 3 může být mírně opotřebená a přispívat k horšímu spalování. Po výměně cívky se doporučuje zkontrolovat stav svíček.\",\n      \"příznaky_shoda\": [\"vynechávání motoru\"],\n      \"obd_kódy\": [\"P0301\", \"P0303\"],\n      \"díly\": [\"zapalovací svíčka (válec 1)\", \"zapalovací svíčka (válec 3)\"],\n      \"řešení\": [\"výměna zapalovací svíčky válce 1\", \"výměna zapalovací svíčky válce 3\"],\n      \"postup\": \"Zkontrolujte stav a mezeru zapalovacích svíček na válci 1 a 3. V případě opotřebení nebo přetažení vyměňte.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Sekundární možné závada – po výměně cívky obvykle není nutná, ale pro jistotu zkontrolujte.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Netěsnost sacího potrubí (falešný vzduch)\",\n      \"pravděpodobnost\": 10,\n      \"popis\": \"Netěsnost v sání by mohla způsobit vynechávání, ale ne přesouvala by se s cívkou. Pravděpodobnost je nízká, ale při přetrvávajících příznacích po výměně cívky prověřte.\",\n      \"příznaky_shoda\": [\"vynechávání\", \"kolísavý volnoběh\"],\n      \"obd_kódy\": [\"P0301\", \"P0303\", \"P0171\"],\n      \"díly\": [\"těsnění sacího potrubí\", \"sací potrubí\"],\n      \"řešení\": [\"výměna těsnění sacího potrubí\", \"oprava netěsnosti sání\"],\n      \"postup\": \"Po výměně cívky a svíček, pokud stále přetrvává vynechávání, proveďte kouřovou zkoušku těsnosti sání.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Teprve pokud problém přetrvává i po výměně cívky.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\"výmaz chybových kódů\", \"testovací jízda\"],\n  \"varování\": null,\n  \"další_info\": null\n}"
+    },
+    {
+      "id": 3,
+      "title": "Turbo — Q co je underboost",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí podtlak plnění a že příčinou bývá i levná netěsnost hadice, ne nutně turbo; text.",
+      "reply": "Underboost (P0299) znamená, že řídicí jednotka naměřila nižší plnicí tlak, než je požadováno. Nemusí to být hned turbo – nejčastější lacinější příčinou je netěsnost v hadicích nebo chladiči stlačeného vzduchu (intercooleru), případně vadný snímač MAP. Pokud jsou hadice a spoje v pořádku, teprve pak se řeší geometrie turba (VNT) nebo jeho ovládání. Doporučuji nejdřív zkontrolovat všechny spoje a hadice mezi turbem a sáním – to je rychlé a levné.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2429,
+      "elapsedMs": 7574,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Underboost (P0299) znamená, že řídicí jednotka naměřila nižší plnicí tlak, než je požadováno. Nemusí to být hned turbo – nejčastější lacinější příčinou je netěsnost v hadicích nebo chladiči stlačeného vzduchu (intercooleru), případně vadný snímač MAP. Pokud jsou hadice a spoje v pořádku, teprve pak se řeší geometrie turba (VNT) nebo jeho ovládání. Doporučuji nejdřív zkontrolovat všechny spoje a hadice mezi turbem a sáním – to je rychlé a levné.\"}"
+    },
+    {
+      "id": 4,
+      "title": "Turbo — F prasklá hadice intercooleru",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Netěsnost přeplňování nahoru na 1. místo (vysoká); turbo dolů (zatím nevyloučeno).",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Netěsnost přeplňování – prasklá hadice intercooler-sání",
+          "pravděpodobnost": 90
+        },
+        {
+          "název": "Vadná geometrie turba (VNT)",
+          "pravděpodobnost": 15
+        },
+        {
+          "název": "Vadný MAP snímač",
+          "pravděpodobnost": 5
+        }
+      ],
+      "shrnutí": "Aktualizace diagnózy: Po fyzické kontrole nalezena prasklá hadice mezi intercoolerem a sáním, což potvrzuje netěsnost přeplňování.",
+      "usedTokens": 5185,
+      "elapsedMs": 34254,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Aktualizace diagnózy: Po fyzické kontrole nalezena prasklá hadice mezi intercoolerem a sáním, což potvrzuje netěsnost přeplňování.\",\n  \"závady\": [\n    {\n      \"název\": \"Netěsnost přeplňování – prasklá hadice intercooler-sání\",\n      \"pravděpodobnost\": 90,\n      \"popis\": \"Nalezena natržená gumová hadice mezi intercoolerem a sacím potrubím. Způsobuje únik plnicího tlaku, což má za následek P0299 a ztrátu výkonu.\",\n      \"příznaky_shoda\": [\"ztráta výkonu\", \"P0299\"],\n      \"obd_kódy\": [\"P0299\"],\n      \"díly\": [\"hadice intercooler-sání\"],\n      \"řešení\": [\"výměna hadice intercooler-sání\", \"dotažení spon\"],\n      \"postup\": \"1. Demontovat hadici. 2. Zkontrolovat stav. 3. Vyměnit za novou. 4. Zkontrolovat těsnost. 5. Vymazat kódy a provést testovací jízdu.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Hadice je snadno vyměnitelná. Zkontrolovat i ostatní hadice přeplňování.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadná geometrie turba (VNT)\",\n      \"pravděpodobnost\": 15,\n      \"popis\": \"Méně pravděpodobné, protože netěsnost vysvětluje příznaky. Možné částečné zaseknutí lopatek VNT v důsledku provozu s netěsností.\",\n      \"příznaky_shoda\": [\"ztráta výkonu\"],\n      \"obd_kódy\": [\"P0299\"],\n      \"díly\": [\"turbodmychadlo s VNT\", \"aktuátor VNT\"],\n      \"řešení\": [\"výměna turbodmychadla\", \"čištění VNT mechanismu\"],\n      \"postup\": \"Po opravě hadice – pokud problém přetrvává, provést diagnostiku turba (kontrola podtlaku, pohybu lopatky).\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Teprve po výměně hadice.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadný MAP snímač\",\n      \"pravděpodobnost\": 5,\n      \"popis\": \"Nepravděpodobné – netěsnost je dostatečnou příčinou. MAP by mohl být nepřesný jen jako druhotný jev.\",\n      \"příznaky_shoda\": [\"P0299\"],\n      \"obd_kódy\": [\"P0299\"],\n      \"díly\": [\"MAP senzor\"],\n      \"řešení\": [\"výměna MAP senzoru\", \"vymazání adaptací ECU\"],\n      \"postup\": \"Až po výměně hadice a vymazání kódu – pokud chyba přetrvává, zkontrolovat hodnoty MAP a vyměnit.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Teprve jako poslední krok.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\"provedení tlakové zkoušky přeplňování pro ověření těsnosti po opravě\"],\n  \"varování\": \"Nejezděte s natrženou hadicí – hrozí další poškození motoru a přehřátí turba.\",\n  \"další_info\": null\n}"
+    },
+    {
+      "id": 5,
+      "title": "AdBlue/SCR — Q můžu jezdit",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí riziko počítadla startů / úplného omezení a doporučí brzkou opravu; text.",
+      "reply": "Doporučuji to neodkládat. Kód P20EE s omezením výkonu obvykle znamená, že systém SCR nefunguje správně – pokud budete jezdit dál, hrozí postupné zanášení a nevratné poškození SCR katalyzátoru. V nejhorším případě může dojít k úplnému zablokování výkonu nebo k přepnutí do nouzového režimu, kdy auto vůbec nenastartujete. Pár dní do práce by sice mohlo vyjít, ale riziko výrazně roste s každým ujetým kilometrem. Pokud máte možnost, nechte to zkontrolovat co nejdříve – předchozí diagnóza ukazuje na tři možné příčiny (NOx snímač, dávkovač AdBlue nebo SCR katalyzátor), z nichž každá vyžaduje konkrétní opravu.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2527,
+      "elapsedMs": 8732,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Doporučuji to neodkládat. Kód P20EE s omezením výkonu obvykle znamená, že systém SCR nefunguje správně – pokud budete jezdit dál, hrozí postupné zanášení a nevratné poškození SCR katalyzátoru. V nejhorším případě může dojít k úplnému zablokování výkonu nebo k přepnutí do nouzového režimu, kdy auto vůbec nenastartujete. Pár dní do práce by sice mohlo vyjít, ale riziko výrazně roste s každým ujetým kilometrem. Pokud máte možnost, nechte to zkontrolovat co nejdříve – předchozí diagnóza ukazuje na tři možné příčiny (NOx snímač, dávkovač AdBlue nebo SCR katalyzátor), z nichž každá vyžaduje konkrétní opravu.\"}"
+    },
+    {
+      "id": 6,
+      "title": "AdBlue/SCR — F doplněno, hlásí kvalitu",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Doplnění nepomohlo → kvalita měřená snímačem; NOx/kvalitní snímač nebo SCR nahoru, prosté doplnění vyloučeno.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Vadný NOx snímač",
+          "pravděpodobnost": 70
+        },
+        {
+          "název": "Krystalizace AdBlue v dávkovači",
+          "pravděpodobnost": 50
+        },
+        {
+          "název": "Vadné čidlo kvality AdBlue",
+          "pravděpodobnost": 40
+        }
+      ],
+      "shrnutí": "Sprinter 2.1 CDI – i po doplnění čerstvého AdBlue stále svítí kontrolka a nově hláška o špatné kvalitě činidla. Příčina není v samotné kapalině, ale v systému detekce nebo dávkování.",
+      "usedTokens": 4422,
+      "elapsedMs": 30191,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Sprinter 2.1 CDI – i po doplnění čerstvého AdBlue stále svítí kontrolka a nově hláška o špatné kvalitě činidla. Příčina není v samotné kapalině, ale v systému detekce nebo dávkování.\",\n  \"závady\": [\n    {\n      \"název\": \"Vadný NOx snímač\",\n      \"pravděpodobnost\": 70,\n      \"popis\": \"Snímač NOx (výfukový) posílá chybné hodnoty, které řídicí jednotka interpretuje jako špatnou kvalitu AdBlue i po dolití čerstvé kapaliny. Typické pro vozy s větším nájezdem.\",\n      \"příznaky_shoda\": [\n        \"varovná kontrolka SCR\",\n        \"chybový kód P20EE\",\n        \"hlášení o špatné kvalitě AdBlue\"\n      ],\n      \"obd_kódy\": [\n        \"P20EE\",\n        \"P2201\",\n        \"P2293\"\n      ],\n      \"díly\": [\n        \"A 000 905 88 00\",\n        \"A 000 905 36 04\"\n      ],\n      \"řešení\": [\n        \"výměna NOx snímače před SCR\",\n        \"výměna NOx snímače za SCR\",\n        \"reset adaptací SCR systému\"\n      ],\n      \"postup\": \"Po výměně snímačů smažte chybové kódy a proveďte testovací jízdu s monitorováním hodnot NOx. Zkontrolujte kabeláž a konektory – koroze je častá.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Po výměně obou NOx snímačů se problém často vyřeší. Pokud stále trvá, přejděte k dávkovači nebo čidlu kvality.\",\n      \"zdroj\": \"databáze\",\n      \"početShod\": 3\n    },\n    {\n      \"název\": \"Krystalizace AdBlue v dávkovači\",\n      \"pravděpodobnost\": 50,\n      \"popis\": \"Ucpaný nebo krystalizovaný dávkovací ventil (injektor) vede k nedostatečnému dávkování AdBlue, což systém vyhodnotí jako špatnou kvalitu. Nové AdBlue problém neřeší.\",\n      \"příznaky_shoda\": [\n        \"varovná kontrolka SCR\",\n        \"chybový kód P20EE\",\n        \"nízká hladina AdBlue i po doplnění\"\n      ],\n      \"obd_kódy\": [\n        \"P20EE\",\n        \"P20E8\",\n        \"P20E9\"\n      ],\n      \"díly\": [\n        \"A 000 900 68 10\"\n      ],\n      \"řešení\": [\n        \"demontáž a čištění dávkovače ultrazvukem\",\n        \"výměna dávkovacího ventilu\",\n        \"proplacení AdBlue vedení\"\n      ],\n      \"postup\": \"Zkontrolujte průtok dávkovače – při vypnutém motoru změřte odpor a případně demontujte pro vizuální kontrolu. Krystaly se často tvoří při stání.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Pokud je dávkovač zanesený, samotné dolití AdBlue nepomůže. Potřebuje fyzické vyčištění nebo výměnu.\",\n      \"zdroj\": \"databáze\",\n      \"početShod\": 2\n    },\n    {\n      \"název\": \"Vadné čidlo kvality AdBlue\",\n      \"pravděpodobnost\": 40,\n      \"popis\": \"Senzor v nádrži nebo na vedení AdBlue měří koncentraci močoviny. Pokud je vadný, hlásí špatnou kvalitu i přes čerstvou kapalinu. Častá závada na sprinterech kolem 200 000 km.\",\n      \"příznaky_shoda\": [\n        \"hlášení o špatné kvalitě AdBlue\",\n        \"varovná kontrolka SCR\"\n      ],\n      \"obd_kódy\": [\n        \"P20EE\",\n        \"P203C\"\n      ],\n      \"díly\": [\n        \"A 000 905 49 12\",\n        \"A 000 905 49 13\"\n      ],\n      \"řešení\": [\n        \"výměna čidla kvality AdBlue\",\n        \"aktualizace softwaru řídicí jednotky\",\n        \"reset adaptačních hodnot\"\n      ],\n      \"postup\": \"Změřte odpor čidla a porovnejte s hodnotami v návodu. Pokud je mimo toleranci, vyměňte. Po výměně proveďte adaptaci pomocí diagnostiky.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Někdy pomůže i jen výměna čidla bez nutnosti výměny dávkovače. Zkontrolujte také kabeláž od čidla k ECU.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Diagnostika živých dat NOx snímačů (hodnoty před a za SCR při volnoběhu a zátěži)\",\n    \"Test průtoku dávkovače AdBlue (aktivace přes diagnostiku)\",\n    \"Měření odporu čidla kvality AdBlue a kontrola napájení\"\n  ],\n  \"varování\": \"Pokud se potvrdí vadné čidlo kvality, může být nutná aktualizace softwaru řídicí jednotky (doporučeno v servisu).\",\n  \"další_info\": \"Doplnění čerstvého AdBlue bez efektu ukazuje na hardwarový problém v systému – nejde o kapalinu.\"\n}"
+    },
+    {
+      "id": 7,
+      "title": "DSG — Q mechatronika vs spojka",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí rozdíl příznaků a doporučí měření tlaku/adaptace pro rozlišení; text.",
+      "reply": "Podle kódu P17BF (tlakový spínač spojky, nesprávný signál) jde typicky o mechatronickou jednotku – ta řídí hydraulické tlaky a ventily. Spojka se projevuje spíš prokluzem při rozjezdu nebo vibracemi, ne výpadkem řazení. Cena mechatroniky je vyšší, ale pokud chcete mít jistotu, doporučuji provést měření tlaků na testovacím adaptéru – výrobce udává hodnoty v servisní dokumentaci. Teprve podle nich rozhodněte.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2258,
+      "elapsedMs": 5194,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Podle kódu P17BF (tlakový spínač spojky, nesprávný signál) jde typicky o mechatronickou jednotku – ta řídí hydraulické tlaky a ventily. Spojka se projevuje spíš prokluzem při rozjezdu nebo vibracemi, ne výpadkem řazení. Cena mechatroniky je vyšší, ale pokud chcete mít jistotu, doporučuji provést měření tlaků na testovacím adaptéru – výrobce udává hodnoty v servisní dokumentaci. Teprve podle nich rozhodněte.\"}"
+    },
+    {
+      "id": 8,
+      "title": "DSG — F tlak mechatroniky v normě",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Mechatronika dolů (tlaky OK), opotřebená dvojspojka nahoru (škubání při rozjezdu).",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Opotřebení suché dvojspojky",
+          "pravděpodobnost": 75
+        },
+        {
+          "název": "Vadná mechatronická jednotka",
+          "pravděpodobnost": 15
+        },
+        {
+          "název": "Stará/znehodnocená převodová kapalina",
+          "pravděpodobnost": 10
+        }
+      ],
+      "shrnutí": "VW Golf DSG (DQ200) – škubání při rozjezdu i po kontrole tlaků a adaptací, kód P17BF.",
+      "usedTokens": 5817,
+      "elapsedMs": 44998,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"VW Golf DSG (DQ200) – škubání při rozjezdu i po kontrole tlaků a adaptací, kód P17BF.\",\n  \"závady\": [\n    {\n      \"název\": \"Opotřebení suché dvojspojky\",\n      \"pravděpodobnost\": 75,\n      \"popis\": \"Měření tlaku v mechatronice v normě a adaptace provedeny, ale škubání přetrvává při rozjezdu. Kód P17BF indikuje dosažení limitu adaptace spojky 1. Suchá dvojspojka je pravděpodobně opotřebená.\",\n      \"příznaky_shoda\": [\"škubání při rozjezdu\", \"kód P17BF\"],\n      \"obd_kódy\": [\"P17BF\"],\n      \"díly\": [\"suchá dvojspojka\", \"sada spojek pro DQ200\", \"dvouhmotový setrvačník\"],\n      \"řešení\": [\n        \"výměna suché dvojspojky\",\n        \"výměna dvouhmotového setrvačníku dle stavu\",\n        \"základní nastavení spojky po výměně\"\n      ],\n      \"postup\": \"1. Demontovat převodovku. 2. Vymontovat starou spojku a setrvačník. 3. Zkontrolovat ložisko a těsnění. 4. Instalovat novou sadu spojek a setrvačník. 5. Sestavit převodovku. 6. Provést adaptaci spojky diagnostikou. 7. Otestovat jízdou.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Před výměnou zkontrolujte opotřebení setrvačníku – pokud je v pořádku, lze vyměnit pouze spojku.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadná mechatronická jednotka\",\n      \"pravděpodobnost\": 15,\n      \"popis\": \"I při normálních tlacích a provedených adaptacích nelze zcela vyloučit vnitřní netěsnost nebo vadný ventil, který se projevuje jen v zátěži. Pravděpodobnost je výrazně snížena.\",\n      \"příznaky_shoda\": [\"kód P17BF\", \"škubání při rozjezdu\"],\n      \"obd_kódy\": [\"P17BF\"],\n      \"díly\": [\"mechatronická jednotka DQ200\"],\n      \"řešení\": [\n        \"výměna mechatronické jednotky\",\n        \"přeprogramování řídicí jednotky\"\n      ],\n      \"postup\": \"Pro definitivní vyloučení proveďte test vyplachování mechatroniky nebo měření tlaků v reálném provozu (data logger). Pokud se potvrdí, vyměnit jednotku a provést adaptace.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Zkontrolujte kabeláž a konektory k mechatronice – může způsobovat občasné chyby.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Stará/znehodnocená převodová kapalina\",\n      \"pravděpodobnost\": 10,\n      \"popis\": \"Při 160 000 km je kapalina dávno po intervalu výměny. I při normálním tlaku může zhoršené mazání ovlivnit chování spojky, ale škubání při rozjezdu není typickým příznakem. Nízká pravděpodobnost.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [],\n      \"díly\": [\"převodová kapalina DSG\", \"filtr DSG\"],\n      \"řešení\": [\n        \"výměna převodové kapaliny a filtru\",\n        \"provedení adaptací po výměně\"\n      ],\n      \"postup\": \"Vypustit starou kapalinu, vyměnit filtr, naplnit novou kapalinou dle specifikace, poté provést adaptace a otestovat.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Výměna kapaliny je preventivní – sama o sobě škubání pravděpodobně neodstraní, ale je vhodná při jakékoli opravě převodovky.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Sledovat adaptační hodnoty spojek (aktuální vs. cílové) pomocí diagnostiky\",\n    \"Provést zkušební jízdu a monitorovat prokluz spojky (otáčky / rychlost)\"\n  ],\n  \"varování\": \"Pokud je spojka silně opotřebená, další jízda může poškodit dvouhmotový setrvačník. Doporučujeme opravit co nejdříve.\",\n  \"další_info\": \"Mechanik hlásí, že tlaky v mechatronice jsou v normě a adaptace proběhly. To zvyšuje pravděpodobnost mechanického opotřebení spojky – typická závada DQ200 při vysokém nájezdu.\"\n}"
+    },
+    {
+      "id": 9,
+      "title": "ABS — Q brzdí ale svítí",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí, že při výpadku ABS funguje běžná brzda bez ABS asistence, opatrnost na kluzku; text.",
+      "reply": "ABS kontrolka svítí kvůli kódu C0035 – systém detekuje poruchu snímače otáček levého předního kola. To znamená, že ABS deaktivoval sám sebe, aby předešel chybným zásahům, ale klasické brzdy (bez protiblokovací funkce) fungují dál. Ani ESP nebude aktivní, protože potřebuje signál z tohoto snímače. Jízda je bezpečná, ale při prudkém brzdění na kluzkém povrchu může dojít k zablokování kola – doporučuji neodkládat opravu, zejména na mokru.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2318,
+      "elapsedMs": 5819,
+      "error": null,
+      "raw": ".{\"režim\":\"odpověď\",\"odpověď\":\"ABS kontrolka svítí kvůli kódu C0035 – systém detekuje poruchu snímače otáček levého předního kola. To znamená, že ABS deaktivoval sám sebe, aby předešel chybným zásahům, ale klasické brzdy (bez protiblokovací funkce) fungují dál. Ani ESP nebude aktivní, protože potřebuje signál z tohoto snímače. Jízda je bezpečná, ale při prudkém brzdění na kluzkém povrchu může dojít k zablokování kola – doporučuji neodkládat opravu, zejména na mokru.\"}"
+    },
+    {
+      "id": 10,
+      "title": "ABS — F vyčištěn snímač, chyba se vrací",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Poškozený reluktorový kroužek nahoru (viditelně odštípnutý zub); čistý snímač/konektor dolů.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Poškozený reluktorový kroužek",
+          "pravděpodobnost": 85
+        },
+        {
+          "název": "Vadný snímač ABS",
+          "pravděpodobnost": 20
+        },
+        {
+          "název": "Korodovaný konektor snímače",
+          "pravděpodobnost": 10
+        }
+      ],
+      "shrnutí": "Ford Focus III 1.6 TDCi – ABS C0035. Mechanik hlásí: vyčištění snímače a konektoru odstranilo chybu na den, poté se vrátila. Na reluktorovém kroužku je vidět odštípnutý zub. To potvrzuje mechanické poškození kroužku jako hlavní příčinu.",
+      "usedTokens": 4220,
+      "elapsedMs": 28911,
+      "error": null,
+      "raw": "{\"režim\":\"diagnóza\",\"shrnutí\":\"Ford Focus III 1.6 TDCi – ABS C0035. Mechanik hlásí: vyčištění snímače a konektoru odstranilo chybu na den, poté se vrátila. Na reluktorovém kroužku je vidět odštípnutý zub. To potvrzuje mechanické poškození kroužku jako hlavní příčinu.\",\"závady\":[{\"název\":\"Poškozený reluktorový kroužek\",\"pravděpodobnost\":85,\"popis\":\"Na kroužku předního levého kola je odštípnutý zub – způsobuje přerušovaný signál snímače ABS. Chyba se po vyčištění dočasně ztratila, protože se úlomek pohnul, ale po čase se vrátí.\",\"příznaky_shoda\":[\"ABS varovná kontrolka\",\"C0035\",\"přerušovaný signál\"],\"obd_kódy\":[\"C0035\"],\"díly\":[\"reluktorový kroužek\",\"ložisko kola s integrovaným kroužkem\"],\"řešení\":[\"výměna ložiska kola s kroužkem\",\"výměna samostatného reluktorového kroužku (pokud proveditelné)\",\"kontrola uložení nového kroužku\"],\"postup\":\"Demontovat náboj kola, vizuálně zkontrolovat poškozený zub, vyměnit ložisko nebo kroužek. Po montáži provést test jízdou a vymazat chybu.\",\"naléhavost\":\"vysoká\",\"poznámka\":\"Viditelné poškození – jednoznačná příčina. Pokud je kroužek integrován v ložisku, vyměnit celý náboj.\",\"zdroj\":\"ai\",\"početShod\":0},{\"název\":\"Vadný snímač ABS\",\"pravděpodobnost\":20,\"popis\":\"Snímač mohl být poškozen kontaktem s poškozeným kroužkem nebo je trvale vadný. Dočasné zlepšení po čištění může znamenat i citlivost na nečistoty, ale primární příčinou je kroužek.\",\"příznaky_shoda\":[\"C0035\",\"přerušovaný signál\"],\"obd_kódy\":[\"C0035\"],\"díly\":[\"snímač ABS přední levý\"],\"řešení\":[\"výměna snímače ABS\",\"kontrola kabeláže ke snímači\"],\"postup\":\"Změřit odpor snímače a porovnat s hodnotami v manuálu. Po výměně kroužku otestovat signál.\",\"naléhavost\":\"střední\",\"poznámka\":\"Nízká pravděpodobnost, pokud po výměně kroužku chyba zmizí.\",\"zdroj\":\"ai\",\"početShod\":0},{\"název\":\"Korodovaný konektor snímače\",\"pravděpodobnost\":10,\"popis\":\"Konektor mohl mít korozi, která se po čištění na čas zlepšila. Přetrvávající chyba však ukazuje spíše na mechanický problém kroužku.\",\"příznaky_shoda\":[\"C0035\",\"přerušovaný signál\",\"dočasná oprava po čištění\"],\"obd_kódy\":[\"C0035\"],\"díly\":[\"konektor snímače ABS\",\"kabeláž\"],\"řešení\":[\"vyčištění a ošetření konektoru kontaktním sprejem\",\"výměna konektoru v případě koroze\"],\"postup\":\"Zkontrolovat konektor na korozi, změřit kontakty.\",\"naléhavost\":\"nízká\",\"poznámka\":\"Pokud po výměně kroužku chyba zmizí, konektor není třeba řešit.\",\"zdroj\":\"ai\",\"početShod\":0}],\"doporučené_testy\":[\"Vizuální kontrola reluktorového kroužku po demontáži\",\"Měření odporu snímače ABS (typicky 1-2 kOhm)\",\"Osciloskopické vyhodnocení signálu při otáčení kola\"],\"varování\":\"Chyba C0035 může způsobit nesprávnou funkci ABS a ESP – nutné opravit před dalším provozem.\",\"další_info\":\"Odštípnutý zub je typický pro mechanické poškození (kámen, montážní chyba). U modelu Focus III je reluktorový kroužek často integrován v ložisku kola – doporučena výměna celého náboje.\"}"
+    },
+    {
+      "id": 11,
+      "title": "Chlazení — Q jak najdu únik",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Doporučí tlakovou zkoušku okruhu, UV barvivo, prohlídku za tepla; text.",
+      "reply": "Když není louže pod autem, kapalina nejspíš uniká za tepla nebo pod tlakem – třeba při jízdě se odpařuje nebo stříká na motor. Zkus nechat auto vychladnout, naplnit chlazení a nastartovat s odvzdušněním, pak za provozu (pozor na ventilátor) prohlédni hadice, spoje a kolem vodního čerpadla. Pomůže i tlaková zkouška chlazení – natlakuj systém pumpou a hledej, kde se tlak ztrácí nebo kde se objeví mokro. V předchozí diagnóze jsme tipovali hlavně netěsné čerpadlo nebo popraskanou hadici, takže se zaměř na tyto oblasti.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2393,
+      "elapsedMs": 6601,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Když není louže pod autem, kapalina nejspíš uniká za tepla nebo pod tlakem – třeba při jízdě se odpařuje nebo stříká na motor. Zkus nechat auto vychladnout, naplnit chlazení a nastartovat s odvzdušněním, pak za provozu (pozor na ventilátor) prohlédni hadice, spoje a kolem vodního čerpadla. Pomůže i tlaková zkouška chlazení – natlakuj systém pumpou a hledej, kde se tlak ztrácí nebo kde se objeví mokro. V předchozí diagnóze jsme tipovali hlavně netěsné čerpadlo nebo popraskanou hadici, takže se zaměř na tyto oblasti.\"}"
+    },
+    {
+      "id": 12,
+      "title": "Chlazení — F tlaková zkouška vodní pumpa",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Netěsné vodní čerpadlo nahoru na 1. místo (prosak z otvoru = klasika); hadice/zátka dolů.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Netěsné vodní čerpadlo",
+          "pravděpodobnost": 90
+        },
+        {
+          "název": "Prasklá hadice chlazení",
+          "pravděpodobnost": 7
+        },
+        {
+          "název": "Vadná zátka chladiče",
+          "pravděpodobnost": 3
+        }
+      ],
+      "shrnutí": "Na základě tlakové zkoušky byl potvrzen únik chladicí kapaliny z odvzdušňovacího otvoru vodního čerpadla. Nejpravděpodobnější příčinou je netěsné vodní čerpadlo. Ostatní příčiny jsou méně pravděpodobné, ale nelze je zcela vyloučit.",
+      "usedTokens": 4803,
+      "elapsedMs": 30246,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Na základě tlakové zkoušky byl potvrzen únik chladicí kapaliny z odvzdušňovacího otvoru vodního čerpadla. Nejpravděpodobnější příčinou je netěsné vodní čerpadlo. Ostatní příčiny jsou méně pravděpodobné, ale nelze je zcela vyloučit.\",\n  \"závady\": [\n    {\n      \"název\": \"Netěsné vodní čerpadlo\",\n      \"pravděpodobnost\": 90,\n      \"popis\": \"Únik chladicí kapaliny z odvzdušňovacího otvoru vodního čerpadla potvrzen tlakovou zkouškou. Typická závada u vyšších nájezdů.\",\n      \"příznaky_shoda\": [\"přehřívání motoru\", \"úbytek chladicí kapaliny\", \"prosakování z odvzdušňovacího otvoru\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"vodní čerpadlo\"],\n      \"řešení\": [\"výměna vodního čerpadla\", \"výměna chladicí kapaliny\", \"kontrola těsnosti po opravě\"],\n      \"postup\": \"Demontujte staré vodní čerpadlo, očistěte dosedací plochy, nainstalujte nové čerpadlo s novým těsněním. Doplňte chladicí kapalinu a odvzdušněte systém. Proveďte tlakovou zkoušku pro ověření těsnosti.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Závada potvrzena přímým nálezem při tlakové zkoušce.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Prasklá hadice chlazení\",\n      \"pravděpodobnost\": 7,\n      \"popis\": \"I když tlaková zkouška ukázala na čerpadlo, možnost současného úniku hadicí není zcela vyloučena. Při výměně čerpadla vizuálně zkontrolujte všechny hadice.\",\n      \"příznaky_shoda\": [\"přehřívání\", \"úbytek kapaliny\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"hadice chlazení\"],\n      \"řešení\": [\"výměna poškozené hadice\", \"utažení spon\", \"vizuální kontrola všech hadic\"],\n      \"postup\": \"Během výměny čerpadla zkontrolujte stav hadic. Pokud je některá popraskaná nebo měkká, vyměňte ji. Po opravě proveďte tlakovou zkoušku.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Nepotvrzeno, ale běžný souběžný problém.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadná zátka chladiče\",\n      \"pravděpodobnost\": 3,\n      \"popis\": \"Zátka může pouštět tlak a způsobovat ztrátu kapaliny při přehřátí. Nyní méně pravděpodobné, protože únik je viditelný na čerpadle.\",\n      \"příznaky_shoda\": [\"přehřívání\", \"úbytek kapaliny\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"zátka chladiče\"],\n      \"řešení\": [\"výměna zátky chladiče\", \"kontrola těsnosti chladiče\"],\n      \"postup\": \"Pokud po výměně čerpadla přetrvává přehřívání, zkontrolujte funkčnost zátky chladiče a v případě potřeby ji vyměňte.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Méně pravděpodobná příčina vzhledem k nálezu.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\"po výměně čerpadla provést tlakovou zkoušku chladicí soustavy\"],\n  \"varování\": null,\n  \"další_info\": null\n}"
+    },
+    {
+      "id": 13,
+      "title": "Charging (EN) — Q how to test alternator",
+      "lang": "en",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Reply in ENGLISH: measure battery voltage engine off (~12.6V) vs running (~13.8–14.4V), should rise; text.",
+      "reply": "With a multimeter set to DC volts, measure across the battery terminals with the engine off – you should see about 12.5–12.8 V. Then start the engine and measure again at idle (around 800–900 rpm). A healthy charging system should show 13.8–14.5 V. If the reading stays at battery voltage or drops, the alternator is not charging. Also rev the engine slightly – the voltage should remain stable. If it’s below 13.5 V, suspect the alternator or voltage regulator.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 1582,
+      "elapsedMs": 3593,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"With a multimeter set to DC volts, measure across the battery terminals with the engine off – you should see about 12.5–12.8 V. Then start the engine and measure again at idle (around 800–900 rpm). A healthy charging system should show 13.8–14.5 V. If the reading stays at battery voltage or drops, the alternator is not charging. Also rev the engine slightly – the voltage should remain stable. If it’s below 13.5 V, suspect the alternator or voltage regulator.\"}"
+    },
+    {
+      "id": 14,
+      "title": "Charging (EN) — F 12.2V no rise",
+      "lang": "en",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Diagnosis in ENGLISH: alternator/regulator to top (no voltage rise = not charging); belt down (looks fine).",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Faulty alternator / voltage regulator",
+          "pravděpodobnost": 90
+        },
+        {
+          "název": "Wiring / connector fault (alternator circuit)",
+          "pravděpodobnost": 25
+        },
+        {
+          "název": "Battery sulfation / internal short",
+          "pravděpodobnost": 15
+        }
+      ],
+      "shrnutí": "Renault Mégane III 1.5 dCi – battery warning light, measured 12.2V at battery with engine running, no voltage rise at revs, belt ok. Confirms alternator not charging.",
+      "usedTokens": 2912,
+      "elapsedMs": 21537,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Renault Mégane III 1.5 dCi – battery warning light, measured 12.2V at battery with engine running, no voltage rise at revs, belt ok. Confirms alternator not charging.\",\n  \"závady\": [\n    {\n      \"název\": \"Faulty alternator / voltage regulator\",\n      \"pravděpodobnost\": 90,\n      \"popis\": \"The alternator is not generating charging voltage. Measured 12.2V idle and no increase when revved indicates internal failure (regulator, rectifier, or stator). Belt is tight so no slip.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [],\n      \"díly\": [\"Alternator\", \"Voltage regulator\"],\n      \"řešení\": [\"Replace alternator\", \"Replace voltage regulator (if serviceable)\"],\n      \"postup\": \"1. Disconnect battery negative. 2. Remove alternator (access from under car). 3. Bench test old unit; confirm output. 4. Install new or rebuilt alternator. 5. Clear fault codes and start engine; verify 13.8–14.5V at battery at idle.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"If alternator has smart charge system, ensure compatibility with vehicle. Some 1.5 dCi use a LIN-controlled alternator; check wiring to ECU.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Wiring / connector fault (alternator circuit)\",\n      \"pravděpodobnost\": 25,\n      \"popis\": \"Open or high resistance in the charge wire, fusible link, or alternator connector can prevent charging despite a functional alternator.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [],\n      \"díly\": [\"Wiring harness\", \"Fusible link\", \"Alternator connector\"],\n      \"řešení\": [\"Repair broken or corroded wiring\", \"Replace fusible link\", \"Clean and secure alternator connector\"],\n      \"postup\": \"1. Inspect alternator B+ terminal for looseness/corrosion. 2. Check 150A main fuse under bonnet fuse box. 3. Measure voltage at alternator B+ terminal while running – should equal battery voltage if no charging. 4. Check continuity of charge wire to battery positive. 5. Repair as needed.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Common on Mégane III: the alternator plug can become loose due to vibration.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Battery sulfation / internal short\",\n      \"pravděpodobnost\": 15,\n      \"popis\": \"A severely degraded battery can draw excessive current or fail to accept charge, but with 12.2V it is likely just not charging. If alternator tests good, check battery.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [],\n      \"díly\": [\"Battery\"],\n      \"řešení\": [\"Replace battery\", \"Charge battery fully with external charger\"],\n      \"postup\": \"1. Perform load test on battery. 2. If battery fails, replace. 3. After alternator replacement, ensure battery holds charge (should reach 12.6V+ after rest).\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Battery may be a secondary issue if alternator has been failing for some time. Replace if more than 4 years old or weak.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Measure voltage directly at alternator B+ terminal while engine running to isolate alternator output.\",\n    \"Check for 12V at alternator 'L' or 'LIN' pin (key on) to confirm field excitation.\",\n    \"Load test battery with a carbon pile tester; check resting voltage after charge.\"\n  ],\n  \"varování\": \"A non-charging alternator can leave you stranded. Do not drive long distances; charge battery externally if needed. If the warning light stays off but charge fails, the alternator may still be faulty internally.\",\n  \"další_info\": \"The 1.5 dCi (K9K) uses a Valeo or Denso alternator. Some variants have a separate regulator that can be replaced without removing the entire unit. Confirm part number before ordering.\"\n}"
+    },
+    {
+      "id": 15,
+      "title": "EV — Q zimní dojezd",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí, že zimní pokles dojezdu je u EV běžný (chemie + topení), kdy je důvod ke kontrole; text.",
+      "reply": "Ano, určitá ztráta dojezdu v zimě je u Tesly Model 3 zcela normální. Při teplotách pod nulou chemie lithiových článků poskytuje méně energie a zároveň systém vytápění kabiny i baterie odebírá elektřinu. Ztráta 20–40 % oproti létu je běžná. To, co jste popsal jako 'výrazně menší', může být v rámci normy. Pokud by ztráta přesahovala 40 % nebo se zhoršovala rok od roku, pak by mohlo jít o zvýšenou degradaci baterie. Prvním krokem je zkontrolovat stav baterie v servisním menu a případně provést kalibrační nabití na 100 %. Pro jistotu můžete sledovat i spotřebu na palubním počítači – vyšší spotřeba v zimě je očekávaná.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2413,
+      "elapsedMs": 6677,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Ano, určitá ztráta dojezdu v zimě je u Tesly Model 3 zcela normální. Při teplotách pod nulou chemie lithiových článků poskytuje méně energie a zároveň systém vytápění kabiny i baterie odebírá elektřinu. Ztráta 20–40 % oproti létu je běžná. To, co jste popsal jako 'výrazně menší', může být v rámci normy. Pokud by ztráta přesahovala 40 % nebo se zhoršovala rok od roku, pak by mohlo jít o zvýšenou degradaci baterie. Prvním krokem je zkontrolovat stav baterie v servisním menu a případně provést kalibrační nabití na 100 %. Pro jistotu můžete sledovat i spotřebu na palubním počítači – vyšší spotřeba v zimě je očekávaná.\"}"
+    },
+    {
+      "id": 16,
+      "title": "Hybrid — F slabý modul baterie",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Degradovaný modul baterie nahoru (jeden slabý blok = klasika); snímač/řízení dolů.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Degradovaný/poškozený článek/modul HV baterie",
+          "pravděpodobnost": 95
+        },
+        {
+          "název": "Vadný snímač napětí modulu HV baterie",
+          "pravděpodobnost": 10
+        },
+        {
+          "název": "Problém s chlazením HV baterie",
+          "pravděpodobnost": 5
+        }
+      ],
+      "shrnutí": "Toyota Prius III – kontrolka hybridního systému, P0A80. Mechanik naměřil výrazně nižší napětí na jednom modulu HV baterie, ostatní vyrovnané. Potvrzena degradace konkrétního článku/modulu.",
+      "usedTokens": 5347,
+      "elapsedMs": 33886,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Toyota Prius III – kontrolka hybridního systému, P0A80. Mechanik naměřil výrazně nižší napětí na jednom modulu HV baterie, ostatní vyrovnané. Potvrzena degradace konkrétního článku/modulu.\",\n  \"závady\": [\n    {\n      \"název\": \"Degradovaný/poškozený článek/modul HV baterie\",\n      \"pravděpodobnost\": 95,\n      \"popis\": \"Jeden modul má výrazně nižší napětí, což způsobuje P0A80. Nutná výměna modulu nebo celého bloku.\",\n      \"příznaky_shoda\": [\"nižší napětí modulu\"],\n      \"obd_kódy\": [\"P0A80\"],\n      \"díly\": [\"modul HV baterie\"],\n      \"řešení\": [\"výměna vadného modulu HV baterie\", \"výměna celé HV baterie\", \"vyrovnání napětí nabitím (dočasné)\"],\n      \"postup\": \"Změřit napětí všech modulů, identifikovat vadný modul podle nízkého napětí. Vyměnit vadný modul za repasovaný nebo nový. Po výměně provést inicializaci HV baterie dle manuálu.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Výměna jednotlivého modulu je možná, ale doporučeno vyměnit všechny moduly stejného stáří kvůli vyvážení.\",\n      \"zdroj\": \"databáze\",\n      \"početShod\": 1\n    },\n    {\n      \"název\": \"Vadný snímač napětí modulu HV baterie\",\n      \"pravděpodobnost\": 10,\n      \"popis\": \"Nižší napětí může být způsobeno vadným snímačem nebo kabeláží. Méně pravděpodobné, protože ostatní moduly jsou vyrovnané.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [\"P0A80\"],\n      \"díly\": [\"snímač napětí modulu HV\"],\n      \"řešení\": [\"výměna snímače napětí\", \"kontrola kabeláže k BMS\"],\n      \"postup\": \"Prověřit napětí na konektoru snímače, porovnat s hodnotami z BMS. Pokud je rozdíl, vyměnit snímač.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Před výměnou modulu nejprve ověřit snímač.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Problém s chlazením HV baterie\",\n      \"pravděpodobnost\": 5,\n      \"popis\": \"Přehřívání mohlo urychlit degradaci jednoho modulu, ale samotné chlazení nezpůsobí výrazně nižší napětí. Nízká pravděpodobnost.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [\"P0A80\"],\n      \"díly\": [\"ventilátor chlazení HV\", \"filtr chlazení\"],\n      \"řešení\": [\"čištění filtru chlazení\", \"výměna ventilátoru\"],\n      \"postup\": \"Zkontrolovat funkci ventilátoru a čistotu filtru. Pokud je vše v pořádku, není to příčina.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Není primární příčina, ale doporučuje se zkontrolovat chlazení při výměně modulu.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"změřit napětí modulu při zátěži\",\n    \"zkontrolovat stav nabití všech modulů\",\n    \"provést test kapacity modulu (pokud možno)\"\n  ],\n  \"varování\": \"Nepokoušet se nabíjet vadný modul vysokým proudem – hrozí požár. Použít originální postupy Toyota.\",\n  \"další_info\": \"Výměna jednotlivého modulu je možná, ale pro dlouhodobou spolehlivost doporučujeme výměnu celé HV baterie nebo sady modulů stejného stáří.\"\n}"
+    },
+    {
+      "id": 17,
+      "title": "Rozvody (DE) — Q kann ich fahren",
+      "lang": "de",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Antwort auf DEUTSCH: Risiko Kettenüberspringen/Motorschaden, lieber nicht fahren / abschleppen; Text.",
+      "reply": "Bei P0016 und hörbarem Rasseln beim Kaltstart besteht ein hohes Risiko, dass die Steuerkette überspringt oder reißt. Ich rate dringend davon ab, das Fahrzeug noch zu bewegen – lassen Sie es am besten abschleppen. Selbst eine kurze Fahrt kann zu schweren Motorschäden führen, wenn die Kette springt und Kolben auf Ventile treffen.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2141,
+      "elapsedMs": 3777,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Bei P0016 und hörbarem Rasseln beim Kaltstart besteht ein hohes Risiko, dass die Steuerkette überspringt oder reißt. Ich rate dringend davon ab, das Fahrzeug noch zu bewegen – lassen Sie es am besten abschleppen. Selbst eine kurze Fahrt kann zu schweren Motorschäden führen, wenn die Kette springt und Kolben auf Ventile treffen.\"}"
+    },
+    {
+      "id": 18,
+      "title": "Rozvody — F napínák zabral, P0016 zpět",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Napínák vyřešil rachot, ale přetrvávající P0016 → vytažený řetěz/přeskočené ozubení nahoru; snímač zvážit.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Protažený rozvodový řetěz",
+          "pravděpodobnost": 55
+        },
+        {
+          "název": "Vadný snímač vačky",
+          "pravděpodobnost": 35
+        },
+        {
+          "název": "Nesprávné nastavení rozvodů po výměně napínáku",
+          "pravděpodobnost": 30
+        }
+      ],
+      "shrnutí": "Peugeot 1.6 HDi – po výměně napínáku řetězu rachot zmizel, ale P0016 se po pár dnech vrátil. Stále korelace vačka-klika mimo toleranci.",
+      "usedTokens": 4622,
+      "elapsedMs": 34890,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Peugeot 1.6 HDi – po výměně napínáku řetězu rachot zmizel, ale P0016 se po pár dnech vrátil. Stále korelace vačka-klika mimo toleranci.\",\n  \"závady\": [\n    {\n      \"název\": \"Protažený rozvodový řetěz\",\n      \"pravděpodobnost\": 55,\n      \"popis\": \"Řetěz se mohl natáhnout přes mezní délku, takže ani nový napínák nedokáže udržet správnou korelaci. P0016 se vrací po prohřátí nebo dynamických změnách.\",\n      \"příznaky_shoda\": [\"rachot za studena odstraněn\", \"kód P0016 po výměně napínáku\"],\n      \"obd_kódy\": [\"P0016\"],\n      \"díly\": [\"rozvodový řetěz\", \"vodítka řetězu\", \"napínák řetězu (již vyměněn)\"],\n      \"řešení\": [\"výměna rozvodového řetězu vč. vodítek\", \"nastavení rozvodů dle výrobce\", \"kontrola stavu olejového čerpadla\"],\n      \"postup\": \"1. Demontovat kryt rozvodů. 2. Změřit protažení řetězu (např. pomocí srovnání značek nebo měřidla). 3. Vyměnit řetěz, vodítka a napínák (nový již osazen). 4. Nastavit rozvody přesně dle servisní příručky. 5. Zkontrolovat, zda nedošlo k poškození pístů/ventilů (riziko při přeskoku).\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Motor 1.6 HDi je interference – při přeskoku řetězu hrozí kolize. Doporučuji neodkládat.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadný snímač vačky\",\n      \"pravděpodobnost\": 35,\n      \"popis\": \"Snímač polohy vačky může vykazovat přerušovaný signál (tepelné namáhání, koroze, vůle v uložení). I po výměně napínáku kód zůstává – je třeba vyloučit senzor.\",\n      \"příznaky_shoda\": [\"kód P0016 po několika dnech\", \"rachot zmizel\"],\n      \"obd_kódy\": [\"P0016\"],\n      \"díly\": [\"snímač polohy vačky (CMP)\", \"kabeláž ke snímači\"],\n      \"řešení\": [\"výměna snímače vačky\", \"kontrola a dotažení konektoru\", \"výměna kabelového svazku (při korozi)\"],\n      \"postup\": \"1. Zkontrolovat konektor a kabeláž snímače (koroze, prodření). 2. Změřit signál osciloskopem při studeném startu a po zahřátí. 3. Porovnat s referenčním signálem z kliky. 4. V případě rušení vyměnit snímač, po výměně vymazat adaptace ECU.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Typická porucha u těchto motorů – kontakty v konektoru se uvolňují nebo oxidují.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Nesprávné nastavení rozvodů po výměně napínáku\",\n      \"pravděpodobnost\": 30,\n      \"popis\": \"Při výměně napínáku mohlo dojít k posunu řetězu o jeden zub nebo chybě v aretaci. P0016 se objevuje až po několika dnech – mírný posun se projevuje až při zatížení.\",\n      \"příznaky_shoda\": [\"rachot odstraněn\", \"kód se vrací\"],\n      \"obd_kódy\": [\"P0016\"],\n      \"díly\": [\"aretační přípravky\", \"rozvodový řetěz (případně)\"],\n      \"řešení\": [\"znovunastavení rozvodů dle výrobce\", \"kontrola aretace kliky a vaček\", \"případně výměna řetězu při přeskoku\"],\n      \"postup\": \"1. Zajistit aretaci setrvačníku a vačky. 2. Zkontrolovat shodu značek řetězu s ozubenými koly. 3. Povolit napínák, uvolnit řetěz a správně nastavit fáze. 4. Po seřízení vymazat kódy a provést adaptaci.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Chyba lidského faktoru – bez aretace je prakticky nemožné trefit správné fáze. Riziko kolize při jízdě.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Osciloskopické měření signálů snímačů vačky a kliky při studeném startu a za tepla\",\n    \"Mechanická kontrola nastavení rozvodů (značky, aretace)\",\n    \"Zkouška napětí na snímači a odrušení (změna signálu při zatížení)\"\n  ],\n  \"varování\": \"Pokud došlo k přeskoku řetězu, hrozí kolize pístů s ventily – motor 1.6 HDi je interference. Před další jízdou doporučuji provést kompletní kontrolu rozvodů.\",\n  \"další_info\": \"Nový napínák vyloučil rachot, ale nevyřešil kód – indikuje, že problém je v délce řetězu nebo v senzoru. Mrkněte i na kabeláž snímače – často je průchozí koroze v místě u hlavy válců.\"\n}"
+    },
+    {
+      "id": 19,
+      "title": "Edge — oprava zabrala (vyřešeno)",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Rozpozná, že je závada VYŘEŠENÁ (cívka potvrzena a opravena) — nevymýšlí nové nesouvisející závady; ideálně doporučí uzavřít případ.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Vadná zapalovací cívka válce 1 (vyměněna, problém vyřešen)",
+          "pravděpodobnost": 100
+        },
+        {
+          "název": "Opotřebená svíčka válce 1",
+          "pravděpodobnost": 5
+        },
+        {
+          "název": "Netěsnost sání (falešný vzduch)",
+          "pravděpodobnost": 2
+        }
+      ],
+      "shrnutí": "Škoda Octavia 1.4 TSI – výměna zapalovací cívky válce 1 odstranila vynechávání. Potvrzena původní diagnóza.",
+      "usedTokens": 4040,
+      "elapsedMs": 24199,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Škoda Octavia 1.4 TSI – výměna zapalovací cívky válce 1 odstranila vynechávání. Potvrzena původní diagnóza.\",\n  \"závady\": [\n    {\n      \"název\": \"Vadná zapalovací cívka válce 1 (vyměněna, problém vyřešen)\",\n      \"pravděpodobnost\": 100,\n      \"popis\": \"Cívka byla vyměněna a motor běží hladce. Chyba P0301 se nevrátila.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [\"P0301\"],\n      \"díly\": [\"zapalovací cívka válce 1\"],\n      \"řešení\": [\"Výměna zapalovací cívky válce 1\"],\n      \"postup\": \"Potvrzeno přehozením cívky a následnou výměnou – problém vyřešen.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Oprava provedena, závada již není aktivní.\",\n      \"zdroj\": \"databáze\",\n      \"početShod\": 1\n    },\n    {\n      \"název\": \"Opotřebená svíčka válce 1\",\n      \"pravděpodobnost\": 5,\n      \"popis\": \"Přestože výměna cívky problém vyřešila, svíčka mohla být částečně opotřebená. Nyní bez příznaků.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [],\n      \"díly\": [\"svíčka zapalovací\"],\n      \"řešení\": [\"Výměna svíčky válce 1\"],\n      \"postup\": \"Doporučeno preventivně zkontrolovat a případně vyměnit při příští servisní prohlídce.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Nízká pravděpodobnost, protože motor běží bezchybně.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Netěsnost sání (falešný vzduch)\",\n      \"pravděpodobnost\": 2,\n      \"popis\": \"Netěsnost by způsobovala chudou směs, ale po výměně cívky je chod hladký – vysoce nepravděpodobné.\",\n      \"příznaky_shoda\": [],\n      \"obd_kódy\": [],\n      \"díly\": [\"těsnění sacího potrubí\", \"sací potrubí\"],\n      \"řešení\": [\"Kontrola a utažení spojů\", \"Výměna těsnění sání\"],\n      \"postup\": \"Pouze pokud by se příznaky vrátily.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Prakticky vyloučeno aktuálními příznaky.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [],\n  \"varování\": \"Závada úspěšně odstraněna. Další testy nejsou nutné.\",\n  \"další_info\": null\n}"
+    },
+    {
+      "id": 20,
+      "title": "Edge — nesouhlas mechanika + pozorování",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Spodní rameno dolů (silentbloky OK), horní uložení tlumiče nahoru (zvuk shora, malé nerovnosti).",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Opotřebené uložení tlumiče (horní ložisko / silentblok)",
+          "pravděpodobnost": 75
+        },
+        {
+          "název": "Vůle na čepu řízení / tyčce stabilizátoru",
+          "pravděpodobnost": 20
+        },
+        {
+          "název": "Vůle v spodním rameni / silentblok",
+          "pravděpodobnost": 5
+        }
+      ],
+      "shrnutí": "Audi A4 B8 2.0 TDI – klapání zepředu na nerovnostech. Mechanik vyloučil vůli v rameni (silentbloky vizuálně OK), hluk se projevuje shora od tlumiče a zhoršuje se na malých nerovnostech.",
+      "usedTokens": 4259,
+      "elapsedMs": 27154,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Audi A4 B8 2.0 TDI – klapání zepředu na nerovnostech. Mechanik vyloučil vůli v rameni (silentbloky vizuálně OK), hluk se projevuje shora od tlumiče a zhoršuje se na malých nerovnostech.\",\n  \"závady\": [\n    {\n      \"název\": \"Opotřebené uložení tlumiče (horní ložisko / silentblok)\",\n      \"pravděpodobnost\": 75,\n      \"popis\": \"Horní uložení tlumiče (ložisko a pryžový silentblok) je opotřebené, způsobuje klepání přenášené do karoserie, zvláště na malých nerovnostech.\",\n      \"příznaky_shoda\": [\"klepání zepředu shora\", \"zhoršení na malých nerovnostech\", \"vyloučena vůle v rameni\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"horní uložení tlumiče (ložisko + silentblok)\"],\n      \"řešení\": [\"výměna horního uložení tlumiče\", \"utažení upevňovacích šroubů\"],\n      \"postup\": \"Zvedněte vozidlo, demontujte kolo, zkontrolujte vůli v horním uložení tlumiče (pohybem kola nahoru/dolů). Porovnejte s druhým kolem. Pokud je vůle, vyměňte uložení.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Mechanik vizuálně potvrdil, že silentbloky spodního ramene jsou v dobrém stavu – tato závada je tedy nepravděpodobná.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vůle na čepu řízení / tyčce stabilizátoru\",\n      \"pravděpodobnost\": 20,\n      \"popis\": \"Opotřebené kulové čepy tyčky stabilizátoru nebo spojů řízení mohou klepat, ale hluk je obvykle cítit spíše dole; méně pravděpodobné při popisu 'shora'.\",\n      \"příznaky_shoda\": [\"klepání na nerovnostech\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"tyčka stabilizátoru\", \"čep řízení\"],\n      \"řešení\": [\"výměna tyčky stabilizátoru\", \"výměna kulového čepu řízení\"],\n      \"postup\": \"Zkontrolujte vůli v tyčce stabilizátoru (odpojte a pohybujte) a v čepech řízení. Zatřeste kolem v různých směrech.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Pravděpodobnost snížena kvůli lokalizaci hluku shora.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vůle v spodním rameni / silentblok\",\n      \"pravděpodobnost\": 5,\n      \"popis\": \"I přes vizuální kontrolu nelze zcela vyloučit vnitřní vůli silentbloku, která se projeví až při zatížení. Pravděpodobnost je velmi malá.\",\n      \"příznaky_shoda\": [\"klepání na nerovnostech\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"spodní rameno s silentblokem\"],\n      \"řešení\": [\"výměna spodního ramene\"],\n      \"postup\": \"Pro jistotu proveďte zátěžový test – páčidlem pod ramenem simulujte pohyb a hledejte vůli.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Mechanik uvedl, že gumy vypadají jako nové – tato závada je prakticky vyloučena.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\"Zatřesení kolem v ose – kontrola horního uložení\", \"Demontáž tlumiče a vizuální kontrola horního ložiska\"],\n  \"varování\": null,\n  \"další_info\": null\n}"
+    }
+  ]
+}

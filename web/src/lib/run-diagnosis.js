@@ -2,18 +2,23 @@
  * Orchestrace diagnostiky — jeden run od vstupu po AI odpověď.
  * Čistá async funkce bez React hooků, testovatelná izolovaně.
  *
- * Vrací { diagnosisMsg, caseName, usedTokens } nebo throws Error.
+ * Vrací { inputMsg, diagnosisMsg|replyMsg, caseName, usedTokens, cloudStatus }
+ * nebo throws Error. U follow-upu může místo diagnosisMsg vrátit replyMsg
+ * (konverzační odpověď "mechanika" na doplňující dotaz).
  */
 
 import { MSG } from "../constants/enums.js";
 import { uid } from "./utils.js";
-import { smartRepair, buildSystemPrompt, checkTopicRelevance } from "./ai.js";
-import { CASE_TOKEN_LIMIT, AI_MAX_TOKENS } from "../constants/limits.js";
+import { smartRepair, buildSystemPrompt, buildFollowupSystemPrompt, checkTopicRelevance } from "./ai.js";
+import { CASE_TOKEN_LIMIT, AI_MAX_TOKENS, REPLY_MAX_LENGTH } from "../constants/limits.js";
 import {
   buildDiagnosedCaseName,
   buildDiagnosisUserPrompt,
+  buildPriorDiagnosisContext,
   buildRagInput,
   collectCaseInputs,
+  getLatestDiagnosis,
+  isReplyResult,
   normalizeDiagnosisResult,
   searchSimilarCases,
 } from "./diagnosis.js";
@@ -46,6 +51,11 @@ export async function executeDiagnosis({ currentCase, inputData, callAI, searchC
     if (!topicCheck.ok) throw new Error(topicCheck.reason);
   }
 
+  // Follow-up? Pokud už existuje předchozí diagnóza, navazujeme na ni (hybrid:
+  // doplňující dotaz → konverzační odpověď, nové zjištění → aktualizovaná diagnóza).
+  const priorDiagnosis = getLatestDiagnosis(messages);
+  const isFollowup = !!priorDiagnosis;
+
   // Collect all inputs across conversation
   const inputMsg = {
     id: uid(),
@@ -64,10 +74,14 @@ export async function executeDiagnosis({ currentCase, inputData, callAI, searchC
     lookupDtcCodes(allObdCodes, brandGroup),
   ]);
 
-  // AI call — enrich system prompt with DTC descriptions
+  // AI call — enrich system prompt with DTC descriptions; follow-up varianta
+  // navíc dostane shrnutí předchozí diagnózy a pravidla režimu odpověď/diagnóza.
   const dtcBlock = formatDtcBlock(dtcMap, lang);
+  const systemPrompt = isFollowup
+    ? buildFollowupSystemPrompt(similarCases, vehicle, lang, buildPriorDiagnosisContext(priorDiagnosis, tr)) + dtcBlock
+    : buildSystemPrompt(similarCases, vehicle, lang) + dtcBlock;
   const data = await callAI({
-    systemPrompt: buildSystemPrompt(similarCases, vehicle, lang) + dtcBlock,
+    systemPrompt,
     userMessage: userPrompt,
     maxTokens: AI_MAX_TOKENS,
   });
@@ -75,14 +89,34 @@ export async function executeDiagnosis({ currentCase, inputData, callAI, searchC
   if (data.error) throw new Error(data.error.message || tr("app.aiError"));
   if (!data.content) throw new Error(tr("app.aiNoResponse"));
 
-  // Parse + normalize
+  // Parse
   const raw = data.content.map((block) => block.text ?? "").join("");
   const parsed = smartRepair(raw);
   if (!parsed) throw new Error(tr("app.aiUnreadable"));
+
+  const usedTokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
+
+  // Konverzační odpověď (jen u follow-upu) — vrať textovou zprávu, ne karty.
+  if (isFollowup && isReplyResult(parsed)) {
+    const replyText = (parsed.odpověď ?? "").trim().slice(0, REPLY_MAX_LENGTH);
+    if (!replyText) throw new Error(tr("app.aiUnreadable"));
+    const replyMsg = {
+      id: uid(),
+      type: MSG.REPLY,
+      text: replyText,
+      tokensUsed: usedTokens,
+      timestamp: new Date().toISOString(),
+    };
+    // Otázka mechanika (inputMsg) se zobrazí v timeline, ale označíme ji fromReply,
+    // aby se NEvmísila do pozdějších diagnóz (collectCaseInputs) ani do RAG
+    // korpusu při uzavření případu (buildPushClosedCasePayload).
+    return { inputMsg: { ...inputMsg, fromReply: true }, replyMsg, caseName: null, usedTokens, cloudStatus: searchOk ? "ok" : "error" };
+  }
+
+  // Diagnóza (první i aktualizovaná)
   if (!parsed.závady?.length) throw new Error(tr("app.noFaults"));
 
   const normalized = normalizeDiagnosisResult(parsed, tr, similarCases.length);
-  const usedTokens = (data.usage?.input_tokens ?? 0) + (data.usage?.output_tokens ?? 0);
 
   const diagnosisMsg = {
     id: uid(),

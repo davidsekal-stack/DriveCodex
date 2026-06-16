@@ -12,6 +12,29 @@ export function smartRepair(raw) {
   const str = raw.slice(start);
   try { return JSON.parse(str); } catch (_) {}
 
+  // Trailing junk po JSON objektu (code fence ```, text za závorkou — i s '}'
+  // uvnitř prózy): najdi konec PRVNÍHO kompletního top-level objektu (depth zpět
+  // na 0, mimo řetězce) a zkus parsovat jen ten. Pomáhá i konverzačním odpovědím
+  // ({"režim":"odpověď",...}), které nemají vnořené "závady".
+  {
+    let d = 0, inS = false, es = false;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      if (es)               { es = false; continue; }
+      if (ch === "\\" && inS) { es = true;  continue; }
+      if (ch === '"')         { inS = !inS; continue; }
+      if (inS)                continue;
+      if (ch === "{")         d++;
+      else if (ch === "}") {
+        d--;
+        if (d === 0) {
+          try { return JSON.parse(str.slice(0, i + 1)); } catch (_) {}
+          break; // konec prvního top-level objektu; dál už jen heuristika níže
+        }
+      }
+    }
+  }
+
   let depth = 0, inStr = false, esc = false, lastFaultEnd = -1;
   for (let i = 0; i < str.length; i++) {
     const c = str[i];

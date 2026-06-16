@@ -35,7 +35,7 @@ After completing any significant feature, refactoring, or architectural change:
 
 ## Key Conventions
 - Status strings: `"rozpracovaný"` (in-progress), `"uzavřený"` (closed)
-- Message types: `"input"`, `"diagnosis"`
+- Message types: `"input"`, `"diagnosis"`, `"reply"` (conversational follow-up answer — hybrid mode in `run-diagnosis.js`)
 - RAG scoring weights live ONLY in the edge function `supabase/functions/search-cases/index.ts` (`web/src/lib/rag.js` holds just helpers like `extractSignals`). The HIGH/MID/LOW strength thresholds in `web/src/lib/ai-prompts.js` (F1 ratio 0.72/0.58, score-fallback 8/5) must stay consistent with the gate `MATCH_RATIO_MIN` (0.5) in that edge function.
 - Edge function URL: `https://nmvjthfezyjcwuzphiuu.supabase.co/functions/v1/<name>`
 - Admin check: `ADMIN_USER_IDS` env var in Supabase (email or UUID)

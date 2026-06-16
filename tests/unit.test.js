@@ -20,10 +20,10 @@ globalThis.localStorage = {
 }
 
 // ── Imports ──────────────────────────────────────────────────────────────────
-import { strictEqual, deepStrictEqual, ok } from 'node:assert'
+import { strictEqual, deepStrictEqual, ok, rejects } from 'node:assert'
 
 import { extractSignals } from '../web/src/lib/rag.js'
-import { smartRepair, checkTopicRelevance, buildSystemPrompt } from '../web/src/lib/ai.js'
+import { smartRepair, checkTopicRelevance, buildSystemPrompt, buildFollowupSystemPrompt } from '../web/src/lib/ai.js'
 import { loadInitialSession } from '../web/src/lib/auth-session.js'
 import { loadCasesCloudStatus, loadGlobalCaseCount } from '../web/src/lib/app-bootstrap.js'
 import { buildCaseIdentLabel } from '../web/src/lib/case-draft.js'
@@ -63,12 +63,16 @@ import {
 import {
   buildDiagnosedCaseName,
   buildDiagnosisUserPrompt,
+  buildPriorDiagnosisContext,
   buildRagInput,
   collectCaseInputs,
+  getLatestDiagnosis,
+  isReplyResult,
   normalizeDiagnosisResult,
   removeMessageById,
   searchSimilarCases,
 } from '../web/src/lib/diagnosis.js'
+import { executeDiagnosis } from '../web/src/lib/run-diagnosis.js'
 import {
   ACTION_STATUS,
   GUIDE_OUTCOME,
@@ -303,6 +307,198 @@ describe('diagnosis helpers — workflow extrakce', () => {
     ]
 
     deepStrictEqual(removeMessageById(messages, 'a'), [{ id: 'b', type: 'diagnosis' }])
+  })
+})
+
+describe('follow-up (hybrid) — režim odpověď / diagnóza', () => {
+  const trPrior = (key) => ({
+    'ai.priorDiagTitle':   '--- PŘEDCHOZÍ DIAGNÓZA ---',
+    'ai.priorDiagSummary': 'Shrnutí',
+    'ai.priorDiagFaults':  'Dříve určené závady',
+    'ai.priorDiagInstr':   'Navazuj na předchozí diagnózu.',
+  }[key] ?? key)
+
+  test('getLatestDiagnosis vrátí result poslední diagnózy', () => {
+    const messages = [
+      { id: 'a', type: 'input' },
+      { id: 'b', type: 'diagnosis', result: { shrnutí: 'první', závady: [{ název: 'A' }] } },
+      { id: 'c', type: 'input' },
+      { id: 'd', type: 'diagnosis', result: { shrnutí: 'druhá', závady: [{ název: 'B' }] } },
+      { id: 'e', type: 'input' },
+    ]
+    strictEqual(getLatestDiagnosis(messages).shrnutí, 'druhá')
+  })
+
+  test('getLatestDiagnosis vrátí null bez diagnózy', () => {
+    strictEqual(getLatestDiagnosis([{ id: 'a', type: 'input' }]), null)
+    strictEqual(getLatestDiagnosis([]), null)
+  })
+
+  test('isReplyResult: explicitní režim odpověď', () => {
+    strictEqual(isReplyResult({ režim: 'odpověď', odpověď: 'Protože diagnostika ukázala válec 2.' }), true)
+  })
+
+  test('isReplyResult: text odpovědi bez závad = odpověď', () => {
+    strictEqual(isReplyResult({ odpověď: 'Vysvětlení.' }), true)
+  })
+
+  test('isReplyResult: diagnóza se závadami NENÍ odpověď', () => {
+    strictEqual(isReplyResult({ režim: 'diagnóza', závady: [{ název: 'A' }] }), false)
+    strictEqual(isReplyResult({ závady: [{ název: 'A' }] }), false)
+  })
+
+  test('isReplyResult: odolnost vůči nesmyslům', () => {
+    strictEqual(isReplyResult(null), false)
+    strictEqual(isReplyResult({}), false)
+    strictEqual(isReplyResult({ odpověď: '   ' }), false)
+  })
+
+  test('buildPriorDiagnosisContext serializuje shrnutí a závady s procenty', () => {
+    const ctx = buildPriorDiagnosisContext({
+      shrnutí: 'Bílý kouř, ztráta výkonu',
+      závady: [
+        { název: 'Prasklé těsnění hlavy', pravděpodobnost: 78, popis: 'Netěsnost umožňuje vnik kapaliny.' },
+        { název: 'Vadný vstřikovač', pravděpodobnost: 65, popis: 'Nedovřený vstřikovač.' },
+      ],
+    }, trPrior)
+
+    ok(ctx.includes('--- PŘEDCHOZÍ DIAGNÓZA ---'))
+    ok(ctx.includes('Bílý kouř, ztráta výkonu'))
+    ok(ctx.includes('1. Prasklé těsnění hlavy (78 %)'))
+    ok(ctx.includes('2. Vadný vstřikovač (65 %)'))
+    ok(ctx.includes('Navazuj na předchozí diagnózu.'))
+  })
+
+  test('buildPriorDiagnosisContext vrátí prázdný řetězec bez závad', () => {
+    strictEqual(buildPriorDiagnosisContext(null, trPrior), '')
+    strictEqual(buildPriorDiagnosisContext({ závady: [] }, trPrior), '')
+  })
+
+  test('buildFollowupSystemPrompt obsahuje pravidla režimu i blok předchozí diagnózy', () => {
+    const priorCtx = buildPriorDiagnosisContext({
+      shrnutí: 'Test', závady: [{ název: 'A', pravděpodobnost: 80, popis: 'x' }],
+    }, trPrior)
+    const prompt = buildFollowupSystemPrompt([], { brand: 'Ford' }, 'cs', priorCtx)
+
+    ok(prompt.includes('REŽIM POKRAČOVÁNÍ KONVERZACE'))
+    ok(prompt.includes('"režim":"odpověď"'))
+    ok(prompt.includes('"režim":"diagnóza"'))
+    ok(prompt.includes('--- PŘEDCHOZÍ DIAGNÓZA ---'))
+  })
+
+  test('smartRepair zvládne JSON odpovědi obalený code fence', () => {
+    const raw = '```json\n{"režim":"odpověď","odpověď":"Protože válec 2."}\n```'
+    const parsed = smartRepair(raw)
+    strictEqual(parsed.režim, 'odpověď')
+    strictEqual(parsed.odpověď, 'Protože válec 2.')
+  })
+
+  test('smartRepair zvládne odpověď s trailing prózou obsahující }', () => {
+    // Regrese: dřív lastIndexOf("}") sebralo závorku v próze a vrátilo null
+    const raw = '{"režim":"odpověď","odpověď":"Hotovo."}\n\nDalší krok {viz manuál}.'
+    const parsed = smartRepair(raw)
+    strictEqual(parsed.režim, 'odpověď')
+    strictEqual(parsed.odpověď, 'Hotovo.')
+  })
+
+  test('smartRepair stále opraví zkrácenou diagnózu (žádná regrese balanced-scanu)', () => {
+    const raw = '{"shrnutí":"x","závady":[{"název":"A","pravděpodobnost":80},{"název":"B","pravdě'
+    const parsed = smartRepair(raw)
+    strictEqual(parsed.závady.length, 1)
+    strictEqual(parsed.závady[0].název, 'A')
+  })
+
+  test('isReplyResult: režim odpověď bez textu, ale se závadami → NENÍ odpověď (propadne na diagnózu)', () => {
+    strictEqual(isReplyResult({ režim: 'odpověď', odpověď: '', závady: [{ název: 'A' }] }), false)
+    strictEqual(isReplyResult({ režim: 'odpověď', závady: [{ název: 'A' }] }), false)
+  })
+
+  test('collectCaseInputs vynechá fromReply otázky (nemíchá je do diagnózy)', () => {
+    const messages = [
+      { id: 'i1', type: 'input', symptoms: ['sym.loss'], obdCodes: [], text: 'Bílý kouř' },
+      { id: 'd1', type: 'diagnosis', result: {} },
+      { id: 'q1', type: 'input', fromReply: true, symptoms: [], obdCodes: [], text: 'Proč válec 2?' },
+      { id: 'r1', type: 'reply', text: 'Protože…' },
+    ]
+    const inputMsg = { id: 'i2', type: 'input', symptoms: [], obdCodes: [], text: 'Změřil jsem kompresi' }
+    const result = collectCaseInputs(messages, inputMsg)
+    deepStrictEqual(result.allTexts, ['Bílý kouř', 'Změřil jsem kompresi'])
+    ok(!result.allTexts.includes('Proč válec 2?'))
+  })
+
+  test('buildPushClosedCasePayload vynechá fromReply otázky z RAG description', () => {
+    const payload = buildPushClosedCasePayload({
+      id: 'c1',
+      vehicle: { brand: 'Ford', model: 'Transit' },
+      resolution: 'Vyměněn vstřikovač.',
+      messages: [
+        { type: 'input', symptoms: [], obdCodes: [], text: 'Bílý kouř a ztráta výkonu' },
+        { type: 'input', fromReply: true, symptoms: [], obdCodes: [], text: 'Proč zrovna válec 2?' },
+      ],
+    }, 'user-1')
+    strictEqual(payload.description, 'Bílý kouř a ztráta výkonu')
+  })
+
+  test('executeDiagnosis: follow-up dotaz → replyMsg (MSG.REPLY), otázka označena fromReply', async () => {
+    const tr = (k) => k
+    const currentCase = {
+      vehicle: { brand: 'Ford', model: 'Transit' },
+      messages: [
+        { id: 'i1', type: 'input', text: 'Bílý kouř' },
+        { id: 'd1', type: 'diagnosis', result: { shrnutí: 's', závady: [{ název: 'A', pravděpodobnost: 70 }] } },
+      ],
+      tokenCount: 0,
+    }
+    const callAI = async () => ({
+      content: [{ text: '{"režim":"odpověď","odpověď":"Protože diagnostika ukázala válec 2."}' }],
+      usage: { input_tokens: 10, output_tokens: 20 },
+    })
+    const searchCases = async () => ({ cases: [], ok: true })
+
+    const res = await executeDiagnosis({ currentCase, inputData: { symptoms: [], obdCodes: [], text: 'Proč válec 2?' }, callAI, searchCases, tr, lang: 'cs' })
+    strictEqual(res.replyMsg.type, 'reply')
+    strictEqual(res.diagnosisMsg, undefined)
+    strictEqual(res.replyMsg.text, 'Protože diagnostika ukázala válec 2.')
+    strictEqual(res.caseName, null)
+    strictEqual(res.inputMsg.fromReply, true)
+  })
+
+  test('executeDiagnosis: follow-up s novým zjištěním → diagnosisMsg (ne reply)', async () => {
+    const tr = (k) => k
+    const currentCase = {
+      vehicle: { brand: 'Ford', model: 'Transit' },
+      messages: [
+        { id: 'i1', type: 'input', text: 'Bílý kouř' },
+        { id: 'd1', type: 'diagnosis', result: { shrnutí: 's', závady: [{ název: 'A', pravděpodobnost: 70 }] } },
+      ],
+      tokenCount: 0,
+    }
+    const callAI = async () => ({
+      content: [{ text: '{"režim":"diagnóza","shrnutí":"u","závady":[{"název":"Vstřikovač","pravděpodobnost":85,"zdroj":"ai"}]}' }],
+      usage: { input_tokens: 10, output_tokens: 20 },
+    })
+    const searchCases = async () => ({ cases: [], ok: true })
+
+    const res = await executeDiagnosis({ currentCase, inputData: { symptoms: [], obdCodes: [], text: 'Leak-off velký na válci 2' }, callAI, searchCases, tr, lang: 'cs' })
+    strictEqual(res.diagnosisMsg.type, 'diagnosis')
+    strictEqual(res.replyMsg, undefined)
+    strictEqual(res.diagnosisMsg.result.závady[0].název, 'Vstřikovač')
+    ok(!res.inputMsg.fromReply)
+  })
+
+  test('executeDiagnosis: PRVNÍ vstup (bez diagnózy) s režim odpověď NEspadne do reply → noFaults', async () => {
+    const tr = (k) => k
+    const currentCase = { vehicle: { brand: 'Ford' }, messages: [], tokenCount: 0 }
+    const callAI = async () => ({
+      content: [{ text: '{"režim":"odpověď","odpověď":"text"}' }],
+      usage: { input_tokens: 5, output_tokens: 5 },
+    })
+    const searchCases = async () => ({ cases: [], ok: true })
+
+    await rejects(
+      executeDiagnosis({ currentCase, inputData: { symptoms: [], obdCodes: [], text: 'Něco' }, callAI, searchCases, tr, lang: 'cs' }),
+      /noFaults/,
+    )
   })
 })
 

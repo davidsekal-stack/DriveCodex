@@ -1,0 +1,217 @@
+{
+  "model": "deepseek-reasoner",
+  "ranAt": "2026-06-16T11:55:39.658Z",
+  "results": [
+    {
+      "id": 1,
+      "title": "Čistá otázka 'proč' (vysvětlení)",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí, že číslo válce pochází ze vstupní diagnostiky (žhavicí svíčka válce 2) — text, ne nové karty.",
+      "reply": "Z diagnostiky vozidla vyšel chybový kód nebo údaj o závadě žhavicí svíčky právě na 2. válci. To znamená, že řídicí jednotka detekovala problém na tomto válci, například vynechávání zážehu nebo poruchu žhavicí svíčky. V kombinaci s bílým kouřem, ztrátou výkonu a koktáním to ukazuje, že 2. válec má vážný problém. Může to být důsledek prasklého těsnění hlavy, vadného vstřikovače nebo poškození pístu, které se projevilo i na žhavicí svíčce.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2564,
+      "elapsedMs": 8704,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Z diagnostiky vozidla vyšel chybový kód nebo údaj o závadě žhavicí svíčky právě na 2. válci. To znamená, že řídicí jednotka detekovala problém na tomto válci, například vynechávání zážehu nebo poruchu žhavicí svíčky. V kombinaci s bílým kouřem, ztrátou výkonu a koktáním to ukazuje, že 2. válec má vážný problém. Může to být důsledek prasklého těsnění hlavy, vadného vstřikovače nebo poškození pístu, které se projevilo i na žhavicí svíčce.\"}"
+    },
+    {
+      "id": 2,
+      "title": "Otázka na pojem (co znamená test)",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí leak-off (zpětný tok vstřikovačů) běžným jazykem — text.",
+      "reply": "Leak-off test (někdy se mu říká i zpětný odtok paliva) zjistí, jestli některý vstřikovač nepouští moc paliva zpět do nádrže. Uděláš to tak, že odpojíš od vstřikovačů hadičky zpětného odtoku a na každý vstřikovač nasadíš čirou hadičku s odměrnou nádobkou. Nastartuješ motor na volnoběh a po 30–60 vteřinách porovnáš množství paliva, které nateklo z každého vstřikovače. Pokud máš na válci 2 větší odtok než na ostatních, je vstřikovač opotřebený nebo netěsný – to by sedělo k tvému bílému kouři a koktání. Už sis dříve potvrdil špatnou žhavicí svíčku na druhém válci, tak to může být souvislost.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2258,
+      "elapsedMs": 6808,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Leak-off test (někdy se mu říká i zpětný odtok paliva) zjistí, jestli některý vstřikovač nepouští moc paliva zpět do nádrže. Uděláš to tak, že odpojíš od vstřikovačů hadičky zpětného odtoku a na každý vstřikovač nasadíš čirou hadičku s odměrnou nádobkou. Nastartuješ motor na volnoběh a po 30–60 vteřinách porovnáš množství paliva, které nateklo z každého vstřikovače. Pokud máš na válci 2 větší odtok než na ostatních, je vstřikovač opotřebený nebo netěsný – to by sedělo k tvému bílému kouři a koktání. Už sis dříve potvrdil špatnou žhavicí svíčku na druhém válci, tak to může být souvislost.\"}"
+    },
+    {
+      "id": 3,
+      "title": "Otázka 'jak poznám' (rada)",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Poradí indikátory (bubliny v chladiči, CO test, ztráta kapaliny) — text.",
+      "reply": "Prasklé těsnění hlavy poznáš bez demontáže hlavně pomocí tlakové zkoušky chladicího okruhu – natlakuj systém na cca 1,5 baru, pokud tlak rychle klesá, je netěsnost. Dále udělej test na přítomnost spalin v chladivu (kapačka) – pokud zmodrá, je to průraz. Taky zkontroluj, jestli v oleji není chladicí kapalina (mléčná emulze) nebo naopak olej v nádržce chladiče. A nejjednodušší: po nastartování za studena bublá voda v expanzce – to je skoro jistota.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2273,
+      "elapsedMs": 6913,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Prasklé těsnění hlavy poznáš bez demontáže hlavně pomocí tlakové zkoušky chladicího okruhu – natlakuj systém na cca 1,5 baru, pokud tlak rychle klesá, je netěsnost. Dále udělej test na přítomnost spalin v chladivu (kapačka) – pokud zmodrá, je to průraz. Taky zkontroluj, jestli v oleji není chladicí kapalina (mléčná emulze) nebo naopak olej v nádržce chladiče. A nejjednodušší: po nastartování za studena bublá voda v expanzce – to je skoro jistota.\"}"
+    },
+    {
+      "id": 4,
+      "title": "Nové zjištění vylučuje příčinu (komprese OK)",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Aktualizuje: výrazně sníží/vyřadí 'poškození pístu/kroužků (ztráta komprese)'; nahoru vstřikovač / těsnění.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Vadný vstřikovač (válec 2)",
+          "pravděpodobnost": 80
+        },
+        {
+          "název": "Netěsnost těsnění hlavy válců",
+          "pravděpodobnost": 40
+        },
+        {
+          "název": "Závada v palivovém systému (vysokotlaké čerpadlo / regulátor tlaku)",
+          "pravděpodobnost": 30
+        }
+      ],
+      "shrnutí": "Na základě nového měření komprese (normální a vyrovnaná) lze vyloučit mechanické poškození pístu nebo kroužků na válci 2. Hlavní podezření se přesouvá na vadný vstřikovač válce 2 a možnou netěsnost těsnění hlavy válců. Doporučeno provést další testy palivového a chladicího systému.",
+      "usedTokens": 5090,
+      "elapsedMs": 36282,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Na základě nového měření komprese (normální a vyrovnaná) lze vyloučit mechanické poškození pístu nebo kroužků na válci 2. Hlavní podezření se přesouvá na vadný vstřikovač válce 2 a možnou netěsnost těsnění hlavy válců. Doporučeno provést další testy palivového a chladicího systému.\",\n  \"závady\": [\n    {\n      \"název\": \"Vadný vstřikovač (válec 2)\",\n      \"pravděpodobnost\": 80,\n      \"popis\": \"Zaseknutý nebo nedovřený vstřikovač vstřikuje palivo mimo správný okamžik, což způsobuje bílý kouř (nespálené palivo) a vynechávání na 2. válci. Normální komprese podporuje tuto diagnózu.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"vstřikovač válce 2\"],\n      \"řešení\": [\"výměna vstřikovače válce 2\", \"vymazání adaptací ECU\", \"kontrola kabeláže vstřikovače\"],\n      \"postup\": \"Proveďte test zpětného toku vstřikovačů pro potvrzení, poté vyměňte vadný vstřikovač a vymažte adaptační hodnoty v ECU.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Předchozí diagnostika ukázala závadu žhavicí svíčky na 2. válci – může souviset s problémy se spalováním.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Netěsnost těsnění hlavy válců\",\n      \"pravděpodobnost\": 40,\n      \"popis\": \"I při normální kompresi může těsnění propouštět chladicí kapalinu do válce, což se projevuje bílým kouřem (vodní pára) a ztrátou výkonu. Koktání na 2. válci ukazuje na postižený válec.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"těsnění hlavy válců\", \"hlava válců (případně)\"],\n      \"řešení\": [\"výměna těsnění hlavy válců\", \"kontrola rovinnosti hlavy\", \"výměna hlavy válců v případě poškození\"],\n      \"postup\": \"Proveďte tlakovou zkoušku chladicího systému a test na přítomnost spalin v chladicí kapalině. Při pozitivním nálezu demontujte hlavu a vyměňte těsnění.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Komprese je v normě, ale netěsnost se může projevit až za provozu či při zahřátí motoru.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Závada v palivovém systému (vysokotlaké čerpadlo / regulátor tlaku)\",\n      \"pravděpodobnost\": 30,\n      \"popis\": \"Nedostatečný tlak paliva nebo vadný regulátor může vést k nedokonalému vstřikování, bílému kouři a kolísání výkonu. Normální komprese vylučuje mechanické příčiny.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"vysokotlaké čerpadlo\", \"regulátor tlaku paliva\"],\n      \"řešení\": [\"výměna regulátoru tlaku paliva\", \"výměna vysokotlakého čerpadla\", \"proplach palivového systému\"],\n      \"postup\": \"Změřte tlak paliva v railu za provozu a proveďte test zpětného toku. Při odchylkách vyměňte vadný díl.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Tato možnost je méně pravděpodobná, ale je třeba ji vyloučit před zaměřením na vstřikovač.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"test zpětného toku vstřikovačů\",\n    \"tlaková zkouška chladicího systému\",\n    \"měření tlaku paliva v railu za provozu\",\n    \"test na přítomnost spalin v chladicí kapalině\"\n  ],\n  \"varování\": null,\n  \"další_info\": null\n}"
+    },
+    {
+      "id": 5,
+      "title": "Nové zjištění potvrzuje příčinu (leak-off velký na válci 2)",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Vadný vstřikovač válce 2 nahoru na 1. místo s vysokou pravděpodobností.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Vadný vstřikovač (válec 2) – extrémní leak-off",
+          "pravděpodobnost": 90
+        },
+        {
+          "název": "Prasklé těsnění hlavy válců",
+          "pravděpodobnost": 40
+        },
+        {
+          "název": "Poškození pístu nebo pístních kroužků (válec 2)",
+          "pravděpodobnost": 30
+        }
+      ],
+      "shrnutí": "Ford Transit 2.2 TDCi, bílý kouř, ztráta výkonu, koktání, nemožnost restartu, žere olej. Leak-off test potvrdil extrémní zpětný tok na vstřikovači 2. válce – hlavní příčina je vadný vstřikovač. Ostatní možné závady se stávají méně pravděpodobné.",
+      "usedTokens": 5107,
+      "elapsedMs": 37483,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Ford Transit 2.2 TDCi, bílý kouř, ztráta výkonu, koktání, nemožnost restartu, žere olej. Leak-off test potvrdil extrémní zpětný tok na vstřikovači 2. válce – hlavní příčina je vadný vstřikovač. Ostatní možné závady se stávají méně pravděpodobné.\",\n  \"závady\": [\n    {\n      \"název\": \"Vadný vstřikovač (válec 2) – extrémní leak-off\",\n      \"pravděpodobnost\": 90,\n      \"popis\": \"Extrémní zpětný tok na vstřikovači 2. válce způsobuje nedostatečné dávkování paliva, vynechávání válce, bílý kouř (nespálené palivo) a po zastavení může dojít k zaplavení válce palivem, což znemožní restart. Ztráta výkonu a koktání přímo souvisí. Olej může být ředěn palivem, což vysvětluje jeho spotřebu.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\", \"nemožnost restartu\"],\n      \"obd_kódy\": [\"P0202\", \"P0302\", \"P2146\"],\n      \"díly\": [\"Vstřikovač 2. válce\", \"Zpětné potrubí vstřikovačů\", \"Těsnění vstřikovače\"],\n      \"řešení\": [\n        \"výměna vstřikovače č. 2\",\n        \"vymazání adaptací vstřikovačů v ECU\",\n        \"kontrola a výměna zpětného potrubí\"\n      ],\n      \"postup\": \"1. Vyměňte vstřikovač 2. válce za nový nebo repasovaný. 2. Vymažte adaptační hodnoty vstřikovačů v řídicí jednotce (diagnostickým nástrojem). 3. Proveďte leak-off test na novém vstřikovači a zkontrolujte zpětné potrubí. 4. Projeďte vozidlo a sledujte kouř a výkon.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Leak-off test jednoznačně ukázal extrémní zpětný tok – pravděpodobnost závady vstřikovače je nyní velmi vysoká. Další testy (např. komprese) lze provést na vyloučení souvisejících poškození.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Prasklé těsnění hlavy válců\",\n      \"pravděpodobnost\": 40,\n      \"popis\": \"Netěsnost těsnění hlavy může vést k vnikání chladicí kapaliny do válce, což způsobí bílý kouř (pára) a hydrolock po vypnutí. Leak-off test vyloučil vstřikovač jako jedinou příčinu, ale těsnění hlavy může stále přispívat. Olej může být kontaminován vodou nebo palivem.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"nemožnost restartu\", \"ztráta výkonu\"],\n      \"obd_kódy\": [\"P0302\", \"P0216\", \"P0115\"],\n      \"díly\": [\"Těsnění hlavy válců\", \"Hlava válců\", \"Šrouby hlavy\"],\n      \"řešení\": [\n        \"výměna těsnění hlavy válců\",\n        \"kontrola rovinnosti hlavy a přebroušení\",\n        \"výměna hlavy válců při deformaci\"\n      ],\n      \"postup\": \"1. Proveďte zkoušku těsnosti hlavy (tlak chlazení, detekce CO v chladivu). 2. Změřte kompresi – pokles na 2. válci nasvědčuje těsnění nebo pístu. 3. Při potvrzení demontujte hlavu, vyměňte těsnění, zkontrolujte hlavu a píst.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Extrémní leak-off vstřikovače snižuje pravděpodobnost, že hlavním problémem je těsnění – může se jednat o kombinaci závad nebo o sekundární poškození způsobené vadným vstřikovačem.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Poškození pístu nebo pístních kroužků (válec 2)\",\n      \"pravděpodobnost\": 30,\n      \"popis\": \"Prasklý píst nebo opotřebované kroužky způsobí ztrátu komprese, prohoření oleje (k čemuž dochází), bílý kouř (olej) a vynechávání. Leak-off test neřeší kompresi, takže tato závada není vyloučena, ale je méně pravděpodobná než samotný vstřikovač.\",\n      \"příznaky_shoda\": [\"žere olej\", \"ztráta výkonu\", \"koktání\"],\n      \"obd_kódy\": [\"P0302\", \"P0216\", \"P0302\"],\n      \"díly\": [\"Píst (válec 2)\", \"pístní kroužky\", \"ojnice\"],\n      \"řešení\": [\n        \"výměna pístu a kroužků na válci 2\",\n        \"přebroušení vrtání válce\",\n        \"výměna vložky válce\"\n      ],\n      \"postup\": \"1. Proveďte kompresní zkoušku – nízká hodnota na 2. válci ukazuje na mechanické poškození. 2. Pokud komprese nízká, demontujte hlavu a zkontrolujte píst a kroužky. 3. Vyměňte poškozené součásti.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"I když je vstřikovač s největší pravděpodobností hlavní příčinou, neřeší spotřebu oleje; doporučujeme po opravě vstřikovače provést kompresní zkoušku pro vyloučení mechanického poškození.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Kompresní zkouška na všech válcích (zejména 2. válec)\",\n    \"Kontrola chladicí kapaliny na přítomnost spalin (test na CO)\",\n    \"Zkouška těsnosti hlavy (tlakový test chladicí soustavy)\"\n  ],\n  \"varování\": \"Před výměnou vstřikovače zkontrolujte, zda není ucpaný zpětný okruh – mohl by poškodit nový vstřikovač.\",\n  \"další_info\": \"Po výměně vstřikovače a vymazání adaptací proveďte zkušební jízdu a sledujte kouř, výkon a spotřebu oleje. Pokud zůstane bílý kouř nebo spotřeba oleje, je nutné provést kompresní zkoušku.\"\n}"
+    },
+    {
+      "id": 6,
+      "title": "Provedená oprava nepomohla",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Sníží vstřikovač, posune nahoru těsnění hlavy / mechanické poškození.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Prasklé těsnění hlavy válců (válec 2)",
+          "pravděpodobnost": 90
+        },
+        {
+          "název": "Poškození pístu nebo pístních kroužků (válec 2)",
+          "pravděpodobnost": 75
+        },
+        {
+          "název": "Vadný vstřikovač (válec 2)",
+          "pravděpodobnost": 5
+        }
+      ],
+      "shrnutí": "Ford Transit 2.2 TDCi – bílý kouř, ztráta výkonu, koktání, žere olej. Výměna vstřikovače na 2. válci a vymazání adaptací problém nevyřešily. To vylučuje vadný vstřikovač jako hlavní příčinu a výrazně zvyšuje pravděpodobnost mechanické závady – prasklé těsnění hlavy nebo poškození pístu/kroužků.",
+      "usedTokens": 5486,
+      "elapsedMs": 38425,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Ford Transit 2.2 TDCi – bílý kouř, ztráta výkonu, koktání, žere olej. Výměna vstřikovače na 2. válci a vymazání adaptací problém nevyřešily. To vylučuje vadný vstřikovač jako hlavní příčinu a výrazně zvyšuje pravděpodobnost mechanické závady – prasklé těsnění hlavy nebo poškození pístu/kroužků.\",\n  \"závady\": [\n    {\n      \"název\": \"Prasklé těsnění hlavy válců (válec 2)\",\n      \"pravděpodobnost\": 90,\n      \"popis\": \"Netěsnost těsnění hlavy umožňuje vnikání chladicí kapaliny do spalovacího prostoru. Bílý kouř (vodní pára), ztráta výkonu, koktání na 2. válci, žere olej (kapalina se mísí s olejem). Výměna vstřikovače bez efektu. Možný hydrolock po vypnutí.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\", \"žere olej\", \"výměna vstřikovače bez efektu\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"těsnění hlavy válců\", \"hlava válců\", \"šrouby hlavy\"],\n      \"řešení\": [\"výměna těsnění hlavy válců\", \"oprava nebo výměna hlavy válců\", \"utažení šroubů hlavy na předepsaný moment\"],\n      \"postup\": \"1. Zkontroluj tlak v chladicím systému a přítomnost výfukových plynů v chladicí kapalině. 2. Proveď tlakovou zkoušku chlazení. 3. Demontuj hlavu válců a zkontroluj rovinnost dosedacích ploch. 4. Vyměň těsnění a hlavu v případě potřeby.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Potvrzeno vyloučením vstřikovače – pravděpodobnost výrazně vzrostla.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Poškození pístu nebo pístních kroužků (válec 2)\",\n      \"pravděpodobnost\": 75,\n      \"popis\": \"Prasklý píst nebo opotřebené/ulomené kroužky způsobují ztrátu komprese, prohoření oleje a vynechávání. Bílý kouř může být spalování oleje. Výměna vstřikovače nezměnila stav, což mechanickou příčinu podporuje.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\", \"žere olej\", \"výměna vstřikovače bez efektu\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"píst\", \"pístní kroužky\", \"vložka válce\"],\n      \"řešení\": [\"výměna pístu\", \"výměna pístních kroužků\", \"výměna vložky válce\"],\n      \"postup\": \"1. Proveď endoskopickou kontrolu válce 2. 2. Změř kompresi na všech válcích. 3. Při demontáži hlavy zkontroluj stav pístu a stěn válce. 4. Vyměň poškozené díly.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Spolu s těsněním hlavy nejpravděpodobnější příčina – doporučeno endoskopické vyšetření.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadný vstřikovač (válec 2)\",\n      \"pravděpodobnost\": 5,\n      \"popis\": \"Přestože byl vstřikovač vyměněn, teoreticky by mohl být nový díl vadný nebo problém v kabeláži/řídící jednotce. Vzhledem k tomu, že se stav nezměnil, jde o velmi nepravděpodobnou příčinu – uvádíme ji pro úplnost.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"vstřikovač\", \"kabeláž vstřikovače\", \"řídící jednotka motoru\"],\n      \"řešení\": [\"kontrola kabeláže vstřikovače\", \"výměna vstřikovače za jiný kus\", \"diagnostika řídící jednotky\"],\n      \"postup\": \"1. Zkontroluj konektor a kabeláž vstřikovače 2. 2. Otestuj nový vstřikovač na jiném válci. 3. Proveď osciloskopické měření řídicího signálu.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Výměna již provedena bez efektu – pravděpodobnost je téměř nulová.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Kompresní zkouška všech válců (zaměř se na válec 2)\",\n    \"Test těsnosti chladicí soustavy (detekce CO v chladicí kapalině)\",\n    \"Endoskopická kontrola válce 2 přes otvor žhavicí svíčky\",\n    \"Tlaková zkouška chladicího okruhu za studena i za tepla\"\n  ],\n  \"varování\": \"Pokud je příčinou prasklé těsnění nebo píst, dlouhodobý provoz může vést k hydrolocku a vážnému poškození motoru (ohnutá ojnice, poškození ložisek). Doporučujeme okamžitou opravu.\",\n  \"další_info\": \"Výměna vstřikovače nevyřešila problém – orientace na mechanické závady (hlava, píst) je nyní prioritou.\"\n}"
+    },
+    {
+      "id": 7,
+      "title": "Nový příznak",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Prasklé těsnění hlavy nahoru (úbytek kapaliny + bubliny = výfuk do chladicího okruhu).",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Prasklé těsnění hlavy válců",
+          "pravděpodobnost": 90
+        },
+        {
+          "název": "Vadný vstřikovač (válec 2)",
+          "pravděpodobnost": 40
+        }
+      ],
+      "shrnutí": "Ford Transit 2.2 TDCi (předpokl. 2012) nájezd 210 000 km – bílý kouř, ztráta výkonu, nemožnost restartu, žere olej, nyní navíc rychlý úbytek chladicí kapaliny a bublinky v expanzní nádržce. To silně potvrzuje prasklé těsnění hlavy válců. Doporučujeme okamžitou diagnostiku a opravu.",
+      "usedTokens": 5869,
+      "elapsedMs": 39655,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Ford Transit 2.2 TDCi (předpokl. 2012) nájezd 210 000 km – bílý kouř, ztráta výkonu, nemožnost restartu, žere olej, nyní navíc rychlý úbytek chladicí kapaliny a bublinky v expanzní nádržce. To silně potvrzuje prasklé těsnění hlavy válců. Doporučujeme okamžitou diagnostiku a opravu.\",\n  \"závady\": [\n    {\n      \"název\": \"Prasklé těsnění hlavy válců\",\n      \"pravděpodobnost\": 90,\n      \"popis\": \"Netěsnost těsnění hlavy umožňuje průnik spalovacích plynů do chladicí soustavy, což způsobuje bublinky v expanzce, úbytek chladicí kapaliny, bílý kouř (vodní pára), ztrátu výkonu a obtížné startování. Při delším provozu hrozí přehřátí a vážné poškození motoru.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"bublinky v expanzní nádržce\", \"rychlý úbytek chladicí kapaliny\", \"nemožnost restartu\", \"koktání\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"těsnění hlavy válců\", \"hlava válců\", \"šrouby hlavy\"],\n      \"řešení\": [\"výměna těsnění hlavy válců\", \"kontrola a frézování hlavy válců\", \"výměna hlavy válců pokud je poškozená\"],\n      \"postup\": \"1) Proveďte tlakovou zkoušku chladicí soustavy. 2) Test na přítomnost CO2 v chladicí kapalině. 3) Zkontrolujte kompresi na všech válcích, zejména na 2. 4) Po demontáži hlavy zkontrolujte rovinnost a těsnící plochy. 5) Vyměňte těsnění a šrouby.\",\n      \"naléhavost\": \"kritická\",\n      \"poznámka\": \"Potvrzeno novými příznaky. Neodkládejte opravu.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadný vstřikovač (válec 2)\",\n      \"pravděpodobnost\": 40,\n      \"popis\": \"Zaseknutý vstřikovač může způsobovat nepravidelný chod, bílý kouř a ředění oleje. Není však typický pro bublinky v chladicí soustavě. Možná souvislost s původní závadou žhavicí svíčky.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"vstřikovač\", \"palivová lišta\", \"spojky\"],\n      \"řešení\": [\"výměna vstřikovače válce 2\", \"vymazání adaptací v ECU\", \"kontrola palivového systému\"],\n      \"postup\": \"1) Otestujte vstřikovač na zkušební stolici. 2) Zkontrolujte únik paliva. 3) Vyměňte vstřikovač a adaptujte.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Příznaky bublinek a úbytku chladicí kapaliny tuto závadu činí méně pravděpodobnou.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Poškození pístu nebo pístních kroužků (válec 2)\",\n      \"pravděpodobnost\": 30,\n      \"popis\": \"Prasklý píst nebo opotřebené kroužky vedou ke ztrátě komprese, bílému kouři (olej) a zvýšené spotřebě oleje. Nepřímo může ovlivnit tlak v klikové skříni, ale bublinky v expanzce nejsou typické.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\", \"žere olej\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"píst\", \"pístní kroužky\", \"vložka válce\"],\n      \"řešení\": [\"výměna pístu a kroužků\", \"honování válce\", \"výměna vložky válce\"],\n      \"postup\": \"1) Změřte kompresi. 2) Endoskopem"
+    },
+    {
+      "id": 8,
+      "title": "Nový OBD kód v textu (jiné vozidlo)",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "DPF (P2002) nahoru na 1. místo, EGR dolů.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Ucpaný DPF filtr",
+          "pravděpodobnost": 80
+        },
+        {
+          "název": "Vadný diferenční tlakový senzor DPF",
+          "pravděpodobnost": 50
+        },
+        {
+          "název": "Zanesený EGR ventil (přetrvávající problém)",
+          "pravděpodobnost": 20
+        }
+      ],
+      "shrnutí": "VW Passat 2.0 TDI – po vyčištění EGR nový kód P2002 a nouzový režim. Pravděpodobně došlo k ucpání DPF uvolněnými nečistotami nebo k selhání diferenčního senzoru.",
+      "usedTokens": 3552,
+      "elapsedMs": 21101,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"VW Passat 2.0 TDI – po vyčištění EGR nový kód P2002 a nouzový režim. Pravděpodobně došlo k ucpání DPF uvolněnými nečistotami nebo k selhání diferenčního senzoru.\",\n  \"závady\": [\n    {\n      \"název\": \"Ucpaný DPF filtr\",\n      \"pravděpodobnost\": 80,\n      \"popis\": \"Částice uvolněné při čištění EGR pravděpodobně ucpaly DPF. Kód P2002 (účinnost DPF pod prahem) a nouzový režim odpovídají.\",\n      \"příznaky_shoda\": [\"nouzový režim\", \"kontrolka motoru\"],\n      \"obd_kódy\": [\"P2002\"],\n      \"díly\": [\"DPF filtr\", \"diferenční tlakový senzor DPF\"],\n      \"řešení\": [\"nucená regenerace DPF\", \"výměna DPF filtru\", \"čištění DPF\"],\n      \"postup\": \"1. Změřte diferenční tlak na DPF. 2. Proveďte diagnostiku teplot výfuku. 3. Pokud je tlak vysoký, zkuste nucenou regeneraci. 4. Pokud neúspěšná, vyměňte DPF.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Po vyčištění EGR se uvolněný karbon mohl zachytit v DPF – běžný jev.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadný diferenční tlakový senzor DPF\",\n      \"pravděpodobnost\": 50,\n      \"popis\": \"Senzor může vykazovat chybná data (P2002) i při čistém DPF. Nouzový režim často po kódu P2002.\",\n      \"příznaky_shoda\": [\"nouzový režim\", \"kontrolka motoru\"],\n      \"obd_kódy\": [\"P2002\"],\n      \"díly\": [\"diferenční tlakový senzor DPF\"],\n      \"řešení\": [\"výměna diferenčního tlakového senzoru DPF\", \"kontrola kabeláže senzoru\"],\n      \"postup\": \"1. Změřte napětí senzoru a porovnejte s naměřeným tlakem. 2. Zkontrolujte hadičky na ucpání/netěsnost. 3. V případě nesouladu vyměňte senzor.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Senzor může selhat náhodně – není vyloučeno, že původní kód P0401 byl nezávislý.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Zanesený EGR ventil (přetrvávající problém)\",\n      \"pravděpodobnost\": 20,\n      \"popis\": \"I přes vyčištění mohl ventil stále zadrhávat nebo se poškodit. Kód P0401 sice zmizel, ale trhání může přetrvávat. Nový kód P2002 však nesouvisí.\",\n      \"příznaky_shoda\": [\"trhání při akceleraci\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"EGR ventil\", \"těsnění EGR\"],\n      \"řešení\": [\"kontrola funkčnosti EGR (řízená diagnostikou)\", \"výměna EGR ventilu\"],\n      \"postup\": \"1. Pomocí diagnostiky aktivujte EGR a sledujte průtok. 2. Pokud nereaguje, vyměňte ventil.\",\n      \"naléhavost\": \"nízká\",\n      \"poznámka\": \"Pravděpodobnost nízká – původní problém byl zřejmě vyřešen, ale možnost ponecháváme.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Měření diferenčního tlaku DPF za tepla a studena\",\n    \"Čtení teplot výfuku před a za DPF při regeneraci\",\n    \"Test diferenčního tlakového senzoru (napětí vs. tlak)\",\n    \"Řízená regenerace DPF diagnostikou\"\n  ],\n  \"varování\": \"Neprovádějte další jízdu v nouzovém režimu – hrozí ucpání DPF a drahá oprava.\",\n  \"další_info\": \"Po vyčištění EGR vždy zkontrolujte DPF – uvolněné karbonové vločky mohou filtr ucpat.\"\n}"
+    },
+    {
+      "id": 9,
+      "title": "Smíšené: rada na svépomoc (otázka)",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Poradí (náročnost, potřebné nářadí/úhel dotažení, doporučí servis) — text, ne karty.",
+      "reply": "U Fordu Transit 2.2 TDCi je výměna těsnění hlavy náročná operace. Bez momentového klíče a lisu na hlavu to nedoporučuji – hlava vyžaduje přesné dotažení momentem a úhly, jinak riskujete opětovné prasknutí těsnění nebo deformaci hlavy. Pokud si chcete ušetřit práci navíc, raději svěřte opravu odbornému servisu.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2183,
+      "elapsedMs": 5286,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"U Fordu Transit 2.2 TDCi je výměna těsnění hlavy náročná operace. Bez momentového klíče a lisu na hlavu to nedoporučuji – hlava vyžaduje přesné dotažení momentem a úhly, jinak riskujete opětovné prasknutí těsnění nebo deformaci hlavy. Pokud si chcete ušetřit práci navíc, raději svěřte opravu odbornému servisu.\"}"
+    },
+    {
+      "id": 10,
+      "title": "Mimo téma během konverzace",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Mělo by zdvořile odmítnout/odklonit zpět k diagnostice — NEMělo by generovat nové karty závad.",
+      "reply": "Tento systém slouží pouze pro diagnostiku vozidel Ford. Dotaz na počasí není možné zodpovědět.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 3105,
+      "elapsedMs": 14948,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Tento systém slouží pouze pro diagnostiku vozidel Ford. Dotaz na počasí není možné zodpovědět.\"}"
+    }
+  ]
+}

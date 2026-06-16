@@ -30,7 +30,8 @@ export function buildSaveCasePayload(userId, caseData, status, updatedAt) {
 }
 
 export function buildPushClosedCasePayload(kase, userId) {
-  const inputs = (kase.messages ?? []).filter((message) => message.type === MSG.INPUT);
+  // fromReply = konverzační otázka mechanika — nepatří do RAG korpusu (description).
+  const inputs = (kase.messages ?? []).filter((message) => message.type === MSG.INPUT && !message.fromReply);
   const symptoms = [...new Set(inputs.flatMap((message) => message.symptoms ?? []))];
   const obdCodes = [...new Set(inputs.flatMap((message) => message.obdCodes ?? []))];
   const texts = inputs.map((message) => message.text).filter(Boolean);

@@ -57,9 +57,11 @@ export default function useCaseWorkflow({
 
       setCloudStatus(result.cloudStatus);
 
-      // Add input message first, then diagnosis
+      // Add input message first, then the AI response — buď strukturovaná
+      // diagnóza (karty), nebo konverzační odpověď na doplňující dotaz.
+      const responseMsg = result.diagnosisMsg ?? result.replyMsg;
       updateCase(caseId, (storedCase) => ({
-        messages: [...storedCase.messages, result.inputMsg, result.diagnosisMsg],
+        messages: [...storedCase.messages, result.inputMsg, responseMsg],
         name: result.caseName ?? storedCase.name,
         tokenCount: (storedCase.tokenCount ?? 0) + result.usedTokens,
       }));

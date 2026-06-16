@@ -86,7 +86,8 @@ export const strings = {
   'app.caseClosed':       '✓ FALL ABGESCHLOSSEN · {date}',
   'app.firstDiag':        'ERSTE DIAGNOSE — Symptome eingeben',
   'app.runDiag':          'DIAGNOSE STARTEN',
-  'app.addInfo':          'INFORMATIONEN ERGÄNZEN',
+  'app.addInfo':          'INFORMATIONEN ERGÄNZEN ODER FRAGEN',
+  'app.replyLabel':       'ANTWORT',
 
   // App — close case modal
   'app.closeCaseTitle':   '✓ FALL SCHLIESSEN',
@@ -230,7 +231,7 @@ export const strings = {
   'input.describeFault':      "Beschreiben Sie den Fehler in eigenen Worten... z.B. 'Nach dem Start ging es in den Notlauf, schwarzer Rauch, Motor- und DPF-Warnleuchte an...'",
   'input.enterHint':          'Symptome oder OBD-Codes eingeben',
   'input.analyzing':          'Analysiere...',
-  'input.followupPlaceholder':'Beschreiben Sie neue Erkenntnisse oder ergänzen Sie Informationen... (Enter = senden, Shift+Enter = neue Zeile)',
+  'input.followupPlaceholder':'Stellen Sie eine Frage (z. B. „warum Zylinder 2?") oder melden Sie eine neue Erkenntnis („Kompression gemessen, ist in Ordnung")... (Enter = senden, Shift+Enter = neue Zeile)',
   'input.send':               '▶ Senden',
 
   // DiagCard
@@ -321,12 +322,17 @@ export const strings = {
 
   // AI
   'ai.topicIrrelevant':  'Beschreibung enthält keine technischen Daten (OBD-Code, Abkürzung wie DPF/EGR/ABS oder Messwert). Beschreiben Sie das technische Problem oder die Fehlersymptome.',
+  'ai.priorDiagTitle':   '--- VORHERIGE DIAGNOSE (du knüpfst daran an) ---',
+  'ai.priorDiagSummary': 'Zusammenfassung',
+  'ai.priorDiagFaults':  'Zuvor ermittelte Fehler (nach Wahrscheinlichkeit geordnet)',
+  'ai.priorDiagInstr':   'Das Obige ist deine vorherige Diagnose. Reagiere auf die neue Nachricht des Mechanikers in ihrem Kontext.',
 
   // PDF export
   'pdf.title':            'DIAGNOSEBERICHT',
   'pdf.vehicle':          'FAHRZEUG',
   'pdf.inputRound':       'EINGABE #{num}',
   'pdf.diagnosis':        'DIAGNOSE #{num}',
+  'pdf.reply':            'DRIVECODEX-ANTWORT',
   'pdf.summary':          'ZUSAMMENFASSUNG',
   'pdf.resolution':       'DURCHGEFÜHRTE REPARATUR',
   'pdf.generated':        'Generiert',

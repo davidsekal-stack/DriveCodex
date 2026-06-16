@@ -7,6 +7,7 @@
 export const CASE_TOKEN_LIMIT  = 100_000;  // max tokenů na případ
 export const AI_MAX_TOKENS     = 4_000;    // max output tokenů per AI call
 export const AI_MODEL          = "deepseek-reasoner";
+export const REPLY_MAX_LENGTH  = 2_000;    // max znaků konverzační odpovědi (follow-up)
 
 // ── Diagnosis normalization ─────────────────────────────────────────────────────
 export const MAX_REPAIR_STEPS  = 4;        // max kroků opravy per závada

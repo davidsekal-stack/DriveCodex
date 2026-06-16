@@ -86,7 +86,8 @@ export const strings = {
   'app.caseClosed':       '✓ CASE CLOSED · {date}',
   'app.firstDiag':        'FIRST DIAGNOSIS — enter symptoms',
   'app.runDiag':          'RUN DIAGNOSIS',
-  'app.addInfo':          'ADD INFORMATION',
+  'app.addInfo':          'ADD INFORMATION OR ASK A QUESTION',
+  'app.replyLabel':       'REPLY',
 
   // App — close case modal
   'app.closeCaseTitle':   '✓ CLOSE CASE',
@@ -230,7 +231,7 @@ export const strings = {
   'input.describeFault':      "Describe the fault in your own words... e.g. 'After starting, it went into limp mode, black smoke, engine and DPF warning lights on...'",
   'input.enterHint':          'Enter symptoms or OBD codes',
   'input.analyzing':          'Analysing...',
-  'input.followupPlaceholder':'Describe new findings or add information... (Enter = send, Shift+Enter = new line)',
+  'input.followupPlaceholder':'Ask a question (e.g. "why cylinder 2?") or report a new finding ("I measured compression, it\'s fine")... (Enter = send, Shift+Enter = new line)',
   'input.send':               '▶ Send',
 
   // DiagCard
@@ -321,12 +322,17 @@ export const strings = {
 
   // AI
   'ai.topicIrrelevant':  'Description contains no technical data (OBD code, abbreviation like DPF/EGR/ABS, or measured value). Describe the technical problem or fault symptoms.',
+  'ai.priorDiagTitle':   '--- PREVIOUS DIAGNOSIS (you are continuing from it) ---',
+  'ai.priorDiagSummary': 'Summary',
+  'ai.priorDiagFaults':  'Previously identified faults (ordered by probability)',
+  'ai.priorDiagInstr':   'The above is your previous diagnosis. Respond to the mechanic\'s new message in its context.',
 
   // PDF export
   'pdf.title':            'DIAGNOSTIC REPORT',
   'pdf.vehicle':          'VEHICLE',
   'pdf.inputRound':       'INPUT #{num}',
   'pdf.diagnosis':        'DIAGNOSIS #{num}',
+  'pdf.reply':            'DRIVECODEX REPLY',
   'pdf.summary':          'SUMMARY',
   'pdf.resolution':       'PERFORMED REPAIR',
   'pdf.generated':        'Generated',

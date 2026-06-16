@@ -86,7 +86,8 @@ export const strings = {
   'app.caseClosed':       '✓ PŘÍPAD UZAVŘEN · {date}',
   'app.firstDiag':        'PRVNÍ DIAGNOSTIKA — zadejte příznaky',
   'app.runDiag':          'SPUSTIT DIAGNOSTIKU',
-  'app.addInfo':          'DOPLNIT INFORMACE',
+  'app.addInfo':          'DOPLNIT INFORMACE NEBO SE ZEPTAT',
+  'app.replyLabel':       'ODPOVĚĎ',
 
   // App — close case modal
   'app.closeCaseTitle':   '✓ UZAVŘÍT PŘÍPAD',
@@ -230,7 +231,7 @@ export const strings = {
   'input.describeFault':      "Popište závadu vlastními slovy... např. 'Po nastartování přešel do nouzového režimu, černý kouř, svítí kontrolka motoru a DPF...'",
   'input.enterHint':          'Zadejte příznaky nebo OBD kódy',
   'input.analyzing':          'Analyzuji...',
-  'input.followupPlaceholder':'Popište nové zjištění nebo doplňte informace... (Enter = odeslat, Shift+Enter = nový řádek)',
+  'input.followupPlaceholder':'Zeptejte se (např. „proč zrovna válec 2?") nebo nahlaste nové zjištění („kompresi jsem změřil, je v normě")... (Enter = odeslat, Shift+Enter = nový řádek)',
   'input.send':               '▶ Odeslat',
 
   // DiagCard
@@ -321,12 +322,17 @@ export const strings = {
 
   // AI
   'ai.topicIrrelevant':  'Popis neobsahuje žádný technický údaj (OBD kód, zkratku jako DPF/EGR/ABS, nebo měřenou hodnotu). Popište technický problém nebo příznaky závady.',
+  'ai.priorDiagTitle':   '--- PŘEDCHOZÍ DIAGNÓZA (na tu navazuješ) ---',
+  'ai.priorDiagSummary': 'Shrnutí',
+  'ai.priorDiagFaults':  'Dříve určené závady (pořadí dle pravděpodobnosti)',
+  'ai.priorDiagInstr':   'Výše uvedené je tvá předchozí diagnóza. Na novou zprávu mechanika reaguj v jejím kontextu.',
 
   // PDF export
   'pdf.title':            'DIAGNOSTICKÝ PROTOKOL',
   'pdf.vehicle':          'VOZIDLO',
   'pdf.inputRound':       'VSTUP #{num}',
   'pdf.diagnosis':        'DIAGNÓZA #{num}',
+  'pdf.reply':            'ODPOVĚĎ DRIVECODEX',
   'pdf.summary':          'SHRNUTÍ',
   'pdf.resolution':       'PROVEDENÁ OPRAVA',
   'pdf.generated':        'Vygenerováno',

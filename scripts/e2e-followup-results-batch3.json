@@ -1,0 +1,173 @@
+{
+  "model": "deepseek-reasoner",
+  "ranAt": "2026-06-16T12:22:19.717Z",
+  "results": [
+    {
+      "id": 1,
+      "title": "Záludné — dotaz + nové zjištění v jedné zprávě",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Pravidlo: je tu NOVÉ ZJIŠTĚNÍ (nízká komprese 2. válce) → diagnóza, mechanika/píst/těsnění nahoru; ideálně v popisu/postupu odpoví i na otázku.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Prasklé těsnění hlavy válců (válec 2)",
+          "pravděpodobnost": 75
+        },
+        {
+          "název": "Poškození pístu nebo pístních kroužků (válec 2)",
+          "pravděpodobnost": 65
+        },
+        {
+          "název": "Poškození ventilů (válec 2)",
+          "pravděpodobnost": 40
+        }
+      ],
+      "shrnutí": "Ford Transit 2.2 TDCi 103 kW, 210 000 km – nízká komprese na 2. válci potvrzena, bílý kouř a ztráta výkonu. Pravděpodobná mechanická závada na válci 2.",
+      "usedTokens": 5841,
+      "elapsedMs": 42262,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Ford Transit 2.2 TDCi 103 kW, 210 000 km – nízká komprese na 2. válci potvrzena, bílý kouř a ztráta výkonu. Pravděpodobná mechanická závada na válci 2.\",\n  \"závady\": [\n    {\n      \"název\": \"Prasklé těsnění hlavy válců (válec 2)\",\n      \"pravděpodobnost\": 75,\n      \"popis\": \"Nízká komprese na 2. válci, bílý kouř, ztráta výkonu – typické pro netěsnost těsnění hlavy. Může být spojeno s únikem chladicí kapaliny do spalovacího prostoru.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktá\", \"nízká komprese na 2. válci\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"těsnění hlavy válců\", \"hlava válců\", \"sada šroubů hlavy\"],\n      \"řešení\": [\"výměna těsnění hlavy válců\", \"zkontrolovat a obrobit dosedací plochu hlavy\", \"výměna hlavy válců při poškození\"],\n      \"postup\": \"Demontujte hlavu válců, zkontrolujte stav těsnění a dosedacích ploch, změřte rovinnost hlavy. Proveďte tlakovou zkoušku hlavy. Při montáži použijte nové šrouby hlavy dle specifikace Ford.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Pro odlišení od poškození pístu/ventilů doporučujeme provést leak-down test. Ten může přesně určit, zda těsní ventily nebo uniká přes těsnění či kroužky.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Poškození pístu nebo pístních kroužků (válec 2)\",\n      \"pravděpodobnost\": 65,\n      \"popis\": \"Nízká komprese na 2. válci může být způsobena prasklým pístem, ulomenými kroužky nebo výrazným opotřebením. Bílý kouř pak vzniká spalováním oleje.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktá\", \"nízká komprese na 2. válci\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"píst\", \"pístní kroužky\", \"válec motoru\"],\n      \"řešení\": [\"výměna pístních kroužků\", \"výměna pístu\", \"honování nebo vývrť válce\"],\n      \"postup\": \"Po demontáži hlavy zkontrolujte píst a stěny válce endoskopem. Změřte vůli pístu ve válci. Pokud nejsou ventily těsné, je vysoká pravděpodobnost poškození pístu.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Přítomnost oleje v bílém kouři (zapáchá spáleným olejem) by podpořila tuto diagnózu. Leak-down test ukáže únik vzduchu do klikové skříně.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Poškození ventilů (válec 2)\",\n      \"pravděpodobnost\": 40,\n      \"popis\": \"Nízká komprese na 2. válci může být způsobena propáleným výfukovým ventilem nebo netěsností sacího ventilu. Bílý kouř často doprovází studený start.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktá\", \"nízká komprese na 2. válci\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"sací ventil\", \"výfukový ventil\", \"sedlo ventilu\"],\n      \"řešení\": [\"výměna poškozeného ventilu\", \"přesazení sedla ventilu\", \"oprava hlavy válců\"],\n      \"postup\": \"Po demontáži hlavy proveďte zkoušku těsnosti ventilů (nasypání lihu do kanálů). Zkontrolujte dosedací plochy a vůli ventilů.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Bílý kouř při volnoběhu a zejména při studeném startu je typický pro propálený ventil. Leak-down test přesně určí, kde dochází k úniku.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Proveďte leak-down test na válci 2 – pomůže rozlišit těsnění hlavy, píst/kroužky a ventily.\",\n    \"Zkontrolujte barvu a zápach bílého kouře (olej vs. chladicí kapalina).\",\n    \"Endoskopická kontrola pístu a stěn válce po demontáži vstřikovače.\"\n  ],\n  \"varování\": \"Neprovádějte výměnu vstřikovače, dokud není vyloučena mechanická závada – nízká komprese není způsobena vstřikovačem.\",\n  \"další_info\": \"Vadný vstřikovač válce 2 nebyl zcela vyloučen, ale s novým nálezem nízké komprese je mnohem méně pravděpodobný (≤30 %). Doporučujeme nejdříve řešit mechanickou příčinu.\"\n}"
+    },
+    {
+      "id": 2,
+      "title": "Záludné — vágní 'co teď'",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Žádné nové zjištění, jen dotaz na další postup → odpověď (poradí první krok, např. leak-off/kompresní test); ne nové karty.",
+      "reply": "Nejprve proveď zkoušku zpětného toku paliva na vstřikovači válce 2 – pokud teče výrazně víc než ostatní, je to téměř jistě příčina bílého kouře a ředění oleje. Poté změř kompresi na všech válcích, abys vyloučil problémy s těsněním hlavy nebo pístem. Pokud je komprese v pořádku a vstřikovač teče, vyměň ho a vymaz adaptace ECU.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2483,
+      "elapsedMs": 8059,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Nejprve proveď zkoušku zpětného toku paliva na vstřikovači válce 2 – pokud teče výrazně víc než ostatní, je to téměř jistě příčina bílého kouře a ředění oleje. Poté změř kompresi na všech válcích, abys vyloučil problémy s těsněním hlavy nebo pístem. Pokud je komprese v pořádku a vstřikovač teče, vyměň ho a vymaz adaptace ECU.\"}"
+    },
+    {
+      "id": 3,
+      "title": "Záludné — změna tématu (stále auto)",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Dotaz nesouvisí s aktuální závadou, ale je to dotaz → odpověď; nemá generovat novou diagnózu. (Pozor na vymýšlení konkrétního intervalu z paměti – ideálně odkáže na servisní plán.)",
+      "reply": "U motoru Ford 2.2 TDCi (103 kW) je výrobcem předepsaný interval výměny rozvodového řemene obvykle 150 000 km nebo 10 let, podle toho, co nastane dříve. Vzhledem k nájezdu 210 000 km je tedy pravděpodobné, že výměna měla proběhnout už dříve. Pro jistotu doporučuji ověřit přesný interval v servisní knížce vozidla nebo podle VIN kódu u autorizovaného Ford servisu.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2748,
+      "elapsedMs": 10441,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"U motoru Ford 2.2 TDCi (103 kW) je výrobcem předepsaný interval výměny rozvodového řemene obvykle 150 000 km nebo 10 let, podle toho, co nastane dříve. Vzhledem k nájezdu 210 000 km je tedy pravděpodobné, že výměna měla proběhnout už dříve. Pro jistotu doporučuji ověřit přesný interval v servisní knížce vozidla nebo podle VIN kódu u autorizovaného Ford servisu.\"}"
+    },
+    {
+      "id": 4,
+      "title": "Záludné — emoce bez dotazu i zjištění",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Žádné zjištění ani technický dotaz → odpověď (uklidní, nasměruje k dalšímu kroku); NESMÍ vyrobit novou sadu karet.",
+      "reply": "Chápu vaše obavy, Transit 2.2 TDCi s bílým kouřem a ztrátou výkonu může být nákladný, ale nemusí to být katastrofa. Podle předchozí diagnostiky je nejpravděpodobnější vadný vstřikovač na druhém válci, což je běžná a relativně levnější oprava. Než začnete panikařit, doporučuji provést kompresní zkoušku a měření zpětného toku paliva, abychom vyloučili dražší závady jako prasklé těsnění nebo poškození pístu. I tyto opravy jsou zvládnutelné, ale je lepší mít jistotu.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2944,
+      "elapsedMs": 11600,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Chápu vaše obavy, Transit 2.2 TDCi s bílým kouřem a ztrátou výkonu může být nákladný, ale nemusí to být katastrofa. Podle předchozí diagnostiky je nejpravděpodobnější vadný vstřikovač na druhém válci, což je běžná a relativně levnější oprava. Než začnete panikařit, doporučuji provést kompresní zkoušku a měření zpětného toku paliva, abychom vyloučili dražší závady jako prasklé těsnění nebo poškození pístu. I tyto opravy jsou zvládnutelné, ale je lepší mít jistotu.\"}"
+    },
+    {
+      "id": 5,
+      "title": "Záludné — nesouhlas bez důkazu",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Názor/nesouhlas bez nového měření → odpověď (věcně vysvětlí, vířivé klapky zváží jako možnost, navrhne ověření); hraniční, ale očekávám text.",
+      "reply": "Chápu námitku, vířivé klapky jsou na N47 častý problém, ale zpravidla nevyvolávají kód P0299 – ten značí nedostatečný plnicí tlak, tedy záležitost turba nebo těsnosti sání/mezichladiče. Zaseknuté nebo uvolněné klapky způsobují spíš hrubý chod, ztrátu výkonu při nízkých otáčkách a někdy nasátí úlomku do motoru. Pokud nemáš žádný kód na sání nebo měření podtlaku, doporučuju držet se diagnostiky podle P0299 – zkontrolovat geometrii turba, hadice a MAP. Vířivé klapky můžeš klidně zkontrolovat vizuálně, ale jako prvotní příčina P0299 jsou nepravděpodobné.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2606,
+      "elapsedMs": 11074,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Chápu námitku, vířivé klapky jsou na N47 častý problém, ale zpravidla nevyvolávají kód P0299 – ten značí nedostatečný plnicí tlak, tedy záležitost turba nebo těsnosti sání/mezichladiče. Zaseknuté nebo uvolněné klapky způsobují spíš hrubý chod, ztrátu výkonu při nízkých otáčkách a někdy nasátí úlomku do motoru. Pokud nemáš žádný kód na sání nebo měření podtlaku, doporučuju držet se diagnostiky podle P0299 – zkontrolovat geometrii turba, hadice a MAP. Vířivé klapky můžeš klidně zkontrolovat vizuálně, ale jako prvotní příčina P0299 jsou nepravděpodobné.\"}"
+    },
+    {
+      "id": 6,
+      "title": "Záludné — zjištění formulované jako otázka",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Obsahuje NOVÉ ZJIŠTĚNÍ (olej v intercooleru) → diagnóza; mělo by nahoru posunout vůli/opotřebení turba (těsnění/ložisko turba pouští olej). Hraniční – přijatelná i kvalitní odpověď, pokud zjištění správně využije.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Poškozené těsnění turba (únik oleje)",
+          "pravděpodobnost": 80
+        },
+        {
+          "název": "Vadná geometrie turba (VNT)",
+          "pravděpodobnost": 55
+        },
+        {
+          "název": "Netěsnost přeplňování",
+          "pravděpodobnost": 30
+        }
+      ],
+      "shrnutí": "Aktualizace: Mechanik nalezl olej v hadici intercooleru. To výrazně zvyšuje pravděpodobnost úniku oleje z turba – poškozená těsnění. Původní pravděpodobnosti upraveny.",
+      "usedTokens": 5178,
+      "elapsedMs": 42626,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Aktualizace: Mechanik nalezl olej v hadici intercooleru. To výrazně zvyšuje pravděpodobnost úniku oleje z turba – poškozená těsnění. Původní pravděpodobnosti upraveny.\",\n  \"závady\": [\n    {\n      \"název\": \"Poškozené těsnění turba (únik oleje)\",\n      \"pravděpodobnost\": 80,\n      \"popis\": \"Únik oleje z turba do mezichladiče a hadic. Olej v hadici intercooleru je typickým příznakem. Ztráta plnícího tlaku a kód P0299. Může vést k poškození katalyzátoru/DPF.\",\n      \"příznaky_shoda\": [\"olej v hadici intercooleru\", \"ztráta výkonu\", \"nouzový režim\"],\n      \"obd_kódy\": [\"P0299\"],\n      \"díly\": [\"těsnění turba\", \"turbo DPF/EGR\"],\n      \"řešení\": [\"výměna turba nebo repase\", \"výměna těsnění turba\", \"vyčištění mezichladiče a hadic\"],\n      \"postup\": \"1. Zkontroluj vůli a stav turba (axiální/radiální). 2. Ověř, zda olej neteče z krytu turba. 3. Proveď tlakovou zkoušku plnícího systému.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Nalezený olej přímo ukazuje na netěsnost turba. I když VNT mechanismus může být funkční, těsnění jsou častou příčinou.\",\n      \"zdroj\": \"databáze\",\n      \"početShod\": 3\n    },\n    {\n      \"název\": \"Vadná geometrie turba (VNT)\",\n      \"pravděpodobnost\": 55,\n      \"popis\": \"Zaseklé lopatky regulace plnícího tlaku. I při olejových usazeninách může být VNT částečně funkční, ale olej zhoršuje pohyblivost.\",\n      \"příznaky_shoda\": [\"ztráta výkonu\", \"P0299\", \"pomalá odezva turba\"],\n      \"obd_kódy\": [\"P0299\"],\n      \"díly\": [\"turbo VNT\", \"aktuátor turba\"],\n      \"řešení\": [\"vyčištění VNT mechanismu\", \"výměna turba\"],\n      \"postup\": \"1. Zkontroluj pohyb aktuátoru (ručně/vákuum). 2. Demontuj turbo a zkontroluj lopatky na karbon. 3. Ověř funkci regulace pomocí diagnostiky.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Olejové usazeniny často urychlují zaseknutí VNT. Tato závada může být kombinovaná s únikem oleje.\",\n      \"zdroj\": \"databáze\",\n      \"početShod\": 2\n    },\n    {\n      \"název\": \"Netěsnost přeplňování\",\n      \"pravděpodobnost\": 30,\n      \"popis\": \"Únik stlačeného vzduchu v hadicích nebo mezichladiči. Olej v hadici však zvyšuje pravděpodobnost vnitřní netěsnosti turba spíše než vnější.\",\n      \"příznaky_shoda\": [\"pískání\", \"ztráta výkonu\", \"P0299\"],\n      \"obd_kódy\": [\"P0299\"],\n      \"díly\": [\"hadice sání\", \"intercooler\", \"těsnění\"],\n      \"řešení\": [\"výměna prasklé hadice\", \"utažení spon\", \"oprava intercooleru\"],\n      \"postup\": \"1. Proveď tlakovou zkoušku (0,5–1 bar). 2. Zkontroluj hadice a spoje pěnou/vodou. 3. Hledej praskliny a mastná místa.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Olej v hadici nemusí nutně znamenat vnější netěsnost – spíše podporuje turbo závadu.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Tlaková zkouška plnícího systému (hledej vnější netěsnost)\",\n    \"Demontáž a kontrola turba – vůle ložisek a stav těsnění\",\n    \"Měření plnícího tlaku v reálném čase (logovat při jízdě)\"\n  ],\n  \"varování\": \"Olej v sacím traktu může poškodit DPF – doporučeno urychleně opravit. Po opravě vyčistit mezichladič a hadice.\",\n  \"další_info\": \"Mechanik nalezl olej v hadici intercooleru – tato informace byla zakomponována do diagnózy jako hlavní vodítko.\"\n}"
+    },
+    {
+      "id": 7,
+      "title": "Záludné — oprava údaje + provedená oprava",
+      "lang": "cs",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Oprava údaje + provedená oprava → diagnóza; přehodnotí na nadměrný průtok (zaseklý otevřený EGR / vadné řízení), zohlední že čištění proběhlo.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Vadný EGR ventil (zaseknutý v otevřené poloze)",
+          "pravděpodobnost": 80
+        },
+        {
+          "název": "Vadný snímač MAF",
+          "pravděpodobnost": 40
+        },
+        {
+          "název": "Ucpaný DPF filtr",
+          "pravděpodobnost": 30
+        }
+      ],
+      "shrnutí": "VW Passat 2.0 TDI – trhání, kontrolka motoru, původně P0401 nyní P0402 (nadměrný průtok EGR). EGR ventil vyčištěn, problém přetrvává.",
+      "usedTokens": 5498,
+      "elapsedMs": 39193,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"VW Passat 2.0 TDI – trhání, kontrolka motoru, původně P0401 nyní P0402 (nadměrný průtok EGR). EGR ventil vyčištěn, problém přetrvává.\",\n  \"závady\": [\n    {\n      \"název\": \"Vadný EGR ventil (zaseknutý v otevřené poloze)\",\n      \"pravděpodobnost\": 80,\n      \"popis\": \"Čištění nevyřešilo problém, ventil pravděpodobně zůstal otevřený nebo je mechanicky poškozený.\",\n      \"příznaky_shoda\": [\"trhání\", \"kontrolka motoru\", \"P0402\"],\n      \"obd_kódy\": [\"P0402\"],\n      \"díly\": [\"EGR ventil\", \"EGR chladič\", \"těsnění\"],\n      \"řešení\": [\"výměna EGR ventilu\", \"výměna EGR chladiče\", \"výměna těsnění EGR\"],\n      \"postup\": \"Změřte napětí na konektoru EGR, proveďte test průtoku pomocí diagnostiky, zkontrolujte funkci zpětné vazby.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Po výměně je nutné vymazat adaptace EGR a provést adaptaci.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Vadný snímač MAF\",\n      \"pravděpodobnost\": 40,\n      \"popis\": \"Nepřesné měření hmotnosti vzduchu může způsobit nadměrný odhad EGR průtoku.\",\n      \"příznaky_shoda\": [\"trhání\", \"kontrolka motoru\", \"P0402\"],\n      \"obd_kódy\": [\"P0402\", \"P0101\"],\n      \"díly\": [\"snímač MAF\"],\n      \"řešení\": [\"výměna snímače MAF\"],\n      \"postup\": \"Proveďte logování hodnot MAF při volnoběhu a zátěži, porovnejte s nominálními hodnotami.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Porucha MAF se může projevovat i chybami P0101.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Ucpaný DPF filtr\",\n      \"pravděpodobnost\": 30,\n      \"popis\": \"Vysoký protitlak ve výfuku může ovlivnit diferenční tlak EGR a způsobit falešné hlášení nadměrného průtoku.\",\n      \"příznaky_shoda\": [\"trhání\", \"kontrolka motoru\", \"P0402\", \"nižší výkon\"],\n      \"obd_kódy\": [\"P0402\", \"P2002\"],\n      \"díly\": [\"DPF filtr\", \"snímač diferenčního tlaku\"],\n      \"řešení\": [\"provedení nucené regenerace\", \"výměna DPF filtru\", \"výměna snímače protitlaku\"],\n      \"postup\": \"Změřte hodnoty sazí a protitlak v diagnostice, proveďte regeneraci.\",\n      \"naléhavost\": \"střední\",\n      \"poznámka\": \"Pokud regenerace nepomůže, je DPF pravděpodobně nevratně zanesený.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    }\n  ],\n  \"doporučené_testy\": [\n    \"Kontrola funkce EGR pomocí diagnostiky (aktivní test)\",\n    \"Měření průtoku EGR\",\n    \"Kontrola MAF hodnot\",\n    \"Měření protitlaku DPF\",\n    \"Kontrola těsnosti sacího potrubí\"\n  ],\n  \"varování\": \"Upozornění: Po vyčištění EGR ventilu může být uvolněný karbon blokovat EGR chladič nebo potrubí.\",\n  \"další_info\": null\n}"
+    },
+    {
+      "id": 8,
+      "title": "Záludné — poděkování / zakončení",
+      "lang": "cs",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Poděkování bez dotazu/zjištění → odpověď (zdvořilé zakončení, případně nabídka dalších kroků); NESMÍ vyrobit novou diagnózu.",
+      "reply": "Není zač, rád jsem pomohl. Pokud při dalších krocích narazíte na nové poznatky nebo budete potřebovat upřesnění, dejte vědět.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2674,
+      "elapsedMs": 7744,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"Není zač, rád jsem pomohl. Pokud při dalších krocích narazíte na nové poznatky nebo budete potřebovat upřesnění, dejte vědět.\"}"
+    }
+  ]
+}

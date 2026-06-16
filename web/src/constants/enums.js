@@ -4,6 +4,7 @@
 export const MSG = {
   INPUT: "input",
   DIAGNOSIS: "diagnosis",
+  REPLY: "reply",       // konverzační odpověď "mechanika" na doplňující dotaz
 }
 
 /** Case status (case.status) */

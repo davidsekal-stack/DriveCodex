@@ -1,0 +1,41 @@
+{
+  "model": "deepseek-reasoner",
+  "ranAt": "2026-06-16T12:41:48.860Z",
+  "results": [
+    {
+      "id": 1,
+      "title": "Čistá otázka 'proč' (vysvětlení)",
+      "expectedMode": "odpověď",
+      "actualMode": "odpověď",
+      "modeMatch": true,
+      "expect": "Vysvětlí, že číslo válce pochází ze vstupní diagnostiky (žhavicí svíčka válce 2) — text, ne nové karty.",
+      "reply": "V diagnostice se objevil konkrétní kód závady žhavicí svíčky na válci 2 – to je přímá indikace, že problém je na tomto válci. Žhavicí svíčka sama o sobě obvykle nezpůsobuje bílý kouř a žrání oleje, ale signalizuje, že na daném válci je něco v nepořádku (např. snížená komprese, netěsnost nebo špatné spalování), což se shoduje i s vašimi příznaky. Proto jsme závady seřadili podle pravděpodobnosti právě od válce 2.",
+      "faults": null,
+      "shrnutí": null,
+      "usedTokens": 2787,
+      "elapsedMs": 7036,
+      "error": null,
+      "raw": "{\"režim\":\"odpověď\",\"odpověď\":\"V diagnostice se objevil konkrétní kód závady žhavicí svíčky na válci 2 – to je přímá indikace, že problém je na tomto válci. Žhavicí svíčka sama o sobě obvykle nezpůsobuje bílý kouř a žrání oleje, ale signalizuje, že na daném válci je něco v nepořádku (např. snížená komprese, netěsnost nebo špatné spalování), což se shoduje i s vašimi příznaky. Proto jsme závady seřadili podle pravděpodobnosti právě od válce 2.\"}"
+    },
+    {
+      "id": 4,
+      "title": "Nové zjištění vylučuje příčinu (komprese OK)",
+      "expectedMode": "diagnóza",
+      "actualMode": "diagnóza",
+      "modeMatch": true,
+      "expect": "Aktualizuje: výrazně sníží/vyřadí 'poškození pístu/kroužků (ztráta komprese)'; nahoru vstřikovač / těsnění.",
+      "reply": null,
+      "faults": [
+        {
+          "název": "Vadný vstřikovač (válec 2)",
+          "pravděpodobnost": 80
+        }
+      ],
+      "shrnutí": "Na základě normální a vyrovnané komprese na všech válcích se pravděpodobnost mechanických závad (těsnění hlavy, písty/kroužky) výrazně snižuje. Hlavním podezřením je vadný vstřikovač na 2. válci, který může způsobovat bílý kouř, ředění oleje, koktání a ztrátu výkonu. Dále je třeba prověřit možnost malé netěsnosti těsnění hlavy a vadnou žhavicí svíčku.",
+      "usedTokens": 6206,
+      "elapsedMs": 40343,
+      "error": null,
+      "raw": "{\n  \"režim\": \"diagnóza\",\n  \"shrnutí\": \"Na základě normální a vyrovnané komprese na všech válcích se pravděpodobnost mechanických závad (těsnění hlavy, písty/kroužky) výrazně snižuje. Hlavním podezřením je vadný vstřikovač na 2. válci, který může způsobovat bílý kouř, ředění oleje, koktání a ztrátu výkonu. Dále je třeba prověřit možnost malé netěsnosti těsnění hlavy a vadnou žhavicí svíčku.\",\n  \"závady\": [\n    {\n      \"název\": \"Vadný vstřikovač (válec 2)\",\n      \"pravděpodobnost\": 80,\n      \"popis\": \"Zaseknutá nebo nedovřená jehla vstřikovače způsobuje nadměrné nebo nesprávně načasované vstřikování paliva. To vede k bílému kouři (nespálené palivo), kolísání otáček, ztrátě výkonu a ředění motorového oleje. Normální komprese tento typ závady nevylučuje.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\", \"nemožnost restartu\", \"žere olej\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"vstřikovač 2. válce\", \"těsnicí podložky vstřikovače\"],\n      \"řešení\": [\"výměna vstřikovače 2. válce\", \"výměna těsnicích podložek\", \"vymazání adaptačních hodnot vstřikovačů v ECU\"],\n      \"postup\": \"Změřit zpětný tok vstřikovačů a porovnat s hodnotami výrobce. Při výměně vstřikovače zkalibrovat nový vstřikovač pomocí diagnostického přístroje. Zkontrolovat stav palivového filtru.\",\n      \"naléhavost\": \"vysoká\",\n      \"poznámka\": \"Ředění oleje palivem je silným indikátorem netěsného vstřikovače. Doporučuji provést test zpětného toku.\",\n      \"zdroj\": \"ai\",\n      \"početShod\": 0\n    },\n    {\n      \"název\": \"Netěsnost těsnění hlavy válců (mírná)\",\n      \"pravděpodobnost\": 40,\n      \"popis\": \"I při normální kompresi může malá netěsnost těsnění hlavy propouštět chladicí kapalinu do spalovacího prostoru. To způsobuje bílý kouř (vodní pára), občasné koktání a ztrátu výkonu. Po delším stání může dojít k hydrolocku, který znemožní restart.\",\n      \"příznaky_shoda\": [\"bílý kouř\", \"ztráta výkonu\", \"koktání\", \"nemožnost restartu\", \"žere olej\"],\n      \"obd_kódy\": [],\n      \"díly\": [\"těsnění hlavy\", \"hlava válců\", \"šrouby hlavy\"],\n      \"řešení\": [\"výměna těsnění hlavy\", \"kontrola rovinnosti a případné přebroušení hlavy\", \"výměna hlavy válců (je"
+    }
+  ]
+}

@@ -2,7 +2,9 @@ import { MSG } from "../constants/enums.js";
 import { MAX_REPAIR_STEPS, MAX_REPAIR_LENGTH } from "../constants/limits.js";
 
 export function collectCaseInputs(messages = [], inputMsg) {
-  const prevInputs = messages.filter((message) => message.type === MSG.INPUT);
+  // fromReply = konverzační otázka mechanika (vedla na textovou odpověď) — ta
+  // NENÍ diagnostický příznak, takže ji do agregace vstupů nezahrnujeme.
+  const prevInputs = messages.filter((message) => message.type === MSG.INPUT && !message.fromReply);
   const allInputs = [...prevInputs, inputMsg];
 
   return {
@@ -51,6 +53,55 @@ export async function searchSimilarCases(searchCases, ragInput) {
 
 export function removeMessageById(messages = [], messageId) {
   return messages.filter((message) => message.id !== messageId);
+}
+
+/**
+ * Je naparsovaná AI odpověď konverzační (režim "odpověď"), ne diagnóza?
+ * True když AI explicitně zvolila režim "odpověď", nebo vrátila text odpovědi
+ * bez seznamu závad.
+ */
+export function isReplyResult(parsed) {
+  if (!parsed || typeof parsed !== "object") return false;
+  const hasReplyText = typeof parsed.odpověď === "string" && parsed.odpověď.trim().length > 0;
+  const hasFaults = Array.isArray(parsed.závady) && parsed.závady.length > 0;
+  // Explicitní režim "odpověď" platí jen s neprázdným textem — jinak (např.
+  // protichůdný výstup "odpověď" + závady bez textu) raději propadne na diagnózu.
+  if (parsed.režim === "odpověď") return hasReplyText;
+  return hasReplyText && !hasFaults;
+}
+
+/** Poslední diagnóza v konverzaci (její `result`), nebo null když žádná není. */
+export function getLatestDiagnosis(messages = []) {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.type === MSG.DIAGNOSIS && messages[i]?.result) {
+      return messages[i].result;
+    }
+  }
+  return null;
+}
+
+/**
+ * Serializuje předchozí diagnózu do textového bloku pro follow-up prompt,
+ * aby na ni AI mohla navázat (drží procenta, vyřazuje vyloučené příčiny).
+ * Vrací "" když diagnóza chybí.
+ */
+export function buildPriorDiagnosisContext(result, tr) {
+  if (!result || !Array.isArray(result.závady) || result.závady.length === 0) return "";
+
+  const faultLines = result.závady.map((fault, index) => {
+    const prob = typeof fault.pravděpodobnost === "number" ? `${fault.pravděpodobnost} %` : "?";
+    const desc = (fault.popis ?? "").trim();
+    const shortDesc = desc.length > 220 ? `${desc.slice(0, 220)}…` : desc;
+    return `${index + 1}. ${fault.název ?? "?"} (${prob})${shortDesc ? ` — ${shortDesc}` : ""}`;
+  });
+
+  return [
+    `\n\n${tr("ai.priorDiagTitle")}`,
+    result.shrnutí ? `${tr("ai.priorDiagSummary")}: ${result.shrnutí}` : null,
+    `${tr("ai.priorDiagFaults")}:`,
+    ...faultLines,
+    tr("ai.priorDiagInstr"),
+  ].filter(Boolean).join("\n");
 }
 
 export function normalizeDiagnosisResult(parsed, tr, similarCount = 0) {

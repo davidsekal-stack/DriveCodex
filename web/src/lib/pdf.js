@@ -411,11 +411,30 @@ function renderMessages(doc, ctx, activeCase, lang, tr, F, variant) {
       inputNum++;
       renderInput(doc, ctx, msg, inputNum, tr, F, variant);
     }
+    if (msg.type === MSG.REPLY) {
+      renderReply(doc, ctx, msg, tr, F, variant);
+    }
     if (msg.type === MSG.DIAGNOSIS) {
       diagNum++;
       renderDiagnosis(doc, ctx, msg, diagNum, lang, tr, F, variant);
     }
   }
+}
+
+function renderReply(doc, ctx, msg, tr, F, variant) {
+  if (!msg.text?.trim()) return;
+  ctx.checkPage(20);
+  ctx.y += 8;
+
+  const prefix = variant === "technical" ? "# " : "";
+  doc.setFont(F, "bold"); doc.setFontSize(FS.section); doc.setTextColor(C.black);
+  doc.text(safeTxt(`${prefix}${tr("pdf.reply")}`), PAGE.mx, ctx.y);
+  ctx.y += 2;
+  ctx.hLine(ctx.y, variant === "service" ? 0.4 : 0.3);
+  ctx.y += 4.5;
+
+  ctx.text(msg.text.trim(), PAGE.mx, CW, FS.body, C.dark);
+  ctx.y += 6;
 }
 
 function renderInput(doc, ctx, msg, num, tr, F, variant) {

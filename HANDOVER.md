@@ -101,6 +101,52 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
+### 0. Hybrid follow-up — konverzace „s mechanikem" po diagnóze (2026-06-16, LOKÁLNĚ, ČEKÁ NA NASAZENÍ)
+
+Doplňující dotaz po první diagnóze už neběží jako re-run bez kontextu. `executeDiagnosis`
+([web/src/lib/run-diagnosis.js](/C:/GB/web/src/lib/run-diagnosis.js)) pozná follow-up tak,
+že v případu už existuje diagnóza (`getLatestDiagnosis`), a místo `buildSystemPrompt` použije
+`buildFollowupSystemPrompt` — ta do promptu přidá **shrnutí předchozí diagnózy**
+(`buildPriorDiagnosisContext`: shrnutí + závady s procenty) a pravidla režimu. AI v JEDNOM
+volání rozhodne:
+- **režim „odpověď"** (mechanik se ptá) → vrátí `{"režim":"odpověď","odpověď":"…"}`, z čehož
+  vznikne nová zpráva typu `MSG.REPLY` (`reply`) renderovaná jako textová bublina
+  (SessionTimeline, SharedCaseView, PDF `renderReply`). `isReplyResult` v
+  [diagnosis.js](/C:/GB/web/src/lib/diagnosis.js) detekuje režim (explicitní `režim` nebo text bez `závady`).
+- **režim „diagnóza"** (mechanik hlásí nové zjištění/test/opravu/kód) → vrátí aktualizovaný JSON
+  závad jako dosud; navazuje na minulou diagnózu (vyřadí vyloučené příčiny, zvýší potvrzené).
+
+`smartRepair` ([ai-json-repair.js](/C:/GB/web/src/lib/ai-json-repair.js)) nově zvládá i JSON
+obalený code-fencem (fallback parse do poslední `}`) — pomáhá konverzačním odpovědím.
+Žádná změna RAG vah ani bran. Žádná migrace. AI zůstává **DeepSeek** (`deepseek-reasoner`).
+
+**Ověřeno E2E na živém DeepSeek API** ([scripts/e2e-followup-test.mjs](/C:/GB/scripts/e2e-followup-test.mjs),
+volá reálnou edge fn `deepseek-proxy`): 10 scénářů (otázky proč/jak/co, vyloučení příčiny měřením
+komprese, potvrzení leak-off testem, neúspěšná oprava, nový příznak, nový OBD kód, rada na svépomoc,
+off-topic dotaz). **10/10 režim i obsah dle předem zapsané predikce**; výsledky v
+`scripts/e2e-followup-results.json`. Jediné pozorování: `deepseek-reasoner` je upovídaný a u režimu
+„diagnóza" může výjimečně narazit na `AI_MAX_TOKENS` (4000) — `smartRepair` ořez ustojí (zobrazí
+kompletní závady, uťatou zahodí). Případné zvednutí limitu pro follow-up je volitelné doladění.
+
+Rozšířeno o **dávku 2 (20 případů)** a **dávku 3 (8 záludných hran)** — viz
+`scripts/e2e-followup-batch2.mjs` / `e2e-followup-batch3.mjs`. Celkem **38/38 správný režim**,
+obsah 0 chybných (po doladění promptu); pokrytí přes benzín/turbo/DPF/AdBlue/DSG/ABS/chlazení/
+nabíjení/EV/hybrid/rozvody/podvozek + EN/DE. Záludné hrany (dotaz+zjištění v jedné zprávě, vágní
+„co teď", změna tématu, emoce, nesouhlas, zjištění jako otázka, poděkování) prošly 8/8.
+
+**Přednasazovací review (adversariální, 5 dimenzí → ověření → syntéza): GO, 0 blokerů.** Opravené
+nálezy: (1) **major** — doplňující DOTAZ se ukládal jako `MSG.INPUT` a vlézal do pozdějších diagnóz
+i do RAG korpusu (`description` v `buildPushClosedCasePayload`); fix = příznak `fromReply:true` na
+inputMsg reply-větve, vyloučen v `collectCaseInputs` i `buildPushClosedCasePayload`; (2) `smartRepair`
+fallback přepsán z `lastIndexOf("}")` na **balanced-scan** prvního top-level objektu (trailing próza
+s `}` už nerozbije parse); (3) `isReplyResult` u explicitního `režim:"odpověď"` vyžaduje neprázdný
+text (jinak propadne na diagnózu); (4) anti-override věta ve `FOLLOWUP_RULES` + délkový strop
+`REPLY_MAX_LENGTH` (2000) na odpověď (prompt-injection hardening — text mechanika se zobrazuje pod
+značkou „DriveCodex"); (5) +8 unit testů (orchestrace `executeDiagnosis` reply/diagnóza větve,
+fromReply vyloučení, balanced-scan). **Vědomě odloženo (ne-blokery):** věrná paměť vícekolových
+textových odpovědí (dnes se do promptu předává jen poslední strukturovaná diagnóza — záměr) a
+sdílení render bloku REPLY mezi `SessionTimeline`/`SharedCaseView` (kopíruje zavedený vzor).
+
 ### 0a. RAG: lepší výběr a řazení podobných případů (2026-06-15)
 
 `search-cases` filtruje kandidáty dvěma branami — (1) absolutní skóre ≥ dynamický

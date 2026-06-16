@@ -8,7 +8,7 @@
 
 export { detectFuelType, buildFuelBlock } from "./ai-fuel.js";
 export { smartRepair }                    from "./ai-json-repair.js";
-export { buildSystemPrompt }              from "./ai-prompts.js";
+export { buildSystemPrompt, buildFollowupSystemPrompt } from "./ai-prompts.js";
 export { CASE_TOKEN_LIMIT }               from "../constants/limits.js";
 
 /**

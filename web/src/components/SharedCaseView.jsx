@@ -144,6 +144,21 @@ function SharedCaseViewInner({ shareId }) {
               );
             }
 
+            if (message.type === MSG.REPLY) {
+              return (
+                <div key={message.id || index} style={{ display: "flex", justifyContent: "flex-start" }}>
+                  <div style={{ maxWidth: mobile ? "92%" : "82%" }}>
+                    <div style={{ fontSize: "0.65rem", color: t.accentText, marginBottom: 4, letterSpacing: "0.06em" }}>
+                      ◈ DriveCodex · {tr("app.replyLabel")} · {fmtDate(message.timestamp, lang)}
+                    </div>
+                    <div style={{ background: t.bgMuted, border: `1px solid ${t.border}`, borderLeft: `3px solid ${t.accent}`, borderRadius: "2px 8px 8px 8px", padding: "12px 16px" }}>
+                      <div style={{ fontSize: "0.88rem", color: t.text, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{message.text}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             if (message.type === MSG.DIAGNOSIS) {
               return (
                 <div key={message.id || index} style={{ display: "flex", justifyContent: "flex-start" }}>
