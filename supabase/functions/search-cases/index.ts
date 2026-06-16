@@ -272,7 +272,8 @@ Deno.serve(async (req) => {
             'Authorization': `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model:      'deepseek-chat',
+            model:      'deepseek-v4-flash',
+            thinking:   { type: 'disabled' },  // strukturovaný JSON překlad dotazu — bez CoT
             max_tokens: 300,
             messages: [{
               role:    'user',

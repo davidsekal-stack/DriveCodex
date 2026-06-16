@@ -15,8 +15,10 @@ import { json } from '../_shared/response.ts'
 import { getServiceClient } from '../_shared/client.ts'
 
 const ALLOWED_MODELS = [
-  'deepseek-chat',
-  'deepseek-reasoner',
+  'deepseek-v4-pro',     // uvažovací (thinking) model — diagnostika
+  'deepseek-v4-flash',   // rychlý/levný model — pozadí
+  'deepseek-chat',       // legacy (DeepSeek ukončuje 2026-07-24)
+  'deepseek-reasoner',   // legacy (DeepSeek ukončuje 2026-07-24)
 ]
 
 const DAILY_LIMIT     = 50
@@ -26,7 +28,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return optionsResponse()
 
   try {
-    const { model, system, messages, max_tokens, user_id } = await req.json()
+    const { model, system, messages, max_tokens, user_id, thinking } = await req.json()
 
     // ── Validace ───────────────────────────────────────────────────────────
     if (!user_id || typeof user_id !== 'string') {
@@ -40,6 +42,12 @@ Deno.serve(async (req) => {
     }
 
     const safeMaxTokens = Math.min(max_tokens ?? 4000, MAX_TOKENS_CAP)
+
+    // DeepSeek v4 uvažovací režim — propustíme jen validní tvar { type: 'enabled' | 'disabled' }.
+    const safeThinking =
+      thinking && (thinking.type === 'enabled' || thinking.type === 'disabled')
+        ? { type: thinking.type }
+        : undefined
 
     // ── Rate limiting ──────────────────────────────────────────────────────
     const supabase = getServiceClient()
@@ -79,6 +87,7 @@ Deno.serve(async (req) => {
         model,
         max_tokens: safeMaxTokens,
         messages: dsMessages,
+        ...(safeThinking ? { thinking: safeThinking } : {}),
       }),
     })
 

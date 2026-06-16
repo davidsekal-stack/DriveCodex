@@ -23,12 +23,14 @@ export function getEdgeFunctionErrorMessage(fnName, status, text) {
   return message;
 }
 
-export function buildAiRequestPayload({ systemPrompt, userMessage, maxTokens, model, userId }) {
+export function buildAiRequestPayload({ systemPrompt, userMessage, maxTokens, model, userId, thinking }) {
   return {
     model,
     system: systemPrompt,
     messages: [{ role: "user", content: userMessage }],
     max_tokens: maxTokens,
     user_id: userId,
+    // DeepSeek v4 uvažovací režim. Posíláme jen když je zadán (zpětně kompatibilní payload).
+    ...(thinking ? { thinking } : {}),
   };
 }

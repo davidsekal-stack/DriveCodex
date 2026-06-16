@@ -18,7 +18,7 @@ import { RUNTIME_CONFIG } from "../web/src/lib/runtime-config.js";
 
 const EDGE = RUNTIME_CONFIG.edgeFunctionsUrl;
 const ANON = RUNTIME_CONFIG.supabaseAnonKey;
-const MODEL = "deepseek-reasoner"; // = AI_MODEL v produkci
+const MODEL = "deepseek-v4-pro"; // = AI_MODEL v produkci
 const USER_ID = "e2e-followup-test";
 const CALL_TIMEOUT_MS = 240_000;
 const CONCURRENCY = 4;
@@ -41,6 +41,7 @@ async function callAI({ systemPrompt, userMessage, maxTokens }) {
       },
       body: JSON.stringify({
         model: MODEL,
+        thinking: { type: "enabled" },
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
         max_tokens: maxTokens,

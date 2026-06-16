@@ -103,7 +103,7 @@ function buildTestAiResponse() {
   };
 }
 
-export async function callAI({ systemPrompt, userMessage, maxTokens = AI_MAX_TOKENS, model = AI_MODEL }) {
+export async function callAI({ systemPrompt, userMessage, maxTokens = AI_MAX_TOKENS, model = AI_MODEL, thinking = { type: "enabled" } }) {
   if (isTestAiStubEnabled()) return buildTestAiResponse();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -114,6 +114,7 @@ export async function callAI({ systemPrompt, userMessage, maxTokens = AI_MAX_TOK
     userMessage,
     maxTokens,
     userId: user?.id ?? "web-anonymous",
+    thinking,
   }));
 }
 

@@ -1,6 +1,6 @@
 ﻿# Handover
 
-Aktualizováno: 2026-06-11
+Aktualizováno: 2026-06-16
 
 ## Nepřekročitelné pravidlo pro seed importy
 
@@ -33,6 +33,16 @@ Pro NHTSA konkrétně:
 - `push-case` při duplicitě nesmí dělat jen no-op; musí přepsat celý case payload (`symptoms`, `obd_codes`, `description`, `resolution`, atd.), aby šel reviewed subset bezpečně reimportovat přes stejné `local_id`
 - když se z full-supported běhu vyřezává brand subset, subset extraction a `tsb-review-nhtsa-ai.mjs` se nesmí pouštět paralelně; reviewer pak uvidí jen část ještě zkopírovaných souborů a vznikne falešně krátký AI review běh
 - `tsb-review-nhtsa-ai.mjs` už umí resume z existujícího `ai_review_decisions.jsonl`; po síťovém failu proto navazuje od posledního zpracovaného kandidáta místo restartu celé značky
+
+## DeepSeek v4 migrace (2026-06-16)
+
+DeepSeek ukončuje `deepseek-chat` i `deepseek-reasoner` k **2026-07-24**. Přešli jsme na řadu v4:
+- **Diagnostika** (`AI_MODEL` v [limits.js](/C:/GB/web/src/constants/limits.js)) → **`deepseek-v4-pro`** s uvažovacím režimem (`thinking: { type: 'enabled' }`). Nástupce `deepseek-reasoner`, vyšší kvalita, levnější než dnes.
+- **Překlad/klasifikace na pozadí** ([push-case](/C:/GB/supabase/functions/push-case/index.ts), [search-cases](/C:/GB/supabase/functions/search-cases/index.ts)) → **`deepseek-v4-flash`** s `thinking: { type: 'disabled' }` (strukturovaný JSON, rychlost + spolehlivý parse).
+
+`thinking` je top-level pole těla požadavku (ne `extra_body` — to je jen obal OpenAI SDK). [deepseek-proxy](/C:/GB/supabase/functions/deepseek-proxy/index.ts) ho propouští z payloadu (validuje `enabled`/`disabled`); staré modely zůstávají v allowlistu pro hladký přechod. Klient posílá `thinking` přes `buildAiRequestPayload` → `callAI`.
+
+**Zbývá před 2026-07-24:** offline agent/seed pipeline (`scripts/agent/llm.mjs`, `scripts/forum-seed-*.mjs`, `audit/deepseek-judge.mjs`) pořád používá `deepseek-chat` — nutno migrovat zvlášť (není to produkční cesta uživatele).
 
 ## Co je teď důležité
 
