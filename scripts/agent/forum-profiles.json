@@ -398,6 +398,660 @@
         "max_section_pages": 10
       },
       "notes": "WoltLab Suite 6 (Burning Board). German Renault community. Plain fetch returns full usable HTML (~446KB), no browser needed. WoltLab engine parser finds posts but text is noisy (grabs header metadata) and guest authors come back empty; custom selectors required: post=.wbbPost, author=.messageAuthor .username (works for both registered users and guests), content=.messageText (clean message body). Standard /board/N-slug/ section and /thread/N-slug/ thread URLs — engine handles thread-link detection (44-45 thread links per section page), no thread_url_pattern needed. Sections list covers per-model Elektronik/Mechanik/Multimedia plus Laguna3 Mängel & Lösungen; marketplace/Suche/Biete, Optik & Tuning, Reifen & Felgen, Teile & Zubehör, off-topic/news/meetup boards intentionally excluded."
+    },
+    {
+      "match": "audiclub.eu",
+      "name": "Audi Club EU",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Audi"
+      ],
+      "sections": [
+        "https://www.audiclub.eu/forum-kategorie/technicky-koutek-6",
+        "https://www.audiclub.eu/forum-kategorie/a3-8p-34",
+        "https://www.audiclub.eu/forum-kategorie/a3-8v-35",
+        "https://www.audiclub.eu/forum-kategorie/a4-b6-26",
+        "https://www.audiclub.eu/forum-kategorie/a4-b7-27",
+        "https://www.audiclub.eu/forum-kategorie/a4-b8-28",
+        "https://www.audiclub.eu/forum-kategorie/a4-b9-67",
+        "https://www.audiclub.eu/forum-kategorie/a6-c5-29",
+        "https://www.audiclub.eu/forum-kategorie/a6-c6-30",
+        "https://www.audiclub.eu/forum-kategorie/a6-c7-31",
+        "https://www.audiclub.eu/forum-kategorie/a8-d3-32",
+        "https://www.audiclub.eu/forum-kategorie/a8-d4-33",
+        "https://www.audiclub.eu/forum-kategorie/q5-8r-13",
+        "https://www.audiclub.eu/forum-kategorie/q7-4l-14",
+        "https://www.audiclub.eu/forum-kategorie/tt-8n-23"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": ".show_user_box",
+        "content_selector": "p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom Czech CMS (not a standard forum engine; detect=generic). Boards live under /forum (index lists all). Threads = /forum-tema/<slug>-<id> (non-standard, must set thread_url_pattern). Categories = /forum-kategorie/<model>-<id>; 85 boards, mostly per Audi model/generation + a dedicated 'technicky-koutek' (Technical Corner). Each post is a TR id=messageNNNN inside table.forum_posts; author in a.show_user_box, body in the post's P. Content is CZ and SK mixed (many SK posters) — primary site lang cs. Static HTML, no browser needed, reading needs no login. Minor noise: occasional partner/ad row parses as an author-less post (e.g. 'Nezaplatim.cz Partner klubu') — filter empty-author posts downstream. Site is active (threads dated 2025-12). /poradna is a separate Q&A area (poradna-dotaz), not the main board."
+    },
+    {
+      "match": "bmw-club.cz",
+      "name": "BMW Club CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "BMW",
+        "Mini",
+        "Rolls-Royce"
+      ],
+      "sections": [
+        "https://www.bmw-club.cz/forum-kategorie/technicky-koutek-6",
+        "https://www.bmw-club.cz/forum-kategorie/navody-10",
+        "https://www.bmw-club.cz/forum-kategorie/1-e81-e82-e87-e88-38",
+        "https://www.bmw-club.cz/forum-kategorie/1-f20-f21-37",
+        "https://www.bmw-club.cz/forum-kategorie/3-e46-26",
+        "https://www.bmw-club.cz/forum-kategorie/3-e90-27",
+        "https://www.bmw-club.cz/forum-kategorie/3-f30-28",
+        "https://www.bmw-club.cz/forum-kategorie/3-g20-80",
+        "https://www.bmw-club.cz/forum-kategorie/5-e39-20",
+        "https://www.bmw-club.cz/forum-kategorie/5-e60-e61-21",
+        "https://www.bmw-club.cz/forum-kategorie/5-f10-f11-22",
+        "https://www.bmw-club.cz/forum-kategorie/5-g30-g31-74",
+        "https://www.bmw-club.cz/forum-kategorie/7-e65-e66-32",
+        "https://www.bmw-club.cz/forum-kategorie/7-f01-f02-33",
+        "https://www.bmw-club.cz/forum-kategorie/x3-e83-40",
+        "https://www.bmw-club.cz/forum-kategorie/x3-f25-39",
+        "https://www.bmw-club.cz/forum-kategorie/x5-e70-35",
+        "https://www.bmw-club.cz/forum-kategorie/x5-f15-62",
+        "https://www.bmw-club.cz/forum-kategorie/z4-e85-e86-48"
+      ],
+      "calibration": {
+        "post_selector": "table.forum_posts tr",
+        "author_selector": "a.show_user_box",
+        "content_selector": "p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom PHP engine (autoclub.eu platform), not a standard forum engine - detect.mjs reports generic. Czech-language BMW club, anonymous read access (no login wall). Board index at /forum; per-chassis technical boards live under /forum-kategorie/<slug>-<id>. Threads under /forum-tema/<slug>-<id> (NON-standard, needs thread_url_pattern). Section pagination via ?kols=N, ~20 threads/page; large boards (E90 = 141 pages). Posts in table.forum_posts as <tr id=message...>; author in div.div_user a.show_user_box; body in trailing <P> (content_selector:p strips author-name line, timestamp and button artifacts). One injected sponsor/ad <tr> per thread has empty author + null id and will be dropped naturally. 92 total forum-kategorie sections exist; profiled a representative high-traffic subset (mainstream 1/3/5/7/X/Z chassis + technicky-koutek + navody) - omitted off-topic/marketplace boards (vtipy, pokec, srazy, inzerce, vip-arena, ukradena-vozidla, dopravni-prestupky). Plain HTTP fetch works, no browser needed."
+    },
+    {
+      "match": "citroen-club.cz",
+      "name": "Citroën klub (Citroen Club CZ)",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Citroen",
+        "DS"
+      ],
+      "sections": [
+        "https://www.citroen-club.cz/forum-kategorie/technicky-koutek-6",
+        "https://www.citroen-club.cz/forum-kategorie/navody-9",
+        "https://www.citroen-club.cz/forum-kategorie/c3-i-21",
+        "https://www.citroen-club.cz/forum-kategorie/c3-ii-53",
+        "https://www.citroen-club.cz/forum-kategorie/c3-iii-52",
+        "https://www.citroen-club.cz/forum-kategorie/c3-picasso-34",
+        "https://www.citroen-club.cz/forum-kategorie/c3-aircross-58",
+        "https://www.citroen-club.cz/forum-kategorie/c4-i-22",
+        "https://www.citroen-club.cz/forum-kategorie/c4-ii-61",
+        "https://www.citroen-club.cz/forum-kategorie/c4-iii-62",
+        "https://www.citroen-club.cz/forum-kategorie/c4-picasso-grand-i-35",
+        "https://www.citroen-club.cz/forum-kategorie/c4-picasso-grand-ii-50",
+        "https://www.citroen-club.cz/forum-kategorie/c4-cactus-57",
+        "https://www.citroen-club.cz/forum-kategorie/c5-i-43",
+        "https://www.citroen-club.cz/forum-kategorie/c5-ii-44",
+        "https://www.citroen-club.cz/forum-kategorie/c5-iii-cx5-63",
+        "https://www.citroen-club.cz/forum-kategorie/c5-aircross-68",
+        "https://www.citroen-club.cz/forum-kategorie/c1-19",
+        "https://www.citroen-club.cz/forum-kategorie/c2-20",
+        "https://www.citroen-club.cz/forum-kategorie/c6-24",
+        "https://www.citroen-club.cz/forum-kategorie/c8-25",
+        "https://www.citroen-club.cz/forum-kategorie/berlingo-i-15",
+        "https://www.citroen-club.cz/forum-kategorie/berlingo-ii-28",
+        "https://www.citroen-club.cz/forum-kategorie/berlingo-iii-54",
+        "https://www.citroen-club.cz/forum-kategorie/xsara-33",
+        "https://www.citroen-club.cz/forum-kategorie/xsara-picasso-32",
+        "https://www.citroen-club.cz/forum-kategorie/jumper-14",
+        "https://www.citroen-club.cz/forum-kategorie/jumpy-dispatch-40",
+        "https://www.citroen-club.cz/forum-kategorie/saxo-11",
+        "https://www.citroen-club.cz/forum-kategorie/xantia-17",
+        "https://www.citroen-club.cz/forum-kategorie/ds3-i-36",
+        "https://www.citroen-club.cz/forum-kategorie/ds4-37",
+        "https://www.citroen-club.cz/forum-kategorie/ds5-38",
+        "https://www.citroen-club.cz/forum-kategorie/ds7-55"
+      ],
+      "calibration": {
+        "post_selector": "table.forum_posts tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "td p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom CZ/SK Citroen+DS club CMS (PHP, server-rendered plain HTML; detect.mjs=generic, no engine signature). Reachable, no login required to READ threads (login.php/register.php exist only for posting). Boards live under /forum-kategorie/<model>-<id>; threads under /forum-tema/<slug>-<id> (non-standard, hence thread_url_pattern). Posts are rows tr[id^=message] inside table.forum_posts; author link a.show_user_box (also appears on avatar but selectPosts takes first), message body in <P> tags (content=td p strips the author+timestamp prefix that a bare td selector picked up). One non-user 'div.partner' advertiser row appears per thread inside the same table and parses with an EMPTY author -> the agent's non-empty-author filter drops it. Content is CZ and SK mixed (typical for this club). force_browser NOT needed. Sections list = all model-specific boards + Technicky koutek + Navody; excluded off-topic/marketplace/meetups (pokec, tuning, dopravni-prestupky, ukradena-vozidla, klubove-zalezitosti, o-srazech, o-clancich, skupiny, vtipy). DS6/older niche boards (AX/BX/CX/ZX/XM/C-Crosser/C-Zero etc.) omitted from list for brevity but follow the same pattern if needed."
+    },
+    {
+      "match": "club-opel.com",
+      "name": "Club Opel",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Opel"
+      ],
+      "sections": [
+        "https://www.club-opel.com/forum-kategorie/technicky-koutek-6",
+        "https://www.club-opel.com/forum-kategorie/navody-9",
+        "https://www.club-opel.com/forum-kategorie/astra-h-45",
+        "https://www.club-opel.com/forum-kategorie/astra-g-44",
+        "https://www.club-opel.com/forum-kategorie/astra-j-46",
+        "https://www.club-opel.com/forum-kategorie/astra-k-66",
+        "https://www.club-opel.com/forum-kategorie/corsa-c-40",
+        "https://www.club-opel.com/forum-kategorie/corsa-d-41",
+        "https://www.club-opel.com/forum-kategorie/corsa-e-67",
+        "https://www.club-opel.com/forum-kategorie/vectra-b-49",
+        "https://www.club-opel.com/forum-kategorie/vectra-c-50",
+        "https://www.club-opel.com/forum-kategorie/zafira-a-51",
+        "https://www.club-opel.com/forum-kategorie/zafira-b-52",
+        "https://www.club-opel.com/forum-kategorie/insignia-a-22",
+        "https://www.club-opel.com/forum-kategorie/insignia-b-70",
+        "https://www.club-opel.com/forum-kategorie/meriva-32",
+        "https://www.club-opel.com/forum-kategorie/mokka-a-59",
+        "https://www.club-opel.com/forum-kategorie/omega-b-54",
+        "https://www.club-opel.com/forum-kategorie/signum-28"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "td > p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom Czech autoclub.eu CMS, not standard forum software — detect.mjs returns generic, no signatures. Reachable over static HTML, no login or JS challenge (force_browser not needed). Reading public; only posting/PM needs login. Board index /forum lists model categories /forum-kategorie/<model>-<id> (Astra/Corsa/Vectra/Zafira/Insignia/Omega/Meriva/Mokka/Signum etc.) plus cross-model technicky-koutek-6 and navody-9 — the technical/fault sections; skipped marketplace (inzerce), news (clanky), meetups (srazy), off-topic (pokec-vseobecny, vtipy), insurance, stolen-vehicle boards. Threads are /forum-tema/<slug>-<id> (non-standard, hence thread_url_pattern=/forum-tema/). CZ with frequent SK posts mixed. Generic engine parser yields 0 posts so custom selectors required: posts are <tr id='messageNNNNN'> rows in table.forum_posts; author=a.show_user_box link; body=td > p (clean diagnostic text). td>p also matches occasional embedded partner/ad rows with empty author — sparse, easily filtered. Active: live 2026-04 threads on DPF regeneration, engine cut-out, cooling fans, OpCom diagnostics. High value for Opel RAG."
+    },
+    {
+      "match": "daciaclub.cz",
+      "name": "Dacia Club CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Dacia"
+      ],
+      "sections": [
+        "https://www.daciaclub.cz/forum-kategorie/technicky-koutek-6",
+        "https://www.daciaclub.cz/forum-kategorie/navody-14",
+        "https://www.daciaclub.cz/forum-kategorie/duster-i-20",
+        "https://www.daciaclub.cz/forum-kategorie/duster-ii-32",
+        "https://www.daciaclub.cz/forum-kategorie/duster-iii-37",
+        "https://www.daciaclub.cz/forum-kategorie/duster-oroch-38",
+        "https://www.daciaclub.cz/forum-kategorie/logan-i-9",
+        "https://www.daciaclub.cz/forum-kategorie/logan-ii-25",
+        "https://www.daciaclub.cz/forum-kategorie/logan-iii-34",
+        "https://www.daciaclub.cz/forum-kategorie/sandero-i-16",
+        "https://www.daciaclub.cz/forum-kategorie/sandero-ii-26",
+        "https://www.daciaclub.cz/forum-kategorie/sandero-iii-35",
+        "https://www.daciaclub.cz/forum-kategorie/sandero-iv-40",
+        "https://www.daciaclub.cz/forum-kategorie/jogger-36",
+        "https://www.daciaclub.cz/forum-kategorie/dokker-22",
+        "https://www.daciaclub.cz/forum-kategorie/lodgy-23",
+        "https://www.daciaclub.cz/forum-kategorie/spring-33",
+        "https://www.daciaclub.cz/forum-kategorie/bigster-39"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=\"message\"]",
+        "author_selector": ".show_user_box",
+        "content_selector": "P",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom CZ autoclub.eu platform (detect=generic, no standard engine; generic parser yields 0 posts -> custom selectors required). Static HTML, no login to read, no JS/browser needed. Board: /forum -> categories /forum-kategorie/<model>-<id> -> threads /forum-tema/<slug>-<id>, paginated ?kols=N. Posts are table rows TR[id^=message]; author link .show_user_box + timestamp + <P> body share one TD; content_selector=P strips author/timestamp noise. Dedicated 'zjistene zavady' (detected faults) threads per model = high RAG value. Excluded /inzerce (marketplace), /srazy & o-srazech (meetups), vtipy (jokes), pokec-vseobecny (off-topic), klubove-zalezitosti."
+    },
+    {
+      "match": "fordclub.eu",
+      "name": "Ford Club EU (fordclub.eu)",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Ford"
+      ],
+      "sections": [
+        "https://www.fordclub.eu/forum-kategorie/technicky-koutek-6",
+        "https://www.fordclub.eu/forum-kategorie/navody-24",
+        "https://www.fordclub.eu/forum-kategorie/lpg-cng-e85-36",
+        "https://www.fordclub.eu/forum-kategorie/mondeo-mk-iii-44",
+        "https://www.fordclub.eu/forum-kategorie/mondeo-mk-iv-45",
+        "https://www.fordclub.eu/forum-kategorie/focus-ii-55",
+        "https://www.fordclub.eu/forum-kategorie/focus-iii-56",
+        "https://www.fordclub.eu/forum-kategorie/fiesta-vi-51",
+        "https://www.fordclub.eu/forum-kategorie/galaxy-ii-58",
+        "https://www.fordclub.eu/forum-kategorie/kuga-28",
+        "https://www.fordclub.eu/forum-kategorie/s-max-21",
+        "https://www.fordclub.eu/forum-kategorie/transit-obecne-22"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom CZ PHP CMS (not a standard engine; detect.mjs=generic, no engine signatures). Board index at /forum; categories at /forum-kategorie/<slug>-<id>; threads at /forum-tema/<slug>-<id>. Custom thread_url_pattern needed because /forum-tema/ is not matched by the generic thread filter. Posts are <TR id=messageNNNN> rows inside table.forum_posts; author is the first a.show_user_box (username) in div.div_user; content_selector=p grabs the <P> body and excludes the user/buttons boxes. Each thread also has ~1 injected partner-ad row that yields an empty author and is dropped downstream. Public read access, no login. force_browser NOT needed (plain fetch works)."
+    },
+    {
+      "match": "fordtransit.org",
+      "name": "Ford Transit Forum",
+      "engine": "phpbb",
+      "language": "en",
+      "brands": [
+        "Ford"
+      ],
+      "sections": [
+        "https://fordtransit.org/forum/viewforum.php?f=2",
+        "https://fordtransit.org/forum/viewforum.php?f=18",
+        "https://fordtransit.org/forum/viewforum.php?f=3",
+        "https://fordtransit.org/forum/viewforum.php?f=4",
+        "https://fordtransit.org/forum/viewforum.php?f=5",
+        "https://fordtransit.org/forum/viewforum.php?f=64",
+        "https://fordtransit.org/forum/viewforum.php?f=65",
+        "https://fordtransit.org/forum/viewforum.php?f=54"
+      ],
+      "calibration": {
+        "post_selector": ".post",
+        "author_selector": "p.author strong a",
+        "content_selector": ".content",
+        "max_section_pages": 10
+      },
+      "notes": "Standard prosilver phpBB. Real board is under /forum/ (viewforum.php / viewtopic.php). The default phpbb engine parser fails here: it leaves authors empty for non-admin members (only admins carry .username-coloured) and mixes 'Reply with quote' + date noise into text, so custom selectors are required. post=.post, author='p.author strong a' (username link in the byline, works for both coloured admin and plain member links), content=.content (clean body, quotes preserved). Thread URLs are standard viewtopic.php?t=… so no thread_url_pattern needed; generic filter matches them. No login required, no JS/browser needed (plain fetch works). Sections chosen are technical: f=2 Technical Problems & Questions, f=18 Technical How-to, plus model-generation boards f=3 Mk1&2, f=4 Mk3-5, f=5 Mk6&7, f=64 Mk8, f=65 Transit Custom, f=54 Transit Connect. Marketplace/wanted/gallery/events/off-topic boards excluded. Forum is large and active: thread IDs into the 227k range, posts spanning 2006 through 2026; member 'Luke' (Site Admin) has 44k+ posts."
+    },
+    {
+      "match": "mercedesclub.cz",
+      "name": "Mercedes Club CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Mercedes-Benz"
+      ],
+      "sections": [
+        "https://www.mercedesclub.cz/forum-kategorie/technicky-koutek-6",
+        "https://www.mercedesclub.cz/forum-kategorie/c-class-w202-32",
+        "https://www.mercedesclub.cz/forum-kategorie/c-class-w203-33",
+        "https://www.mercedesclub.cz/forum-kategorie/c-class-w204-34",
+        "https://www.mercedesclub.cz/forum-kategorie/c-class-w205-60",
+        "https://www.mercedesclub.cz/forum-kategorie/e-class-w210-43",
+        "https://www.mercedesclub.cz/forum-kategorie/e-class-w211-41",
+        "https://www.mercedesclub.cz/forum-kategorie/e-class-w212-42",
+        "https://www.mercedesclub.cz/forum-kategorie/e-class-w213-83",
+        "https://www.mercedesclub.cz/forum-kategorie/s-class-w220-28",
+        "https://www.mercedesclub.cz/forum-kategorie/s-class-w221-80",
+        "https://www.mercedesclub.cz/forum-kategorie/s-class-w222-82",
+        "https://www.mercedesclub.cz/forum-kategorie/a-class-w168-19",
+        "https://www.mercedesclub.cz/forum-kategorie/a-class-w169-54",
+        "https://www.mercedesclub.cz/forum-kategorie/a-class-w176-47",
+        "https://www.mercedesclub.cz/forum-kategorie/b-class-w245-44",
+        "https://www.mercedesclub.cz/forum-kategorie/b-class-w246-45",
+        "https://www.mercedesclub.cz/forum-kategorie/clk-w208-20",
+        "https://www.mercedesclub.cz/forum-kategorie/clk-w209-40",
+        "https://www.mercedesclub.cz/forum-kategorie/cls-c219-37",
+        "https://www.mercedesclub.cz/forum-kategorie/ml-w163-24",
+        "https://www.mercedesclub.cz/forum-kategorie/ml-w164-63",
+        "https://www.mercedesclub.cz/forum-kategorie/slk-r170-31",
+        "https://www.mercedesclub.cz/forum-kategorie/slk-r171-77",
+        "https://www.mercedesclub.cz/forum-kategorie/vito-viano-w638-50",
+        "https://www.mercedesclub.cz/forum-kategorie/vito-viano-w639-52",
+        "https://www.mercedesclub.cz/forum-kategorie/sprinter-25",
+        "https://www.mercedesclub.cz/forum-kategorie/w124-14",
+        "https://www.mercedesclub.cz/forum-kategorie/w123-23",
+        "https://www.mercedesclub.cz/forum-kategorie/w201-15"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "p",
+        "date_selector": "span",
+        "thread_url_pattern": "/forum-tema/",
+        "min_post_length": 40,
+        "max_section_pages": 10
+      },
+      "notes": "Custom CMS (generator/none; table.forum_posts skin), not a standard engine. Posts = <TR id=\"message<id>\">; author = first a.show_user_box; body = <P>; date = <span>. Threads at /forum-tema/<slug>-<id> (non-standard -> thread_url_pattern required). Section listings paginate via ?kols=N and link threads as /forum-tema/...; ignore ?select=#message deep-links. One harmless partner-ad row (div.partner) parses with empty author and is dropped by the same-author validation gate. Plain HTTP fetch works; no browser/login needed."
+    },
+    {
+      "match": "nissanclub.cz",
+      "name": "Nissan Club CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Nissan"
+      ],
+      "sections": [
+        "https://www.nissanclub.cz/forum-kategorie/qashqai-j10-8",
+        "https://www.nissanclub.cz/forum-kategorie/x-trail-t30-16",
+        "https://www.nissanclub.cz/forum-kategorie/primera-p10-35",
+        "https://www.nissanclub.cz/forum-kategorie/almera-n15-38",
+        "https://www.nissanclub.cz/forum-kategorie/micra-k10-42",
+        "https://www.nissanclub.cz/forum-kategorie/maxima-a32-53",
+        "https://www.nissanclub.cz/forum-kategorie/navara-d21-89",
+        "https://www.nissanclub.cz/forum-kategorie/pathfinder-r50-97",
+        "https://www.nissanclub.cz/forum-kategorie/patrol-y60-93",
+        "https://www.nissanclub.cz/forum-kategorie/murano-z50-73",
+        "https://www.nissanclub.cz/forum-kategorie/350z-26",
+        "https://www.nissanclub.cz/forum-kategorie/skyline-62"
+      ],
+      "calibration": {
+        "post_selector": "table.forum_posts tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "td:nth-of-type(2)",
+        "thread_url_pattern": "/forum-tema/[a-z0-9-]+-\\d+",
+        "max_section_pages": 10
+      },
+      "notes": "Custom autoclub.eu CMS (no standard forum engine signatures). Sections are per-model boards at /forum-kategorie/<model>-<id>; pagination via ?kols=N. Threads at /forum-tema/<slug>-<id> (non-standard -> thread_url_pattern needed). Posts live in table.forum_posts rows tr[id^=message]; author in a.show_user_box, content in 2nd TD (date span + <P> paragraphs). Mostly CZ with some SK posts (CZ/SK club). No login needed to read."
+    },
+    {
+      "match": "peugeotclub.eu",
+      "name": "Peugeot Club EU (Peugeot klub CZ/SK)",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Peugeot"
+      ],
+      "sections": [
+        "https://www.peugeotclub.eu/forum-kategorie/technicky-koutek-6",
+        "https://www.peugeotclub.eu/forum-kategorie/navody-9",
+        "https://www.peugeotclub.eu/forum-kategorie/206-21",
+        "https://www.peugeotclub.eu/forum-kategorie/207-22",
+        "https://www.peugeotclub.eu/forum-kategorie/208-23",
+        "https://www.peugeotclub.eu/forum-kategorie/306-28",
+        "https://www.peugeotclub.eu/forum-kategorie/307-29",
+        "https://www.peugeotclub.eu/forum-kategorie/308-i-t7-30",
+        "https://www.peugeotclub.eu/forum-kategorie/308-ii-t9-57",
+        "https://www.peugeotclub.eu/forum-kategorie/407-34",
+        "https://www.peugeotclub.eu/forum-kategorie/508-i-36",
+        "https://www.peugeotclub.eu/forum-kategorie/3008-i-46",
+        "https://www.peugeotclub.eu/forum-kategorie/2008-60",
+        "https://www.peugeotclub.eu/forum-kategorie/5008-50",
+        "https://www.peugeotclub.eu/forum-kategorie/partner-ii-tepee-55",
+        "https://www.peugeotclub.eu/forum-kategorie/boxer-i-43",
+        "https://www.peugeotclub.eu/forum-kategorie/expert-traveller-i-45"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom Czech PHP CMS (not a standard engine). Boards organized per Peugeot model under /forum-kategorie/<model>-<id>, plus dedicated technicky-koutek (technical corner) and navody (how-to). Threads live at /forum-tema/<slug>-<id> (non-standard, hence thread_url_pattern). Posts are <TR id=message...> rows in table.forum_posts; author = first a.show_user_box in div_user; message body = <P> inside the TD (content=td also works but pulls in author/timestamp/button noise, so content=p is cleaner). Static HTML, no JS shell, no login required to read. Some posts are Slovak (CZ/SK community) but UI/majority is cs. AdSense present but doesn't break parsing. Ignore non-technical sections: pokec-vseobecny, srazy/akce, vtipy, inzerce, ukradena-vozidla, dopravni-prestupky, pojisteni, klubove-zalezitosti."
+    },
+    {
+      "match": "cs.tesla-club.eu",
+      "name": "Tesla Club EU (CS)",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Tesla"
+      ],
+      "sections": [
+        "https://cs.tesla-club.eu/forum-kategorie/model-3-26",
+        "https://cs.tesla-club.eu/forum-kategorie/model-s-23",
+        "https://cs.tesla-club.eu/forum-kategorie/model-x-24",
+        "https://cs.tesla-club.eu/forum-kategorie/model-y-27",
+        "https://cs.tesla-club.eu/forum-kategorie/cybertruck-29"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom in-house CMS (no standard engine signature; detect.mjs=generic, title 'Fórum - Tesla klub'). Board index at /forum; categories at /forum-kategorie/<slug>-<id>; threads at /forum-tema/<slug>-<id> (non-standard, so thread_url_pattern is required — default filter found 0 thread-like links). Posts are table rows: each post is a TR[id^=message]; author is the A.show_user_box link; body is the <P> tags inside the post TD. Generic/default engine parser returned 0 posts, so custom selectors are required. Technical sections are the per-model categories (Model 3/S/X/Y, Cybertruck); excluded marketplace/news/off-topic (Pokec všeobecný, Klubové záležitosti, O článcích). No login needed for reading; no JS/browser needed (plain server HTML fetched fine). Czech-language Tesla EV club; threads are EV-specific (display/MCU faults, software updates, charging) rather than ICE diagnostics."
+    },
+    {
+      "match": "toyota-club.eu",
+      "name": "Toyota klub (toyota-club.eu)",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Toyota"
+      ],
+      "sections": [
+        "https://www.toyota-club.eu/forum-kategorie/technicky-koutek-6",
+        "https://www.toyota-club.eu/forum-kategorie/navody-9",
+        "https://www.toyota-club.eu/forum-kategorie/avensis-15",
+        "https://www.toyota-club.eu/forum-kategorie/corolla-19",
+        "https://www.toyota-club.eu/forum-kategorie/auris-14",
+        "https://www.toyota-club.eu/forum-kategorie/yaris-23",
+        "https://www.toyota-club.eu/forum-kategorie/prius-20",
+        "https://www.toyota-club.eu/forum-kategorie/rav-4-21",
+        "https://www.toyota-club.eu/forum-kategorie/c-hr-34",
+        "https://www.toyota-club.eu/forum-kategorie/camry-17",
+        "https://www.toyota-club.eu/forum-kategorie/land-cruiser-25",
+        "https://www.toyota-club.eu/forum-kategorie/hilux-27",
+        "https://www.toyota-club.eu/forum-kategorie/aygo-16",
+        "https://www.toyota-club.eu/forum-kategorie/verso-r20-33",
+        "https://www.toyota-club.eu/forum-kategorie/celica-13"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": ".show_user_box",
+        "content_selector": "td",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom Czech CMS (no standard forum engine; generator/signatures empty, generic detector). Anonymous read works fully (no login wall). Live & active: posts dated 2026-06. Category index = /forum-kategorie/<slug>-<id> (per-model boards + technicky-koutek + navody); threads = /forum-tema/<slug>-<id> (non-standard, hence thread_url_pattern). Posts are <TR id=messageNNNN> rows; author in <A class=show_user_box>; only one <TD> per row holds both author/buttons div and the post body, so content=td and the parsed text carries a short author+timestamp prefix before the real body — bodies themselves are clean CZ/SK automotive diagnostic prose. Excluded sections: inzerce/marketplace, o-srazech-a-akcich (meetups), vtipy (jokes), pokec-vseobecny (off-topic), klubove-zalezitosti, o-clancich. English mirror exists at en.toyota-club.eu but CZ is primary."
+    },
+    {
+      "match": "en.toyota-club.eu",
+      "name": "Toyota Club EU (EN)",
+      "engine": "generic",
+      "language": "en",
+      "brands": [
+        "Toyota"
+      ],
+      "sections": [
+        "https://en.toyota-club.eu/forum-category/tech-corner-6",
+        "https://en.toyota-club.eu/forum-category/guides-9",
+        "https://en.toyota-club.eu/forum-category/corolla-19",
+        "https://en.toyota-club.eu/forum-category/avensis-15",
+        "https://en.toyota-club.eu/forum-category/auris-14",
+        "https://en.toyota-club.eu/forum-category/yaris-23",
+        "https://en.toyota-club.eu/forum-category/rav-4-21",
+        "https://en.toyota-club.eu/forum-category/prius-20",
+        "https://en.toyota-club.eu/forum-category/camry-17",
+        "https://en.toyota-club.eu/forum-category/land-cruiser-25",
+        "https://en.toyota-club.eu/forum-category/hilux-27",
+        "https://en.toyota-club.eu/forum-category/c-hr-34",
+        "https://en.toyota-club.eu/forum-category/aygo-16",
+        "https://en.toyota-club.eu/forum-category/celica-13",
+        "https://en.toyota-club.eu/forum-category/4runner-26"
+      ],
+      "calibration": {
+        "post_selector": "table.forum_posts tr",
+        "author_selector": "a.show_user_box",
+        "content_selector": "p",
+        "thread_url_pattern": "/forum-topic/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom CMS (no engine signatures, no generator). Posts are TABLE.forum_posts rows TR id=messageNNNN; author in A.show_user_box, body in P. Thread URLs are /forum-topic/<slug>-<id> (non-standard -> thread_url_pattern needed). Section pages also expose ?select=NNNN#messageNNNN reply anchors pointing at the same threads. Publicly readable without login; plain HTTP fetch works, no JS shell, no browser required."
+    },
+    {
+      "match": "vw-club.cz",
+      "name": "Volkswagen club Česká republika",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Volkswagen",
+        "VW"
+      ],
+      "sections": [
+        "https://www.vw-club.cz/golf-jetta-i/",
+        "https://www.vw-club.cz/golf-jetta-ii/",
+        "https://www.vw-club.cz/golf-iii-vento/",
+        "https://www.vw-club.cz/golf-iv-bora/",
+        "https://www.vw-club.cz/golf-v-jetta/",
+        "https://www.vw-club.cz/golf-vi-jetta/",
+        "https://www.vw-club.cz/golf-vii/",
+        "https://www.vw-club.cz/forum402/",
+        "https://www.vw-club.cz/passat-b1-b4/",
+        "https://www.vw-club.cz/passat-b5/",
+        "https://www.vw-club.cz/passat-3c-cc/",
+        "https://www.vw-club.cz/passat-b8/",
+        "https://www.vw-club.cz/corrado/",
+        "https://www.vw-club.cz/scirocco/",
+        "https://www.vw-club.cz/sag/",
+        "https://www.vw-club.cz/sharan-alhambra/",
+        "https://www.vw-club.cz/polo/",
+        "https://www.vw-club.cz/transporter-multivan-caravelle/",
+        "https://www.vw-club.cz/new-beetle/",
+        "https://www.vw-club.cz/touran/",
+        "https://www.vw-club.cz/touareg/",
+        "https://www.vw-club.cz/tiguan/",
+        "https://www.vw-club.cz/t-roc/",
+        "https://www.vw-club.cz/t-cross/",
+        "https://www.vw-club.cz/elektromobilita/"
+      ],
+      "calibration": {
+        "post_selector": "div.post",
+        "author_selector": "a.username, a.username-coloured",
+        "content_selector": "div.content",
+        "thread_url_pattern": "-t\\d+\\.html|viewtopic\\.php",
+        "max_section_pages": 10
+      },
+      "notes": "phpBB (prosilver), Czech. Plain HTTP fetch returns full HTML — no browser/anti-bot. Real board is NOT at the given /volkswagen/ homepage; technical content lives in model-specific subforums under the 'Volkswagen' category (viewforum.php?f=62), reached via SEO-rewritten URLs like /passat-b5/, /golf-iv-bora/. Threads use SEO URLs ending '-t<digits>.html' (canonical viewtopic.php?f=&t= also present); the hyphen-before-t form does NOT match the default isLikelyThreadUrl heuristic, so thread_url_pattern is required. Engine parser extracts posts+authors but prepends a noisy 'Citovat Příspěvek od X »' header line to every post; custom selectors (div.post / a.username(-coloured) / div.content) give clean authors + clean message text, verified across two sections. Section pagination is SEO 'pageNN.html' with rel=next (handled by findNextPageLink). Excluded non-technical categories: Bazar (marketplace), Poradna (only insurance/authorities), Členská sekce, Lidi od fochu, Ostatní, Odkazy."
+    },
+    {
+      "match": "skoda-club.net",
+      "name": "Škoda klub (skoda-club.net)",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Škoda"
+      ],
+      "sections": [
+        "https://www.skoda-club.net/forum-kategorie/fabia-i-17",
+        "https://www.skoda-club.net/forum-kategorie/fabia-ii-27",
+        "https://www.skoda-club.net/forum-kategorie/fabia-iii-44",
+        "https://www.skoda-club.net/forum-kategorie/fabia-iv-57",
+        "https://www.skoda-club.net/forum-kategorie/octavia-i-18",
+        "https://www.skoda-club.net/forum-kategorie/octavia-ii-28",
+        "https://www.skoda-club.net/forum-kategorie/octavia-iii-31",
+        "https://www.skoda-club.net/forum-kategorie/octavia-iv-55",
+        "https://www.skoda-club.net/forum-kategorie/superb-i-20",
+        "https://www.skoda-club.net/forum-kategorie/superb-ii-29",
+        "https://www.skoda-club.net/forum-kategorie/superb-iii-46",
+        "https://www.skoda-club.net/forum-kategorie/superb-iv-60",
+        "https://www.skoda-club.net/forum-kategorie/yeti-26",
+        "https://www.skoda-club.net/forum-kategorie/kodiaq-59",
+        "https://www.skoda-club.net/forum-kategorie/karoq-51",
+        "https://www.skoda-club.net/forum-kategorie/kamiq-53",
+        "https://www.skoda-club.net/forum-kategorie/scala-52",
+        "https://www.skoda-club.net/forum-kategorie/roomster-19",
+        "https://www.skoda-club.net/forum-kategorie/rapid-43",
+        "https://www.skoda-club.net/forum-kategorie/citigo-30",
+        "https://www.skoda-club.net/forum-kategorie/enyaq-54",
+        "https://www.skoda-club.net/forum-kategorie/favorit-15",
+        "https://www.skoda-club.net/forum-kategorie/felicia-16"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": ".show_user_box",
+        "content_selector": "td p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom CZ CMS (engine=generic), old table-based skin. Posts are <TR id=\"message<digits>\">; author in div.div_user a.show_user_box; body in <P> tags inside the TD (content_selector 'td p' strips author/date/buttons). Boards organized purely by model under /forum-kategorie/<model>-<id>; each model board IS the technical content (engine/electrical/faults/repairs) — no separate tech subforum. Threads: /forum-tema/<slug>-<id> (non-standard, hence thread_url_pattern). Section pagination via ?kols=N (findNextPageLink handles it). No login, no JS challenge — anonymous fetch works, no browser needed. Excluded non-technical boards: /inzerce (marketplace), /srazy (meetups), /clanky /videa (news/media), /chat. One ad row (div.partner 'Kaufio.cz') leaks per thread with empty author and is dropped by the non-empty-author gate. en.skoda-club.net mirror exists but main site is Czech."
+    },
+    {
+      "match": "forum.skodahome.cz",
+      "name": "SkodaHome (ŠKODA Forum)",
+      "engine": "invision",
+      "language": "cs",
+      "brands": [
+        "Škoda"
+      ],
+      "sections": [
+        "https://forum.skodahome.cz/forum/447-motor/",
+        "https://forum.skodahome.cz/forum/444-elektrika/",
+        "https://forum.skodahome.cz/forum/443-podvozek/",
+        "https://forum.skodahome.cz/forum/315-motor/",
+        "https://forum.skodahome.cz/forum/320-elektrika/",
+        "https://forum.skodahome.cz/forum/319-podvozek/",
+        "https://forum.skodahome.cz/forum/246-motor/",
+        "https://forum.skodahome.cz/forum/393-elektrika/",
+        "https://forum.skodahome.cz/forum/247-podvozek/"
+      ],
+      "calibration": {
+        "post_selector": "article[data-ips-hook=\"postWrapper\"]",
+        "author_selector": ".ipsUsername",
+        "content_selector": "[data-role=\"commentContent\"]",
+        "max_section_pages": 10
+      },
+      "notes": "Invision Community 5 (IPS5) — bundled invision parser targets IPS4 (cPost/cAuthorPane) and FAILS here (1 post, empty author, noisy text); custom IPS5 selectors required and verified. Author=.ipsUsername (clean username), content=[data-role=\"commentContent\"]. Board index is the BARE domain (forum.skodahome.cz/), NOT /forum (404). Thread URLs are standard /topic/<digits>-slug/ (generic filter matches; no thread_url_pattern needed). Static fetch is enough for both section listings and threads — no browser. Sections listed are guest-readable (Favorit 443/444/447, Felicia 315/319/320, Citigo 246/247/393). IMPORTANT: the 562-577 block (current/modern-model technical sections, e.g. 575-elektrika, 563-motor) is MEMBERS-ONLY for guests — section listing returns 'Omlouváme se, nemáte k tomu oprávnění!' so they were excluded. www.skodahome.cz is a separate WordPress news site (off-topic, not the forum)."
+    },
+    {
+      "match": "cs.renault-club.cz",
+      "name": "Renault Club CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Renault",
+        "Alpine",
+        "Dacia"
+      ],
+      "sections": [
+        "https://cs.renault-club.cz/forum-kategorie/technicky-koutek-6",
+        "https://cs.renault-club.cz/forum-kategorie/megane-ii-27",
+        "https://cs.renault-club.cz/forum-kategorie/megane-iii-79",
+        "https://cs.renault-club.cz/forum-kategorie/megane-iv-105",
+        "https://cs.renault-club.cz/forum-kategorie/laguna-ii-37",
+        "https://cs.renault-club.cz/forum-kategorie/laguna-iii-77",
+        "https://cs.renault-club.cz/forum-kategorie/scenic-ii-48",
+        "https://cs.renault-club.cz/forum-kategorie/scenic-iii-82",
+        "https://cs.renault-club.cz/forum-kategorie/clio-iii-73",
+        "https://cs.renault-club.cz/forum-kategorie/clio-iv-74",
+        "https://cs.renault-club.cz/forum-kategorie/espace-iv-96",
+        "https://cs.renault-club.cz/forum-kategorie/kangoo-50",
+        "https://cs.renault-club.cz/forum-kategorie/captur-66",
+        "https://cs.renault-club.cz/forum-kategorie/kadjar-103",
+        "https://cs.renault-club.cz/forum-kategorie/koleos-i-57",
+        "https://cs.renault-club.cz/forum-kategorie/trafic-43",
+        "https://cs.renault-club.cz/forum-kategorie/master-60"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "td",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "autoclub.eu platforma (custom PHP, detect=generic): sekce /forum-kategorie/, vlákna /forum-tema/, příspěvky tr[id^=message], autor a.show_user_box. Ověřeno (recon batch 2a)."
+    },
+    {
+      "match": "seatclub.cz",
+      "name": "SEAT Club CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "SEAT",
+        "Cupra"
+      ],
+      "sections": [
+        "https://www.seatclub.cz/forum-kategorie/technicky-koutek-6",
+        "https://www.seatclub.cz/forum-kategorie/navody-14",
+        "https://www.seatclub.cz/forum-kategorie/tuning-a-upravy-1",
+        "https://www.seatclub.cz/forum-kategorie/leon-ii-typ-1p-24",
+        "https://www.seatclub.cz/forum-kategorie/leon-iii-typ-5f-25",
+        "https://www.seatclub.cz/forum-kategorie/leon-iv-typ-kl-43",
+        "https://www.seatclub.cz/forum-kategorie/ibiza-iv-typ-6j-34",
+        "https://www.seatclub.cz/forum-kategorie/altea-13",
+        "https://www.seatclub.cz/forum-kategorie/alhambra-typ-7n-27",
+        "https://www.seatclub.cz/forum-kategorie/cordoba-ii-typ-6l-29",
+        "https://www.seatclub.cz/forum-kategorie/toledo-mk3-typ-5p-37",
+        "https://www.seatclub.cz/forum-kategorie/exeo-21"
+      ],
+      "calibration": {
+        "post_selector": "tr[id^=message]",
+        "author_selector": "a.show_user_box",
+        "content_selector": "p",
+        "thread_url_pattern": "/forum-tema/",
+        "max_section_pages": 10
+      },
+      "notes": "autoclub.eu platforma (custom PHP, detect=generic): sekce /forum-kategorie/, vlákna /forum-tema/, příspěvky tr[id^=message], autor a.show_user_box. Ověřeno (recon batch 2a)."
     }
   ]
 }
