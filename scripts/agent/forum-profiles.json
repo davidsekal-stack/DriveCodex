@@ -1052,6 +1052,638 @@
         "max_section_pages": 10
       },
       "notes": "autoclub.eu platforma (custom PHP, detect=generic): sekce /forum-kategorie/, vlákna /forum-tema/, příspěvky tr[id^=message], autor a.show_user_box. Ověřeno (recon batch 2a)."
+    },
+    {
+      "match": "club.autodoc.cz",
+      "name": "AUTODOC Club Opel CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Opel"
+      ],
+      "sections": [
+        "https://club.autodoc.cz/forum/car-talk/diskuze-o-autech-podle-znacky/opel/"
+      ],
+      "calibration": {
+        "post_selector": ".comments-item",
+        "author_selector": ".comments-item__name",
+        "content_selector": ".comments-item__body",
+        "thread_url_pattern": "/forum/topic/",
+        "max_section_pages": 10
+      },
+      "notes": "Custom SSR platform (Nuxt frontend + WordPress backend; avatars reference web/app/themes/autodoc). Not autoclub.eu, not a standard forum engine. Default fetch path (plain fetch -> Crawlee escalation) delivers full SSR HTML (~930KB). IMPORTANT: do NOT set force_browser — the system-Chrome --dump-dom render returns no usable HTML and fails; the plain/Crawlee path is what works. Threads are flat at /forum/topic/<slug>/ (NOT under the section path) so thread_url_pattern is required. Section pages paginate via /page/N/ with ~40 topics/page. Authors render anonymized as @user_NNNN (the site's real display format) — non-empty and valid. A marketing 'Náhradní díly pro vaše auto' block parses as a phantom post but has an empty author, so it is filtered out. Verified posts on 2 threads with non-empty authors + clean technical text."
+    },
+    {
+      "match": "audi-forum.cz",
+      "name": "Audi Forum CZ",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Audi"
+      ],
+      "sections": [
+        "https://www.audi-forum.cz/a3/",
+        "https://www.audi-forum.cz/a4/",
+        "https://www.audi-forum.cz/a5/",
+        "https://www.audi-forum.cz/a6/",
+        "https://www.audi-forum.cz/a7/",
+        "https://www.audi-forum.cz/a8/",
+        "https://www.audi-forum.cz/q5/",
+        "https://www.audi-forum.cz/q7/",
+        "https://www.audi-forum.cz/tt/",
+        "https://www.audi-forum.cz/servis/",
+        "https://www.audi-forum.cz/tuning/"
+      ],
+      "calibration": {
+        "thread_url_pattern": "-t\\d+\\.html",
+        "max_section_pages": 10
+      },
+      "notes": "Standard phpBB (prosilver), CZ/SK Audi club, reachable with no login wall for reading. Static HTML — no browser needed. Threads use SEO-rewritten URLs /<section>/<slug>-tNNN.html (e.g. /a4/auto-zlobi-...-t17574.html), so thread_url_pattern set to '-t\\d+\\.html'. The phpBB engine parser extracts posts cleanly with non-empty authors; OMITTED custom selectors since engine parses well. Each post body carries a standard phpBB 'Citovat Příspěvek od <user> &raquo; <date>' header prefix — normal phpBB noise, post text follows. Sections chosen are the technical/model + servis/tuning areas; marketplace (prodam/koupim/sluzby) and offtopic (pokec-zabava, tz-novinky, akce-srazy) excluded. Note: root listed some spam member pages but that doesn't affect crawling technical sections."
+    },
+    {
+      "match": "audiklub.cz",
+      "name": "Audi Klub CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Audi"
+      ],
+      "sections": [
+        "https://audiklub.cz/forum/kategorie/23-audi-a4",
+        "https://audiklub.cz/forum/kategorie/24-audi-a6",
+        "https://audiklub.cz/forum/kategorie/26-audi-a1-audi-a2-audi-a3-audi-tt",
+        "https://audiklub.cz/forum/kategorie/27-audi-a5-audi-a7",
+        "https://audiklub.cz/forum/kategorie/17-audi-a8-audi-v8",
+        "https://audiklub.cz/forum/kategorie/39-audi-q3-audi-q5-audi-q7-audi-q8",
+        "https://audiklub.cz/forum/kategorie/34-audi-s-rs-r",
+        "https://audiklub.cz/forum/kategorie/60-audi-e-tron",
+        "https://audiklub.cz/forum/kategorie/48-chiptuning",
+        "https://audiklub.cz/forum/sekce/4-technika-upravy"
+      ],
+      "calibration": {
+        "post_selector": "div.topicpost",
+        "author_selector": "span.name a",
+        "content_selector": "div.message",
+        "thread_url_pattern": "/forum/tema/",
+        "force_browser": false,
+        "max_section_pages": 10
+      },
+      "notes": "Custom Czech phpBB-derived skin (NOT autoclub.eu shape). Posts are div.topicpost (classes 'topicpost row1'/'row2'); author in div.userinfo span.name a; body in div.postmain div.message (includes a leading date like '05.02 2026 22:30' before the post text — harmless, classifier ignores). Threads at /forum/tema/<id>-<slug>; sections=container at /forum/sekce/<id>, model sub-forums at /forum/kategorie/<id>. Each thread contains exactly one ad row parsed as author 'Reklama AK' (literal text 'reklama je cesta, jak udrzet web v chodu...') sharing the topicpost structure — single predictable noise post per thread, drop/ignore it. Static HTML over plain HTTPS, no JS/challenge, no login wall, no browser needed. Generic engine auto-parser returned 0 posts — custom selectors above are required."
+    },
+    {
+      "match": "bmw-forum.cz",
+      "name": "BMW Forum CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "BMW"
+      ],
+      "sections": [
+        "https://www.bmw-forum.cz/bmw-1-rada/",
+        "https://www.bmw-forum.cz/forum37/",
+        "https://www.bmw-forum.cz/bmw-3-rada/",
+        "https://www.bmw-forum.cz/forum38/",
+        "https://www.bmw-forum.cz/bmw-5-rada/",
+        "https://www.bmw-forum.cz/bmw-6-rada/",
+        "https://www.bmw-forum.cz/bmw-7-rada/",
+        "https://www.bmw-forum.cz/bmw-8-rada/",
+        "https://www.bmw-forum.cz/historicke-modely/",
+        "https://www.bmw-forum.cz/budouci-modely/",
+        "https://www.bmw-forum.cz/forum39/",
+        "https://www.bmw-forum.cz/forum40/",
+        "https://www.bmw-forum.cz/forum41/",
+        "https://www.bmw-forum.cz/forum42/",
+        "https://www.bmw-forum.cz/forum43/",
+        "https://www.bmw-forum.cz/forum46/",
+        "https://www.bmw-forum.cz/forum44/",
+        "https://www.bmw-forum.cz/forum45/",
+        "https://www.bmw-forum.cz/forum47/",
+        "https://www.bmw-forum.cz/forum48/",
+        "https://www.bmw-forum.cz/forum49/",
+        "https://www.bmw-forum.cz/forum50/",
+        "https://www.bmw-forum.cz/forum51/",
+        "https://www.bmw-forum.cz/servis/",
+        "https://www.bmw-forum.cz/tuning/",
+        "https://www.bmw-forum.cz/auto-hifi/"
+      ],
+      "calibration": {
+        "post_selector": "div.post",
+        "author_selector": "a.username, a.username-coloured",
+        "content_selector": "div.content",
+        "thread_url_pattern": "-t",
+        "max_section_pages": 10
+      },
+      "notes": "phpBB 3.x (prosilver) with SEO-rewritten URLs. Reachable, no login wall for browsing. Built-in phpbb parser works but prepends post-header noise ('Citovat Prispevek od X >> <date>'); custom selectors give clean body + clean authors. Sections are model-specific subforum categories (BMW rada 1-8, X/Z/i series via /forumNN/) plus Servis and Tuning. Threads live at /<section-slug>/<thread-slug>-t<N>.html — thread_url_pattern set to '-t' to match the tNN.html topic id (matches viewtopic too). Excluded marketplace (prodam/koupim/vymenim/sluzby), offtopic (pokec-zabava, akce-srazy), tz-novinky, club-web, download, odkazy-a-videa, koupe-ojeteho-vozu. Some category pages (e.g. /bmw-1-rada/) list subforums AND threads mixed; crawler should follow both. SID query params appear on links — strip [?&]sid=... when deduping."
+    },
+    {
+      "match": "bmwklub.sk",
+      "name": "BMWklub SK",
+      "engine": "phpbb",
+      "language": "sk",
+      "brands": [
+        "BMW",
+        "Mini"
+      ],
+      "sections": [
+        "https://www.bmwklub.sk/technicke-okienko/",
+        "https://www.bmwklub.sk/navody-a-manualy/",
+        "https://www.bmwklub.sk/bmw1-e81-e82-e87-e88/",
+        "https://www.bmwklub.sk/bmw3-e36/",
+        "https://www.bmwklub.sk/bmw3-e46/",
+        "https://www.bmwklub.sk/bmw3-e90-e91-e92-e93/",
+        "https://www.bmwklub.sk/bmw5-e39/",
+        "https://www.bmwklub.sk/bmw5-e60-e61/",
+        "https://www.bmwklub.sk/bmw5-f10-f11-f07-gt/",
+        "https://www.bmwklub.sk/bmw7-e65-e66-e67-e68/",
+        "https://www.bmwklub.sk/bmw-x3-x4/",
+        "https://www.bmwklub.sk/bmw-x5-x6-x7/"
+      ],
+      "calibration": {
+        "thread_url_pattern": "-t",
+        "max_section_pages": 10
+      },
+      "notes": "phpBB 3 on a custom skin (no forumtitle/topictitle classes; itemlist--forums / itemlist--topics layout; SEO URLs like /bmw3-e46/<slug>-t<id>.html). Standard phpbb engine parser works perfectly — no custom selectors needed. Reachable over plain HTTP, no login wall, no JS challenge (force_browser not needed). Auto-calibration likely failed because recon's default thread-link detection does not recognize the SEO '-t<id>.html' thread URLs, hence thread_url_pattern='-t'. Sections chosen are real technical/per-chassis fault forums; marketplace (PREDAJ/KUPA), BMW pokec offtopic, Fotky/Videa, Sluzby and Presunute temy excluded. Many more per-model sections exist (E21/E30, E28/E34, F30, F32, X1/X2, Z, M, i3/i8) and could be added."
+    },
+    {
+      "match": "clubvw.cz",
+      "name": "ClubVW.cz",
+      "engine": "invision",
+      "language": "cs",
+      "brands": [
+        "Volkswagen",
+        "Škoda"
+      ],
+      "sections": [
+        "https://igorweb.org/clubvw/index.php?/forum/3-golf/",
+        "https://igorweb.org/clubvw/index.php?/forum/21-golf-4-iv/",
+        "https://igorweb.org/clubvw/index.php?/forum/22-golf-5-v/",
+        "https://igorweb.org/clubvw/index.php?/forum/4-touran/",
+        "https://igorweb.org/clubvw/index.php?/forum/6-passat/",
+        "https://igorweb.org/clubvw/index.php?/forum/35-passat-vi-b6/",
+        "https://igorweb.org/clubvw/index.php?/forum/5-tiguan/",
+        "https://igorweb.org/clubvw/index.php?/forum/12-transporter/",
+        "https://igorweb.org/clubvw/index.php?/forum/73-návody/"
+      ],
+      "calibration": {
+        "post_selector": "article[id^=elComment]",
+        "author_selector": "h3.cAuthorPane_author",
+        "content_selector": "div[data-role=commentContent]",
+        "thread_url_pattern": "/topic/",
+        "max_section_pages": 10
+      },
+      "notes": "ClubVW.cz forum hostované na igorweb.org/clubvw/ (Invision). match=clubvw.cz (doména db-fóra), sekce na igorweb.org. Invision Power Board (IPS 4.x). IMPORTANT: www.clubvw.cz 301-redirects to canonical host igorweb.org/clubvw/ — all section & thread URLs MUST use igorweb.org host. Built-in invision/generic parsers FAIL (grab whole thread as 1 post, empty author) — custom selectors required and verified. post=article[id^=elComment], author=h3.cAuthorPane_author (clean username), content=div[data-role=commentContent] (clean body). Threads at index.php?/topic/<id>-<slug>/, sections at index.php?/forum/<id>-<slug>/. No browser needed (static HTML, no JS challenge, no login wall). Verified on 3 threads with clean non-empty authors and real CZ/SK diagnostic content incl. OBD code P0441."
+    },
+    {
+      "match": "forum.citroeny.cz",
+      "name": "Forum Citroeny.cz",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Citroen",
+        "DS"
+      ],
+      "sections": [
+        "http://forum.citroeny.cz/viewforum.php?f=30",
+        "http://forum.citroeny.cz/viewforum.php?f=16",
+        "http://forum.citroeny.cz/viewforum.php?f=15",
+        "http://forum.citroeny.cz/viewforum.php?f=9",
+        "http://forum.citroeny.cz/viewforum.php?f=149",
+        "http://forum.citroeny.cz/viewforum.php?f=10",
+        "http://forum.citroeny.cz/viewforum.php?f=184",
+        "http://forum.citroeny.cz/viewforum.php?f=4",
+        "http://forum.citroeny.cz/viewforum.php?f=23",
+        "http://forum.citroeny.cz/viewforum.php?f=186",
+        "http://forum.citroeny.cz/viewforum.php?f=24",
+        "http://forum.citroeny.cz/viewforum.php?f=25",
+        "http://forum.citroeny.cz/viewforum.php?f=14",
+        "http://forum.citroeny.cz/viewforum.php?f=187",
+        "http://forum.citroeny.cz/viewforum.php?f=185"
+      ],
+      "calibration": {
+        "max_section_pages": 10
+      },
+      "notes": "Standard phpBB (prosilver), Czech, brand Citroen/DS. Reachable over plain HTTP, no login wall, no JS challenge — force_browser not needed. Built-in phpbb engine parser parses cleanly: verified multiple threads (t=13679 -> 2 posts, t=5204 -> 12 posts) with non-empty clean authors (C5ff, Havlicek.Lukas, jaro21, dony) and readable CZ automotive content, so custom selectors omitted. Forum is organized one section per model; f=30 'Obecna poradna' is the general technical advice section, plus per-model technical sections (C5, C4, C3, Berlingo, Xsara, etc.). Skipped non-technical sections: f=183 club chat/meetups, f=145/146 sport/garage gallery, f=37/38/39 services/links directories, f=148 rules. URLs carry a ?sid= session param in recon output but base viewforum.php?f= / viewtopic.php?t= URLs work without it. Thread URL pattern is standard phpBB (viewtopic.php?t=) so thread_url_pattern omitted."
+    },
+    {
+      "match": "opel-astra-h.cz",
+      "name": "Opel Astra H CZ",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Opel"
+      ],
+      "sections": [
+        "https://www.opel-astra-h.cz/forum/viewforum.php?f=6"
+      ],
+      "calibration": {
+        "post_selector": "div.post",
+        "author_selector": "a.username, a.username-coloured",
+        "content_selector": "div.content",
+        "thread_url_pattern": "viewtopic.php",
+        "max_section_pages": 10
+      },
+      "notes": "phpBB forum (Opel Astra H a Zafira B), Czech. Detected engine=phpbb, but the built-in phpbb parser bleeds quote-header noise ('Citovat Příspěvek od <user> » <date>') into the post text. Using generic selectors post=div.post, author=a.username(/.username-coloured), content=div.content yields clean post bodies + clean authors. Verified across 2 threads. Main (and only) technical section is f=6 'Technika' — flat forum, no deeper sub-forums; covers engine/turbo/electrical/folie etc. Reachable without login or JS challenge; force_browser not needed. Threads are viewtopic.php?p=...#p... or viewtopic.php?t=...; thread_url_pattern=viewtopic.php. SIDs (sid=) appear in URLs but are harmless."
+    },
+    {
+      "match": "peugeot-forum.cz",
+      "name": "Peugeot Forum CZ",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Peugeot"
+      ],
+      "sections": [
+        "https://www.peugeot-forum.cz/servis/",
+        "https://www.peugeot-forum.cz/tuning/",
+        "https://www.peugeot-forum.cz/koupe-ojeteho-vozu/",
+        "https://www.peugeot-forum.cz/106/",
+        "https://www.peugeot-forum.cz/107/",
+        "https://www.peugeot-forum.cz/108/",
+        "https://www.peugeot-forum.cz/205/",
+        "https://www.peugeot-forum.cz/206/",
+        "https://www.peugeot-forum.cz/207/",
+        "https://www.peugeot-forum.cz/208/",
+        "https://www.peugeot-forum.cz/2008/",
+        "https://www.peugeot-forum.cz/301/",
+        "https://www.peugeot-forum.cz/306/",
+        "https://www.peugeot-forum.cz/307/",
+        "https://www.peugeot-forum.cz/308/",
+        "https://www.peugeot-forum.cz/309/",
+        "https://www.peugeot-forum.cz/3008/",
+        "https://www.peugeot-forum.cz/rcz/",
+        "https://www.peugeot-forum.cz/405/",
+        "https://www.peugeot-forum.cz/406/",
+        "https://www.peugeot-forum.cz/407/",
+        "https://www.peugeot-forum.cz/4007/",
+        "https://www.peugeot-forum.cz/4008/",
+        "https://www.peugeot-forum.cz/508/",
+        "https://www.peugeot-forum.cz/5008/",
+        "https://www.peugeot-forum.cz/605/",
+        "https://www.peugeot-forum.cz/607/",
+        "https://www.peugeot-forum.cz/806/",
+        "https://www.peugeot-forum.cz/807/",
+        "https://www.peugeot-forum.cz/bipper/",
+        "https://www.peugeot-forum.cz/partner/",
+        "https://www.peugeot-forum.cz/expert/",
+        "https://www.peugeot-forum.cz/boxer/",
+        "https://www.peugeot-forum.cz/rifter/",
+        "https://www.peugeot-forum.cz/traveller/",
+        "https://www.peugeot-forum.cz/historicke-modely/"
+      ],
+      "calibration": {
+        "post_selector": "div.post",
+        "author_selector": "p.author a.username, p.author a.username-coloured",
+        "content_selector": "div.content",
+        "thread_url_pattern": "-t\\d+\\.html",
+        "max_section_pages": 10
+      },
+      "notes": "phpBB (prosilver). Reachable via plain fetch, no login wall, no JS challenge. Thread URLs use non-standard SEO rewrite /<section-slug>/<thread-slug>-t<id>.html (e.g. /servis/peugeot-partner-nouzovy-rezim-t27189.html) which is likely why auto-calibration originally failed to find threads. Section listings expose threads via a.topictitle. The built-in phpbb engine parser DOES get non-empty authors but the post text includes header noise (Citovat / Prispevek od X / date), so custom selectors are supplied for clean output. Author selector covers both normal and coloured usernames. Excluded: marketplace (/prodam/,/koupim/,/vymenim/,/sluzby/), offtopic (/pokec-a-zabava/,/akce-srazy/), news (/tz-novinky/), meta (/o-tomto-foru/,/peugeot-forum-club/), media (/auto-hifi/,/odkazy-a-videa/,/download/,/vase-auta/)."
+    },
+    {
+      "match": "forum.peugeotclubslovakia.sk",
+      "name": "PeugeotClub Slovakia",
+      "engine": "generic",
+      "language": "sk",
+      "brands": [
+        "Peugeot",
+        "Citroen"
+      ],
+      "sections": [
+        "https://forum.peugeotclubslovakia.sk/index.php/board,149.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,330.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,295.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,260.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,261.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,264.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,265.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,266.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,267.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,268.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,337.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,269.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,270.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,271.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,272.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,293.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,332.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,294.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,273.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,274.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,275.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,276.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,336.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,290.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,286.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,287.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,288.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,277.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,278.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,333.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,279.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,334.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,280.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,281.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,282.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,335.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,283.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,284.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,289.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,292.0.html",
+        "https://forum.peugeotclubslovakia.sk/index.php/board,291.0.html"
+      ],
+      "calibration": {
+        "post_selector": "div.post_wrapper",
+        "author_selector": "div.poster h4 a",
+        "content_selector": "div.post div.inner",
+        "thread_url_pattern": "/index.php/topic,",
+        "max_section_pages": 10
+      },
+      "notes": "SMF (Simple Machines Forum). Engine detector reports 'generic' and the generic parser finds 0 posts on its own -- this is why prior auto-calibration failed. SMF custom selectors fix it: posts in div.post_wrapper, author in div.poster h4 a (user profile link), body in div.post div.inner. Verified on 2 threads across 2 boards (topic 5855 Peugeot 206 alternator wiring, topic 4641 Servis wheel-bearing torque): 3 posts each, non-empty authors (Vladimir, jsbb32, bb^^, Qcko), clean SK technical text. Live & active (newest posts Apr 2026). Boards at /index.php/board,N.0.html, threads at /index.php/topic,N.0.html (PHPSESSID query param appears on links but canonical URLs work without it). Plain Node fetch w/ minimal headers returns HTTP 466 Access Forbidden, but the agent's fetchHtml (full Chrome UA) succeeds with no browser needed, so force_browser is not required. Sections list = Servis + Clanky/navody + PSA-dokumenty + all per-model boards (106..5008, RCZ, Partner/Rifter, ostatne modely) + Citroen + alternativne paliva. Excluded: marketplace/bazar, offtopic (Babsky kutik, Kuchynka, Pokec), motorsport-social, partners, club events."
+    },
+    {
+      "match": "tipcars.com",
+      "name": "TipCars Forum — Audi",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Audi"
+      ],
+      "sections": [
+        "https://www.tipcars.com/forum/audi/",
+        "https://www.tipcars.com/forum/audi-a3/",
+        "https://www.tipcars.com/forum/audi-a4/",
+        "https://www.tipcars.com/forum/audi-a6/",
+        "https://www.tipcars.com/forum/audi-a5/",
+        "https://www.tipcars.com/forum/audi-q5/",
+        "https://www.tipcars.com/forum/audi-q7/",
+        "https://www.tipcars.com/forum/audi-80/",
+        "https://www.tipcars.com/forum/audi-100/",
+        "https://www.tipcars.com/forum/audi-tt/"
+      ],
+      "calibration": {
+        "post_selector": ".prispevek_v_tematu",
+        "author_selector": ".o_autorovi .fs-tucne",
+        "content_selector": ".sloupec .mb-10",
+        "thread_url_pattern": ".html",
+        "force_browser": false,
+        "max_section_pages": 10
+      },
+      "notes": "Custom TipCars PHP forum platform (engine detector falsely reports WoltLab — it is NOT WoltLab). Static HTML, no JS/login wall, no browser needed. Forum is organized by brand-model rather than topic category; each model section (/forum/audi-<model>/) is its own technical discussion area (faults, engine, maintenance, buying advice all mixed in). Main hub /forum/audi/ aggregates threads across all Audi models. Thread URLs: /forum/audi-<model>/<slug>-<id>.html — sections end in '/', threads end in '.html', so thread_url_pattern='.html' cleanly separates them. Pagination via ?str=2-20. Post block: DIV.prispevek_v_tematu; author: first SPAN.fs-tucne inside DIV.o_autorovi; body: DIV.mb-10 inside DIV.sloupec (the DIV.mb-20 sibling holds date+title header, skip it). Page charset is Czech; console showed mojibake but content is clean. Many threads are buying/advice oriented but real fault threads exist (e.g. 'Audi A4 B7 1.9 TDI spatne startuje')."
+    },
+    {
+      "match": "volkswagen-forum.cz",
+      "name": "VW Forum CZ SK",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Volkswagen"
+      ],
+      "sections": [
+        "https://www.volkswagen-forum.cz/viewforum.php?f=15",
+        "https://www.volkswagen-forum.cz/viewforum.php?f=2",
+        "https://www.volkswagen-forum.cz/viewforum.php?f=3",
+        "https://www.volkswagen-forum.cz/viewforum.php?f=13"
+      ],
+      "calibration": {
+        "thread_url_pattern": "-t\\d+\\.html",
+        "max_section_pages": 10
+      },
+      "notes": "Standard phpBB (prosilver). Stock phpBB engine parser extracts clean non-empty authors + bodies on both single- and multi-post threads — NO custom selectors needed. Why it failed auto-calibration: (1) root /forum/ and bare model slugs like /golf-7/ return 404 — canonical sections are viewforum.php?f=N (HTTP 200, stable) or SEO slugs with -fN/ suffix (e.g. /golf-7-f64/, /servis/). (2) Threads use SEO rewrite <slug>-tN.html instead of viewtopic.php?t=N, so generic thread-link detection found 0 threads. Fix: use viewforum.php?f=N section URLs + thread_url_pattern '-t\\d+\\.html'. Real technical sections: f15 Servis VW (fault/repair threads e.g. chyba 00447 přepětí Golf 6, zatékání panoramatickou střechou), f3 model diskuse (Passat/Golf), f2 Club WEB, f13 Tuning. Avoid f10 Pokec/Zábava (offtopic), f12 Sraz (meetups). Low-moderate activity, many single-reply threads. No login wall for browsing; no JS challenge."
+    },
+    {
+      "match": "vw-club.sk",
+      "name": "VW Club SK",
+      "engine": "phpbb",
+      "language": "sk",
+      "brands": [
+        "Volkswagen",
+        "Seat",
+        "Audi",
+        "Skoda"
+      ],
+      "sections": [
+        "https://www.vw-club.sk/servis-pomoc-autohifi/",
+        "https://www.vw-club.sk/vag-etka-chiptuning/",
+        "https://www.vw-club.sk/golf-iv-bora/",
+        "https://www.vw-club.sk/golf-v-jetta/",
+        "https://www.vw-club.sk/golf-vi/",
+        "https://www.vw-club.sk/golf-vii/",
+        "https://www.vw-club.sk/passat-b5-b5/",
+        "https://www.vw-club.sk/passat-3c-cc/",
+        "https://www.vw-club.sk/passat-b7/",
+        "https://www.vw-club.sk/passat-b8/",
+        "https://www.vw-club.sk/touran/",
+        "https://www.vw-club.sk/touareg/",
+        "https://www.vw-club.sk/tiguan/",
+        "https://www.vw-club.sk/polo/",
+        "https://www.vw-club.sk/transporter-multivan-caravelle/"
+      ],
+      "calibration": {
+        "thread_url_pattern": "-t",
+        "max_section_pages": 10
+      },
+      "notes": "Standard phpBB (prosilver) with SEO-rewritten URLs: sections at /<slug>/, threads at /<section>/<thread-slug>-t<id>.html. phpBB engine parser verified clean: 2-post threads parse with non-empty authors (KuhoMuka, noxik600, Juraj-cc, janosik93) and real Slovak diagnostic text; no custom selectors needed. Reachable over plain fetch, no login wall (login optional), no JS challenge -> force_browser=false. WARNING: first page of every section is currently flooded with Russian AI/spam threads (forum no longer actively moderated) -> classifier must discard them; genuine Slovak technical content lives on deeper pages (sections run 300+ pages deep, e.g. /golf-iv-bora/page100.html). thread_url_pattern set to '-t' since URLs are slug-rewritten, not the default viewtopic.php."
+    },
+    {
+      "match": "skoda-forum.cz",
+      "name": "ŠKODA-FORUM.cz",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Škoda"
+      ],
+      "sections": [
+        "https://www.skoda-forum.cz/octavia-i/",
+        "https://www.skoda-forum.cz/octavia-ii/",
+        "https://www.skoda-forum.cz/octavia-iii/",
+        "https://www.skoda-forum.cz/fabia-i/",
+        "https://www.skoda-forum.cz/fabia-ii/",
+        "https://www.skoda-forum.cz/fabia-iii/",
+        "https://www.skoda-forum.cz/superb/",
+        "https://www.skoda-forum.cz/rapid/",
+        "https://www.skoda-forum.cz/scala/",
+        "https://www.skoda-forum.cz/karoq/",
+        "https://www.skoda-forum.cz/kamiq/",
+        "https://www.skoda-forum.cz/kodiaq/",
+        "https://www.skoda-forum.cz/roomster/",
+        "https://www.skoda-forum.cz/yeti/",
+        "https://www.skoda-forum.cz/citigo/",
+        "https://www.skoda-forum.cz/felicia/",
+        "https://www.skoda-forum.cz/favorit-forman/",
+        "https://www.skoda-forum.cz/servis-pomoc-tuning/",
+        "https://www.skoda-forum.cz/elektromobilita-cng-lpg/"
+      ],
+      "calibration": {
+        "post_selector": ".post",
+        "author_selector": "p.author a.username, p.author a.username-coloured, p.author strong",
+        "content_selector": "div.content",
+        "thread_url_pattern": "-t",
+        "max_section_pages": 10
+      },
+      "notes": "Standard phpBB (prosilver skin, ucp.php/memberlist.php/search.php present) with SEO-friendly URLs. Sections at /<slug>/ ; threads at /<section-slug>/<thread-slug>-tXXXXX.html (thread_url_pattern '-t' matches the tXXXXX id). Model sub-forum index pages list recent topics directly, so they double as crawlable topic lists. The built-in phpbb parser works but prepends header noise ('Citovat Příspěvek od <user> »') into the body; custom selectors below yield clean authors + clean body. Verified on 2 real technical threads (kdyz-auto-zahreje t26326: 2 posts authors gears1989/Cufedat; silena-zavada t364745: 1 post Kopeček16; prefukujici-turbo t364536: 1 post fb_robajz) — all non-empty authors, clean Czech body text. No login wall, no JS challenge, force_browser not needed. Marketplace/news sections (bazar, nabidka, tiskove-zpravy, akce-srazy, pokec-zabava) intentionally excluded."
+    },
+    {
+      "match": "citroen-forum.cz",
+      "name": "Citroen Forum CZ",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Citroen"
+      ],
+      "sections": [
+        "https://www.citroen-forum.cz/servis/",
+        "https://www.citroen-forum.cz/servis-tuning/",
+        "https://www.citroen-forum.cz/c1/",
+        "https://www.citroen-forum.cz/c2/",
+        "https://www.citroen-forum.cz/c3/",
+        "https://www.citroen-forum.cz/c3-picasso/",
+        "https://www.citroen-forum.cz/c4/",
+        "https://www.citroen-forum.cz/c4-picasso/",
+        "https://www.citroen-forum.cz/c5/",
+        "https://www.citroen-forum.cz/c6/",
+        "https://www.citroen-forum.cz/c8/",
+        "https://www.citroen-forum.cz/c-crosser/",
+        "https://www.citroen-forum.cz/ds3/",
+        "https://www.citroen-forum.cz/berlingo/",
+        "https://www.citroen-forum.cz/jumper/",
+        "https://www.citroen-forum.cz/xsara/",
+        "https://www.citroen-forum.cz/xsara-picasso/",
+        "https://www.citroen-forum.cz/xantia/",
+        "https://www.citroen-forum.cz/saxo/",
+        "https://www.citroen-forum.cz/zx/"
+      ],
+      "calibration": {
+        "thread_url_pattern": "-t\\d+\\.html",
+        "max_section_pages": 10
+      },
+      "notes": "Standard phpBB (prosilver, ucp.php, app.php/feed) with SEO URL rewriting: sections at /<model-slug>/ (e.g. /c3/, /c5/) and threads at /<section-slug>/<thread-slug>-tNNN.html instead of viewtopic.php?t=N. Stock phpbb engine parser works cleanly — verified 5 posts on /c3/porucha-elektro-t51.html with distinct non-empty authors (radomir56, marko297, citroen, kovarnici) and clean CS/SK technical body text, so selectors omitted. Sections are per-model which is ideal for fault/repair content; excluded marketplace (/inzerce/,/prodam/,/koupim/,/vymenim/,/sluzby/), news (/tz-novinky/), off-topic (/pokec-zabava/,/akce-srazy/), and club-admin sections. Also has generic /forumNN/ aliases that redirect to the same model sections. No login wall, no JS challenge, no proxy needed."
+    },
+    {
+      "match": "mercedes-club.cz",
+      "name": "Mercedes Fan Club CZ",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Mercedes-Benz"
+      ],
+      "sections": [
+        "https://www.mercedes-club.cz/servis-opravy/",
+        "https://www.mercedes-club.cz/tuning-upravy/",
+        "https://www.mercedes-club.cz/forum61/",
+        "https://www.mercedes-club.cz/forum70/",
+        "https://www.mercedes-club.cz/forum82/",
+        "https://www.mercedes-club.cz/forum60/",
+        "https://www.mercedes-club.cz/forum57/"
+      ],
+      "calibration": {
+        "thread_url_pattern": "-t\\d+\\.html",
+        "max_section_pages": 10
+      },
+      "notes": "Healthy active phpBB forum (prosilver style, app.php/feed, ucp.php login optional - posts public). Czech language, Mercedes-Benz only. Standard phpBB engine parser works cleanly - verified 3 posts on thread t5145 (authors Jirkach1, dvykydal) and 1 post on t5142 (dury2), all non-empty authors + clean CZ technical text. NO custom selectors needed. Previously failed auto-calibration because section recon does not recognize the SEO-rewritten thread URL format /<section-slug>/<title-slug>-tNNNN.html; section pages also expose only 2 generic thread-like links to the recon's heuristic. Real thread URLs confirmed via page HTML. Sections are SEO-named (servis-opravy=service/repairs, tuning-upravy=tuning) or /forumN/ for model classes (61=C, 70=E, 82=S, 60=190, 57=AMG). Body text includes 'Citovat Příspěvek od <author> »' phpBB quote-header boilerplate prefix but content is substantive."
+    },
+    {
+      "match": "forum-skoda.cz",
+      "name": "Škoda Forum (forum-skoda.cz)",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Škoda"
+      ],
+      "sections": [
+        "https://www.forum-skoda.cz/technicka-sekce/",
+        "https://www.forum-skoda.cz/octavia/",
+        "https://www.forum-skoda.cz/fabia/",
+        "https://www.forum-skoda.cz/superb/",
+        "https://www.forum-skoda.cz/yeti/",
+        "https://www.forum-skoda.cz/roomster/",
+        "https://www.forum-skoda.cz/citigo/",
+        "https://www.forum-skoda.cz/felicia/",
+        "https://www.forum-skoda.cz/favorit/",
+        "https://www.forum-skoda.cz/forum31/",
+        "https://www.forum-skoda.cz/forum32/",
+        "https://www.forum-skoda.cz/forum33/",
+        "https://www.forum-skoda.cz/forum34/",
+        "https://www.forum-skoda.cz/forum41/",
+        "https://www.forum-skoda.cz/auto-hifi/"
+      ],
+      "calibration": {
+        "post_selector": "div.post",
+        "author_selector": "a.username",
+        "content_selector": "div.content",
+        "thread_url_pattern": "-t",
+        "force_browser": false,
+        "max_section_pages": 10
+      },
+      "notes": "Standard phpBB (prosilver style: app.php, ucp.php, member links, styles/prosilver). Reachable over plain HTTP/curl, no JS challenge, no login wall for reading. Czech-language Škoda club. Technical sections are slug-based (/technicka-sekce/, /octavia/ etc.) rather than /forumN/; some newer model forums still use legacy /forumNN/ ids (Kodiaq=forum31, Rapid=forum32, Karoq=forum33, Scala=forum34, Kamiq=forum41). Threads use SEO-rewritten URLs ending -tNNNNN.html (NOT the default phpBB viewtopic.php?t=), hence thread_url_pattern='-t'. The built-in phpbb engine parser found the author but merged the post header into the body text (noisy); custom selectors div.post/a.username/div.content extract clean author + clean Czech body. Verified real fault threads: 'auto nestartuje a diagnostika mlčí', 'Octavia III 2.0 TDI škubání při přidání/ubrání plynu', 'vybíjení baterie', DPF aditiva. Low-traffic forum (most threads have 0-1 replies) but content is genuine repair/diagnostic discussion. Likely failed prior auto-calibration because (a) slug-based section URLs + -tNNNNN.html thread pattern don't match phpBB defaults and (b) default phpBB content parsing was noisy — both fixed by the custom selectors and thread_url_pattern above.",
+      "sections_note": "prioritise /technicka-sekce/ and per-model forums"
+    },
+    {
+      "match": "bmwklub.cz",
+      "name": "BMW Auto klub CR",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "BMW"
+      ],
+      "sections": [
+        "https://www.bmwklub.cz/viewforum.php?f=5",
+        "https://www.bmwklub.cz/viewforum.php?f=33",
+        "https://www.bmwklub.cz/viewforum.php?f=23",
+        "https://www.bmwklub.cz/viewforum.php?f=24",
+        "https://www.bmwklub.cz/viewforum.php?f=25",
+        "https://www.bmwklub.cz/viewforum.php?f=26",
+        "https://www.bmwklub.cz/viewforum.php?f=27",
+        "https://www.bmwklub.cz/viewforum.php?f=28",
+        "https://www.bmwklub.cz/viewforum.php?f=30",
+        "https://www.bmwklub.cz/viewforum.php?f=31",
+        "https://www.bmwklub.cz/viewforum.php?f=32"
+      ],
+      "calibration": {
+        "max_section_pages": 10
+      },
+      "notes": "Verified via forum-recon: root reachable (phpBB detected, 99KB HTML, no challenge). Forum is partially login-walled but core technical/model sections are public and parse cleanly with the standard php"
+    },
+    {
+      "match": "astra-j.cz",
+      "name": "Opel Astra J CZ",
+      "engine": "phpbb",
+      "language": "cs",
+      "brands": [
+        "Opel"
+      ],
+      "sections": [
+        "https://www.astra-j.cz/viewforum.php?f=3",
+        "https://www.astra-j.cz/viewforum.php?f=7",
+        "https://www.astra-j.cz/viewforum.php?f=8",
+        "https://www.astra-j.cz/viewforum.php?f=9",
+        "https://www.astra-j.cz/viewforum.php?f=11",
+        "https://www.astra-j.cz/viewforum.php?f=12",
+        "https://www.astra-j.cz/viewforum.php?f=16"
+      ],
+      "calibration": {
+        "max_section_pages": 10
+      },
+      "notes": "phpBB forum, profiled cleanly with the built-in phpbb engine parser — no custom selectors needed. Two technical threads parsed with clean authors and real cs/sk diagnostic text. One downstream caveat "
+    },
+    {
+      "match": "moje.auto.cz",
+      "name": "auto.cz Mercedes",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Mercedes-Benz"
+      ],
+      "sections": [
+        "https://moje.auto.cz/diskuse/forum/?forum=4610fd5e3190d"
+      ],
+      "calibration": {
+        "post_selector": "div.cont",
+        "author_selector": ".info_name strong",
+        "content_selector": ".comment-text",
+        "thread_url_pattern": "/diskuse/[0-9a-f]+\\?typ=1",
+        "max_section_pages": 10
+      },
+      "notes": "Reachable over plain HTTP, no login wall, no JS challenge — force_browser not needed. Engine is auto.cz's own PHP discussion CMS (no phpBB/XenForo/vBulletin/Invision/Woltlab/autoclub.eu signatures), s"
     }
   ]
 }
