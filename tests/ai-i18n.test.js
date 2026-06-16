@@ -128,6 +128,24 @@ async function run() {
     assert(pL.includes('PARTIAL MATCH'), 'score <5 → PARTIAL (legacy)')
   })
 
+  test('RAG korroborace renderuje „potvrzeno N" (cs/en/de)', () => {
+    const c = { ...RAG_CASE, ragCorroboration: 5 }
+    assert(buildSystemPrompt([c], VEHICLE, 'cs').includes('potvrzeno v 5 případech'), 'CS confirmed')
+    assert(buildSystemPrompt([c], VEHICLE, 'en').includes('confirmed by 5 cases'), 'EN confirmed')
+    assert(buildSystemPrompt([c], VEHICLE, 'de').includes('bestätigt durch 5 Fälle'), 'DE confirmed')
+  })
+
+  test('RAG korroborace ≤1 nebo chybějící → bez přípony (žádná regrese)', () => {
+    const one  = { ...RAG_CASE, ragCorroboration: 1 }
+    const none = { ...RAG_CASE }
+    delete none.ragCorroboration
+    // Pozn.: „confirmed by N cases" je i v instrukci promptu — render přípony má navíc
+    // pomlčkovou předponu „ — ", takže testujeme tu (jinak bychom chytali instrukční text).
+    for (const c of [one, none]) {
+      assert(!buildSystemPrompt([c], VEHICLE, 'en').includes(' — confirmed by'), 'count ≤1 / chybějící → bez přípony')
+    }
+  })
+
   // ── checkTopicRelevance: lokalizace ────────────────────────────────────────
   console.log('\n── checkTopicRelevance: lokalizace ──────────────────────────────')
 
