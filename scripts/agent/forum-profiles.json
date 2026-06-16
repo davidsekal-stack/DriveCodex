@@ -1684,6 +1684,206 @@
         "max_section_pages": 10
       },
       "notes": "Reachable over plain HTTP, no login wall, no JS challenge — force_browser not needed. Engine is auto.cz's own PHP discussion CMS (no phpBB/XenForo/vBulletin/Invision/Woltlab/autoclub.eu signatures), s"
+    },
+    {
+      "match": "germancarforum.com",
+      "name": "German Car Forum",
+      "engine": "xenforo",
+      "language": "en",
+      "brands": [
+        "Mercedes-Benz",
+        "BMW",
+        "Audi",
+        "Porsche",
+        "Volkswagen",
+        "Opel",
+        "Vauxhall",
+        "Ford",
+        "Renault",
+        "Citroen",
+        "Peugeot",
+        "SEAT",
+        "Volvo",
+        "Mini",
+        "Smart"
+      ],
+      "sections": [
+        "https://www.germancarforum.com/forums/mercedes-benz.74/",
+        "https://www.germancarforum.com/forums/mercedes-amg.510/",
+        "https://www.germancarforum.com/forums/bmw.73/",
+        "https://www.germancarforum.com/forums/bmw-m.614/",
+        "https://www.germancarforum.com/forums/audi.59/",
+        "https://www.germancarforum.com/forums/porsche.75/",
+        "https://www.germancarforum.com/forums/volkswagen.320/",
+        "https://www.germancarforum.com/forums/opel-vauxhall.576/",
+        "https://www.germancarforum.com/forums/ford-lincoln.547/",
+        "https://www.germancarforum.com/forums/renault-alpine.570/",
+        "https://www.germancarforum.com/forums/citroen-ds-automobiles.571/",
+        "https://www.germancarforum.com/forums/peugeot.572/",
+        "https://www.germancarforum.com/forums/seat-cupra.592/",
+        "https://www.germancarforum.com/forums/volvo-polestar.569/",
+        "https://www.germancarforum.com/forums/mini.567/",
+        "https://www.germancarforum.com/forums/smart.586/",
+        "https://www.germancarforum.com/forums/repairs-reviews-troubleshooting-etc.599/",
+        "https://www.germancarforum.com/forums/internal-combustion.144/"
+      ],
+      "calibration": {
+        "max_section_pages": 10
+      },
+      "notes": "XenForo 2.3 on VerticalScope (data-xf=2.3, /forums/<slug>.<id>/ and /threads/<slug>.<id>/ URLs — standard, generic thread filter matches, NO thread_url_pattern needed). EN, multi-brand European goldmine (2.85M posts since 2005). Standard XenForo engine parser extracts posts WITH non-empty authors and clean text out of the box — NO custom selectors needed (verified: BMW X5 problem thread 168270 -> 3 posts authors 'Lavenia Stephens'/'J.E'/'Centurion'; Mercedes thread 47554 -> 14 posts 'Merc1'/'SKY'/'michaelhutchence'). The hint's MessageCard selectors are NOT needed (article.message markup, classic XenForo). DO NOT set force_browser: the WAF returns an Apache soft-403 ('403 Forbidden / You don't have permission to access this resource', 248 bytes) for BOTH plain fetch AND the system-Chrome --dump-dom path, so force_browser yields the block page, not content. REQUIRED CODE FIX (applied, scripts/agent/fetch-utils.mjs): added the Apache 403-block body regex to BROWSER_FETCH_PATTERNS so isLikelyChallengeHtml flags it; previously the block page was valid HTML matching no pattern, was accepted as 'usable', poisoned the crawl AND short-circuited escalation to Crawlee. After the fix, fetchHtml's 403 branch rejects the system-Chrome block page and escalates to the fingerprinted Crawlee browser (navigator.webdriver=false) which clears the WAF (~5s) and returns full ~760-935KB HTML. Crawlee/Playwright must be installed (it is). NOTE: WAF rate-limits rapid consecutive requests (one transient 403 seen when hammering 5 sections back-to-back; Crawlee's single retry + fetchHtml retries + normal crawl spacing handle it). Brand category forums ARE thread-listing technical sections (model filtering via ?prefix_id=N, not subforums); each yields 24-31 thread URLs/page. Sections = German/European marque forums + cross-brand 'repairs-reviews-troubleshooting' (599) and 'internal-combustion' (144) technical forums; classifieds/news/off-topic/legacy-brands omitted."
+    },
+    {
+      "match": "motor-talk.de",
+      "name": "Motor-Talk — VW Golf (Volkswagen)",
+      "engine": "generic",
+      "language": "de",
+      "brands": [
+        "Volkswagen"
+      ],
+      "sections": [
+        "https://www.motor-talk.de/forum/vw-golf-1-2-b145.html",
+        "https://www.motor-talk.de/forum/vw-golf-3-b146.html",
+        "https://www.motor-talk.de/forum/vw-golf-4-b147.html",
+        "https://www.motor-talk.de/forum/vw-golf-5-b217.html",
+        "https://www.motor-talk.de/forum/vw-golf-6-b729.html",
+        "https://www.motor-talk.de/forum/vw-golf-7-golf-sportsvan-b848.html",
+        "https://www.motor-talk.de/forum/vw-golf-8-b1083.html"
+      ],
+      "calibration": {
+        "post_selector": ".Post",
+        "author_selector": ".PostHeader-nickName",
+        "content_selector": ".PostBody",
+        "quote_selector": "blockquote",
+        "thread_url_pattern": "-t\\d+\\.html",
+        "max_section_pages": 10
+      },
+      "notes": "Custom CMS (Polly), server-rendered, plain fetch works (no browser, no login). FIX: the earlier profiled sections (vw-motoren-b62 etc.) were CATEGORY pages listing sub-forums. The ACTUAL leaf boards that LIST THREADS are the per-generation Golf boards reachable from the vw-golf-b60 category: vw-golf-1-2-b145, vw-golf-3-b146, vw-golf-4-b147, vw-golf-5-b217, vw-golf-6-b729, vw-golf-7-golf-sportsvan-b848, vw-golf-8-b1083. Each lists ~48-55 thread links per page with ?page=N pagination. Thread URLs are /forum/<slug>-t<digits>.html — the generic isLikelyThreadUrl does NOT recognize this shape, so thread_url_pattern=\"-t\\d+\\.html\" is REQUIRED (without it enumeration yields 0). Posts: <section class=\"Post\"> with author in .PostHeader-nickName and body in .PostBody. IMPORTANT: replies are wrapped in <div class=\"ReplyList-post\"> — the regex-based generic parser's selectByClass mis-matches that wrapper (case-insensitive \\bpost\\b) and truncates replies, so it would return only the OP. The crawl's parseHtml uses the robust selectPosts tokenizer first whenever post_selector is set (selected.length>=2), which correctly returns all posts; keep post_selector so that path is taken. quote_selector=\"blockquote\" strips the 'Zitat: @user schrieb am...' quote noise. Verified: enumerateThreadUrls over the 7 boards returned 30 real -t<digits>.html threads (0 non-matching, all repair topics); sample threads t8583481 (Golf 2, 5 posts) and t8591738 (Golf 3, 4 posts) parsed with non-empty authors and clean German text via the production parseHtml/selectPosts path."
+    },
+    {
+      "match": "peugeottalk.de",
+      "name": "Peugeot-Talk.de",
+      "engine": "woltlab",
+      "language": "de",
+      "brands": [
+        "Peugeot"
+      ],
+      "sections": [
+        "https://www.peugeottalk.de/index.php?board/105-peugeot-e-208-ii-forum/",
+        "https://www.peugeottalk.de/index.php?board/111-peugeot-e-308-iii-forum/",
+        "https://www.peugeottalk.de/index.php?board/89-peugeot-508-ii-forum/",
+        "https://www.peugeottalk.de/index.php?board/108-peugeot-e-2008-ii-forum/",
+        "https://www.peugeottalk.de/index.php?board/119-peugeot-e-3008-iii-forum/",
+        "https://www.peugeottalk.de/index.php?board/120-peugeot-e-5008-iii-forum/",
+        "https://www.peugeottalk.de/index.php?board/14-peugeot-208-forum/",
+        "https://www.peugeottalk.de/index.php?board/32-peugeot-308-ii-forum/",
+        "https://www.peugeottalk.de/index.php?board/67-peugeot-3008-ii-forum/",
+        "https://www.peugeottalk.de/index.php?board/3-peugeot-rcz-forum/",
+        "https://www.peugeottalk.de/index.php?board/78-psa-motoren-talk/",
+        "https://www.peugeottalk.de/index.php?board/28-tuning-t%C3%BCv-abe-bereifung-co/",
+        "https://www.peugeottalk.de/index.php?board/25-navigations-und-telematik-systeme/"
+      ],
+      "calibration": {
+        "post_selector": ".wbbPost",
+        "author_selector": ".messageAuthorContainer .username",
+        "content_selector": ".messageText",
+        "thread_url_pattern": "thread/\\d+",
+        "force_browser": false,
+        "max_section_pages": 10
+      },
+      "notes": "WoltLab Suite (WBB). Plain fetch, no browser, no login. Threads: index.php?thread/<id>-<slug>/ ; sections: index.php?board/<id>-<slug>/. ROOT CAUSE of earlier '404': NOT URL truncation — canonicalizeThreadUrl preserves the full ?thread/<id>-<slug>/ query string intact (verified). The single 404 was thread/2367-how-to-smeg-software-update/, a deleted GLOBAL sticky link rendered in the header of every board page; the pipeline skips dead links normally. thread_url_pattern 'thread/\\d+' makes the filter explicit (default isLikelyThreadUrl already matches ?thread/, but this is authoritative and excludes ?unresolved-thread-list/ etc.). PARSING: the built-in woltlab engine parser extracts authors but leaks post-header metadata ('id=postNNN class=... Member Reactions Received N Posts...') into the text. CSS selectors fix it cleanly and parseHtml() honors post_selector BEFORE the engine parser, so engine=woltlab is just the fallback. author lives in .messageAuthorContainer .username, body in .messageText. Some homepage/board links carry &action=firstNew — harmless, resolves 200 to the same thread. Board 77 (Parc Ferme/Lexia/Diagbox) excluded: page is ~33KB with no live thread list (empty or JS/login-gated). Sections chosen = active per-model boards + cross-cutting technical boards (78 PSA engines, 28 tuning/tyres/TUV, 25 navi/telematik). Excluded off-topic/marketplace/meetups/registration-stats/recall-announcement category boards."
+    },
+    {
+      "match": "swedespeed.com",
+      "name": "SwedeSpeed",
+      "engine": "xenforo",
+      "language": "en",
+      "brands": [
+        "Volvo",
+        "Polestar"
+      ],
+      "sections": [
+        "https://www.swedespeed.com/forums/obd-canbus-engine-management.121/",
+        "https://www.swedespeed.com/forums/brakes.105/",
+        "https://www.swedespeed.com/forums/suspension-forum.80/",
+        "https://www.swedespeed.com/forums/wheel-and-tire-forum.21/",
+        "https://www.swedespeed.com/forums/d5-engine-forum.50/",
+        "https://www.swedespeed.com/forums/car-audio-video-mobile-electronics-forum.22/",
+        "https://www.swedespeed.com/forums/general-fwd-awd.32/",
+        "https://www.swedespeed.com/forums/general-rwd.17/",
+        "https://www.swedespeed.com/forums/pushrod-performance-forum.92/",
+        "https://www.swedespeed.com/forums/v8-conversion-volvos.33/",
+        "https://www.swedespeed.com/forums/xc90-spa-2016.5020/",
+        "https://www.swedespeed.com/forums/s90-v90-v90cc-spa-2017.5022/",
+        "https://www.swedespeed.com/forums/xc60-spa-2018.5041/",
+        "https://www.swedespeed.com/forums/s60-v60-v60cc-spa-2019.5074/",
+        "https://www.swedespeed.com/forums/xc40-cma-2019.5057/",
+        "https://www.swedespeed.com/forums/s60-s60cc-v60-v60cc-2011-2018.114/",
+        "https://www.swedespeed.com/forums/v40-v40cc-2013-2019.5018/",
+        "https://www.swedespeed.com/forums/c30-2007-2013.101/",
+        "https://www.swedespeed.com/forums/s40-v50-2005-2012.54/",
+        "https://www.swedespeed.com/forums/s40-v40-1995-2004.11/",
+        "https://www.swedespeed.com/forums/s60-2001-2010.12/",
+        "https://www.swedespeed.com/forums/xc60-2010-2017.106/",
+        "https://www.swedespeed.com/forums/xc90-2003-2014.27/",
+        "https://www.swedespeed.com/forums/v70-xc70-2008-2016.107/",
+        "https://www.swedespeed.com/forums/v70-v70xc-xc70-2001-2007.20/",
+        "https://www.swedespeed.com/forums/c70-2006-2013.97/",
+        "https://www.swedespeed.com/forums/c70-1998-2004.26/",
+        "https://www.swedespeed.com/forums/s70-v70-v70xc-1998-2000.9/",
+        "https://www.swedespeed.com/forums/s80-2007-2016.102/",
+        "https://www.swedespeed.com/forums/s80-1998-2006.10/",
+        "https://www.swedespeed.com/forums/850-1993-1997.13/",
+        "https://www.swedespeed.com/forums/940-960-s90-v90-1990-1998.14/",
+        "https://www.swedespeed.com/forums/740-760-1982-1992.15/",
+        "https://www.swedespeed.com/forums/240-242-244-245-1974-1993.16/",
+        "https://www.swedespeed.com/forums/xc40-c40-recharge-2020.5098/",
+        "https://www.swedespeed.com/forums/ex30-2024.5111/",
+        "https://www.swedespeed.com/forums/ex90-2024.5104/",
+        "https://www.swedespeed.com/forums/polestar-2-2020.5107/",
+        "https://www.swedespeed.com/forums/volvo-cars-app-general-connectivity.5079/"
+      ],
+      "calibration": {
+        "post_selector": "div.MessageCard",
+        "author_selector": "a.MessageCard__user-info__name",
+        "content_selector": "div.bbWrapper",
+        "quote_selector": "blockquote.bbCodeBlock",
+        "min_post_length": 40,
+        "max_section_pages": 10
+      },
+      "notes": "FIX VERIFIED. Engine=xenforo (California skin on VerticalScope). The earlier-found selectors (div.MessageCard / a.MessageCard__user-info__name / div.bbWrapper) parse multiple posts with non-empty auth"
+    },
+    {
+      "match": "volkswagenclub.cz",
+      "name": "Volkswagenclub.cz — Fórum",
+      "engine": "generic",
+      "language": "cs",
+      "brands": [
+        "Volkswagen"
+      ],
+      "sections": [
+        "https://www.volkswagenclub.cz/forum/golf4",
+        "https://www.volkswagenclub.cz/forum/golf5",
+        "https://www.volkswagenclub.cz/forum/golf6",
+        "https://www.volkswagenclub.cz/forum/golf7",
+        "https://www.volkswagenclub.cz/forum/passat-3c",
+        "https://www.volkswagenclub.cz/forum/passat-b5-b5-5",
+        "https://www.volkswagenclub.cz/forum/passat-362-365",
+        "https://www.volkswagenclub.cz/forum/touran-i-generace",
+        "https://www.volkswagenclub.cz/forum/touran-ii-generace",
+        "https://www.volkswagenclub.cz/forum/tiguan-i-generace",
+        "https://www.volkswagenclub.cz/forum/polo-iv-generace",
+        "https://www.volkswagenclub.cz/forum/polo-v-generace",
+        "https://www.volkswagenclub.cz/forum/octavia-skoda-not-applicable"
+      ],
+      "calibration": {
+        "post_selector": ".kmsg",
+        "author_selector": ".kpost-username",
+        "content_selector": ".kmsgtext",
+        "thread_url_pattern": "volkswagenclub\\.cz/forum/(?!user/|index|posledni|hledat|statistics|topics/)[a-z0-9-]+/\\d+(?:-|$)",
+        "min_post_length": 25,
+        "max_section_pages": 10
+      },
+      "notes": "Verdict profilable: both gates verified through the actual production pipeline, not just the recon tool. Root cause of the original 0-post failure: Kunena under a custom skin emits thread URLs as /for"
     }
   ]
 }

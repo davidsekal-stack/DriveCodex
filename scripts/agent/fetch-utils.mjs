@@ -18,6 +18,22 @@ const BROWSER_FETCH_PATTERNS = [
   /attention required/i,
   /just a moment/i,
   /enable javascript and cookies/i,
+  // VerticalScope proof-of-work interstitial (e.g. VWVortex): served at HTTP 200
+  // as a ~1.8KB JS shell. Its headless_check refuses the cookie when
+  // navigator.webdriver is true, so the system-Chrome --dump-dom can't solve it;
+  // matching here lets the plain path escalate to the fingerprinted Crawlee
+  // browser, which sets navigator.webdriver=false and clears the challenge.
+  /POW_CHALLENGE_DATA/i,
+  /challenge_nonce/i,
+  // Apache "soft 403" block page (observed on germancarforum.com — VerticalScope
+  // edge WAF): a 248-byte "403 Forbidden / You don't have permission to access
+  // this resource" document. Both plain fetch AND the system-Chrome --dump-dom
+  // receive this same block page, and because it is valid HTML that matches no
+  // challenge/error pattern it was being accepted as "usable", which (a) poisons
+  // the crawl with the block page and (b) short-circuits escalation to Crawlee.
+  // The fingerprinted Crawlee browser clears this WAF and returns real HTML, so
+  // flag the block page as a challenge to force the fallback chain through to it.
+  /<title>403 Forbidden<\/title>[\s\S]*don't have permission to access this resource/i,
 ];
 const BROWSER_ERROR_PATTERNS = [
   /main-frame-error/i,
