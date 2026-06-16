@@ -37,7 +37,7 @@ const DEFAULT_ROOT_URLS = [
 ];
 const DEFAULT_FORUM = "toyota_club_eu";
 const DEFAULT_USER_ID = "ai_importer";
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 
 const TOPIC_BLACKLIST = [
   /\bmanuals?\b/i,
@@ -820,6 +820,8 @@ async function deepseekChatJson({ apiKey, model, messages, maxTokens = 1400 }) {
       max_tokens: maxTokens,
       messages,
       temperature: 0.2,
+      // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
+      thinking: { type: "disabled" },
     }),
   });
   if (!res.ok) {

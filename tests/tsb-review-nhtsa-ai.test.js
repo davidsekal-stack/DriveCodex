@@ -26,10 +26,10 @@ function test(name, fn) {
 console.log("\n== tsb-review-nhtsa-ai ==");
 
 test("parseArgs accepts multiple input dirs and output dir", () => {
-  const args = parseArgs(["dirA", "dirB", "out", "--model", "deepseek-chat", "--max-cases", "50", "--include-review"]);
+  const args = parseArgs(["dirA", "dirB", "out", "--model", "deepseek-v4-flash", "--max-cases", "50", "--include-review"]);
   assert.equal(args.inputs.length, 2);
   assert.equal(args.outDir.endsWith("out"), true);
-  assert.equal(args.model, "deepseek-chat");
+  assert.equal(args.model, "deepseek-v4-flash");
   assert.equal(args.maxCases, 50);
   assert.equal(args.includeReview, true);
 });
@@ -257,7 +257,7 @@ test("deepseekChatJson retries transient fetch failures and returns content", as
   let calls = 0;
   const result = await deepseekChatJson({
     apiKey: "test-key",
-    model: "deepseek-chat",
+    model: "deepseek-v4-flash",
     messages: [{ role: "user", content: "x" }],
     fetchFn: async () => {
       calls++;

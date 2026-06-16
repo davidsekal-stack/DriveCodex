@@ -77,7 +77,7 @@ const COMMON_SIGNAL_PATTERNS = [
   /\b\d{2,3}\s*kw\b/i,
 ];
 
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_MIN_POSTS = 2;
 
 function usageText(brand, rootUrl) {
@@ -973,6 +973,8 @@ export function buildClubCrawlerApi(config) {
         max_tokens: maxTokens,
         messages,
         temperature: 0.2,
+        // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
+        thinking: { type: "disabled" },
       }),
     });
     if (!res.ok) {

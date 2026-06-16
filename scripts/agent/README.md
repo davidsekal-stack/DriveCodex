@@ -166,7 +166,7 @@ Default routing (override per task via `AGENT_LLM_<TASK>=provider:model`):
 |---|---|---|---|
 | classify | `claude:haiku` | [`classify.mjs`](/C:/GB/scripts/agent/classify.mjs) | high volume → cheapest subscription model |
 | extract | `claude:sonnet` | [`extract.mjs`](/C:/GB/scripts/agent/extract.mjs) | ~18 % of threads, quality matters |
-| verify | `deepseek:deepseek-chat` | [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs) | tiny volume; independent second AI from a different vendor |
+| verify | `deepseek:deepseek-v4-flash` | [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs) | tiny volume; independent second AI from a different vendor (thinking disabled) |
 | calibrate | `claude:sonnet` | [`calibrate.mjs`](/C:/GB/scripts/agent/calibrate.mjs) | rare, needs good HTML reasoning |
 | diary | `claude:haiku` | [`diary.mjs`](/C:/GB/scripts/agent/diary.mjs) | short free-form summaries |
 | translate | `claude:haiku` | [`backfill-resolution-i18n.mjs`](/C:/GB/scripts/agent/backfill-resolution-i18n.mjs) | high-volume cs/de backfill of resolution texts |

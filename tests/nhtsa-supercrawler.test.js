@@ -83,7 +83,7 @@ test("parseArgs reads file, make and state-root filters", async () => {
     "--state-root", "C:\\state",
     "--file", "TSBS_RECEIVED_2020-2024.txt",
     "--make", "KIA",
-    "--model", "deepseek-reasoner",
+    "--model", "deepseek-v4-flash",
     "--user-id", "user-123",
     "--stop-after", "refined",
   ]);
@@ -91,7 +91,7 @@ test("parseArgs reads file, make and state-root filters", async () => {
   assert.equal(args.stateRoot, "C:\\state");
   assert.equal(args.fileName, "TSBS_RECEIVED_2020-2024.txt");
   assert.equal(args.make, "KIA");
-  assert.equal(args.model, "deepseek-reasoner");
+  assert.equal(args.model, "deepseek-v4-flash");
   assert.equal(args.userId, "user-123");
   assert.equal(args.stopAfter, "refined");
 });
