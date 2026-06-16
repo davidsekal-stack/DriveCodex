@@ -227,19 +227,26 @@ function argValue(name, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+// Nastavujeme process.exitCode a necháme Node ukončit se SÁM (event loop se
+// vyprázdní), NEvoláme process.exit() — to na Windows přes Start-Process padalo
+// na libuv aserci „!(handle->flags & UV_HANDLE_CLOSING)" při násilném úklidu
+// handlů (fetch/undici), exit kód 0xC0000409. Práce vždy doběhla, ale exit kód
+// byl děsivý; čisté ukončení tomu předejde.
 async function main() {
   if (!SUPABASE_KEY) {
     console.error('ERROR: SUPABASE_SERVICE_KEY není nastaven (spusť s --env-file=scripts/agent/.env.local).');
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
   const dryRun = process.argv.includes('--dry-run');
   try {
     const r = await runBackfill({ batchSize: argValue('--batch', 15), max: argValue('--max', Infinity), dryRun });
-    process.exit(r.ok ? 0 : 1);
+    process.exitCode = r.ok ? 0 : 1;
   } catch (err) {
     if (isStoppingError(err)) {
       console.log(formatQuotaMessage(err));
-      process.exit(75);
+      process.exitCode = 75;
+      return;
     }
     throw err;
   }
