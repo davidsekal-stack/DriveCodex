@@ -64,6 +64,31 @@ export function isLikelyThreadUrl(url) {
   );
 }
 
+/**
+ * Filtr URL vláken pro enumeraci. Když profil/kalibrace zadá `thread_url_pattern`
+ * (regex), je autoritativní — generická heuristika isLikelyThreadUrl totiž
+ * nepozná netypické tvary (např. BMW-Syndikat `/topic408759_…​.html` bez lomítka
+ * za „topic"). Nevalidní regex → fallback na heuristiku.
+ */
+export function makeThreadUrlFilter(calibration) {
+  const raw = calibration?.thread_url_pattern;
+  if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const re = new RegExp(raw, 'i');
+      // URL pochází z cizí stránky (externí vstup) — strop délky brání ReDoS
+      // u pathologického vzoru × extrémně dlouhé URL. Reálné URL vláken jsou
+      // krátké; >2000 znaků = beztak ne-thread.
+      return (url) => {
+        const s = (url ?? '').toString();
+        return s.length <= 2000 && re.test(s);
+      };
+    } catch {
+      // nevalidní regex v profilu → fallback níže
+    }
+  }
+  return isLikelyThreadUrl;
+}
+
 // ---------------------------------------------------------------------------
 // Multi-page thread fetching
 // ---------------------------------------------------------------------------
@@ -132,6 +157,7 @@ export async function enumerateThreadUrls(forum, calibration, maxThreads, sleepM
   const urls = [];
   const seen = new Set();
   const fetcher = options.fetchHtmlImpl ?? fetchHtml;
+  const threadUrlFilter = makeThreadUrlFilter(calibration);
   const maxSectionPages = options.maxSectionPages ?? (Number(calibration.max_section_pages) || 10);
   const forumRootUrl = canonicalizeTraversalUrl(forum.url);
 
@@ -169,7 +195,7 @@ export async function enumerateThreadUrls(forum, calibration, maxThreads, sleepM
             ...link,
             url: canonicalizeThreadUrl(link.url),
           }))
-          .filter(link => isLikelyThreadUrl(link.url));
+          .filter(link => threadUrlFilter(link.url));
 
         for (const link of threadLinks) {
           if (urls.length >= maxThreads) break;

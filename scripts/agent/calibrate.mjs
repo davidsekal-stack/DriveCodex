@@ -23,6 +23,7 @@ import { buildDiaryContext } from './diary.mjs';
 import { runLlm } from './llm.mjs';
 import { isStoppingError } from './quota.mjs';
 import { fetchHtml } from './fetch-utils.mjs';
+import { getForumProfile, applyProfileToForum } from './forum-profiles.mjs';
 
 const PROBE_SIZE = 5;
 const MAX_ATTEMPTS = 3;
@@ -466,6 +467,16 @@ export async function calibrateForum(state, forumId, pipeline) {
   if (!forum) throw new Error(`Forum ${forumId} not found`);
 
   console.log(`\n── Calibrating: ${forum.name || forum.url} ──`);
+
+  // Autoritativní profil? → použij ho přímo (sekce + selektory + parser) a
+  // PŘESKOČ automatickou kalibraci (LLM discovery + probe). Pro fóra, která
+  // auto-kalibrace nezvládne (custom enginy, netypické URL vláken).
+  const profile = getForumProfile(forum.url);
+  if (profile) {
+    console.log(`  Using authoritative profile "${profile.name || profile.match}" — skipping auto-calibration (${(profile.sections || []).length} sections).`);
+    applyProfileToForum(state, forumId, profile);
+    return { success: true, metrics: { parser_success_rate: 1, classifier_pass_rate: 1, extractor_yield_rate: 1 }, attempts: 0, source: 'profile' };
+  }
 
   // Phase 0: Discover forum structure if no sections configured
   const structureResult = await ensureSections(state, forumId, forum);

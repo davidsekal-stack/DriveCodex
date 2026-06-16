@@ -641,8 +641,25 @@ export function selectPosts(html, calibration = {}, pageNumber = 1) {
 
   const minLength = Number(calibration.min_post_length) || 40;
   const containers = selectElements(html, postSelector);
-  const posts = [];
 
+  // Volitelná hlavička příspěvku v ODDĚLENÉM sourozeneckém bloku. Staré skiny
+  // (např. BMW-Syndikat) dávají autora/datum do `div.headline_big_show` TĚSNĚ
+  // PŘED tělo `div.forum_show_outer` — autor tedy není uvnitř těla. Když je
+  // `header_selector` zadán, autora/datum hledáme v nejbližší PŘEDCHÁZEJÍCÍ
+  // hlavičce (podle pozice ve zdroji), ne v těle. Bez něj beze změny.
+  const headers = calibration.header_selector
+    ? selectElements(html, calibration.header_selector)
+    : null;
+  const headerScopeFor = (container) => {
+    if (!headers || headers.length === 0) return null;
+    let best = null;
+    for (const h of headers) {
+      if (h.outerStart < container.outerStart && (!best || h.outerStart > best.outerStart)) best = h;
+    }
+    return best ? best.innerHtml : null;
+  };
+
+  const posts = [];
   for (const container of containers) {
     let contentHtml = container.innerHtml;
     if (calibration.content_selector) {
@@ -656,11 +673,13 @@ export function selectPosts(html, calibration = {}, pageNumber = 1) {
     const text = cleanPostText(htmlToText(contentHtml), minLength);
     if (!text) continue;
 
+    // Autor/datum: z hlavičkového sourozence (header_selector), jinak z těla.
+    const authorScope = headers ? (headerScopeFor(container) ?? '') : container.innerHtml;
     const author = calibration.author_selector
-      ? firstElementText(container.innerHtml, calibration.author_selector)
+      ? firstElementText(authorScope, calibration.author_selector)
       : '';
     const when = calibration.date_selector
-      ? firstElementText(container.innerHtml, calibration.date_selector)
+      ? firstElementText(authorScope, calibration.date_selector)
       : '';
 
     posts.push({
