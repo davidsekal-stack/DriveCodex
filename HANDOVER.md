@@ -124,8 +124,21 @@ index), (B) rodina modelu přes `ilike('vehicle_model','<prefix>%')` (limit 100,
 dle data jen deterministický tiebreak při překročení limitu — filtr (OBD/model) drží relevanci.
 Sjednoceno a deduplikováno podle `id` (čistá funkce `buildCandidateRows`), pak beze změny vstupuje
 do scoringu. Max ~450 řádků, vše server-side (edge↔DB v rámci Supabase); k uživateli jde stále jen
-top-5. Bez nové migrace/indexu. Zbývající okrajový případ (>150 případů se stejným OBD kódem u jedné
-značky) plně řeší až Krok 3 (řazení uvnitř DB).
+top-5. Bez nové migrace/indexu.
+
+**Korroborace (Krok 3 — implementováno 2026-06-16, ČEKÁ NA NASAZENÍ).** `search-cases` nově počítá,
+kolik NEZÁVISLÝCH prošlých případů potvrzuje stejnou KLASIFIKOVANOU závadu (`canonical_fault_id`),
+dedup přes `source_ref` (fan-out nenafoukne), nad prošlými kandidáty (bez extra dotazu). Toto číslo:
+(a) dává OMEZENÝ bonus k řazení — `matchRatio × corroborationBoost(count)`, kde boost = `1 + (min(count,8)−1)/7 × 0.12`
+(max +12 %), takže near-perfect shoda s 1 případem (0.95) pořád poráží slabší s 8 (0.80×1.12=0.896) —
+match-kvalita zůstává hlavní; konstanty `CORROBORATION_CAP`/`CORROBORATION_MAX_BOOST` = snadné doladění síly;
+(b) sloučí stejnou klasifikovanou závadu do jednoho zástupce (top-5 ukazuje různé možnosti, ne kopie);
+(c) vrací se jako `ragCorroboration`, `buildRagBlock` ho ukáže jako „potvrzeno v N případech" (cs/en/de),
+což zpřesní pole `početShod` v diagnóze. **~50 % případů je zatím neklasifikovaných** (`canonical_fault_id`
+NULL) → count 1, žádný bonus, neslučují se = NULOVÁ regrese; síla roste, jak agent doklasifikovává.
+
+Vědomě ODLOŽENO (samostatný follow-up, NE Krok 3): okrajový případ >150 případů se stejným OBD kódem
+u jedné značky (potřebuje řazení uvnitř DB; rizikovější, špatně lokálně testovatelné).
 
 ### 0b. Panel „Známé závady tohoto vozu" (web) — statistiky závad z RAG (2026-06-15)
 

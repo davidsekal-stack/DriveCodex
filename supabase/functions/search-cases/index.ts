@@ -30,6 +30,12 @@ const W_WORD        = 0.3
 const W_MILEAGE_CLOSE = 2   // nájezd ±30%
 const W_MILEAGE_FAR   = 1   // nájezd ±50%
 
+// Korroborace: kolik nezávislých případů potvrzuje stejnou (klasifikovanou) závadu.
+// Bonus k řazení je OMEZENÝ a nasycený (match-kvalita zůstává hlavní): 1 případ → ×1.0,
+// ≥CAP případů → ×(1+MAX_BOOST). Reálné top závady mají 5–11 potvrzení.
+const CORROBORATION_CAP       = 8     // strop počtu potvrzení pro výpočet bonusu
+const CORROBORATION_MAX_BOOST = 0.12  // max +12 % k matchRatio za plnou korroboraci
+
 // ── Pomocné funkce ───────────────────────────────────────────────────────────
 
 /** Váha OBD kódu: generické (P0/P2) méně, specifické (P1/P3/C/B/U) více */
@@ -162,6 +168,19 @@ function buildCandidateRows(results: any[]): any[] {
     }
   }
   return out
+}
+
+/** Klíč klasifikované závady pro korroboraci/sloučení; NULL/'other' → null (neklasifikováno). */
+function faultKeyOf(row: any): string | null {
+  const id = row?.canonical_fault_id
+  return (typeof id === 'string' && id && id !== 'other') ? `f:${id}` : null
+}
+
+/** Omezený, nasycený bonus za korroboraci: 1 případ → 1.0, ≥CAP → 1+MAX_BOOST. */
+function corroborationBoost(count: number): number {
+  const capped = Math.min(Math.max(count ?? 1, 1), CORROBORATION_CAP)
+  const normalized = (capped - 1) / (CORROBORATION_CAP - 1)
+  return 1 + normalized * CORROBORATION_MAX_BOOST
 }
 
 function computeSimilarity(row: any, input: any): number {
@@ -351,19 +370,51 @@ Return format: {"symptoms":["..."],"text":"..."}`,
       .filter((x: any) => x.passes)
       .filter((x: any) => !shouldSuppressRow(x.row))
       // Řazení podle normalizované F1 shody (0–1), absolutní skóre jen jako tiebreak.
-      // F1 je nezávislé na bohatosti dotazu, takže pořadí je stabilní napříč scénáři;
-      // toto pořadí zároveň určuje, kterých 5 unikátních případů přežije dedup níže.
+      // F1 je nezávislé na bohatosti dotazu, takže pořadí je stabilní napříč scénáři.
       .sort((a: any, b: any) => (b.matchRatio - a.matchRatio) || (b.score - a.score))
 
+    // ── Korroborace ───────────────────────────────────────────────────────────
+    // Kolik NEZÁVISLÝCH prošlých případů potvrzuje stejnou KLASIFIKOVANOU závadu.
+    // Počítáme nad PROŠLÝMI kandidáty (ranked), dedup přes source_ref (fan-out
+    // nenafoukne — zrcadlí known_faults_for_vehicle). Neklasifikované (NULL/'other')
+    // = vlastní singleton: count 1, žádný bonus, nikdy se neslučují → nulová regrese.
+    const corroborationSources = new Map<string, Set<string>>()
+    for (const item of ranked as any[]) {
+      const fk = faultKeyOf(item.row)
+      if (!fk) continue
+      const src = (item.row.source_ref && String(item.row.source_ref).trim()) || String(item.row.id)
+      let set = corroborationSources.get(fk)
+      if (!set) { set = new Set(); corroborationSources.set(fk, set) }
+      set.add(src)
+    }
+    for (const item of ranked as any[]) {
+      const fk = faultKeyOf(item.row)
+      item.corroboration = fk ? (corroborationSources.get(fk)?.size ?? 1) : 1
+    }
+
+    // Přeřazení: match-kvalita zůstává HLAVNÍ, korroborace jen omezený bonus (max +12 %).
+    // Příklad: 0.95×1.0 (1 případ) > 0.80×1.12 (8 případů) → slabší shoda nikdy nepřebije lepší.
+    const rankedBoosted = [...ranked].sort((a: any, b: any) =>
+      (b.matchRatio * corroborationBoost(b.corroboration) - a.matchRatio * corroborationBoost(a.corroboration))
+      || (b.score - a.score))
+
+    // Dedup: původní kanonická dedup + sloučení stejné KLASIFIKOVANÉ závady do jednoho
+    // zástupce (zbylé se „složí" do počtu potvrzení). Neklasifikované se neslučují podle
+    // závady (fk = null) → chovají se přesně jako dřív.
     const deduped = new Map<string, any>()
-    for (const item of ranked) {
+    const seenFaults = new Set<string>()
+    for (const item of rankedBoosted as any[]) {
       const key = makeCanonicalDedupKey(item.row)
-      if (!deduped.has(key)) deduped.set(key, item)
+      if (deduped.has(key)) continue
+      const fk = faultKeyOf(item.row)
+      if (fk && seenFaults.has(fk)) continue
+      deduped.set(key, item)
+      if (fk) seenFaults.add(fk)
       if (deduped.size >= 5) break
     }
 
     const results = [...deduped.values()]
-      .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragMatchRatio: x.matchRatio }))
+      .map((x: any) => ({ ...rowToCase(x.row), ragScore: x.score, ragMatchRatio: x.matchRatio, ragCorroboration: x.corroboration }))
 
     return json({ cases: results, count: results.length })
 
