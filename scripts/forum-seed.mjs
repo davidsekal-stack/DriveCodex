@@ -29,7 +29,7 @@ import { strings as EN_STRINGS } from "../web/src/i18n/en.js";
 
 const DEFAULT_FORUM = "forum_seed";
 const DEFAULT_USER_ID = "ai_importer";
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_MARKET = "eu";
 const DEFAULT_PRESET = "";
 
@@ -1001,6 +1001,8 @@ async function deepseekChatJson({ apiKey, model, messages, maxTokens = 1400 }) {
       max_tokens: maxTokens,
       messages,
       temperature: 0.2,
+      // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
+      thinking: { type: "disabled" },
     }),
   });
   if (!res.ok) {

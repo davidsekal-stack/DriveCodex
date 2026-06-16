@@ -14,7 +14,7 @@ import { validateSubset } from "./nhtsa-validate-final-subset.mjs";
 
 const execFile = promisify(execFileCb);
 
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_STATE_ROOT = path.join(process.cwd(), "tmp", "nhtsa_runs");
 const DEFAULT_IMPORT_USER_ID = "8463d502-7bf6-464b-9fb2-e6dec5b9d4d3";
 const AUTOMATION_BRANCH = "codex/nhtsa-automation";

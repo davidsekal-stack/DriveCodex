@@ -11,7 +11,7 @@ import {
 function testDefaultRoutes() {
   assert.deepEqual(resolveRoute('classify', {}), { provider: 'claude', model: 'haiku' });
   assert.deepEqual(resolveRoute('extract', {}), { provider: 'claude', model: 'sonnet' });
-  assert.deepEqual(resolveRoute('verify', {}), { provider: 'deepseek', model: 'deepseek-chat' });
+  assert.deepEqual(resolveRoute('verify', {}), { provider: 'deepseek', model: 'deepseek-v4-flash' });
   assert.deepEqual(resolveRoute('calibrate', {}), { provider: 'claude', model: 'sonnet' });
   assert.deepEqual(resolveRoute('diary', {}), { provider: 'claude', model: 'haiku' });
   assert.deepEqual(resolveRoute('discover', {}), { provider: 'claude', model: 'sonnet' });
@@ -26,9 +26,9 @@ async function testAllowedToolsRequiresClaude() {
 }
 
 function testEnvOverrides() {
-  const env = { AGENT_LLM_VERIFY: 'claude:opus', AGENT_LLM_CLASSIFY: 'deepseek:deepseek-chat' };
+  const env = { AGENT_LLM_VERIFY: 'claude:opus', AGENT_LLM_CLASSIFY: 'deepseek:deepseek-v4-flash' };
   assert.deepEqual(resolveRoute('verify', env), { provider: 'claude', model: 'opus' });
-  assert.deepEqual(resolveRoute('classify', env), { provider: 'deepseek', model: 'deepseek-chat' });
+  assert.deepEqual(resolveRoute('classify', env), { provider: 'deepseek', model: 'deepseek-v4-flash' });
   // Provider without model → model null (provider default applies later)
   assert.deepEqual(resolveRoute('diary', { AGENT_LLM_DIARY: 'claude' }), { provider: 'claude', model: null });
 }

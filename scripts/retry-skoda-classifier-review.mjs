@@ -23,7 +23,7 @@ import {
 } from "./forum-seed.mjs";
 import { extractRelNextUrl, resolveSkodaVehicleModel } from "./forum-seed-skoda.mjs";
 
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_SLEEP_MS = 100;
 const DEFAULT_FORUM = "skoda_club_net";
 const DEFAULT_USER_ID = "ai_importer";
@@ -206,6 +206,8 @@ async function deepseekChatJson({ apiKey, model, messages, maxTokens = 2600 }) {
       max_tokens: maxTokens,
       messages,
       temperature: 0.2,
+      // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
+      thinking: { type: "disabled" },
     }),
   });
   if (!res.ok) {

@@ -8,12 +8,12 @@
  *   ─────────   ──────────────────   ─────────────────────────────────────────
  *   classify    claude:haiku         high volume → cheapest subscription model
  *   extract     claude:sonnet        ~18% of threads, quality matters
- *   verify      deepseek:deepseek-chat  tiny volume; independent second AI
+ *   verify      deepseek:deepseek-v4-flash tiny volume; independent second AI
  *                                       (different vendor than the extractor)
  *   calibrate   claude:sonnet        rare, needs good HTML reasoning
  *   diary       claude:haiku         short free-form summaries
  *
- * Override per task via env: AGENT_LLM_CLASSIFY=deepseek:deepseek-chat etc.
+ * Override per task via env: AGENT_LLM_CLASSIFY=deepseek:deepseek-v4-flash etc.
  * Provider 'claude' uses the Claude Code CLI (subscription login, no API key).
  * Provider 'deepseek' uses the HTTP API (needs DEEPSEEK_API_KEY).
  */
@@ -26,7 +26,7 @@ const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEFAULT_ROUTES = {
   classify: 'claude:haiku',
   extract: 'claude:sonnet',
-  verify: 'deepseek:deepseek-chat',
+  verify: 'deepseek:deepseek-v4-flash',
   calibrate: 'claude:sonnet',
   diary: 'claude:haiku',
   discover: 'claude:sonnet', // forum discovery needs web search + judgment
@@ -95,7 +95,7 @@ export async function runLlm(task, prompt, options = {}) {
   }
   return deepseekChat({
     apiKey,
-    model: model || 'deepseek-chat',
+    model: model || 'deepseek-v4-flash',
     prompt,
     maxTokens: options.maxTokens ?? 2000,
     temperature: options.temperature ?? 0.2,
@@ -107,7 +107,7 @@ export async function runLlm(task, prompt, options = {}) {
 // DeepSeek HTTP API (shared; formerly duplicated in classify.mjs/extract.mjs)
 // ---------------------------------------------------------------------------
 
-export async function deepseekChat({ apiKey, model = 'deepseek-chat', prompt, maxTokens, temperature = 0.2, timeoutMs = 120_000 }) {
+export async function deepseekChat({ apiKey, model = 'deepseek-v4-flash', prompt, maxTokens, temperature = 0.2, timeoutMs = 120_000, thinking = { type: 'disabled' } }) {
   const maxRetries = 3;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -124,6 +124,8 @@ export async function deepseekChat({ apiKey, model = 'deepseek-chat', prompt, ma
           max_tokens: maxTokens,
           temperature,
           messages: [{ role: 'user', content: prompt }],
+          // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
+          ...(thinking ? { thinking } : {}),
         }),
         // Hard per-attempt timeout — a stalled connection must not hang the
         // whole agent (it would hold the scheduler mutex forever)

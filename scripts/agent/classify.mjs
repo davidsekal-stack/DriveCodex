@@ -19,7 +19,7 @@ const CLASSIFIER_TEMPERATURE = 0.2;
 // ---------------------------------------------------------------------------
 
 // Keep thread text within the smallest routed model's context (~64K tokens
-// ≈ ~200K chars for deepseek-chat; Claude models allow more). Leave room for
+// ≈ ~200K chars for deepseek-v4-flash; Claude models allow more). Leave room for
 // the prompt template + output.
 const MAX_THREAD_TEXT_CHARS = 150_000;
 

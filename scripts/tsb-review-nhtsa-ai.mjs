@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_MAX_CASES = Infinity;
 const DEFAULT_SLEEP_MS = 0;
 const DEFAULT_API_MAX_RETRIES = 5;
@@ -29,7 +29,7 @@ Usage:
 
 Examples:
   node scripts/tsb-review-nhtsa-ai.mjs C:\\GB\\tmp\\nhtsa_tsb_kia_us_fixcheck_20260328 out_kia_reviewed
-  node scripts/tsb-review-nhtsa-ai.mjs dir1 dir2 out_reviewed --model deepseek-chat --max-cases 100
+  node scripts/tsb-review-nhtsa-ai.mjs dir1 dir2 out_reviewed --model deepseek-v4-flash --max-cases 100
 
 Options:
   --model <name>          DeepSeek model. Default: ${DEFAULT_MODEL}
@@ -502,6 +502,8 @@ export async function deepseekChatJson({
           max_tokens: maxTokens,
           messages,
           temperature: 0.1,
+          // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
+          thinking: { type: "disabled" },
         }),
         signal: AbortSignal.timeout(90_000),
       });

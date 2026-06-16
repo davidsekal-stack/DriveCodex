@@ -35,7 +35,7 @@ import { deepseekChatJson } from "./tsb-review-nhtsa-ai.mjs";
 const DEFAULT_INPUTS = ["https://fordtransit.org/forum/viewforum.php?f=2"];
 const DEFAULT_FORUM = "fordtransit_org";
 const DEFAULT_USER_ID = "ai_importer";
-const DEFAULT_MODEL = "deepseek-chat";
+const DEFAULT_MODEL = "deepseek-v4-flash";
 const DEFAULT_MIN_REPLIES = 1;
 
 const TOPIC_BLACKLIST = [
