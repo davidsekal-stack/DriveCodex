@@ -55,7 +55,11 @@ Pozn.: `thinking` je top-level pole raw HTTP requestu (ne `extra_body`). Endpoin
 - `OFFLINE_DEEPSEEK_MODEL` — jediný zdroj pravdy pro offline model (dřív duplikováno jako `DEFAULT_MODEL` v ~16 souborech; budoucí výměna modelu = 1 edit). Importují ho všechny seed/NHTSA/retry skripty, `audit/deepseek-judge.mjs` i router `llm.mjs` (route `verify` + fallbacky).
 - `deepseekChatJson(...)` — jeden odolný messages-based klient (retry, per-pokus timeout, detekce kvóty → `QuotaError`). Nahradil **11 ručně psaných kopií** (forum-seed `base/vw/toyota/ford/audi/hyundai/peugeot/renault/club-root` + 2× `retry-skoda`), které dřív neměly žádný retry ani timeout. `tsb-review-nhtsa-ai.mjs` teď exportuje tenký wrapper, který deleguje na sdílený klient se svými NHTSA parametry (temp 0.1, 90s timeout, 5 retry), takže `tsb-second-pass` i `forum-seed-fordtransit` jedou beze změny. Prompt-based `deepseekChat` (crawl agent) zůstává v `llm.mjs`, ale bere model/endpoint ze sdíleného modulu.
 
-**Zbývá (samostatný úkol, model `deepseek-reasoner`):** web-diagnostika je v produkci už na `deepseek-v4-pro`, ale staré jméno `deepseek-reasoner` ještě figuruje v e2e harnessech (`scripts/e2e-followup-batch2.mjs`, `…batch3.mjs`) a v testovacích fixtures (`tests/unit.test.js`, `tests/supabase-live/suites/edge-functions.js`). Tyhle testují web cestu (mimo rozsah této migrace `deepseek-chat`), ale taky narazí na cutoff 2026-07-24 — sjednotit zvlášť.
+**deepseek-reasoner úklid (hotovo 2026-06-17):** poslední odkazy na vypínaný `deepseek-reasoner` na web cestě jsou přepnuté na `deepseek-v4-pro`: e2e harnessy [`scripts/e2e-followup-batch2.mjs`](/C:/GB/scripts/e2e-followup-batch2.mjs) + [`batch3.mjs`](/C:/GB/scripts/e2e-followup-batch3.mjs) a testovací fixtures [`tests/unit.test.js`](/C:/GB/tests/unit.test.js), [`tests/supabase-live/suites/edge-functions.js`](/C:/GB/tests/supabase-live/suites/edge-functions.js). V repu už `deepseek-reasoner`/`deepseek-chat` nikde nevolá žádný živý kód.
+
+Vědomě ponecháno (není to volání modelu):
+- historické výsledkové JSONy `scripts/e2e-followup-results*.json` — záznam minulých běhů, neměníme.
+- allowlist `ALLOWED_MODELS` v [deepseek-proxy](/C:/GB/supabase/functions/deepseek-proxy/index.ts) pořád pouští `deepseek-chat`/`deepseek-reasoner` jako legacy; je to neškodné (nikdo je už neposílá) a vyčištění by si vyžádalo redeploy edge funkce — udělat při nejbližším deploy proxy.
 
 ## Co je teď důležité
 
