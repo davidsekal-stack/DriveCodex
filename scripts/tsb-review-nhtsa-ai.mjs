@@ -3,8 +3,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { deepseekChatJson as sharedDeepseekChatJson, OFFLINE_DEEPSEEK_MODEL } from "./agent/deepseek.mjs";
 
-const DEFAULT_MODEL = "deepseek-v4-flash";
+const DEFAULT_MODEL = OFFLINE_DEEPSEEK_MODEL;
 const DEFAULT_MAX_CASES = Infinity;
 const DEFAULT_SLEEP_MS = 0;
 const DEFAULT_API_MAX_RETRIES = 5;
@@ -480,56 +481,21 @@ export function buildReviewPrompt(candidate) {
   ].join("\n");
 }
 
-export async function deepseekChatJson({
-  apiKey,
-  model,
-  messages,
-  maxTokens = 1200,
-  fetchFn = fetch,
-  sleepFn = sleep,
-}) {
-  let lastError = null;
-  for (let attempt = 0; attempt < DEFAULT_API_MAX_RETRIES; attempt++) {
-    try {
-      const res = await fetchFn("https://api.deepseek.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: maxTokens,
-          messages,
-          temperature: 0.1,
-          // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
-          thinking: { type: "disabled" },
-        }),
-        signal: AbortSignal.timeout(90_000),
-      });
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        const error = new Error(`DeepSeek API error ${res.status}: ${body.slice(0, 400)}`);
-        if (!RETRYABLE_STATUS_CODES.has(res.status) || attempt === DEFAULT_API_MAX_RETRIES - 1) {
-          throw error;
-        }
-        lastError = error;
-        await sleepFn(Math.min(20_000, 2_000 * (attempt + 1)));
-        continue;
-      }
-
-      const data = await res.json();
-      return (data?.choices?.[0]?.message?.content ?? "").toString();
-    } catch (error) {
-      lastError = error;
-      if (attempt === DEFAULT_API_MAX_RETRIES - 1) {
-        throw error;
-      }
-      await sleepFn(Math.min(20_000, 2_000 * (attempt + 1)));
-    }
-  }
-  throw lastError ?? new Error("DeepSeek API request failed.");
+export function deepseekChatJson({ apiKey, model, messages, maxTokens = 1200, fetchFn = fetch, sleepFn = sleep }) {
+  // NHTSA reviewer keeps its established knobs (temp 0.1, 90s timeout, 5 retries
+  // on transient statuses) but now delegates to the one shared DeepSeek client.
+  return sharedDeepseekChatJson({
+    apiKey,
+    model,
+    messages,
+    maxTokens,
+    temperature: 0.1,
+    timeoutMs: 90_000,
+    maxRetries: DEFAULT_API_MAX_RETRIES,
+    retryableStatus: RETRYABLE_STATUS_CODES,
+    fetchFn,
+    sleepFn,
+  });
 }
 
 function sleep(ms) {

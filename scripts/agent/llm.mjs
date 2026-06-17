@@ -20,13 +20,12 @@
 
 import { runClaudePrompt } from './claude-cli.mjs';
 import { assertDeepSeekNotQuotaError } from './quota.mjs';
-
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+import { OFFLINE_DEEPSEEK_MODEL, DEEPSEEK_CHAT_URL } from './deepseek.mjs';
 
 const DEFAULT_ROUTES = {
   classify: 'claude:haiku',
   extract: 'claude:sonnet',
-  verify: 'deepseek:deepseek-v4-flash',
+  verify: `deepseek:${OFFLINE_DEEPSEEK_MODEL}`,
   calibrate: 'claude:sonnet',
   diary: 'claude:haiku',
   discover: 'claude:sonnet', // forum discovery needs web search + judgment
@@ -95,7 +94,7 @@ export async function runLlm(task, prompt, options = {}) {
   }
   return deepseekChat({
     apiKey,
-    model: model || 'deepseek-v4-flash',
+    model: model || OFFLINE_DEEPSEEK_MODEL,
     prompt,
     maxTokens: options.maxTokens ?? 2000,
     temperature: options.temperature ?? 0.2,
@@ -107,13 +106,13 @@ export async function runLlm(task, prompt, options = {}) {
 // DeepSeek HTTP API (shared; formerly duplicated in classify.mjs/extract.mjs)
 // ---------------------------------------------------------------------------
 
-export async function deepseekChat({ apiKey, model = 'deepseek-v4-flash', prompt, maxTokens, temperature = 0.2, timeoutMs = 120_000, thinking = { type: 'disabled' } }) {
+export async function deepseekChat({ apiKey, model = OFFLINE_DEEPSEEK_MODEL, prompt, maxTokens, temperature = 0.2, timeoutMs = 120_000, thinking = { type: 'disabled' } }) {
   const maxRetries = 3;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     let res;
     try {
-      res = await fetch(DEEPSEEK_API_URL, {
+      res = await fetch(DEEPSEEK_CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

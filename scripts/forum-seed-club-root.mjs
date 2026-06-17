@@ -28,6 +28,7 @@ import {
   validateExtractedCaseAuthor,
   writeJsonFileUnique,
 } from "./forum-seed.mjs";
+import { deepseekChatJson, OFFLINE_DEEPSEEK_MODEL } from "./agent/deepseek.mjs";
 
 const COMMON_TOPIC_BLACKLIST = [
   /\bmanuals?\b/i,
@@ -77,7 +78,7 @@ const COMMON_SIGNAL_PATTERNS = [
   /\b\d{2,3}\s*kw\b/i,
 ];
 
-const DEFAULT_MODEL = "deepseek-v4-flash";
+const DEFAULT_MODEL = OFFLINE_DEEPSEEK_MODEL;
 const DEFAULT_MIN_POSTS = 2;
 
 function usageText(brand, rootUrl) {
@@ -959,30 +960,6 @@ export function buildClubCrawlerApi(config) {
           ...decision,
         };
       });
-  }
-
-  async function deepseekChatJson({ apiKey, model, messages, maxTokens = 1400 }) {
-    const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        messages,
-        temperature: 0.2,
-        // v4-flash: vypnout uvažovací režim (rychlý strukturovaný JSON; thinking je top-level pole)
-        thinking: { type: "disabled" },
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new Error(`DeepSeek API error ${res.status}: ${body.slice(0, 400)}`);
-    }
-    const data = await res.json();
-    return (data?.choices?.[0]?.message?.content ?? "").toString();
   }
 
   async function processThreadFactory({ args, apiKey, outReady, outReview, discardedPath }) {

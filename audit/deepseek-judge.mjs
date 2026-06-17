@@ -1,5 +1,6 @@
 // Semantic "does this case make sense?" judge over a stratified sample, via DeepSeek.
 import fs from "node:fs";
+import { OFFLINE_DEEPSEEK_MODEL } from "../scripts/agent/deepseek.mjs";
 const KEY = process.env.DEEPSEEK_API_KEY;
 if (!KEY) { console.error("Missing DEEPSEEK_API_KEY"); process.exit(1); }
 const cases = JSON.parse(fs.readFileSync("audit/cases.json", "utf8"));
@@ -27,7 +28,7 @@ async function judge(batch) {
   const prompt = `You are auditing an automotive diagnostic knowledge base. For each case decide if it MAKES SENSE: i.e., the resolution is a plausible, coherent fix or root-cause for the stated symptoms/description, the vehicle is real, and nothing is contradictory or garbled. A short root-cause statement ("it was the X") counts as sensible. Return ONLY a JSON array, one object per case: {"n":<n>,"ok":true|false,"issue":"<short reason if not ok, else empty>"}.\nCASES:\n${JSON.stringify(items)}`;
   const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${KEY}` },
-    body: JSON.stringify({ model:"deepseek-v4-flash", thinking:{type:"disabled"}, temperature:0, max_tokens:1500,
+    body: JSON.stringify({ model:OFFLINE_DEEPSEEK_MODEL, thinking:{type:"disabled"}, temperature:0, max_tokens:1500,
       messages:[{role:"user", content:prompt}] }) });
   if (!res.ok) { console.error("HTTP", res.status, (await res.text()).slice(0,150)); return []; }
   const txt = (await res.json()).choices?.[0]?.message?.content || "";
