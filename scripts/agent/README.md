@@ -137,9 +137,50 @@ Core file: [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs)
 
 After deterministic validation, an independent AI auditor (default: DeepSeek —
 deliberately a different vendor than the Claude-based extractor) re-reads the
-original thread text and must return exactly `PASS` or `FAIL: reason`.
+original thread text and scores the case. It is the last automatic gate before
+the human review queue (`status='pending'` in Supabase).
 
 This is a second opinion layer, separate from the extraction path.
+
+**Structured per-condition gate (2026-06).** The auditor no longer returns a free
+`PASS`/`FAIL` line — that one-line prompt silently passed three classes of bad
+case (an early review caught 8 live examples). It now returns a JSON object with
+**six strict booleans**, and *code* (not the model) applies an AND-gate — any
+false/missing/non-boolean key → `FAIL`:
+
+| condition | catches |
+|---|---|
+| `in_scope` | non-cars (motorcycle/HGV/marine/quad) on a car+van database |
+| `vehicle_matches_cited_posts` | case vehicle ≠ the vehicle in the cited fault/resolution posts (multi-vehicle thread bleed) |
+| `is_genuine_fault` | config/menu questions, parts-fitment/where-to-buy, elective upgrades/retrofits/coding-activation, third-party-gadget firmware, preventive-maintenance opinion |
+| `repair_performed` | "fixed itself" / "resolved on its own" — no repair action |
+| `repair_confirmed` | outcome unknown, fault returned, or root cause never found |
+| `actionable` | symptoms/resolution too vague to act on |
+
+Key design points (see the prompt in `verify.mjs`):
+- The case's `case_author` + `fault_post_numbers` + `resolution_post_numbers`
+  (already in the payload, previously unused) are injected so the auditor judges
+  the vehicle/fault/fix from the **cited posts only** — the structural fix for
+  multi-vehicle bleed.
+- `is_genuine_fault` carries an inline allowlist so genuine repairs are NOT
+  rejected: cleaning (incl. ultrasonic), additive/fluid cures, adjustment,
+  re-flashing the car's **own** ECU, rodent-wiring re-splice, an emulator that
+  **restores** a failed factory function, and worn-part replacement on classic cars.
+- A conservative deterministic pre-gate (`isLikelyOutOfScopeVehicle`, exported)
+  short-circuits obvious motorcycles/HGV to `FAIL` with no DeepSeek call. It keys
+  on the **model string only** (never displacement/age) and the moto-code regexes
+  run only for moto-capable makers, so a car like `320d` or `Golf 1.8` never trips.
+- Output is parsed with the codebase's `indexOf('{')..lastIndexOf('}')` slice; a
+  malformed response triggers **one** repair retry then **fails closed** to
+  `verify_rejected` (a bad case is never silently imported). `temperature:0`.
+- The classifier (`classify.mjs`) `has_explicit_fault` definition was tightened in
+  lockstep to drop the non-fault classes one stage earlier; the verifier is the
+  authoritative gate, the human review queue is the final backstop.
+
+Validated against a 67-case live regression (the imports from the prior night):
+caught **8/8** known-bad cases, **0** false-rejects on 50 confirmed-good cases,
+identical verdicts across two runs (deterministic). Logic is covered by
+[`tests/agent-verify.test.js`](/C:/GB/tests/agent-verify.test.js).
 
 ### Phase 6: Crosscheck
 
