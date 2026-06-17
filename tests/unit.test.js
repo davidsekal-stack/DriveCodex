@@ -893,11 +893,11 @@ describe('edge function helpers — gateway kontrakt', () => {
         systemPrompt: 'SYS',
         userMessage: 'USER',
         maxTokens: 123,
-        model: 'deepseek-reasoner',
+        model: 'deepseek-v4-pro',
         userId: 'user-1',
       }),
       {
-        model: 'deepseek-reasoner',
+        model: 'deepseek-v4-pro',
         system: 'SYS',
         messages: [{ role: 'user', content: 'USER' }],
         max_tokens: 123,

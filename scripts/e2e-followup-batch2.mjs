@@ -17,7 +17,7 @@ import { RUNTIME_CONFIG } from "../web/src/lib/runtime-config.js";
 
 const EDGE = RUNTIME_CONFIG.edgeFunctionsUrl;
 const ANON = RUNTIME_CONFIG.supabaseAnonKey;
-const MODEL = "deepseek-reasoner";
+const MODEL = "deepseek-v4-pro";
 const USER_ID = "e2e-batch2"; // fresh user_id → vlastní denní limit
 const CALL_TIMEOUT_MS = 240_000;
 const CONCURRENCY = 6;

@@ -10,7 +10,7 @@ async function runEdgeFunctionsSuite(harness) {
 
   await harness.test('deepseek-proxy: odmítne prázdný user_id', async () => {
     const result = await harness.edge('deepseek-proxy', {
-      model: 'deepseek-reasoner',
+      model: 'deepseek-v4-pro',
       system: 'Test',
       messages: [{ role: 'user', content: 'test' }],
       max_tokens: 100,
@@ -35,7 +35,7 @@ async function runEdgeFunctionsSuite(harness) {
 
   await harness.test('deepseek-proxy: odmítne prázdné messages', async () => {
     const result = await harness.edge('deepseek-proxy', {
-      model: 'deepseek-reasoner',
+      model: 'deepseek-v4-pro',
       system: 'Test',
       messages: [],
       max_tokens: 100,
