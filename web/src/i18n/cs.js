@@ -169,6 +169,8 @@ export const strings = {
   'analytics.brandStats': 'DIAGNOSTIKOVANÉ ZNAČKY',
   'analytics.brandSessions': 'Počet diagnostik',
   'analytics.brandClosed': 'Uzavřené případy v DB',
+  'analytics.coachReport': 'NOČNÍ REPORT CRAWLERU',
+  'analytics.coachReportNone': 'Zatím žádný noční report.',
 
   // Status
   'status.closed':        '✓ UZAVŘENÝ',

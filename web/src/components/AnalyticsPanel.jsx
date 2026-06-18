@@ -23,6 +23,34 @@ function fillDays(sparse, sinceDate, labelKey, defaultRow) {
   return result;
 }
 
+// ── Minimal markdown render for the daily coach report (no md lib in this project) ──
+function renderInline(text) {
+  const parts = [];
+  const re = /\*\*([^*]+)\*\*|_([^_]+)_/g;
+  let lastIndex = 0, m, key = 0;
+  while ((m = re.exec(text))) {
+    if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+    if (m[1] !== undefined) parts.push(<strong key={key++}>{m[1]}</strong>);
+    else parts.push(<em key={key++}>{m[2]}</em>);
+    lastIndex = re.lastIndex;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
+}
+
+function renderReportMd(md, t) {
+  return String(md || "").split("\n").map((raw, i) => {
+    const line = raw.replace(/\r$/, "");
+    if (line.trim() === "") return <div key={i} style={{ height: 6 }} />;
+    if (line.trim() === "---") return <div key={i} style={{ borderTop: `1px solid ${t.border}`, margin: "10px 0" }} />;
+    if (line.startsWith("# ")) return <div key={i} style={{ fontSize: "1.05rem", fontWeight: 700, color: t.text, margin: "2px 0 6px" }}>{renderInline(line.slice(2))}</div>;
+    if (line.startsWith("## ")) return <div key={i} style={{ fontSize: SMALL, fontWeight: 700, color: t.accent, letterSpacing: "0.05em", margin: "12px 0 4px" }}>{renderInline(line.slice(3))}</div>;
+    const bullet = line.match(/^(\s*)-\s+(.*)$/);
+    if (bullet) return <div key={i} style={{ paddingLeft: 12 + (bullet[1].length > 0 ? 16 : 0), color: t.textMuted, fontSize: SMALL, lineHeight: 1.55 }}>• {renderInline(bullet[2])}</div>;
+    return <div key={i} style={{ color: t.textMuted, fontSize: SMALL, lineHeight: 1.55 }}>{renderInline(line)}</div>;
+  });
+}
+
 // ── Main Panel ─────────────────────────────────────────────────────────────────
 
 export default function AnalyticsPanel({ tr, fetchAnalytics }) {
@@ -116,6 +144,18 @@ export default function AnalyticsPanel({ tr, fetchAnalytics }) {
 
         {!loading && data && (
           <>
+            {/* Nightly crawler report (daily coach) — shown at the top */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: SMALL, fontWeight: 600, color: t.textMuted, marginBottom: 8, letterSpacing: "0.06em" }}>
+                {tr("analytics.coachReport")}
+              </div>
+              <div style={{ background: t.bgCard, border: `1px solid ${t.border}`, borderRadius: 2, padding: "14px 16px" }}>
+                {data.daily_report?.report_md
+                  ? renderReportMd(data.daily_report.report_md, t)
+                  : <div style={{ fontSize: SMALL, color: t.textVeryFaint }}>{tr("analytics.coachReportNone")}</div>}
+              </div>
+            </div>
+
             {/* Stat cards */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
               <StatCard label={tr("analytics.totalCalls")} value={totalCalls.toLocaleString()}

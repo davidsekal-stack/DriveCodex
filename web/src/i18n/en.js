@@ -169,6 +169,8 @@ export const strings = {
   'analytics.brandStats': 'DIAGNOSED BRANDS',
   'analytics.brandSessions': 'Diagnosis count',
   'analytics.brandClosed': 'Closed cases in DB',
+  'analytics.coachReport': 'NIGHTLY CRAWLER REPORT',
+  'analytics.coachReportNone': 'No nightly report yet.',
 
   // Status
   'status.closed':        '✓ CLOSED',

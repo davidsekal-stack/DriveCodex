@@ -169,6 +169,8 @@ export const strings = {
   'analytics.brandStats': 'DIAGNOSTIZIERTE MARKEN',
   'analytics.brandSessions': 'Anzahl der Diagnosen',
   'analytics.brandClosed': 'Abgeschlossene Fälle in DB',
+  'analytics.coachReport': 'NÄCHTLICHER CRAWLER-BERICHT',
+  'analytics.coachReportNone': 'Noch kein nächtlicher Bericht.',
 
   // Status
   'status.closed':        '✓ ABGESCHLOSSEN',

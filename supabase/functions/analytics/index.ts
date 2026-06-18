@@ -46,13 +46,16 @@ Deno.serve(async (req) => {
   const ex = EXCLUDE_EMAILS
 
   try {
-    const [aiUsage, sessions, cases, regUsers, topUsers, brands] = await Promise.all([
+    const [aiUsage, sessions, cases, regUsers, topUsers, brands, coachReport] = await Promise.all([
       supabase.rpc('analytics_ai_daily', { since_date: since, exclude_emails: ex }),
       supabase.rpc('analytics_sessions_daily', { since_date: since, exclude_emails: ex }),
       supabase.rpc('analytics_case_stats'),
       supabase.rpc('analytics_registered_users', { exclude_emails: ex }),
       supabase.rpc('analytics_top_users', { since_date: since, lim: 10, exclude_emails: ex }),
       supabase.rpc('analytics_brand_stats', { since_date: since, exclude_emails: ex }),
+      // Latest nightly crawler report (daily coach). Fail-soft: the table may not
+      // exist yet on environments where migration 023 has not been applied.
+      supabase.from('crawl_daily_report').select('date, report_md').order('date', { ascending: false }).limit(1),
     ])
 
     return json({
@@ -62,6 +65,7 @@ Deno.serve(async (req) => {
       registered_users: regUsers.data?.[0] ?? { total_users: 0, users_today: 0, users_7d: 0, users_30d: 0 },
       top_users: topUsers.data ?? [],
       brand_stats: brands.data ?? [],
+      daily_report: coachReport.error ? null : (coachReport.data?.[0] ?? null),
       days: effectiveDays,
       since: since.slice(0, 10),
     })
