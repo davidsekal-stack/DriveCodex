@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS forums (
   cooldown_until TEXT,
   last_crawled_at TEXT,
   diary_md TEXT,
+  priority_score REAL DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -164,6 +165,7 @@ export class AgentState {
       'ALTER TABLE cases ADD COLUMN verify_attempts INTEGER DEFAULT 0',
       'ALTER TABLE cases ADD COLUMN crosscheck_attempts INTEGER DEFAULT 0',
       'ALTER TABLE cases ADD COLUMN import_attempts INTEGER DEFAULT 0',
+      'ALTER TABLE forums ADD COLUMN priority_score REAL DEFAULT 0',
     ];
     for (const sql of alterations) {
       try { this.#db.exec(sql); } catch { /* column already exists */ }
@@ -216,7 +218,7 @@ export class AgentState {
       'sections_json', 'threads_found', 'threads_crawled',
       'new_threads_last_batch', 'cases_total', 'last_crawled_at',
       'calibration_json', 'calibration_status', 'calibration_attempts',
-      'cooldown_until', 'diary_md',
+      'cooldown_until', 'diary_md', 'priority_score',
     ];
     const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
     if (entries.length === 0) return;
@@ -262,6 +264,7 @@ export class AgentState {
          AND (cooldown_until IS NULL OR cooldown_until < datetime('now'))
        ORDER BY
          last_crawled_at IS NULL DESC,
+         COALESCE(priority_score, 0) DESC,
          last_crawled_at ASC
        LIMIT ?`
     );
