@@ -436,6 +436,42 @@ Tento soubor zmizi sam, jakmile bude dalsi denni kontrola pod prahem.
     }
   }
 
+  # ── Step 5: daily coach — denní vyhodnocení nočního běhu (NON-FATAL) ──
+  # Jednou denně po noční vlně sebere statistiky noci do strukturovaných metrik
+  # (lokální crawl_metrics + best-effort Supabase) a napíše plain-CZ denní report
+  # (logs/daily-coach-*.md + Supabase pro zobrazení v appce). Fáze 1 = jen pozoruje
+  # a měří, nemění žádný knob. Sám se hradí na 1x/den po COACH_HOUR. Potřebuje
+  # --experimental-sqlite (čte/píše lokální agent.db). Selhání NESMÍ ovlivnit crawl.
+  $dailyCoach = Join-Path $agentDir 'daily-coach.mjs'
+  if (Test-Path $dailyCoach) {
+    Write-LogLine -Path $logPath -Message "Running daily coach (night evaluation)..."
+    $dcOut = [System.IO.Path]::GetTempFileName()
+    $dcErr = [System.IO.Path]::GetTempFileName()
+    try {
+      $dcProc = Start-Process `
+        -FilePath $nodeExe `
+        -ArgumentList @('--experimental-sqlite', $dailyCoach) `
+        -WorkingDirectory $repoRoot `
+        -NoNewWindow `
+        -Wait `
+        -PassThru `
+        -RedirectStandardOutput $dcOut `
+        -RedirectStandardError $dcErr
+
+      foreach ($dcStream in @($dcOut, $dcErr)) {
+        if (-not (Test-Path $dcStream)) { continue }
+        $dcContent = Get-Content $dcStream -Raw
+        if ([string]::IsNullOrWhiteSpace($dcContent)) { continue }
+        Add-Content -Path $logPath -Value $dcContent.TrimEnd("`r", "`n")
+      }
+      Write-LogLine -Path $logPath -Message ("Daily coach exit_code={0}." -f [int]$dcProc.ExitCode)
+    } catch {
+      Write-LogLine -Path $logPath -Message ("WARN: daily coach failed ({0}); ignoring." -f $_.Exception.Message)
+    } finally {
+      Remove-Item $dcOut, $dcErr -ErrorAction SilentlyContinue
+    }
+  }
+
   Write-LogLine -Path $logPath -Message ("END exit_code={0}" -f $exitCode)
   exit $exitCode
 }

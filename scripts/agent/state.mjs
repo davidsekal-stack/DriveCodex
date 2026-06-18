@@ -126,6 +126,19 @@ CREATE TABLE IF NOT EXISTS agent_meta (
   value TEXT,
   updated_at TEXT DEFAULT (datetime('now'))
 );
+
+-- Nightly metrics time-series (long format) written by the daily coach.
+-- One row per (night date, scope, metric); scope='global' or a forum id.
+-- Long format = adding a new metric never needs a schema change, and a single
+-- metric's trend over time is one query. Source of truth for measuring evolution.
+CREATE TABLE IF NOT EXISTS crawl_metrics (
+  date TEXT NOT NULL,
+  scope TEXT NOT NULL DEFAULT 'global',
+  metric TEXT NOT NULL,
+  value REAL,
+  updated_at TEXT DEFAULT (datetime('now')),
+  PRIMARY KEY (date, scope, metric)
+);
 `;
 
 export class AgentState {
@@ -528,6 +541,41 @@ export class AgentState {
     } catch { /* table may not exist on legacy DBs */ }
   }
 
+  // ── Nightly metrics (daily coach) ───────────────────────
+
+  /** Upsert one metric value for a night. Idempotent per (date, scope, metric). */
+  recordMetric(date, metric, value, scope = 'global') {
+    this.#db.prepare(
+      `INSERT INTO crawl_metrics (date, scope, metric, value, updated_at)
+       VALUES (?, ?, ?, ?, datetime('now'))
+       ON CONFLICT(date, scope, metric) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`
+    ).run(date, scope, metric, value);
+  }
+
+  /** Time-series for one metric, oldest→newest. For trend measurement. */
+  getMetricSeries(metric, scope = 'global', limit = 90) {
+    try {
+      return this.#db.prepare(
+        `SELECT date, value FROM crawl_metrics WHERE metric = ? AND scope = ?
+         ORDER BY date DESC LIMIT ?`
+      ).all(metric, scope, limit).reverse();
+    } catch {
+      return [];
+    }
+  }
+
+  /** All metrics for one night, as a {metric: value} map (scope='global'). */
+  getMetricsForDate(date, scope = 'global') {
+    try {
+      const rows = this.#db.prepare(
+        'SELECT metric, value FROM crawl_metrics WHERE date = ? AND scope = ?'
+      ).all(date, scope);
+      return Object.fromEntries(rows.map(r => [r.metric, r.value]));
+    } catch {
+      return {};
+    }
+  }
+
   // ── Agent log ───────────────────────────────────────────
 
   log(level, message, phase = null) {
@@ -549,6 +597,27 @@ export class AgentState {
       'SELECT * FROM runs ORDER BY id DESC LIMIT 1'
     );
     return stmt.get() ?? null;
+  }
+
+  // ── Windowed reads (daily coach OBSERVE) ────────────────
+  // created_at / started_at are UTC 'YYYY-MM-DD HH:MM:SS'; pass a matching cutoff.
+
+  getThreadsCreatedSince(cutoff) {
+    return this.#db.prepare(
+      'SELECT id, forum_id, status, discard_reason, created_at FROM threads WHERE created_at >= ?'
+    ).all(cutoff);
+  }
+
+  getCasesCreatedSince(cutoff) {
+    return this.#db.prepare(
+      'SELECT id, thread_id, status, review_note, payload_json, created_at FROM cases WHERE created_at >= ?'
+    ).all(cutoff);
+  }
+
+  getRunsSince(cutoff) {
+    return this.#db.prepare(
+      'SELECT * FROM runs WHERE started_at >= ? ORDER BY id'
+    ).all(cutoff);
   }
 
   // ── Stats ───────────────────────────────────────────────
