@@ -37,6 +37,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { AgentState } from './state.mjs';
 import { isStoppingError } from './quota.mjs';
+import { QUALITY_BAR } from './quality-bar.mjs';
+
+// Re-export so existing importers (tests, precision-auditor) keep one source of truth.
+export { QUALITY_BAR };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -116,8 +120,6 @@ export function shouldAlert(results, { rate = ALERT_RATE, min = ALERT_MIN } = {}
   return { alert: wrong.length >= min && ratio >= rate, wrong: wrong.length, judged: judged.length, ratio };
 }
 
-const QUALITY_BAR = `A case BELONGS in the database only if ALL hold: (a) the vehicle is a passenger car or light van (NOT a motorcycle/truck/etc.); (b) it describes a genuine MALFUNCTION/DEFECT that was actually repaired and confirmed fixed; (c) it is NOT a config/menu question, parts-fitment/where-to-buy, elective upgrade/retrofit/coding, third-party-gadget firmware, "fixed itself", or a preventive-maintenance opinion; (d) the SAME forum user reported the fault AND carried out (or explicitly confirmed) the repair — a fix merely SUGGESTED by another user, or performed by a different user, does NOT qualify (this is a deliberate single-author policy); (e) the case's stated vehicle matches the vehicle in the cited posts, not a different car mentioned elsewhere in a multi-vehicle thread. Genuine repairs INCLUDE cleaning, additive/fluid cures, adjustment, re-flashing the car's OWN ECU, rodent-wiring repair, an emulator that RESTORES a failed factory function, and worn-part replacement on classic cars. IMPORTANT: only mark wrongly_rejected=true if the case clearly meets ALL of (a)-(e); if it fails (d) or (e), the rejection was CORRECT.`;
-
 /** Build the independent re-check prompt. */
 export function buildAuditPrompt(threadText, caseObj, verifierReason) {
   const text = (threadText || '').length > MAX_THREAD_CHARS
@@ -128,7 +130,7 @@ export function buildAuditPrompt(threadText, caseObj, verifierReason) {
   const engine = caseObj.engine_power || caseObj.engine_raw || '';
   return `An automated verifier REJECTED the extracted case below (so it will NOT enter the database). Independently decide whether that rejection was a mistake — i.e. the case actually meets the quality bar and a useful repair case was lost.
 
-${QUALITY_BAR}
+${QUALITY_BAR} IMPORTANT: only mark wrongly_rejected=true if the case clearly meets ALL of (a)-(e); if it fails (d) or (e), the rejection was CORRECT.
 
 VERIFIER'S STATED REJECT REASON: ${verifierReason || '(none)'}
 

@@ -218,23 +218,36 @@ začátek noci** (`nightCutoffUtc`, 21:00 lokálně), ne rolling 12 h.
 - **Recall watchdog:** stejná vyhrazená úloha; QUALITY_BAR dokalibrován o „stejný autor" +
   „shoda vozidla" (dřív falešně 8/12 → teď 0/3). Alert → desktop marker
   `DRIVECODEX-VERIFIKATOR-PRISNY-PRECTI-ME.txt` (mirror v `run-coach-batch.ps1`).
+- **Fáze 3 (HOTOVO, lokálně 2026-06-19) — precision auditor:** zrcadlo recall-watchdogu v OPAČNÉM
+  směru. [`precision-auditor.mjs`](/C:/GB/scripts/agent/precision-auditor.mjs) vzorkuje ~12 SCHVÁLENÝCH
+  případů (3 řezy: 4 nejnovější importy + 5 rizikových dle `riskScore` z payloadu + 3 náhodné; pokrytí
+  v `agent_meta precision_audited_ids`, ring-buffer 500), nezávisle je přehodnotí Claudem
+  (`AGENT_LLM_COACH-PRECISION`, default claude:haiku) proti SDÍLENÉ `QUALITY_BAR` (vyfaktorováno do
+  [`quality-bar.mjs`](/C:/GB/scripts/agent/quality-bar.mjs), recall-watchdog ji re-exportuje — jeho
+  prompt zůstal byte-identický). Hlásí míru „chybně PŘIJATÝCH". Čtyři vědomé inverze proti recall zrcadlu:
+  (1) **fail-OPEN** — nečitelný verdikt je pokrytá mezera, ne tiché „přijetí OK" (jeden levný re-ask, pak
+  `precision_unparsed`); (2) soudí **CLAMPNUTÝ uložený artefakt** pro `imported` (co fakt vlezlo do DB);
+  (3) desktop marker `DRIVECODEX-PRECIZNI-AUDITOR-PRECTI-ME.txt` jen na **7denní pooled** míře (≥3 a ≥15 %)
+  NEBO **clusteru na jedné podmínce** (a-e) — ne jednodenní binárka, žádný marker na 1 vysokou jistotu
+  (anti-alarm-fatigue); (4) **skeptický prompt** musí pojmenovat porušenou podmínku. REPORT-ONLY (žádná
+  brána/knob). Signál pro Fázi 4: `crawl_metrics precision_*` + `logs/precision-labels.jsonl` (strojový
+  label-seed, ne lidský gold). 3. krok ranní úlohy `run-coach-batch.ps1`. Testy: **29 agentních zelených**
+  (+`agent-precision-auditor`).
 
 **Validace:** review (5 dimenzí + adversariální ověření) — bezpečnost/RLS/XSS/observe-only OK;
 opraven časovací cluster (viz výše). 26 agentních testů zelených.
 
-**▶ STAV:** Fáze 1 nasazená; Fáze 2 (priorita + cooldown auto, re-kalibrace shadow) hotová a
-otestovaná LOKÁLNĚ (nepushováno). Design prošel vícepohledovým návrhovým workflow (3 nezávislé
-návrhy → adversariální bezpečnostní kritik → syntéza) i přednasazovacím review. Než se nasadí na
-ostrý noční běh, stačí nechat naběhnout ~3 noci dat (cold-start) a pak zkontrolovat report +
-`coach_journal`. 🟠 shadow kanál pro prompty/prahy se NESTAVĚL — je vázaný na gold-set (Fáze 4).
+**▶ STAV:** Fáze 1 nasazená; Fáze 2 (priorita + cooldown auto, re-kalibrace shadow) i Fáze 3
+(precision auditor, report-only) hotové a otestované LOKÁLNĚ (nepushováno). Každá fáze prošla
+vícepohledovým návrhovým workflow (3 návrhy → adversariální kritik → syntéza) i přednasazovacím
+review. Než se nasadí na ostrý běh, stačí nechat naběhnout ~3 noci dat (cold-start) a zkontrolovat
+report + `coach_journal` + `logs/precision-labels.jsonl`. 🟠 shadow kanál pro prompty/prahy se
+NESTAVĚL — je vázaný na gold-set (Fáze 4). DALŠÍ NA ŘADĚ = Fáze 4 (vyžaduje gold-set session s majitelem).
 
 **▶ POZDĚJŠÍ FÁZE (roadmapa, každá samostatně nasaditelná):**
-- **Fáze 3 — precision auditor (zrcadlo recall-watchdogu):** uvnitř kouče přidat křížovou
-  kontrolu i opačného směru — vzorek ~12 SCHVÁLENÝCH případů (status verified/import_ready/
-  imported) nezávisle přehodnotit Claudem proti stejné QUALITY_BAR (`runLlm('coach-precision', …)`
-  přes env-trik `AGENT_LLM_COACH-PRECISION`, stejně jako watchdog). Hlásí míru „chybně PŘIJATÝCH".
-  Precision má přednost (false-accept doteče do živé DB, false-reject jen stojí výnos). Pro brány
-  zatím jen REPORT; je to **předpoklad**, než smí být cokoli povoleno (loosening).
+- **Fáze 3 — precision auditor (zrcadlo recall-watchdogu): ✅ HOTOVO (viz výše).** Měří míru „chybně
+  PŘIJATÝCH" (report-only) — předpoklad, než smí být cokoli povoleno (loosening). Akumuluje
+  `logs/precision-labels.jsonl` (strojový label-seed) + `crawl_metrics precision_*`, které Fáze 4 čte jako trend.
 - **Fáze 4 — propose-and-gate pro rizikové knoby (prompty/prahy):** (a) jednorázově s majitelem
   nakurátorovat **zmrazený gold-set** `scripts/agent/gold/gold-cases.jsonl` (~40–80 jasně dobrých/
   špatných vláken, ~1–2 h — Fáze 4 je bez něj nebezpečná a blokovaná); (b) gold-eval harness nad

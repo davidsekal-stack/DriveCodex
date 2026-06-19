@@ -87,9 +87,13 @@ $loaded = Import-DotEnv -Path (Join-Path $agentDir '.env.local')
 if ($loaded -gt 0) { Write-LogLine -Path $logPath -Message ("Loaded {0} secret(s) from .env.local." -f $loaded) }
 Write-LogLine -Path $logPath -Message "START coach batch."
 
-# 1) recall watchdog (verifier over-rejection check), 2) daily coach (night report + metrics)
-Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'recall-watchdog.mjs') -LogPath $logPath -RepoRoot $repoRoot -Label 'recall watchdog'
-Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'daily-coach.mjs')     -LogPath $logPath -RepoRoot $repoRoot -Label 'daily coach'
+# 1) recall watchdog (verifier over-rejection check), 2) daily coach (night report + metrics),
+# 3) precision auditor (verifier under-rejection check — bad cases that slipped THROUGH).
+# Precision is LAST: if the Claude cap hits mid-run, the cheaper-to-lose recall already ran,
+# and the precision day is not claimed (state stamp) so it retries tomorrow.
+Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'recall-watchdog.mjs')   -LogPath $logPath -RepoRoot $repoRoot -Label 'recall watchdog'
+Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'daily-coach.mjs')        -LogPath $logPath -RepoRoot $repoRoot -Label 'daily coach'
+Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'precision-auditor.mjs')  -LogPath $logPath -RepoRoot $repoRoot -Label 'precision auditor'
 
 # Mirror the watchdog's alert file to a Desktop marker (present → ensure; absent → remove).
 $desktopDir = [Environment]::GetFolderPath('Desktop')
@@ -119,6 +123,37 @@ Tento soubor zmizi sam, jakmile bude dalsi denni kontrola pod prahem.
     }
   } catch {
     Write-LogLine -Path $logPath -Message ("WARN: recall marker mirror failed ({0}); ignoring." -f $_.Exception.Message)
+  }
+}
+
+# Mirror the precision auditor's alert file to a SEPARATE Desktop marker (bad cases that
+# slipped THROUGH the gate). Distinct file from the recall marker so the two never collide.
+if ($desktopDir) {
+  $precisionAlertFile = Join-Path $agentDir 'precision-alert.txt'
+  $precisionMarker = Join-Path $desktopDir 'DRIVECODEX-PRECIZNI-AUDITOR-PRECTI-ME.txt'
+  try {
+    if (Test-Path $precisionAlertFile) {
+      $alertBody = (Get-Content $precisionAlertFile -Raw).TrimEnd("`r", "`n")
+      $markerText = @"
+DriveCodex — precizni auditor nasel mozne chybne schvalene pripady (mozna se do databaze dostaly spatne pripady).
+
+$alertBody
+
+Co s tim:
+  1. Otevrete Claude Code v projektu C:\GB
+  2. Napiste: "zkontroluj precision auditor"
+
+Tento soubor zmizi sam, jakmile bude dalsi denni kontrola pod prahem.
+(Vytvoril: scripts\agent\run-coach-batch.ps1)
+"@
+      Set-Content -Path $precisionMarker -Value $markerText -Encoding utf8
+      Write-LogLine -Path $logPath -Message "ALARM: precision auditor over threshold; desktop marker created."
+    } elseif (Test-Path $precisionMarker) {
+      Remove-Item $precisionMarker -Force -ErrorAction SilentlyContinue
+      Write-LogLine -Path $logPath -Message "Precision auditor under threshold; desktop marker removed."
+    }
+  } catch {
+    Write-LogLine -Path $logPath -Message ("WARN: precision marker mirror failed ({0}); ignoring." -f $_.Exception.Message)
   }
 }
 
