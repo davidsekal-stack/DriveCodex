@@ -1,6 +1,13 @@
 export const SUPABASE_CASES_TABLE = 'gearbrain_cases';
 export const RESOLUTION_MIN_LENGTH = 10;
 export const RESOLUTION_MAX_LENGTH = 400;
+// Cross-source dedup threshold: how near-verbatim two resolutions from DIFFERENT
+// sources must be before we treat them as the same write-up copied around (one
+// person pasting the same advice on several forums) rather than two independent
+// reports. Kept high on purpose — independent reports of a common fault routinely
+// share standard repair wording (~0.5–0.75) and MUST be preserved as corroboration
+// (see HANDOVER §0a). Only an almost-identical token set should trip this.
+export const NEAR_VERBATIM_SIMILARITY = 0.95;
 
 export function normalizeForDedupe(value) {
   return (value ?? '')
@@ -24,20 +31,6 @@ function normalizeDedupeTokens(value) {
 export function textSimilarity(a, b) {
   const left = new Set(normalizeDedupeTokens(a));
   const right = new Set(normalizeDedupeTokens(b));
-  if (left.size === 0 || right.size === 0) return 0;
-
-  let intersection = 0;
-  for (const token of left) {
-    if (right.has(token)) intersection++;
-  }
-  return intersection / Math.max(left.size, right.size);
-}
-
-function symptomsSimilarity(a, b) {
-  const leftValues = Array.isArray(a) ? a : (typeof a === 'string' ? [a] : []);
-  const rightValues = Array.isArray(b) ? b : (typeof b === 'string' ? [b] : []);
-  const left = new Set(leftValues.flatMap(normalizeDedupeTokens));
-  const right = new Set(rightValues.flatMap(normalizeDedupeTokens));
   if (left.size === 0 || right.size === 0) return 0;
 
   let intersection = 0;
@@ -119,18 +112,30 @@ export function isLikelySupabaseDuplicate(candidate, existing) {
     (candidateSource && existingSource && candidateSource === existingSource)
   );
   const resolutionSimilarity = textSimilarity(candidate.resolution, existing.resolution);
-  if (normalizeForDedupe(candidate.resolution) && normalizeForDedupe(candidate.resolution) === normalizeForDedupe(existing.resolution)) {
+
+  // Same write-up, regardless of source: exact normalized match, or near-verbatim
+  // token overlap. This catches one person copying the same advice onto several
+  // forums (a real duplicate) without merging two genuinely independent reports.
+  const candidateResolutionKey = normalizeForDedupe(candidate.resolution);
+  if (candidateResolutionKey && candidateResolutionKey === normalizeForDedupe(existing.resolution)) {
+    return true;
+  }
+  if (resolutionSimilarity >= NEAR_VERBATIM_SIMILARITY) {
     return true;
   }
 
-  const descriptionSimilarity = textSimilarity(candidate.description, existing.description);
-  const symptomSimilarity = symptomsSimilarity(candidate.symptoms, existing.symptoms);
-  return (
-    (sameSource && resolutionSimilarity >= 0.45) ||
-    resolutionSimilarity >= 0.7 ||
-    (resolutionSimilarity >= 0.55 && descriptionSimilarity >= 0.45) ||
-    (resolutionSimilarity >= 0.5 && symptomSimilarity >= 0.5)
-  );
+  // Across DIFFERENT sources, mere textual similarity is NOT a duplicate — two users
+  // on different forums hitting the same fault with similar repair wording are
+  // independent corroboration and must both be kept (RAG rewards this; see HANDOVER
+  // §0a). The looser similarity branches below only apply WITHIN the same source
+  // (same thread / source_ref), e.g. a re-crawled thread already imported earlier.
+  if (!sameSource) {
+    return false;
+  }
+
+  // Within the same source, a moderate resolution overlap is enough — it's the same
+  // thread re-imported, not a new contributor.
+  return resolutionSimilarity >= 0.45;
 }
 
 export async function crosscheckCaseAgainstSupabase({
