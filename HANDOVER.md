@@ -163,8 +163,45 @@ ve dvou bězích (deterministické). Logika pokryta
 retry/fail-closed). Účinné pro agenta od příštího plánovaného běhu (čte `verify.mjs` z disku).
 
 **Pozn. k živým datům:** dvě už schválené (live) položky by nová brána chytila —
-BMW E92 „CD měnič" (retrofit+coding, ne porucha → doporučeno odmítnout) a Renault Clio 4
-„servisní interval se nezobrazuje" (hraniční, reset baterií). K rozhodnutí majitele.
+BMW E92 „CD měnič" (retrofit+coding, ne porucha) a Renault Clio 4 „servisní interval
+se nezobrazuje" (hraniční, reset baterií). Majitel rozhodl obě nechat být (RAG je filtruje).
+
+### 0b. Crawl agent — self-improving smyčka (daily coach), Fáze 1+2 (2026-06-19, LOKÁLNĚ)
+
+Cíl: každé ráno vyhodnotit noční běh → diagnóza → (postupně) doladění crawleru. Architektura
+navržena vícepohledovým workflow; klíčová **hranice autonomie** (rozhodl majitel):
+**🟢 auto = technické/vratné** (priorita fór, cooldowny, re-kalibrace) · **🟠 shadow→schválení =
+high-level** (prompty, prahy, trvalé vyřazení, strategie discovery).
+
+**Vyhrazená ranní úloha (DŮLEŽITÉ):** kouč + recall-watchdog se NESPOUŠTÍ z 5min crawl dávky
+(ta jede jen v okně 21:00–06:00 a běžela by na začátku okna proti prázdnému dni). Běží ze
+samostatné úlohy **`DriveCodexDailyCoach`** (Task Scheduler, denně **06:20**, `StartWhenAvailable`)
+přes [`run-coach-batch.ps1`](/C:/GB/scripts/agent/run-coach-batch.ps1); registrace
+[`register-coach-task.ps1`](/C:/GB/scripts/agent/register-coach-task.ps1). Okno je **ukotvené na
+začátek noci** (`nightCutoffUtc`, 21:00 lokálně), ne rolling 12 h.
+
+- **Fáze 1 (HOTOVO, nasazeno):** [`daily-coach.mjs`](/C:/GB/scripts/agent/daily-coach.mjs) —
+  OBSERVE+EMIT, jen měří, nemění knob. Strukturované metriky → tabulka `crawl_metrics`
+  (state.mjs, long-format) + plain-CZ report `logs/daily-coach-*.md`; best-effort push do
+  Supabase (`crawl_metrics` + `crawl_daily_report`, migrace 023). Report se zobrazuje v
+  **admin Analytics panelu** (edge fn `analytics` vrací `daily_report`, render v `AnalyticsPanel.jsx`).
+  Funnel/ratia z JEDNÉ kohorty (created-in-window); degenerovaná noc nerazítkuje denní slot.
+- **Fáze 2 (ZÁKLAD hotový):** `forums.priority_score` (nullable, default 0 = řazení beze změny) +
+  tiebreaker v `getForumsToProcess`. Adapt logika ZATÍM NENÍ.
+- **Recall watchdog:** stejná vyhrazená úloha; QUALITY_BAR dokalibrován o „stejný autor" +
+  „shoda vozidla" (dřív falešně 8/12 → teď 0/3). Alert → desktop marker
+  `DRIVECODEX-VERIFIKATOR-PRISNY-PRECTI-ME.txt` (mirror v `run-coach-batch.ps1`).
+
+**Validace:** review (5 dimenzí + adversariální ověření) — bezpečnost/RLS/XSS/observe-only OK;
+opraven časovací cluster (viz výše). 26 agentních testů zelených.
+
+**▶ FÁZE 2 — DALŠÍ KROK (pro nové vlákno):** dostavět adapt logiku v kouči (🟢 auto-tier):
+(1) `priority_score` z reálného ověřeného výnosu fóra; (2) cooldown zkrátit/prodloužit (v mezích
+tierů, ochrana proti transient výpadkům); (3) re-kalibrace zaseklého/driftujícího fóra (re-queue
++ clear sections_json). Guardrails: min-volume, **hystereze ≥2 noci**, max 1 změna/fórum/den, vše
+logované do `agent_log` phase='coach' + journal pro **`apply-proposal.mjs --revert`** (undo).
+Sekce „co jsem automaticky upravil" v reportu. Plus 🟠 shadow kanál pro návrhy promptů/prahů
+(gold-set eval, nikdy auto-merge). Stav: Fáze 1 nasazená, Fáze 2 základ + review fixy na `main`.
 
 ### 0. Hybrid follow-up — konverzace „s mechanikem" po diagnóze (2026-06-16, LOKÁLNĚ, ČEKÁ NA NASAZENÍ)
 
