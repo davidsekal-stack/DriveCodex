@@ -28,6 +28,7 @@
  */
 
 import { runLlm } from './llm.mjs';
+import { promptField, promptList } from './prompt-sanitize.mjs';
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 // Six per-condition booleans + a short reason each → larger than the old one-liner.
@@ -128,22 +129,25 @@ export function buildPrompt(threadText, extractedCase) {
     ? threadText.slice(0, MAX_THREAD_TEXT_CHARS) + '\n\n[... truncated — thread too long ...]'
     : threadText;
 
-  // Support both raw extractor field names (brand_raw) and resolved names (vehicle_brand)
-  const brand    = extractedCase.vehicle_brand || extractedCase.brand_raw   || 'unknown';
-  const model    = extractedCase.vehicle_model || extractedCase.model_raw   || 'unknown';
-  const engine   = extractedCase.engine_power  || extractedCase.engine_raw  || '';
-  const symptoms = (extractedCase.symptoms || []).join(', ') || 'none';
-  const codes    = (extractedCase.obd_codes || []).join(', ') || 'none';
-  const desc     = extractedCase.description     || '';
-  const reso     = extractedCase.resolution      || '';
+  // Support both raw extractor field names (brand_raw) and resolved names (vehicle_brand).
+  // All fields are sanitized (whitespace-collapsed + length-capped) because they are
+  // untrusted forum-extracted text going into the prompt — a crafted forum post must not
+  // be able to inject instructions that flip this (LIVE) gate's verdict.
+  const brand    = promptField(extractedCase.vehicle_brand || extractedCase.brand_raw || 'unknown', 80);
+  const model    = promptField(extractedCase.vehicle_model || extractedCase.model_raw || 'unknown', 80);
+  const engine   = promptField(extractedCase.engine_power  || extractedCase.engine_raw || '', 80);
+  const symptoms = promptList(extractedCase.symptoms);
+  const codes    = promptList(extractedCase.obd_codes, 20);
+  const desc     = promptField(extractedCase.description);
+  const reso     = promptField(extractedCase.resolution);
   const vehicle  = `${brand} ${model} ${engine}`.trimEnd();
 
   // Anchors already present in the payload (orchestrator passes the full case)
   // but previously dropped — these focus the auditor on the CITED posts, the
   // structural fix for multi-vehicle thread bleed.
-  const caseAuthor = extractedCase.case_author || 'unknown';
-  const faultPosts = (extractedCase.fault_post_numbers || []).join(', ') || 'unknown';
-  const resoPosts  = (extractedCase.resolution_post_numbers || []).join(', ') || 'unknown';
+  const caseAuthor = promptField(extractedCase.case_author || 'unknown', 80);
+  const faultPosts = promptList(extractedCase.fault_post_numbers, 10, 'unknown');
+  const resoPosts  = promptList(extractedCase.resolution_post_numbers, 10, 'unknown');
 
   return `You are an INDEPENDENT quality auditor for an automotive diagnostic database that stores only cases where a GENUINE VEHICLE MALFUNCTION was DIAGNOSED and REPAIRED on a passenger car or light commercial van.
 

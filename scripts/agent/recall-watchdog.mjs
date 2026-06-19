@@ -38,16 +38,10 @@ import { dirname, join } from 'node:path';
 import { AgentState } from './state.mjs';
 import { isStoppingError } from './quota.mjs';
 import { QUALITY_BAR } from './quality-bar.mjs';
-import { normalizeImportText } from './supabase-utils.mjs';
+import { promptField, promptList } from './prompt-sanitize.mjs';
 
 // Re-export so existing importers (tests, precision-auditor) keep one source of truth.
 export { QUALITY_BAR };
-
-// Untrusted forum-extracted fields go into an LLM prompt — collapse whitespace (strips
-// injected newlines) and cap length so a crafted post can't smuggle in instructions.
-const FIELD_MAX = 2000;
-function promptField(v, max = FIELD_MAX) { return normalizeImportText(v || '').slice(0, max); }
-function promptSymptoms(arr) { return (arr || []).map(s => normalizeImportText(s).slice(0, 100)).filter(Boolean).join(', ') || 'none'; }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -143,7 +137,7 @@ VERIFIER'S STATED REJECT REASON: ${verifierReason || '(none)'}
 
 EXTRACTED CASE:
   Vehicle: ${brand} ${model} ${engine}
-  Symptoms: ${promptSymptoms(caseObj.symptoms)}
+  Symptoms: ${promptList(caseObj.symptoms)}
   Description: ${promptField(caseObj.description)}
   Resolution: ${promptField(caseObj.resolution)}
 

@@ -40,6 +40,7 @@ import { AgentState } from './state.mjs';
 import { isStoppingError } from './quota.mjs';
 import { QUALITY_BAR } from './quality-bar.mjs';
 import { clampResolutionForImport, normalizeImportText } from './supabase-utils.mjs';
+import { promptField, promptList } from './prompt-sanitize.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -129,13 +130,6 @@ export function parsePrecisionVerdict(raw) {
   }
 }
 
-// Untrusted forum-extracted fields go into an LLM prompt — collapse whitespace
-// (strips injected newlines) and cap length so a crafted post can't smuggle in
-// instructions that flip the verdict or bloat the call.
-const FIELD_MAX = 2000;
-function promptField(v, max = FIELD_MAX) { return normalizeImportText(v || '').slice(0, max); }
-function promptSymptoms(arr) { return (arr || []).map(s => normalizeImportText(s).slice(0, 100)).filter(Boolean).join(', ') || 'none'; }
-
 /** Build the skeptical, clause-naming re-check prompt. For imported cases it shows the
  *  CLAMPED artifact actually stored in the DB (not the raw payload). All interpolated
  *  case fields are sanitized (whitespace-collapsed + length-capped) against injection. */
@@ -157,7 +151,7 @@ ${QUALITY_BAR}
 
 EXTRACTED CASE (as accepted):
   Vehicle: ${brand} ${model} ${engine}
-  Symptoms: ${promptSymptoms(caseObj.symptoms)}
+  Symptoms: ${promptList(caseObj.symptoms)}
   Description: ${description}
   ${resLabel}: ${resolution}
 
