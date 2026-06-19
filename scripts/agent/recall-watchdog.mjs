@@ -38,9 +38,16 @@ import { dirname, join } from 'node:path';
 import { AgentState } from './state.mjs';
 import { isStoppingError } from './quota.mjs';
 import { QUALITY_BAR } from './quality-bar.mjs';
+import { normalizeImportText } from './supabase-utils.mjs';
 
 // Re-export so existing importers (tests, precision-auditor) keep one source of truth.
 export { QUALITY_BAR };
+
+// Untrusted forum-extracted fields go into an LLM prompt — collapse whitespace (strips
+// injected newlines) and cap length so a crafted post can't smuggle in instructions.
+const FIELD_MAX = 2000;
+function promptField(v, max = FIELD_MAX) { return normalizeImportText(v || '').slice(0, max); }
+function promptSymptoms(arr) { return (arr || []).map(s => normalizeImportText(s).slice(0, 100)).filter(Boolean).join(', ') || 'none'; }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -125,9 +132,9 @@ export function buildAuditPrompt(threadText, caseObj, verifierReason) {
   const text = (threadText || '').length > MAX_THREAD_CHARS
     ? threadText.slice(0, MAX_THREAD_CHARS) + '\n[...truncated...]'
     : (threadText || '');
-  const brand = caseObj.vehicle_brand || caseObj.brand_raw || '?';
-  const model = caseObj.vehicle_model || caseObj.model_raw || '?';
-  const engine = caseObj.engine_power || caseObj.engine_raw || '';
+  const brand = promptField(caseObj.vehicle_brand || caseObj.brand_raw || '?', 80);
+  const model = promptField(caseObj.vehicle_model || caseObj.model_raw || '?', 80);
+  const engine = promptField(caseObj.engine_power || caseObj.engine_raw || '', 80);
   return `An automated verifier REJECTED the extracted case below (so it will NOT enter the database). Independently decide whether that rejection was a mistake — i.e. the case actually meets the quality bar and a useful repair case was lost.
 
 ${QUALITY_BAR} IMPORTANT: only mark wrongly_rejected=true if the case clearly meets ALL of (a)-(e); if it fails (d) or (e), the rejection was CORRECT.
@@ -136,9 +143,9 @@ VERIFIER'S STATED REJECT REASON: ${verifierReason || '(none)'}
 
 EXTRACTED CASE:
   Vehicle: ${brand} ${model} ${engine}
-  Symptoms: ${(caseObj.symptoms || []).join(', ') || 'none'}
-  Description: ${caseObj.description || ''}
-  Resolution: ${caseObj.resolution || ''}
+  Symptoms: ${promptSymptoms(caseObj.symptoms)}
+  Description: ${promptField(caseObj.description)}
+  Resolution: ${promptField(caseObj.resolution)}
 
 ORIGINAL THREAD:
 ---

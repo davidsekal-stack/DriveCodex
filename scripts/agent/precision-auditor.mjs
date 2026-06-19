@@ -129,18 +129,27 @@ export function parsePrecisionVerdict(raw) {
   }
 }
 
+// Untrusted forum-extracted fields go into an LLM prompt — collapse whitespace
+// (strips injected newlines) and cap length so a crafted post can't smuggle in
+// instructions that flip the verdict or bloat the call.
+const FIELD_MAX = 2000;
+function promptField(v, max = FIELD_MAX) { return normalizeImportText(v || '').slice(0, max); }
+function promptSymptoms(arr) { return (arr || []).map(s => normalizeImportText(s).slice(0, 100)).filter(Boolean).join(', ') || 'none'; }
+
 /** Build the skeptical, clause-naming re-check prompt. For imported cases it shows the
- *  CLAMPED artifact actually stored in the DB (not the raw payload). */
+ *  CLAMPED artifact actually stored in the DB (not the raw payload). All interpolated
+ *  case fields are sanitized (whitespace-collapsed + length-capped) against injection. */
 export function buildPrecisionPrompt(threadText, caseObj, status) {
   const text = (threadText || '').length > MAX_THREAD_CHARS
     ? threadText.slice(0, MAX_THREAD_CHARS) + '\n[...truncated...]'
     : (threadText || '');
-  const brand = caseObj.vehicle_brand || caseObj.brand_raw || '?';
-  const model = caseObj.vehicle_model || caseObj.model_raw || '?';
-  const engine = caseObj.engine_power || caseObj.engine_raw || '';
+  const brand = promptField(caseObj.vehicle_brand || caseObj.brand_raw || '?', 80);
+  const model = promptField(caseObj.vehicle_model || caseObj.model_raw || '?', 80);
+  const engine = promptField(caseObj.engine_power || caseObj.engine_raw || '', 80);
   const imported = status === 'imported';
-  const resolution = imported ? clampResolutionForImport(normalizeImportText(caseObj.resolution || '')) : (caseObj.resolution || '');
-  const description = imported ? normalizeImportText(caseObj.description || '') : (caseObj.description || '');
+  // Imported: show the clamped stored artifact (already normalized). Otherwise sanitize the payload.
+  const resolution = imported ? clampResolutionForImport(normalizeImportText(caseObj.resolution || '')) : promptField(caseObj.resolution);
+  const description = promptField(caseObj.description);
   const resLabel = imported ? 'Resolution (as stored in the database)' : 'Resolution';
   return `An automated gate ACCEPTED the case below — it is either ALREADY in the live diagnostic database or queued to enter it, where a bad case corrupts real repair advice. Independently catch a MISTAKEN acceptance. Assume NOTHING the gate did is correct: treat the case as wrongly_accepted UNLESS you can POSITIVELY CONFIRM from the original thread that ALL of (a)-(e) hold.
 
@@ -148,7 +157,7 @@ ${QUALITY_BAR}
 
 EXTRACTED CASE (as accepted):
   Vehicle: ${brand} ${model} ${engine}
-  Symptoms: ${(caseObj.symptoms || []).join(', ') || 'none'}
+  Symptoms: ${promptSymptoms(caseObj.symptoms)}
   Description: ${description}
   ${resLabel}: ${resolution}
 

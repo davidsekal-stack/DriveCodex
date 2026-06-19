@@ -196,6 +196,7 @@ const thinEvaluable = () => [night(D[1], { good: 1, rejected: 1, processed: 6 })
   const forums = [{ id: 'x', name: 'x', status: 'active', priority_score: 0 }];
   const plan = planNight({ forums, nightsByForum: { x: risingNights() }, alreadyChangedForumIds: new Set(['x']), now: NOW, todayStr: TODAY, config: DEFAULT_CONFIG });
   assert.equal(plan.applied.length, 0, 'forum already changed today → skipped');
+  assert.equal(plan.evaluable, 0, 'already-changed forum is skipped BEFORE the evaluable count (circuit-breaker denominator not inflated)');
 }
 
 console.log('agent-coach-adapt.test.js passed');
