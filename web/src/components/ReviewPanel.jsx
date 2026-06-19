@@ -8,6 +8,10 @@ import { useTheme } from "../contexts/ThemeContext.jsx";
 import { fmtDate } from "../lib/utils.js";
 import { FONT, SMALL, TINY } from "../constants/typography.js";
 
+// Rejection reason codes — map 1:1 to the verifier's 6 conditions (see verify.mjs /
+// migration 024), so the rejections become diagnostic labels for Phase-4 gate tuning.
+const REJECT_REASONS = ["not_a_fault", "no_repair", "unconfirmed", "vehicle_mismatch", "not_car", "vague", "other"];
+
 function Badge({ label, bg, color, border }) {
   return (
     <span style={{ padding: "2px 7px", fontSize: TINY, fontWeight: 600, background: bg, color, border: `1px solid ${border}`, borderRadius: 2, whiteSpace: "nowrap" }}>
@@ -18,6 +22,7 @@ function Badge({ label, bg, color, border }) {
 
 function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
   const { t } = useTheme();
+  const [rejecting, setRejecting] = useState(false);
   const symptoms = c.symptoms ?? [];
   const codes = c.obd_codes ?? [];
 
@@ -72,43 +77,81 @@ function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
       </div>
 
       {/* Action buttons */}
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-        <button
-          disabled={busy}
-          onClick={() => onReject(c.id)}
-          style={{
-            background: "rgba(220,38,38,0.07)",
-            border: "1px solid rgba(220,38,38,0.3)",
-            color: "#dc2626",
-            padding: "7px 18px",
-            fontSize: FONT,
-            cursor: busy ? "not-allowed" : "pointer",
-            fontFamily: "inherit",
-            borderRadius: 2,
-            opacity: busy ? 0.5 : 1,
-          }}
-        >
-          ✕ {tr("review.reject")}
-        </button>
-        <button
-          disabled={busy}
-          onClick={() => onApprove(c.id)}
-          style={{
-            background: t.doneStatusColor,
-            border: `1px solid ${t.doneStatusColor}`,
-            color: "#fff",
-            padding: "7px 18px",
-            fontSize: FONT,
-            fontWeight: 600,
-            cursor: busy ? "not-allowed" : "pointer",
-            fontFamily: "inherit",
-            borderRadius: 2,
-            opacity: busy ? 0.5 : 1,
-          }}
-        >
-          ✓ {tr("review.approve")}
-        </button>
-      </div>
+      {!rejecting ? (
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button
+            disabled={busy}
+            onClick={() => setRejecting(true)}
+            style={{
+              background: "rgba(220,38,38,0.07)",
+              border: "1px solid rgba(220,38,38,0.3)",
+              color: "#dc2626",
+              padding: "7px 18px",
+              fontSize: FONT,
+              cursor: busy ? "not-allowed" : "pointer",
+              fontFamily: "inherit",
+              borderRadius: 2,
+              opacity: busy ? 0.5 : 1,
+            }}
+          >
+            ✕ {tr("review.reject")}
+          </button>
+          <button
+            disabled={busy}
+            onClick={() => onApprove(c.id)}
+            style={{
+              background: t.doneStatusColor,
+              border: `1px solid ${t.doneStatusColor}`,
+              color: "#fff",
+              padding: "7px 18px",
+              fontSize: FONT,
+              fontWeight: 600,
+              cursor: busy ? "not-allowed" : "pointer",
+              fontFamily: "inherit",
+              borderRadius: 2,
+              opacity: busy ? 0.5 : 1,
+            }}
+          >
+            ✓ {tr("review.approve")}
+          </button>
+        </div>
+      ) : (
+        /* Reason chooser — one click on a reason rejects with that label */
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: SMALL, color: t.textMuted, fontWeight: 600 }}>{tr("review.rejectReasonPrompt")}</span>
+            <button
+              disabled={busy}
+              onClick={() => setRejecting(false)}
+              style={{ background: "none", border: "none", color: t.textFaint, fontSize: SMALL, cursor: busy ? "not-allowed" : "pointer", fontFamily: "inherit", textDecoration: "underline" }}
+            >
+              {tr("review.cancel")}
+            </button>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "flex-end" }}>
+            {REJECT_REASONS.map((r) => (
+              <button
+                key={r}
+                disabled={busy}
+                onClick={() => onReject(c.id, r)}
+                style={{
+                  background: "rgba(220,38,38,0.07)",
+                  border: "1px solid rgba(220,38,38,0.3)",
+                  color: "#dc2626",
+                  padding: "6px 12px",
+                  fontSize: SMALL,
+                  cursor: busy ? "not-allowed" : "pointer",
+                  fontFamily: "inherit",
+                  borderRadius: 2,
+                  opacity: busy ? 0.5 : 1,
+                }}
+              >
+                {tr(`review.reason.${r}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -135,10 +178,10 @@ export default function ReviewPanel({ lang, tr, fetchCases, updateStatus }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleAction = useCallback(async (id, status) => {
+  const handleAction = useCallback(async (id, status, reason) => {
     setBusyIds((s) => new Set([...s, id]));
     try {
-      await updateStatus(id, status);
+      await updateStatus(id, status, reason);
       setCases((prev) => prev.filter((c) => c.id !== id));
     } catch (e) {
       setError(e.message);
@@ -214,7 +257,7 @@ export default function ReviewPanel({ lang, tr, fetchCases, updateStatus }) {
             tr={tr}
             busy={busyIds.has(c.id)}
             onApprove={(id) => handleAction(id, "approved")}
-            onReject={(id) => handleAction(id, "rejected")}
+            onReject={(id, reason) => handleAction(id, "rejected", reason)}
           />
         ))}
       </div>

@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
     // ── POST: Update case status ─────────────────────────────────────────────
     if (req.method === 'POST') {
-      const { case_id, status: newStatus, case_ids } = await req.json()
+      const { case_id, status: newStatus, case_ids, reason } = await req.json()
 
       if (!['approved', 'rejected'].includes(newStatus)) {
         return json({ error: 'Status musí být "approved" nebo "rejected".' }, 400)
@@ -55,9 +55,15 @@ Deno.serve(async (req) => {
         return json({ error: 'Chybí case_id nebo case_ids.' }, 400)
       }
 
+      // Rejection reason → human-verified label for the Phase-4 gold-set. Reason codes
+      // map 1:1 to the verifier's 6 conditions (see migration 024). Approvals carry no
+      // reason. reviewed_at marks a genuine human decision (vs migration-grandfathered).
+      const REASON_CODES = ['not_car', 'vehicle_mismatch', 'not_a_fault', 'no_repair', 'unconfirmed', 'vague', 'other']
+      const reviewReason = newStatus === 'rejected' && REASON_CODES.includes(reason) ? reason : null
+
       const { error, count } = await supabase
         .from('gearbrain_cases')
-        .update({ status: newStatus })
+        .update({ status: newStatus, review_reason: reviewReason, reviewed_at: new Date().toISOString() })
         .in('id', ids)
 
       if (error) return json({ error: error.message }, 500)

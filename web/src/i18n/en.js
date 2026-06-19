@@ -142,6 +142,15 @@ export const strings = {
   'review.approve':       'Approve',
   'review.reject':        'Reject',
   'review.resolution':    'REPAIR PERFORMED',
+  'review.rejectReasonPrompt':      'Why reject?',
+  'review.cancel':                  'Back',
+  'review.reason.not_a_fault':      'Not a genuine fault/repair',
+  'review.reason.no_repair':        'No repair done / fixed itself',
+  'review.reason.unconfirmed':      'Fix not confirmed',
+  'review.reason.vehicle_mismatch': 'Vehicle does not match',
+  'review.reason.not_car':          'Not a car/van',
+  'review.reason.vague':            'Too vague / unusable',
+  'review.reason.other':            'Other',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytics',

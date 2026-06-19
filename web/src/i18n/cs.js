@@ -142,6 +142,15 @@ export const strings = {
   'review.approve':       'Schválit',
   'review.reject':        'Zamítnout',
   'review.resolution':    'PROVEDENÁ OPRAVA',
+  'review.rejectReasonPrompt':      'Proč zamítáš?',
+  'review.cancel':                  'Zpět',
+  'review.reason.not_a_fault':      'Není to skutečná závada/oprava',
+  'review.reason.no_repair':        'Oprava neproběhla / spravilo se samo',
+  'review.reason.unconfirmed':      'Není potvrzeno, že to vyřešilo',
+  'review.reason.vehicle_mismatch': 'Vozidlo nesedí',
+  'review.reason.not_car':          'Není osobní auto/dodávka',
+  'review.reason.vague':            'Vágní / nepoužitelné',
+  'review.reason.other':            'Jiné',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytika',

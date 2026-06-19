@@ -142,6 +142,15 @@ export const strings = {
   'review.approve':       'Genehmigen',
   'review.reject':        'Ablehnen',
   'review.resolution':    'DURCHGEFÜHRTE REPARATUR',
+  'review.rejectReasonPrompt':      'Warum ablehnen?',
+  'review.cancel':                  'Zurück',
+  'review.reason.not_a_fault':      'Kein echter Defekt/keine Reparatur',
+  'review.reason.no_repair':        'Keine Reparatur / von selbst behoben',
+  'review.reason.unconfirmed':      'Behebung nicht bestätigt',
+  'review.reason.vehicle_mismatch': 'Fahrzeug passt nicht',
+  'review.reason.not_car':          'Kein PKW/Transporter',
+  'review.reason.vague':            'Zu vage / unbrauchbar',
+  'review.reason.other':            'Sonstiges',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytik',

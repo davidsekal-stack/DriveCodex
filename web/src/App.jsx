@@ -238,8 +238,8 @@ function App() {
               lang={lang}
               tr={tr}
               fetchCases={() => storage.fetchReviewCases("pending")}
-              updateStatus={(idOrIds, status) => {
-                return storage.updateCaseStatus(idOrIds, status).then((res) => {
+              updateStatus={(idOrIds, status, reason) => {
+                return storage.updateCaseStatus(idOrIds, status, reason).then((res) => {
                   refreshPendingCount();
                   return res;
                 });
