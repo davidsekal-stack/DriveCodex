@@ -1,0 +1,62 @@
+[CmdletBinding()]
+param(
+  [string]$TaskName = 'DriveCodexDailyCoach',
+  [string]$At = '06:20',          # after the 21:00–06:00 crawl window closes
+  [string]$NodePath,
+  [string]$LogDir,
+  [switch]$RunNow
+)
+
+# Registers the once-daily post-night runner (recall watchdog + daily coach).
+# Separate from DriveCodexAgentBatch (the 5-min crawl batch) because the coach must
+# run AFTER the nightly window, and no crawl batch fires between 06:00 and 21:00.
+# StartWhenAvailable so a machine asleep at 06:20 catches up on next wake.
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Quote-TaskArg { param([string]$Value) return '"' + $Value.Replace('"', '\"') + '"' }
+
+$runnerScript = (Resolve-Path (Join-Path $PSScriptRoot 'run-coach-batch.ps1')).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$powershellExe = (Get-Command powershell.exe -ErrorAction Stop).Path
+$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+
+$argParts = @('-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', (Quote-TaskArg $runnerScript))
+if ($NodePath) { $argParts += @('-NodePath', (Quote-TaskArg (Resolve-Path $NodePath -ErrorAction Stop).Path)) }
+if ($LogDir)   { $argParts += @('-LogDir',  (Quote-TaskArg ([System.IO.Path]::GetFullPath($LogDir)))) }
+
+$action = New-ScheduledTaskAction -Execute $powershellExe -Argument ($argParts -join ' ') -WorkingDirectory $repoRoot
+$trigger = New-ScheduledTaskTrigger -Daily -At $At
+
+$settings = New-ScheduledTaskSettingsSet `
+  -StartWhenAvailable `
+  -AllowStartIfOnBatteries `
+  -DontStopIfGoingOnBatteries `
+  -MultipleInstances IgnoreNew `
+  -ExecutionTimeLimit (New-TimeSpan -Hours 1) `
+  -RestartCount 2 `
+  -RestartInterval (New-TimeSpan -Minutes 10)
+
+$principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive -RunLevel Limited
+
+Register-ScheduledTask `
+  -TaskName $TaskName `
+  -Action $action `
+  -Trigger $trigger `
+  -Settings $settings `
+  -Principal $principal `
+  -Description 'DriveCodex daily coach + recall watchdog (post-night evaluation)' `
+  -Force | Out-Null
+
+if ($RunNow) { Start-ScheduledTask -TaskName $TaskName }
+
+$info = Get-ScheduledTaskInfo -TaskName $TaskName
+[pscustomobject]@{
+  TaskName = $TaskName
+  User = $currentUser
+  At = $At
+  NextRunTime = $info.NextRunTime
+  LastRunTime = $info.LastRunTime
+  LastTaskResult = $info.LastTaskResult
+}

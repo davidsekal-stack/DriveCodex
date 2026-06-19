@@ -51,7 +51,10 @@ const { runLlm } = await import('./llm.mjs');
 // ── Tunables (env-overridable) ──────────────────────────────────────────────
 const SAMPLE_SIZE   = intEnv('RECALL_AUDIT_SAMPLE', 12);   // rejects re-checked per day
 const WINDOW_DAYS   = intEnv('RECALL_AUDIT_DAYS', 2);      // how far back to look
-const EVAL_HOUR     = intEnv('RECALL_AUDIT_HOUR', 7);      // run only at/after this local hour
+// Closed morning gate [EVAL_HOUR, EVAL_HOUR_END): runs from the dedicated post-night
+// task (run-coach-batch.ps1, ~06:20). A lower-bound-only gate let evening batches fire it.
+const EVAL_HOUR     = intEnv('RECALL_AUDIT_HOUR', 6);
+const EVAL_HOUR_END = intEnv('RECALL_AUDIT_HOUR_END', 21);
 const ALERT_RATE    = floatEnv('RECALL_AUDIT_ALERT_RATE', 0.30); // flag if ≥30% wrongly rejected
 const ALERT_MIN     = intEnv('RECALL_AUDIT_ALERT_MIN', 3);  // …and at least this many (small-sample guard)
 const AUDIT_TIMEOUT_MS = 90_000;
@@ -113,7 +116,7 @@ export function shouldAlert(results, { rate = ALERT_RATE, min = ALERT_MIN } = {}
   return { alert: wrong.length >= min && ratio >= rate, wrong: wrong.length, judged: judged.length, ratio };
 }
 
-const QUALITY_BAR = `A case BELONGS in the database only if ALL hold: (a) the vehicle is a passenger car or light van (NOT a motorcycle/truck/etc.); (b) it describes a genuine MALFUNCTION/DEFECT that was actually repaired and confirmed fixed; (c) it is NOT a config/menu question, parts-fitment/where-to-buy, elective upgrade/retrofit/coding, third-party-gadget firmware, "fixed itself", or a preventive-maintenance opinion. Genuine repairs INCLUDE cleaning, additive/fluid cures, adjustment, re-flashing the car's OWN ECU, rodent-wiring repair, an emulator that RESTORES a failed factory function, and worn-part replacement on classic cars.`;
+const QUALITY_BAR = `A case BELONGS in the database only if ALL hold: (a) the vehicle is a passenger car or light van (NOT a motorcycle/truck/etc.); (b) it describes a genuine MALFUNCTION/DEFECT that was actually repaired and confirmed fixed; (c) it is NOT a config/menu question, parts-fitment/where-to-buy, elective upgrade/retrofit/coding, third-party-gadget firmware, "fixed itself", or a preventive-maintenance opinion; (d) the SAME forum user reported the fault AND carried out (or explicitly confirmed) the repair — a fix merely SUGGESTED by another user, or performed by a different user, does NOT qualify (this is a deliberate single-author policy); (e) the case's stated vehicle matches the vehicle in the cited posts, not a different car mentioned elsewhere in a multi-vehicle thread. Genuine repairs INCLUDE cleaning, additive/fluid cures, adjustment, re-flashing the car's OWN ECU, rodent-wiring repair, an emulator that RESTORES a failed factory function, and worn-part replacement on classic cars. IMPORTANT: only mark wrongly_rejected=true if the case clearly meets ALL of (a)-(e); if it fails (d) or (e), the rejection was CORRECT.`;
 
 /** Build the independent re-check prompt. */
 export function buildAuditPrompt(threadText, caseObj, verifierReason) {
@@ -173,8 +176,9 @@ async function main() {
   try {
     // ── Self-gate: once per day, after the night window ──
     if (!force) {
-      if (now.getHours() < EVAL_HOUR) {
-        console.log(`recall-watchdog: before ${EVAL_HOUR}:00 local — skipping (night not finished).`);
+      const h = now.getHours();
+      if (h < EVAL_HOUR || h >= EVAL_HOUR_END) {
+        console.log(`recall-watchdog: mimo ranní okno (${EVAL_HOUR}:00–${EVAL_HOUR_END}:00) — skipping.`);
         return;
       }
       if (state.getMeta(META_KEY) === today) {
@@ -182,8 +186,6 @@ async function main() {
         return;
       }
     }
-    // Claim the day up-front so a mid-run failure doesn't re-burn calls all day.
-    if (!dryRun) state.setMeta(META_KEY, today);
 
     const cutoff = utcCutoff(windowDays);
     const allRejects = state.getCasesByStatus('verify_rejected', 2000)
@@ -241,6 +243,9 @@ async function main() {
       } else if (existsSync(ALERT_FILE)) {
         unlinkSync(ALERT_FILE); // recovered — clear stale alert
       }
+      // Stamp once-per-day only AFTER a successful audit+report (a mid-run crash/quota
+      // leaves the slot open to retry; the dedicated task fires once/day anyway).
+      state.setMeta(META_KEY, today);
     }
   } finally {
     state.close();

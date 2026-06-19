@@ -612,8 +612,12 @@ export class AgentState {
   }
 
   getCasesCreatedSince(cutoff) {
+    // forum_id via join so per-forum yield is correct even when a case's thread
+    // was crawled on an earlier night (LEFT JOIN: forum_id may be null).
     return this.#db.prepare(
-      'SELECT id, thread_id, status, review_note, payload_json, created_at FROM cases WHERE created_at >= ?'
+      `SELECT c.id, c.thread_id, c.status, c.review_note, c.payload_json, c.created_at, t.forum_id
+       FROM cases c LEFT JOIN threads t ON t.id = c.thread_id
+       WHERE c.created_at >= ?`
     ).all(cutoff);
   }
 

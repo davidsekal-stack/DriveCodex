@@ -1,25 +1,31 @@
 /**
  * daily-coach.mjs — daily self-improvement loop for the crawl agent (Phase 1: OBSERVE + EMIT).
  *
- * Runs once per local day, after the night crawl window, as a non-fatal step of
- * run-agent-batch.ps1. It aggregates the just-finished night into:
- *   1. a structured metrics time-series (local crawl_metrics table; the durable
- *      source of truth for measuring how each metric evolves over time), and
- *   2. a plain-Czech daily report (logs/daily-coach-YYYY-MM-DD.md) — the artifact
- *      the owner sees (later surfaced in the app's Analytics panel).
- * Both are also pushed best-effort to Supabase (crawl_metrics / crawl_daily_report)
- * when those tables exist, so the app can display the report and the data survives
- * off the local machine.
+ * Runs once per day AFTER the night crawl window, from a DEDICATED scheduled task
+ * (DriveCodexDailyCoach, ~06:20, via run-coach-batch.ps1) — NOT from the 5-minute
+ * crawl batch, because that batch only fires inside the 21:00–06:00 window and would
+ * run the coach at the window START against an empty daytime lookback. It aggregates
+ * the just-finished night into:
+ *   1. a structured metrics time-series (local crawl_metrics table; durable source of
+ *      truth for measuring how each metric evolves), and
+ *   2. a plain-Czech daily report (logs/daily-coach-YYYY-MM-DD.md) — surfaced in the
+ *      app's admin Analytics panel.
+ * Both are also pushed best-effort to Supabase (crawl_metrics / crawl_daily_report).
  *
  * Phase 1 is OBSERVE-ONLY: it changes NO crawler knob and emits NO proposals.
- * The diagnose/adapt tiers (auto scheduling + gated prompt proposals) come later.
  *
- * Self-gating: at most once per local day, only at/after COACH_HOUR. Unlike the
- * recall-watchdog it stamps the once-per-day key ONLY AFTER a successful report
- * write, so a crash/quota leaves the slot open to retry and the liveness gap shows.
+ * Correctness notes (post-review):
+ *  - The lookback window is ANCHORED to the night boundary (most recent
+ *    COACH_NIGHT_START_HOUR, default 21:00 local — matches the crawl task's start),
+ *    NOT a rolling Date.now()-Nh, so it captures the whole night whenever it runs.
+ *  - The funnel + ratios are computed from ONE cohort (threads/cases created in the
+ *    window), so verify_pass_rate etc. never mix started_at vs created_at cohorts.
+ *  - A degenerate night (quota/auth stop anywhere in the window, or an empty window)
+ *    writes an informational report but does NOT stamp the once-per-day key, so a
+ *    later/again invocation can re-evaluate once real data exists.
  *
  * Usage:
- *   node --experimental-sqlite daily-coach.mjs [--force] [--dry-run] [--window-hours N]
+ *   node --experimental-sqlite daily-coach.mjs [--force] [--dry-run]
  */
 
 import { writeFileSync, existsSync, mkdirSync, realpathSync } from 'node:fs';
@@ -30,10 +36,14 @@ import { failingCondition } from './recall-watchdog.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const COACH_HOUR    = intEnv('COACH_HOUR', 6);          // run only at/after this local hour
-const WINDOW_HOURS  = intEnv('COACH_WINDOW_HOURS', 12); // lookback covering the 21:00–06:00 night
-const META_DATE     = 'coach_last_date';
-const META_SUCCESS  = 'coach_last_success_at';
+const COACH_NIGHT_START_HOUR = intEnv('COACH_NIGHT_START_HOUR', 21); // crawl window start (local); window = [this, now]
+const COACH_HOUR     = intEnv('COACH_HOUR', 6);   // closed morning gate start (local)
+const COACH_HOUR_END = intEnv('COACH_HOUR_END', 21); // closed morning gate end (exclusive)
+const META_DATE      = 'coach_last_date';
+const META_SUCCESS   = 'coach_last_success_at';
+
+// Cases that have PASSED the verify gate (verified and everything downstream of it).
+const VERIFY_PASSED = new Set(['verified', 'import_ready', 'imported', 'import_failed', 'crosscheck_dupe']);
 
 function intEnv(name, dflt) { const v = parseInt(process.env[name] ?? '', 10); return Number.isFinite(v) ? v : dflt; }
 
@@ -44,25 +54,46 @@ export function bucketDiscardReason(reason) {
   const r = (reason || '').toString().toLowerCase();
   if (!r) return 'other';
   if (r.includes('too few posts')) return 'too_few_posts';
-  if (r.startsWith('classifier rejected') || r.includes('classifier rejected')) return 'classifier_reject';
+  if (r.includes('classifier rejected')) return 'classifier_reject';
   if (r.includes('extractor returned no cases') || r.includes('no cases')) return 'extractor_empty';
   if (r.startsWith('transient') || r.includes('http 4') || r.includes('http 5') || r.includes('timeout')) return 'transient';
   return 'other';
 }
 
-/**
- * Aggregate one night into a flat metrics map + per-forum yield + reject breakdown.
- * Pure: takes already-fetched rows. Returns { metrics, byForum, rejectConditions, discardBuckets }.
- */
-export function aggregateNight({ threads = [], cases = [], runs = [], forums = [] } = {}) {
-  // Funnel from runs (sum across the night's batches)
-  const sum = (k) => runs.reduce((s, r) => s + (Number(r[k]) || 0), 0);
-  const threadsProcessed = sum('threads_processed');
-  const casesExtracted = sum('cases_extracted');
-  const casesVerified = sum('cases_verified');
-  const casesImported = sum('cases_imported');
+/** UTC 'YYYY-MM-DD HH:MM:SS' = start of the most recent night window (local nightStartHour). */
+export function nightCutoffUtc(now, nightStartHour = COACH_NIGHT_START_HOUR) {
+  const start = new Date(now.getTime());
+  if (now.getHours() < nightStartHour) start.setDate(start.getDate() - 1); // before tonight's start → last night
+  start.setHours(nightStartHour, 0, 0, 0);
+  return start.toISOString().slice(0, 19).replace('T', ' ');
+}
 
-  // Discard buckets from threads created in the window
+/** Should the coach run now? Closed morning window + once-per-day. --force bypasses this upstream. */
+export function gateDecision(now, { lastDate, today, hourStart = COACH_HOUR, hourEnd = COACH_HOUR_END } = {}) {
+  const h = now.getHours();
+  if (h < hourStart || h >= hourEnd) return { run: false, reason: `mimo ranní okno (${hourStart}:00–${hourEnd}:00)` };
+  if (lastDate === today) return { run: false, reason: 'už dnes proběhlo' };
+  return { run: true, reason: '' };
+}
+
+/** A night that must NOT move metrics: quota/auth stop anywhere in the window, or an empty window. */
+export function detectDegenerate({ runs = [], threads = [], cases = [] } = {}) {
+  const bad = runs.find(r => /quota|auth|limit/i.test((r.stop_reason || '').toString()));
+  if (bad) return `Noční běh skončil předčasně (${bad.stop_reason}).`;
+  if (runs.length === 0 && threads.length === 0 && cases.length === 0) return 'V okně neproběhl žádný crawl (prázdná noc).';
+  return null;
+}
+
+const EMPTY_AGG = { metrics: {}, byForum: [], rejectConditions: {}, discardBuckets: {}, statusHist: {} };
+
+/**
+ * Aggregate the night from ONE cohort (threads + cases created in the window).
+ * Pure. `cases` rows carry forum_id (joined in the windowed reader), so per-forum
+ * yield is correct even for cases whose thread was crawled on a previous night.
+ */
+export function aggregateNight({ threads = [], cases = [], forums = [] } = {}) {
+  const threadsProcessed = threads.filter(t => t.status && t.status !== 'pending').length;
+
   const discardBuckets = {};
   let discardedTotal = 0;
   for (const t of threads) {
@@ -72,28 +103,28 @@ export function aggregateNight({ threads = [], cases = [], runs = [], forums = [
     discardBuckets[b] = (discardBuckets[b] || 0) + 1;
   }
 
-  // Case status histogram + verify-reject conditions, from cases created in the window
   const statusHist = {};
   const rejectConditions = {};
-  let verifyRejected = 0;
+  let verifyPassed = 0, verifyRejected = 0, imported = 0;
   for (const c of cases) {
     statusHist[c.status] = (statusHist[c.status] || 0) + 1;
+    if (VERIFY_PASSED.has(c.status)) verifyPassed++;
+    if (c.status === 'imported') imported++;
     if (c.status === 'verify_rejected') {
       verifyRejected++;
       const cond = failingCondition(c.review_note);
       rejectConditions[cond] = (rejectConditions[cond] || 0) + 1;
     }
   }
+  const casesExtracted = cases.length;
 
-  // Per-forum yield (verified+imported cases vs threads), window-scoped
   const forumName = new Map(forums.map(f => [f.id, f.name || f.url || f.id]));
-  const threadForum = new Map(threads.map(t => [t.id, t.forum_id]));
   const byForumRaw = {};
   for (const c of cases) {
-    const fid = threadForum.get(c.thread_id);
+    const fid = c.forum_id;
     if (!fid) continue;
     const e = byForumRaw[fid] || (byForumRaw[fid] = { good: 0, rejected: 0 });
-    if (c.status === 'verified' || c.status === 'import_ready' || c.status === 'imported') e.good++;
+    if (VERIFY_PASSED.has(c.status)) e.good++;
     else if (c.status === 'verify_rejected') e.rejected++;
   }
   const byForum = Object.entries(byForumRaw)
@@ -104,13 +135,13 @@ export function aggregateNight({ threads = [], cases = [], runs = [], forums = [
   const metrics = {
     threads_processed: threadsProcessed,
     cases_extracted: casesExtracted,
-    cases_verified: casesVerified,
-    cases_imported: casesImported,
+    cases_verified: verifyPassed,
+    cases_imported: imported,
     threads_discarded: discardedTotal,
     verify_rejected: verifyRejected,
     yield_rate: ratio(casesExtracted, threadsProcessed),
-    verify_pass_rate: ratio(casesVerified, casesVerified + verifyRejected),
-    import_rate: ratio(casesImported, casesExtracted),
+    verify_pass_rate: ratio(verifyPassed, verifyPassed + verifyRejected),
+    import_rate: ratio(imported, casesExtracted),
   };
   for (const [b, n] of Object.entries(discardBuckets)) metrics[`discarded:${b}`] = n;
   for (const [c, n] of Object.entries(rejectConditions)) metrics[`verify_reject:${c}`] = n;
@@ -127,7 +158,7 @@ const DISCARD_LABEL = {
 };
 
 /** Build the plain-Czech daily report (markdown). Pure. */
-export function buildReport(agg, { date, windowHours, degenerate = null } = {}) {
+export function buildReport(agg, { date, windowLabel, degenerate = null } = {}) {
   const m = agg.metrics;
   const L = [];
   L.push(`# Noční report crawleru — ${date}`, '');
@@ -135,7 +166,7 @@ export function buildReport(agg, { date, windowHours, degenerate = null } = {}) 
     L.push(`⚠️ ${degenerate}`, '', 'Dnes nevyhodnocuju (neúplná noc), aby jeden špatný běh nezkreslil statistiky.');
     return L.join('\n');
   }
-  L.push(`_Okno: posledních ${windowHours} h (noční běh)._`, '');
+  L.push(`_Okno: ${windowLabel}._`, '');
 
   L.push('## Co se vytěžilo');
   L.push(`- Zpracovaná vlákna: **${m.threads_processed}**`);
@@ -162,9 +193,7 @@ export function buildReport(agg, { date, windowHours, degenerate = null } = {}) 
 
   if (agg.byForum.length > 0) {
     L.push('## Po fórech (dobré / zamítnuté)');
-    for (const f of agg.byForum.slice(0, 10)) {
-      L.push(`- ${f.forum}: ${f.good} ✓ / ${f.rejected} ✕`);
-    }
+    for (const f of agg.byForum.slice(0, 10)) L.push(`- ${f.forum}: ${f.good} ✓ / ${f.rejected} ✕`);
     L.push('');
   }
 
@@ -173,21 +202,11 @@ export function buildReport(agg, { date, windowHours, degenerate = null } = {}) 
   return L.join('\n');
 }
 
-/** UTC 'YYYY-MM-DD HH:MM:SS' cutoff `hours` ago (matches SQLite created_at format). */
-function utcCutoff(hours) {
-  return new Date(Date.now() - hours * 3_600_000).toISOString().slice(0, 19).replace('T', ' ');
-}
 function localDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-function intArg(args, flag, dflt) {
-  const i = args.indexOf(flag);
-  if (i === -1) return dflt;
-  const v = parseInt(args[i + 1], 10);
-  return Number.isFinite(v) ? v : dflt;
-}
 
-// ── Best-effort Supabase push (store-only; tables may not exist yet) ─────────
+// ── Best-effort Supabase push (store-only; app reads it from there) ──────────
 
 async function pushToSupabase(date, agg, reportMd) {
   const URL = process.env.SUPABASE_URL;
@@ -195,19 +214,18 @@ async function pushToSupabase(date, agg, reportMd) {
   if (!URL || !KEY) return { ok: false, reason: 'no Supabase credentials' };
   const H = { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' };
   try {
-    // metrics: upsert long-format rows
     const rows = Object.entries(agg.metrics).map(([metric, value]) => ({ date, scope: 'global', metric, value }));
-    const mRes = await fetch(`${URL}/rest/v1/crawl_metrics?on_conflict=date,scope,metric`, {
-      method: 'POST', headers: { ...H, Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(rows),
-    });
-    // report: upsert one row per date
+    let mRes = { ok: true };
+    if (rows.length > 0) {
+      mRes = await fetch(`${URL}/rest/v1/crawl_metrics?on_conflict=date,scope,metric`, {
+        method: 'POST', headers: { ...H, Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(rows),
+      });
+    }
     const rRes = await fetch(`${URL}/rest/v1/crawl_daily_report?on_conflict=date`, {
       method: 'POST', headers: { ...H, Prefer: 'resolution=merge-duplicates' },
       body: JSON.stringify([{ date, report_md: reportMd, metrics_json: agg.metrics }]),
     });
-    if (!mRes.ok || !rRes.ok) {
-      return { ok: false, reason: `metrics ${mRes.status} / report ${rRes.status} (tables may not exist yet)` };
-    }
+    if (!mRes.ok || !rRes.ok) return { ok: false, reason: `metrics ${mRes.status ?? 'ok'} / report ${rRes.status} (tables may not exist yet)` };
     return { ok: true };
   } catch (e) {
     return { ok: false, reason: e.message };
@@ -220,7 +238,6 @@ async function main() {
   const args = process.argv.slice(2);
   const force = args.includes('--force');
   const dryRun = args.includes('--dry-run');
-  const windowHours = intArg(args, '--window-hours', WINDOW_HOURS);
 
   const now = new Date();
   const today = localDateStr(now);
@@ -228,57 +245,46 @@ async function main() {
 
   try {
     if (!force) {
-      if (now.getHours() < COACH_HOUR) { console.log(`daily-coach: before ${COACH_HOUR}:00 local — skipping (night not finished).`); return; }
-      if (state.getMeta(META_DATE) === today) { console.log('daily-coach: already ran today — skipping.'); return; }
+      const gate = gateDecision(now, { lastDate: state.getMeta(META_DATE), today });
+      if (!gate.run) { console.log(`daily-coach: skipping — ${gate.reason}.`); return; }
     }
 
-    const cutoff = utcCutoff(windowHours);
+    const cutoff = nightCutoffUtc(now);
     const runs = state.getRunsSince(cutoff);
     const threads = state.getThreadsCreatedSince(cutoff);
     const cases = state.getCasesCreatedSince(cutoff);
     const forums = state.getAllForums();
 
-    // Degenerate-night guard: a quota/auth/error-stopped night must not skew metrics.
-    const last = state.getLastRun();
-    let degenerate = null;
-    const stop = (last?.stop_reason || '').toLowerCase();
-    if (stop.includes('quota') || stop.includes('auth') || stop.includes('limit')) {
-      degenerate = `Noční běh skončil předčasně (${last.stop_reason}).`;
-    } else if (runs.length === 0 && threads.length === 0 && cases.length === 0) {
-      degenerate = 'V okně neproběhl žádný crawl (prázdná noc).';
-    }
+    const degenerate = detectDegenerate({ runs, threads, cases });
+    const agg = degenerate ? EMPTY_AGG : aggregateNight({ threads, cases, forums });
+    const windowLabel = `${cutoff.slice(0, 16)} → ${now.toISOString().slice(0, 16)} UTC (noční běh)`;
+    const reportMd = buildReport(agg, { date: today, windowLabel, degenerate });
 
-    const agg = degenerate ? { metrics: {}, byForum: [], rejectConditions: {}, discardBuckets: {}, statusHist: {} }
-      : aggregateNight({ threads, cases, runs, forums });
-    const reportMd = buildReport(agg, { date: today, windowHours, degenerate });
-
-    console.log(`daily-coach: ${today} window=${windowHours}h runs=${runs.length} threads=${threads.length} cases=${cases.length}` +
+    console.log(`daily-coach: ${today} cutoff=${cutoff} runs=${runs.length} threads=${threads.length} cases=${cases.length}` +
       (degenerate ? ` DEGENERATE(${degenerate})` : ` metrics=${JSON.stringify(agg.metrics)}`));
 
     if (dryRun) { console.log('\n----- REPORT (dry-run, not written) -----\n' + reportMd); return; }
 
-    // 1. local metrics time-series (source of truth) — skip on degenerate nights
+    // local report file (always — informational even on a degenerate night)
+    const logDir = join(__dirname, 'logs');
+    if (!existsSync(logDir)) mkdirSync(logDir, { recursive: true });
+    writeFileSync(join(logDir, `daily-coach-${today}.md`), reportMd, 'utf8');
+
+    // local metrics + once-per-day stamp ONLY on a real (non-degenerate) night
     if (!degenerate) {
       for (const [metric, value] of Object.entries(agg.metrics)) state.recordMetric(today, metric, value);
       for (const f of agg.byForum) {
         state.recordMetric(today, 'forum_good', f.good, f.forumId);
         state.recordMetric(today, 'forum_rejected', f.rejected, f.forumId);
       }
+      state.setMeta(META_DATE, today); // claim the day only after a real evaluation
     }
 
-    // 2. local report file
-    const logDir = join(__dirname, 'logs');
-    if (!existsSync(logDir)) mkdirSync(logDir, { recursive: true });
-    writeFileSync(join(logDir, `daily-coach-${today}.md`), reportMd, 'utf8');
-
-    // 3. best-effort Supabase push (store-only; app reads it from there)
     const push = await pushToSupabase(today, agg, reportMd);
     console.log(`daily-coach: supabase push ${push.ok ? 'ok' : 'skipped (' + push.reason + ')'}`);
 
-    // stamp once-per-day + liveness ONLY after a successful write
-    state.setMeta(META_DATE, today);
-    state.setMeta(META_SUCCESS, now.toISOString());
-    state.log('info', `daily-coach report written for ${today} (${Object.keys(agg.metrics).length} metrics)`, 'coach');
+    state.setMeta(META_SUCCESS, now.toISOString()); // liveness heartbeat (the coach ran)
+    state.log('info', `daily-coach ${degenerate ? 'degenerate' : 'report'} for ${today}` + (degenerate ? ` (${degenerate})` : ` (${Object.keys(agg.metrics).length} metrics)`), 'coach');
   } finally {
     state.close();
   }
