@@ -203,6 +203,30 @@ logované do `agent_log` phase='coach' + journal pro **`apply-proposal.mjs --rev
 Sekce „co jsem automaticky upravil" v reportu. Plus 🟠 shadow kanál pro návrhy promptů/prahů
 (gold-set eval, nikdy auto-merge). Stav: Fáze 1 nasazená, Fáze 2 základ + review fixy na `main`.
 
+**▶ POZDĚJŠÍ FÁZE (roadmapa, každá samostatně nasaditelná):**
+- **Fáze 3 — precision auditor (zrcadlo recall-watchdogu):** uvnitř kouče přidat křížovou
+  kontrolu i opačného směru — vzorek ~12 SCHVÁLENÝCH případů (status verified/import_ready/
+  imported) nezávisle přehodnotit Claudem proti stejné QUALITY_BAR (`runLlm('coach-precision', …)`
+  přes env-trik `AGENT_LLM_COACH-PRECISION`, stejně jako watchdog). Hlásí míru „chybně PŘIJATÝCH".
+  Precision má přednost (false-accept doteče do živé DB, false-reject jen stojí výnos). Pro brány
+  zatím jen REPORT; je to **předpoklad**, než smí být cokoli povoleno (loosening).
+- **Fáze 4 — propose-and-gate pro rizikové knoby (prompty/prahy):** (a) jednorázově s majitelem
+  nakurátorovat **zmrazený gold-set** `scripts/agent/gold/gold-cases.jsonl` (~40–80 jasně dobrých/
+  špatných vláken, ~1–2 h — Fáze 4 je bez něj nebezpečná a blokovaná); (b) gold-eval harness nad
+  exportovanými branami (`verifyCase`/`isClassifierApproved`/`validateCase`); (c) řazená fronta
+  návrhů (`logs/proposals/*.json` + agent_meta `coach_proposals_open`) → desktop marker
+  `DRIVECODEX-DENNI-DOPORUCENI-PRECTI-ME.txt`; (d) **`apply-proposal.mjs`** = JEDINÝ mutátor
+  rizikových změn (Tier A/B s mezemi + undo token; Tier C prompt/práh jen NAstaguje draft →
+  manuální review + `npm run test:agent` + gold harness + výslovné OK majitele → teprve commit;
+  invariant: verify vendor ≠ extract vendor). Riziko vstupuje až tady, vždy za lidskou bránou.
+
+**Průřezové guardrails (platí pro všechny fáze):** cíl je **PRECISION, ne YIELD** — žádná akce,
+jejíž efekt je „projde víc případů branou", se nikdy neaplikuje automaticky (jen navrhne); vše
+vratné + auditovatelné; min-volume + degenerate-night skip; kouč nemá git/push/deploy ani zápis
+do zdrojů bran. Otevřená rozhodnutí majitele: kdy gold-set session; kadence alertů; quota budget
+(precision auditor ~+12 Claude volání/den); retence `daily_metrics`. Detailní návrh: workflow
+„design-self-improving-crawler" (synthesis) — výstup v session tasks.
+
 ### 0. Hybrid follow-up — konverzace „s mechanikem" po diagnóze (2026-06-16, LOKÁLNĚ, ČEKÁ NA NASAZENÍ)
 
 Doplňující dotaz po první diagnóze už neběží jako re-run bez kontextu. `executeDiagnosis`
