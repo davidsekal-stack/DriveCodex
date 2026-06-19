@@ -90,5 +90,8 @@ export function applyProfileToForum(state, forumId, profile) {
     calibration_attempts: 0,
     status: 'queued',
     cooldown_until: null,
+    // Keep the coach's yield-tier markers consistent with cooldown_until (here: none).
+    cooldown_tier_hours: null,
+    cooldown_set_at: null,
   });
 }

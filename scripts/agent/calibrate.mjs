@@ -98,6 +98,9 @@ function deferCalibration(state, forumId, currentCalibration, attempts, reason) 
     calibration_status: 'pending',
     calibration_attempts: attempts,
     cooldown_until: until,
+    // Transient backoff — not a yield-tier park; keep the coach's tier markers clear.
+    cooldown_tier_hours: null,
+    cooldown_set_at: null,
   });
   console.log(`  Transient calibration failure. Backing off until ${until}.`);
 }

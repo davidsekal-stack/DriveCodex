@@ -33,6 +33,20 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { AgentState } from './state.mjs';
 import { failingCondition } from './recall-watchdog.mjs';
+import { planNight, alignNights, addDays, DEFAULT_CONFIG } from './coach-adapt.mjs';
+
+// Per-forum night metrics recorded for the Phase 2 multi-night signal.
+const PER_FORUM_METRICS = ['forum_good', 'forum_rejected', 'forum_processed', 'forum_extracted', 'forum_transient', 'forum_too_few'];
+
+/** Phase 2 thresholds with optional env overrides (COACH_<KEY>). */
+function buildAdaptConfig() {
+  const c = { ...DEFAULT_CONFIG };
+  for (const k of Object.keys(c)) {
+    const v = parseFloat(process.env[`COACH_${k}`] ?? '');
+    if (Number.isFinite(v)) c[k] = v;
+  }
+  return c;
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -43,7 +57,19 @@ const META_DATE      = 'coach_last_date';
 const META_SUCCESS   = 'coach_last_success_at';
 
 // Cases that have PASSED the verify gate (verified and everything downstream of it).
+// Used for the GLOBAL funnel (cases_verified) — "passed verification" in the broad sense.
 const VERIFY_PASSED = new Set(['verified', 'import_ready', 'imported', 'import_failed', 'crosscheck_dupe']);
+
+// Narrowed set for the PER-FORUM quality signal that feeds Phase 2 priority/cooldown:
+// only genuine new precision survivors. crosscheck_dupe (a duplicate of an existing
+// case) and import_failed (transient import error) are excluded — they are not new
+// good cases and must not inflate a forum's verified yield.
+const FORUM_GOOD = new Set(['verified', 'import_ready', 'imported']);
+
+/** A thread whose outcome reflects a transient failure (network/HTTP/timeout), not the forum's real productivity. */
+function isTransientThread(t) {
+  return t.status === 'error' || bucketDiscardReason(t.discard_reason) === 'transient';
+}
 
 function intEnv(name, dflt) { const v = parseInt(process.env[name] ?? '', 10); return Number.isFinite(v) ? v : dflt; }
 
@@ -118,17 +144,29 @@ export function aggregateNight({ threads = [], cases = [], forums = [] } = {}) {
   }
   const casesExtracted = cases.length;
 
+  // Per-forum night stats over the UNION of forums seen in threads OR cases, so a
+  // busy-but-barren forum (threads processed, zero cases) still emits explicit zeros
+  // — the Phase 2 multi-night series must be dense and date-aligned to be trustworthy.
   const forumName = new Map(forums.map(f => [f.id, f.name || f.url || f.id]));
   const byForumRaw = {};
+  const ensureForum = (fid) => byForumRaw[fid] ||
+    (byForumRaw[fid] = { good: 0, rejected: 0, processed: 0, extracted: 0, transient: 0, tooFew: 0 });
+  for (const t of threads) {
+    if (!t.forum_id) continue;
+    const e = ensureForum(t.forum_id);
+    if (isTransientThread(t)) e.transient++;            // includes pending-with-transient-reason
+    else if (t.status && t.status !== 'pending') e.processed++; // reached a real (non-transient) verdict
+    if (bucketDiscardReason(t.discard_reason) === 'too_few_posts') e.tooFew++;
+  }
   for (const c of cases) {
-    const fid = c.forum_id;
-    if (!fid) continue;
-    const e = byForumRaw[fid] || (byForumRaw[fid] = { good: 0, rejected: 0 });
-    if (VERIFY_PASSED.has(c.status)) e.good++;
+    if (!c.forum_id) continue;
+    const e = ensureForum(c.forum_id);
+    e.extracted++;
+    if (FORUM_GOOD.has(c.status)) e.good++;
     else if (c.status === 'verify_rejected') e.rejected++;
   }
   const byForum = Object.entries(byForumRaw)
-    .map(([fid, v]) => ({ forum: forumName.get(fid) || fid, forumId: fid, good: v.good, rejected: v.rejected }))
+    .map(([fid, v]) => ({ forum: forumName.get(fid) || fid, forumId: fid, ...v }))
     .sort((a, b) => b.good - a.good || b.rejected - a.rejected);
 
   const ratio = (n, d) => (d > 0 ? +(n / d).toFixed(3) : 0);
@@ -157,8 +195,51 @@ const DISCARD_LABEL = {
   other: 'jiné',
 };
 
+/** One plain-Czech bullet describing an applied auto change. */
+function adaptBullet(d) {
+  const s = d.signal || {};
+  if (d.knob === 'priority') {
+    const verb = d.direction === 'up' ? 'zvýšil' : 'snížil';
+    const trend = d.direction === 'up'
+      ? `stabilně dodává ověřené případy (${s.good} dobrých z ${s.processed} zpracovaných za ${s.nights} noci)`
+      : `málo ověřených případů na vynaloženou práci (${s.good} z ${s.processed} za ${s.nights} noci)`;
+    const place = d.direction === 'up' ? 'navštíví dřív' : 'půjde ve frontě níž';
+    return `**${d.forumName}**: ${verb} jsem prioritu z ${s.current} na ${d.newFields.priority_score} — ${trend}. Crawler ho ${place}.`;
+  }
+  // Phase 2 cooldown moves are exactly one engine tier (168h⇄24h), so phrase them directly.
+  if (d.direction === 'shorten') {
+    return `**${d.forumName}**: zkrátil jsem čekání mezi návštěvami ze 7 dnů na 1 den — poslední noci slušně těžil (${s.good} dobrých). Vrátím se k němu dřív.`;
+  }
+  return `**${d.forumName}**: prodloužil jsem čekání z 1 dne na 7 dnů — dvě vyhodnocené noci po sobě nepřinesl ani jeden ověřený případ (a nešlo o výpadky sítě).`;
+}
+
+/** One plain-Czech bullet for a SHADOW re-calibration proposal (nothing was changed). */
+function proposalBullet(p) {
+  const s = p.signal || {};
+  return `**${p.forumName}**: za ${s.nights} noci se zpracovalo ${s.processed} vláken, ale nevytěžilo se ani jeden případ — nejspíš se změnilo rozložení stránek fóra. Zvaž ruční re-kalibraci.`;
+}
+
+/** The "Co jsem automaticky upravil" report section. Pure. */
+export function buildAdaptSection(plan, maxActions = DEFAULT_CONFIG.MAX_ACTIONS_PER_NIGHT) {
+  const L = ['## Co jsem automaticky upravil'];
+  if (plan.circuitTripped) {
+    L.push('⚠️ Najednou by se měnila víc než polovina sledovaných fór — vypadá to spíš na chybu v datech než na skutečný vývoj, takže jsem pro jistotu NEPROVEDL žádnou automatickou úpravu.');
+  } else if (plan.applied.length === 0) {
+    L.push('_Dnes jsem neprovedl žádnou automatickou úpravu — buď byla data slabá, signál se neudržel přes víc nocí, nebo byla fóra v pořádku._');
+  } else {
+    for (const d of plan.applied) L.push('- ' + adaptBullet(d));
+    if (plan.capHit) L.push(`_Dosáhl jsem denního limitu ${maxActions} úprav; zbytek nechávám na zítra._`);
+  }
+  if (plan.proposals.length > 0) {
+    L.push('', '### Možná potřebují ruční kontrolu struktury', '_(NEZASAHOVAL jsem — jen upozorňuji, prohlédni prosím ručně.)_');
+    for (const p of plan.proposals) L.push('- ' + proposalBullet(p));
+  }
+  L.push('', '_Fáze 2: měním jen pořadí ve frontě a načasování návštěv fór. Nikdy nesahám na prahy kontroly kvality ani na to, co projde do fronty ke schválení. Vše je v deníku (coach_journal) a vratné příkazem `apply-proposal.mjs --revert`._');
+  return L;
+}
+
 /** Build the plain-Czech daily report (markdown). Pure. */
-export function buildReport(agg, { date, windowLabel, degenerate = null } = {}) {
+export function buildReport(agg, { date, windowLabel, degenerate = null, plan = null, maxActions = DEFAULT_CONFIG.MAX_ACTIONS_PER_NIGHT } = {}) {
   const m = agg.metrics;
   const L = [];
   L.push(`# Noční report crawleru — ${date}`, '');
@@ -191,14 +272,19 @@ export function buildReport(agg, { date, windowLabel, degenerate = null } = {}) 
   }
   L.push('');
 
-  if (agg.byForum.length > 0) {
+  const forumsWithCases = agg.byForum.filter(f => f.good > 0 || f.rejected > 0);
+  if (forumsWithCases.length > 0) {
     L.push('## Po fórech (dobré / zamítnuté)');
-    for (const f of agg.byForum.slice(0, 10)) L.push(`- ${f.forum}: ${f.good} ✓ / ${f.rejected} ✕`);
+    for (const f of forumsWithCases.slice(0, 10)) L.push(`- ${f.forum}: ${f.good} ✓ / ${f.rejected} ✕`);
     L.push('');
   }
 
   L.push('---');
-  L.push('_Fáze 1: zatím jen sleduji a měřím. Automatické úpravy plánu a návrhy na doladění přijdou v dalších fázích._');
+  if (plan) {
+    for (const line of buildAdaptSection(plan, maxActions)) L.push(line);
+  } else {
+    L.push('_Zatím jen sleduji a měřím._');
+  }
   return L.join('\n');
 }
 
@@ -232,12 +318,75 @@ async function pushToSupabase(date, agg, reportMd) {
   }
 }
 
+// ── Phase 2 adapt (auto-tier: priority + cooldown apply, re-calibration shadow) ──
+
+/** Record global + per-forum night metrics. The per-forum series feed the planner. */
+function recordPerForumMetrics(state, today, agg) {
+  for (const [metric, value] of Object.entries(agg.metrics)) state.recordMetric(today, metric, value);
+  for (const f of agg.byForum) {
+    state.recordMetric(today, 'forum_good', f.good, f.forumId);
+    state.recordMetric(today, 'forum_rejected', f.rejected, f.forumId);
+    state.recordMetric(today, 'forum_processed', f.processed, f.forumId);
+    state.recordMetric(today, 'forum_extracted', f.extracted, f.forumId);
+    state.recordMetric(today, 'forum_transient', f.transient, f.forumId);
+    state.recordMetric(today, 'forum_too_few', f.tooFew, f.forumId);
+  }
+}
+
+/** Per-forum aligned night series, with tonight overlaid (accurate in --dry-run; idempotent live). */
+function buildNightsByForum(state, forums, agg, today) {
+  const tonight = new Map(agg.byForum.map(f => [f.forumId, f]));
+  const out = {};
+  for (const f of forums) {
+    const series = {};
+    for (const m of PER_FORUM_METRICS) series[m] = state.getMetricSeries(m, f.id, 120);
+    let nights = alignNights(series);
+    const t = tonight.get(f.id);
+    if (t) {
+      nights = nights.filter(n => n.date !== today);
+      nights.push({ date: today, good: t.good, rejected: t.rejected, processed: t.processed, extracted: t.extracted, transient: t.transient, tooFew: t.tooFew });
+      nights.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    }
+    out[f.id] = nights;
+  }
+  return out;
+}
+
+function computePlan(state, forums, agg, now, today, config) {
+  const nightsByForum = buildNightsByForum(state, forums, agg, today);
+  const lockSince = addDays(today, -config.COOLDOWN_REVERSE_LOCK_DAYS);
+  const journalByForum = {};
+  for (const f of forums) journalByForum[f.id] = state.getRecentCoachCooldownChanges(f.id, lockSince);
+  const alreadyChanged = new Set(
+    state.getCoachJournalForDate(today).filter(r => Number(r.applied) === 1).map(r => r.forum_id)
+  );
+  return planNight({ forums, nightsByForum, journalByForum, alreadyChangedForumIds: alreadyChanged, now, todayStr: today, config });
+}
+
+function applyPlan(state, today, plan) {
+  for (const d of plan.applied) {
+    const res = state.applyCoachChange({
+      date: today, forumId: d.forumId, forumName: d.forumName, knob: d.knob,
+      direction: d.direction, reasonCode: d.reasonCode, signal: d.signal,
+      oldFields: d.oldFields, newFields: d.newFields,
+    });
+    if (res.ok) state.log('info', `coach ${d.knob} ${d.direction} ${d.forumName}: ${JSON.stringify(d.oldFields)} → ${JSON.stringify(d.newFields)} (${d.reasonCode})`, 'coach');
+    else state.log('warn', `coach skipped ${d.knob} on ${d.forumName}: ${res.reason}`, 'coach');
+  }
+  for (const p of plan.proposals) {
+    state.recordCoachProposal({ date: today, forumId: p.forumId, forumName: p.forumName, knob: p.knob, reasonCode: p.reasonCode, signal: p.signal });
+    state.log('warn', `coach proposal recalibrate ${p.forumName} (${p.reasonCode}; ${JSON.stringify(p.signal)})`, 'coach');
+  }
+  if (plan.circuitTripped) state.log('warn', `coach circuit breaker: ${plan.deferred.length}/${plan.evaluable} forums would change — applied none`, 'coach');
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
   const args = process.argv.slice(2);
   const force = args.includes('--force');
   const dryRun = args.includes('--dry-run');
+  const config = buildAdaptConfig();
 
   const now = new Date();
   const today = localDateStr(now);
@@ -257,11 +406,24 @@ async function main() {
 
     const degenerate = detectDegenerate({ runs, threads, cases });
     const agg = degenerate ? EMPTY_AGG : aggregateNight({ threads, cases, forums });
+
+    // Record metrics BEFORE planning so the multi-night series include tonight.
+    // Real night only, never in --dry-run.
+    if (!degenerate && !dryRun) recordPerForumMetrics(state, today, agg);
+
+    // Phase 2 auto-tier: plan + (live only) apply. Degenerate night → no adapt at all.
+    let plan = null;
+    if (!degenerate) {
+      plan = computePlan(state, forums, agg, now, today, config);
+      if (!dryRun) applyPlan(state, today, plan);
+    }
+
     const windowLabel = `${cutoff.slice(0, 16)} → ${now.toISOString().slice(0, 16)} UTC (noční běh)`;
-    const reportMd = buildReport(agg, { date: today, windowLabel, degenerate });
+    const reportMd = buildReport(agg, { date: today, windowLabel, degenerate, plan, maxActions: config.MAX_ACTIONS_PER_NIGHT });
 
     console.log(`daily-coach: ${today} cutoff=${cutoff} runs=${runs.length} threads=${threads.length} cases=${cases.length}` +
-      (degenerate ? ` DEGENERATE(${degenerate})` : ` metrics=${JSON.stringify(agg.metrics)}`));
+      (degenerate ? ` DEGENERATE(${degenerate})` : ` metrics=${JSON.stringify(agg.metrics)}`) +
+      (plan ? ` adapt=${plan.applied.length}applied/${plan.proposals.length}proposed${plan.circuitTripped ? '/CIRCUIT' : ''}` : ''));
 
     if (dryRun) { console.log('\n----- REPORT (dry-run, not written) -----\n' + reportMd); return; }
 
@@ -270,21 +432,14 @@ async function main() {
     if (!existsSync(logDir)) mkdirSync(logDir, { recursive: true });
     writeFileSync(join(logDir, `daily-coach-${today}.md`), reportMd, 'utf8');
 
-    // local metrics + once-per-day stamp ONLY on a real (non-degenerate) night
-    if (!degenerate) {
-      for (const [metric, value] of Object.entries(agg.metrics)) state.recordMetric(today, metric, value);
-      for (const f of agg.byForum) {
-        state.recordMetric(today, 'forum_good', f.good, f.forumId);
-        state.recordMetric(today, 'forum_rejected', f.rejected, f.forumId);
-      }
-      state.setMeta(META_DATE, today); // claim the day only after a real evaluation
-    }
+    if (!degenerate) state.setMeta(META_DATE, today); // claim the day only after a real evaluation
 
     const push = await pushToSupabase(today, agg, reportMd);
     console.log(`daily-coach: supabase push ${push.ok ? 'ok' : 'skipped (' + push.reason + ')'}`);
 
     state.setMeta(META_SUCCESS, now.toISOString()); // liveness heartbeat (the coach ran)
-    state.log('info', `daily-coach ${degenerate ? 'degenerate' : 'report'} for ${today}` + (degenerate ? ` (${degenerate})` : ` (${Object.keys(agg.metrics).length} metrics)`), 'coach');
+    state.log('info', `daily-coach ${degenerate ? 'degenerate' : 'report'} for ${today}` +
+      (degenerate ? ` (${degenerate})` : ` (${Object.keys(agg.metrics).length} metrics, ${plan ? plan.applied.length : 0} auto-changes, ${plan ? plan.proposals.length : 0} proposals)`), 'coach');
   } finally {
     state.close();
   }

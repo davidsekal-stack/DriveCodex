@@ -352,6 +352,10 @@ async function phaseCalibrate(state, opts) {
       state.updateForum(forum.id, {
         calibration_status: 'pending',
         cooldown_until: until,
+        // Error/transient park — clear the yield-tier markers so the daily coach
+        // never mistakes this for a clean yield-based cooldown it may retune.
+        cooldown_tier_hours: null,
+        cooldown_set_at: null,
       });
     }
   }
@@ -411,6 +415,9 @@ async function phaseCrawl(state, opts) {
         cooldown_until: until,
         new_threads_last_batch: 0,
         status: 'active',
+        // Enumeration failed (likely transient) — not a yield-tier park.
+        cooldown_tier_hours: null,
+        cooldown_set_at: null,
       });
       continue;
     }
@@ -423,6 +430,9 @@ async function phaseCrawl(state, opts) {
         cooldown_until: until,
         new_threads_last_batch: 0,
         status: 'active',
+        // No URLs found — ambiguous (empty section / fetch issue), not a yield-tier park.
+        cooldown_tier_hours: null,
+        cooldown_set_at: null,
       });
       continue;
     }
@@ -460,6 +470,10 @@ async function phaseCrawl(state, opts) {
         cooldown_until: until,
         new_threads_last_batch: newUrls.length,
         status: cooldownHours >= 720 ? 'exhausted' : 'active',
+        // Yield-based park — stamp the tier + when, so the daily coach can read the
+        // tier reliably (cooldown_until alone ages and can't reveal the original tier).
+        cooldown_tier_hours: cooldownHours,
+        cooldown_set_at: new Date().toISOString(),
       });
 
       // If truly zero new threads, skip entirely

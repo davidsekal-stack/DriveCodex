@@ -182,6 +182,10 @@ function main() {
       status: 'exhausted',
       calibration_status: 'calibrated',
       cooldown_until: cooldownUntil,
+      // Match the engine's 720h exhaustion park so the coach's yield-tier markers stay
+      // consistent (it never acts on the 720h/exhausted tier anyway, but keep the invariant).
+      cooldown_tier_hours: COOLDOWN_DAYS * 24,
+      cooldown_set_at: new Date().toISOString(),
     });
 
     console.log(`  ✓ ${forum.name} (${forum.brand}) → exhausted, cooldown until ${cooldownUntil.slice(0, 10)}`);

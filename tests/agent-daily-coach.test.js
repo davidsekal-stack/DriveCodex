@@ -7,7 +7,7 @@ import { AgentState } from '../scripts/agent/state.mjs';
 // Pure-logic + state coverage of the daily coach. The module guards main() to run
 // only when invoked directly, so importing it here is side-effect free.
 const {
-  bucketDiscardReason, aggregateNight, buildReport,
+  bucketDiscardReason, aggregateNight, buildReport, buildAdaptSection,
   nightCutoffUtc, gateDecision, detectDegenerate,
 } = await import('../scripts/agent/daily-coach.mjs');
 
@@ -46,11 +46,42 @@ assert.equal(agg.metrics.verify_rejected, 1);
 assert.equal(agg.metrics['verify_reject:is_genuine_fault'], 1);
 assert.equal(agg.metrics.verify_pass_rate, +(2 / 3).toFixed(3), 'one cohort: passed/(passed+rejected)');
 assert.equal(agg.metrics.import_rate, +(1 / 3).toFixed(3));
-// c3 counts in per-forum via joined forum_id even though its thread is outside the window
+// byForum now spans the UNION of forums seen in threads OR cases (dense series),
+// with per-forum processed/extracted/transient/too_few. f1 has threads but no cases
+// (busy-but-barren → explicit zeros); c3 counts in f2/f3 via joined forum_id.
 assert.deepEqual(agg.byForum, [
-  { forum: 'Forum Two', forumId: 'f2', good: 1, rejected: 1 },
-  { forum: 'Forum Three', forumId: 'f3', good: 1, rejected: 0 },
+  { forum: 'Forum Two', forumId: 'f2', good: 1, rejected: 1, processed: 1, extracted: 2, transient: 0, tooFew: 0 },
+  { forum: 'Forum Three', forumId: 'f3', good: 1, rejected: 0, processed: 0, extracted: 1, transient: 0, tooFew: 0 },
+  { forum: 'Forum One', forumId: 'f1', good: 0, rejected: 0, processed: 2, extracted: 0, transient: 0, tooFew: 1 },
 ]);
+
+// Per-forum "good" is NARROWED: crosscheck_dupe / import_failed are NOT precision
+// survivors and must not inflate a forum's verified yield (they still count as extracted).
+const narrowed = aggregateNight({
+  threads: [{ id: 't', forum_id: 'fA', status: 'extracted' }],
+  cases: [
+    { id: 'k1', forum_id: 'fA', status: 'crosscheck_dupe' },
+    { id: 'k2', forum_id: 'fA', status: 'import_failed' },
+    { id: 'k3', forum_id: 'fA', status: 'verified' },
+  ],
+  forums: [{ id: 'fA', name: 'Forum A' }],
+});
+assert.equal(narrowed.byForum[0].good, 1, 'only verified counts as forum good; dupe/import_failed excluded');
+assert.equal(narrowed.byForum[0].extracted, 3, 'all three cases still count as extracted');
+
+// Transient threads are split out of processed (error / transient discard / pending-transient).
+const trans = aggregateNight({
+  threads: [
+    { id: 'a', forum_id: 'fB', status: 'extracted' },
+    { id: 'b', forum_id: 'fB', status: 'error' },
+    { id: 'c', forum_id: 'fB', status: 'pending', discard_reason: 'transient: ECONNRESET' },
+    { id: 'd', forum_id: 'fB', status: 'discarded', discard_reason: 'transient: HTTP 429' },
+  ],
+  cases: [],
+  forums: [{ id: 'fB', name: 'Forum B' }],
+});
+assert.equal(trans.byForum[0].processed, 1, 'only the non-transient extracted thread is "processed"');
+assert.equal(trans.byForum[0].transient, 3, 'error + pending-transient + discarded-transient all count transient');
 
 const empty = aggregateNight({});
 assert.equal(empty.metrics.threads_processed, 0);
@@ -65,6 +96,34 @@ assert.match(report, /Forum Two: 1 ✓ \/ 1 ✕/);
 const deg = buildReport({ metrics: {}, byForum: [], rejectConditions: {}, discardBuckets: {} }, { date: '2026-06-18', degenerate: 'Noční běh skončil předčasně (quota).' });
 assert.match(deg, /skončil předčasně/);
 assert.doesNotMatch(deg, /Co se vytěžilo/);
+
+// ── buildAdaptSection (Phase 2 "Co jsem automaticky upravil") ───────────────
+{
+  const applied = [
+    { knob: 'priority', direction: 'up', forumName: 'Audi Klub', newFields: { priority_score: 27 }, signal: { good: 30, processed: 120, nights: 3, current: 12 } },
+    { knob: 'cooldown', direction: 'shorten', forumName: 'Ford Club', signal: { fromTier: 168, toTier: 24, good: 7 } },
+    { knob: 'cooldown', direction: 'extend', forumName: 'Dacia Club', signal: { fromTier: 24, toTier: 168 } },
+  ];
+  const proposals = [{ knob: 'recalibrate_proposal', forumName: 'Passat B6', signal: { nights: 3, processed: 40 } }];
+  const sec = buildAdaptSection({ applied, proposals, deferred: [], circuitTripped: false, capHit: false }, 8).join('\n');
+  assert.match(sec, /## Co jsem automaticky upravil/);
+  assert.match(sec, /Audi Klub.*prioritu z 12 na 27/);
+  assert.match(sec, /Ford Club.*ze 7 dnů na 1 den/);
+  assert.match(sec, /Dacia Club.*z 1 dne na 7 dnů/);
+  assert.match(sec, /### Možná potřebují ruční kontrolu struktury/);
+  assert.match(sec, /Passat B6/);
+  assert.match(sec, /NEZASAHOVAL jsem/);
+  assert.match(sec, /apply-proposal\.mjs --revert/);
+
+  const quiet = buildAdaptSection({ applied: [], proposals: [], deferred: [], circuitTripped: false, capHit: false }).join('\n');
+  assert.match(quiet, /neprovedl žádnou automatickou úpravu/);
+  const tripped = buildAdaptSection({ applied: [], proposals: [], deferred: [1, 2], circuitTripped: true, capHit: false }).join('\n');
+  assert.match(tripped, /víc než polovina/);
+
+  // Phase 2 report wires the section in (replaces the Phase-1 "jen měřím" footer).
+  const withPlan = buildReport(agg, { date: '2026-06-18', windowLabel: 'x', plan: { applied, proposals, deferred: [], circuitTripped: false, capHit: false } });
+  assert.match(withPlan, /## Co jsem automaticky upravil/);
+}
 
 // ── nightCutoffUtc (anchored to most-recent night start, not rolling) ───────
 {

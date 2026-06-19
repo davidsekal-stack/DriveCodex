@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS forums (
   calibration_status TEXT DEFAULT 'pending',
   calibration_attempts INTEGER DEFAULT 0,
   cooldown_until TEXT,
+  cooldown_tier_hours INTEGER,
+  cooldown_set_at TEXT,
   last_crawled_at TEXT,
   diary_md TEXT,
   priority_score REAL DEFAULT 0,
@@ -140,6 +142,33 @@ CREATE TABLE IF NOT EXISTS crawl_metrics (
   updated_at TEXT DEFAULT (datetime('now')),
   PRIMARY KEY (date, scope, metric)
 );
+
+-- Audit + undo journal for the daily coach's Phase 2 auto-tier adapt actions.
+-- One row per decision. applied=1 = a forum knob was mutated (priority/cooldown)
+-- and is reversible via apply-proposal.mjs --revert; applied=0 = a SHADOW proposal
+-- (e.g. a re-calibration suggestion) that touched nothing and is for humans only.
+-- old_json/new_json hold EXACTLY the forum columns the change wrote, so a revert
+-- is a literal column restore. The partial UNIQUE(date,forum_id) WHERE applied=1
+-- enforces the "max 1 applied change per forum per day" guardrail at the DB level.
+CREATE TABLE IF NOT EXISTS coach_journal (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts TEXT DEFAULT (datetime('now')),
+  date TEXT NOT NULL,
+  forum_id TEXT NOT NULL,
+  forum_name TEXT,
+  knob TEXT NOT NULL,
+  applied INTEGER NOT NULL DEFAULT 0,
+  direction TEXT,
+  reason_code TEXT,
+  signal_json TEXT,
+  old_json TEXT,
+  new_json TEXT,
+  reverted_at TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_coach_journal_oneperday
+  ON coach_journal(date, forum_id) WHERE applied = 1;
+CREATE INDEX IF NOT EXISTS idx_coach_journal_forum
+  ON coach_journal(forum_id, date);
 `;
 
 export class AgentState {
@@ -166,6 +195,8 @@ export class AgentState {
       'ALTER TABLE cases ADD COLUMN crosscheck_attempts INTEGER DEFAULT 0',
       'ALTER TABLE cases ADD COLUMN import_attempts INTEGER DEFAULT 0',
       'ALTER TABLE forums ADD COLUMN priority_score REAL DEFAULT 0',
+      'ALTER TABLE forums ADD COLUMN cooldown_tier_hours INTEGER',
+      'ALTER TABLE forums ADD COLUMN cooldown_set_at TEXT',
     ];
     for (const sql of alterations) {
       try { this.#db.exec(sql); } catch { /* column already exists */ }
@@ -218,7 +249,8 @@ export class AgentState {
       'sections_json', 'threads_found', 'threads_crawled',
       'new_threads_last_batch', 'cases_total', 'last_crawled_at',
       'calibration_json', 'calibration_status', 'calibration_attempts',
-      'cooldown_until', 'diary_md', 'priority_score',
+      'cooldown_until', 'cooldown_tier_hours', 'cooldown_set_at',
+      'diary_md', 'priority_score',
     ];
     const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
     if (entries.length === 0) return;
@@ -577,6 +609,84 @@ export class AgentState {
     } catch {
       return {};
     }
+  }
+
+  // ── Coach journal (daily coach Phase 2 auto-tier audit + undo) ──────────
+  // applied=1 rows mutate a forum knob and are reversible; applied=0 rows are
+  // shadow proposals (e.g. re-calibration suggestions) that touch nothing.
+
+  #insertCoachJournal({ date, forumId, forumName = null, knob, applied = 0, direction = null, reasonCode = null, signal = null, oldFields = null, newFields = null }) {
+    const stmt = this.#db.prepare(
+      `INSERT INTO coach_journal (date, forum_id, forum_name, knob, applied, direction, reason_code, signal_json, old_json, new_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    const r = stmt.run(
+      date, forumId, forumName, knob, applied ? 1 : 0, direction, reasonCode,
+      signal == null ? null : JSON.stringify(signal),
+      oldFields == null ? null : JSON.stringify(oldFields),
+      newFields == null ? null : JSON.stringify(newFields),
+    );
+    return Number(r.lastInsertRowid);
+  }
+
+  /**
+   * Atomically apply ONE forum knob change and journal it (applied=1) in a single
+   * transaction, so a crash can never half-apply. Returns {ok, id} or {ok:false,
+   * reason} — e.g. the partial UNIQUE(date,forum_id) WHERE applied=1 rejects a
+   * second applied change for the same forum on the same day (the 1/forum/day lock).
+   */
+  applyCoachChange({ date, forumId, forumName = null, knob, direction = null, reasonCode = null, signal = null, oldFields, newFields }) {
+    this.#db.exec('BEGIN IMMEDIATE');
+    try {
+      this.updateForum(forumId, newFields);
+      const id = this.#insertCoachJournal({ date, forumId, forumName, knob, applied: 1, direction, reasonCode, signal, oldFields, newFields });
+      this.#db.exec('COMMIT');
+      return { ok: true, id };
+    } catch (e) {
+      this.#db.exec('ROLLBACK');
+      return { ok: false, reason: e.message };
+    }
+  }
+
+  /** Record a SHADOW proposal (applied=0): mutates no forum, just logs the suggestion. */
+  recordCoachProposal({ date, forumId, forumName = null, knob, reasonCode = null, signal = null }) {
+    return this.#insertCoachJournal({ date, forumId, forumName, knob, applied: 0, reasonCode, signal });
+  }
+
+  /** All journal rows for a local date (applied + shadow), for the report + same-day idempotency. */
+  getCoachJournalForDate(date) {
+    try {
+      return this.#db.prepare('SELECT * FROM coach_journal WHERE date = ? ORDER BY id').all(date);
+    } catch { return []; }
+  }
+
+  /** Applied, not-yet-reverted cooldown changes for a forum since a local date — the cross-night anti-flap source. */
+  getRecentCoachCooldownChanges(forumId, sinceDate) {
+    try {
+      return this.#db.prepare(
+        `SELECT * FROM coach_journal
+         WHERE forum_id = ? AND knob = 'cooldown' AND applied = 1 AND reverted_at IS NULL AND date >= ?
+         ORDER BY id DESC`
+      ).all(forumId, sinceDate);
+    } catch { return []; }
+  }
+
+  /** Revertable applied changes (newest-first) for apply-proposal.mjs --revert; optional filters. */
+  getRevertableCoachChanges({ date = null, forumId = null, knob = null } = {}) {
+    let where = 'applied = 1 AND reverted_at IS NULL';
+    const params = [];
+    if (date)    { where += ' AND date = ?';     params.push(date); }
+    if (forumId) { where += ' AND forum_id = ?'; params.push(forumId); }
+    if (knob)    { where += ' AND knob = ?';     params.push(knob); }
+    return this.#db.prepare(`SELECT * FROM coach_journal WHERE ${where} ORDER BY id DESC`).all(...params);
+  }
+
+  /** Mark a journal row reverted (idempotent: reverted_at IS NULL filter prevents double-revert). */
+  markCoachReverted(id) {
+    const r = this.#db.prepare(
+      "UPDATE coach_journal SET reverted_at = datetime('now') WHERE id = ? AND reverted_at IS NULL"
+    ).run(id);
+    return Number(r.changes) > 0;
   }
 
   // ── Agent log ───────────────────────────────────────────

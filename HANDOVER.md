@@ -186,8 +186,35 @@ začátek noci** (`nightCutoffUtc`, 21:00 lokálně), ne rolling 12 h.
   Supabase (`crawl_metrics` + `crawl_daily_report`, migrace 023). Report se zobrazuje v
   **admin Analytics panelu** (edge fn `analytics` vrací `daily_report`, render v `AnalyticsPanel.jsx`).
   Funnel/ratia z JEDNÉ kohorty (created-in-window); degenerovaná noc nerazítkuje denní slot.
-- **Fáze 2 (ZÁKLAD hotový):** `forums.priority_score` (nullable, default 0 = řazení beze změny) +
-  tiebreaker v `getForumsToProcess`. Adapt logika ZATÍM NENÍ.
+- **Fáze 2 (HOTOVO, lokálně 2026-06-19):** auto-tier adapt logika v kouči. Čistý planner
+  [`coach-adapt.mjs`](/C:/GB/scripts/agent/coach-adapt.mjs) (bez DB/času → deterministický,
+  unit-testovaný) rozhodne max **1 vratnou změnu na fórum a den**:
+  - **priorita** z ověřeného výnosu `y=(G+1)/(P+10)`, cíl `round(y·100,1)`; dvouokenní monotonie
+    (3 noci i 2 noci stejný směr) + deadband 5 + krok ±15 + no-churn 0.5; jen `status∈{active,exhausted,queued}`,
+    3 husté noci ≤21 dní staré, Σprocessed≥20, Σ(good+rej)≥5. `G`=NARROWED (jen verified/import_ready/imported).
+  - **cooldown** zkrátit 168→24 h / prodloužit 24→168 h, jen v mezích enginu (nikdy 720 h ani null);
+    tier čte z NOVÝCH engine sloupců `forums.cooldown_tier_hours`+`cooldown_set_at` (stamp jen u yield-parku,
+    clear u error parků → invariant: nenull ⇔ čistý yield-park); zámek na `exhausted`/0-new; transient guard
+    (≥30 % transientních z processed+transient → skip); **10denní anti-flap** přes coach_journal.
+  - per-forum noční metriky v `aggregateNight` (`forum_processed`[non-pending,non-transient],
+    `forum_extracted`, `forum_transient`[error/transient/pending-transient], `forum_too_few`) → `crawl_metrics`
+    (scope=forum) pro hysterezi; husté i pro „busy-but-barren" fóra (explicitní nuly).
+  - **Guardrails:** min-volume, hystereze 2–3 noci, **50% circuit-breaker** (víc než půlka fór najednou → 0 změn),
+    globální cap 8/noc (nejsilnější první), degenerovaná noc → 0 adaptu. Vše do `agent_log` phase='coach'.
+  - **Undo:** atomický `applyCoachChange` (BEGIN IMMEDIATE: update+insert, rollback na partial UNIQUE(date,forum_id)
+    WHERE applied=1 = zámek 1/fórum/den) zapíše `coach_journal` (old→new přesně měněných sloupců). Vrácení:
+    [`apply-proposal.mjs --revert`](/C:/GB/scripts/agent/apply-proposal.mjs) = **compare-and-swap** (obnoví jen
+    když fórum stále drží zapsanou hodnotu, jinak nepřepíše novější), `--list`/`--date`/`--forum`/`--knob`/`--dry-run`, idempotentní.
+  - Report sekce **„Co jsem automaticky upravil"** (plain CZ, vratné, nikdy nesahá na prahy/prompty).
+  - **DŮLEŽITÉ — re-kalibrace zůstala SHADOW (návrh, ne auto):** původně plánovaná jako auto, ale adversariální
+    review ji zamítl z auto-tieru — jako JEDINÝ knob není vratná column-rollbackem (re-discovery přepíše config
+    dřív, než by netechnický majitel stihl `--revert`) a triggery nerozliší rozbitý parser od soft-blocku /
+    vyčerpání obsahu / plošné změny verifikátoru. Kouč proto STUCK fórum (3 noci Σprocessed≥30, 0 vytěženo,
+    transient≤20 %, „málo příspěvků" nedominuje) jen **navrhne** (`coach_journal` applied=0 + report sekce
+    „Možná potřebují ruční kontrolu struktury"); člověk spustí ručně `reset-forum.mjs`. Plně auto re-kalibrace = Fáze 4.
+  - **Cold-start:** nové per-forum metriky → ~2–3 noci než cokoli sepne (čekané ticho, ne bug). `forum_good`
+    v reportu je nově NARROWED → čísla „dobré po fórech" klesnou (např. Audi 34→16) = záměr (jen skutečně nové dobré případy).
+  - Testy: **28 agentních zelených** (+`agent-coach-adapt`, `agent-coach-journal`).
 - **Recall watchdog:** stejná vyhrazená úloha; QUALITY_BAR dokalibrován o „stejný autor" +
   „shoda vozidla" (dřív falešně 8/12 → teď 0/3). Alert → desktop marker
   `DRIVECODEX-VERIFIKATOR-PRISNY-PRECTI-ME.txt` (mirror v `run-coach-batch.ps1`).
@@ -195,13 +222,11 @@ začátek noci** (`nightCutoffUtc`, 21:00 lokálně), ne rolling 12 h.
 **Validace:** review (5 dimenzí + adversariální ověření) — bezpečnost/RLS/XSS/observe-only OK;
 opraven časovací cluster (viz výše). 26 agentních testů zelených.
 
-**▶ FÁZE 2 — DALŠÍ KROK (pro nové vlákno):** dostavět adapt logiku v kouči (🟢 auto-tier):
-(1) `priority_score` z reálného ověřeného výnosu fóra; (2) cooldown zkrátit/prodloužit (v mezích
-tierů, ochrana proti transient výpadkům); (3) re-kalibrace zaseklého/driftujícího fóra (re-queue
-+ clear sections_json). Guardrails: min-volume, **hystereze ≥2 noci**, max 1 změna/fórum/den, vše
-logované do `agent_log` phase='coach' + journal pro **`apply-proposal.mjs --revert`** (undo).
-Sekce „co jsem automaticky upravil" v reportu. Plus 🟠 shadow kanál pro návrhy promptů/prahů
-(gold-set eval, nikdy auto-merge). Stav: Fáze 1 nasazená, Fáze 2 základ + review fixy na `main`.
+**▶ STAV:** Fáze 1 nasazená; Fáze 2 (priorita + cooldown auto, re-kalibrace shadow) hotová a
+otestovaná LOKÁLNĚ (nepushováno). Design prošel vícepohledovým návrhovým workflow (3 nezávislé
+návrhy → adversariální bezpečnostní kritik → syntéza) i přednasazovacím review. Než se nasadí na
+ostrý noční běh, stačí nechat naběhnout ~3 noci dat (cold-start) a pak zkontrolovat report +
+`coach_journal`. 🟠 shadow kanál pro prompty/prahy se NESTAVĚL — je vázaný na gold-set (Fáze 4).
 
 **▶ POZDĚJŠÍ FÁZE (roadmapa, každá samostatně nasaditelná):**
 - **Fáze 3 — precision auditor (zrcadlo recall-watchdogu):** uvnitř kouče přidat křížovou
@@ -219,6 +244,11 @@ Sekce „co jsem automaticky upravil" v reportu. Plus 🟠 shadow kanál pro ná
   rizikových změn (Tier A/B s mezemi + undo token; Tier C prompt/práh jen NAstaguje draft →
   manuální review + `npm run test:agent` + gold harness + výslovné OK majitele → teprve commit;
   invariant: verify vendor ≠ extract vendor). Riziko vstupuje až tady, vždy za lidskou bránou.
+  - **(e) AUTO re-kalibrace** (přesunuta sem z Fáze 2): kouč už STUCK fóra detekuje a navrhuje (shadow);
+    plně automatické přepsání struktury smí přijít až s: confounder gate z recall-watchdogu (na noc s driftem
+    verifikátoru nedělat žádnou kvalitativní strukturální akci), engine odložením re-discovery ≥1 cyklus
+    (aby šel `--revert` týž den), 14denní per-forum recal cooldownem a `calibration_attempts<3`. Skeleton
+    undo (`applyCoachChange` atomický + journal) už z Fáze 2 existuje.
 
 **Průřezové guardrails (platí pro všechny fáze):** cíl je **PRECISION, ne YIELD** — žádná akce,
 jejíž efekt je „projde víc případů branou", se nikdy neaplikuje automaticky (jen navrhne); vše
