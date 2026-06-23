@@ -31,6 +31,7 @@ const DEFAULT_ROUTES = {
   discover: 'claude:sonnet', // forum discovery needs web search + judgment
   'taxonomy-seed': 'claude:sonnet', // one-shot fault-taxonomy proposal (fault-taxonomy.mjs)
   'taxonomy-classify': 'claude:haiku', // high-volume case→taxonomy backfill
+  'vehicle-resolve': 'claude:haiku', // case vehicle → catalog model backfill (vehicle-resolve-backfill.mjs)
   translate: 'claude:haiku', // high-volume resolution cs/de backfill (backfill-resolution-i18n.mjs)
 };
 
