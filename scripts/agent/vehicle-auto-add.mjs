@@ -52,14 +52,16 @@ function candidates(gaps) {
   const byKey = new Map();
   for (const g of gaps) {
     const key = `${g.brand}||${g.family || norm(g.model)}`;
-    if (!byKey.has(key)) byKey.set(key, { brand: g.brand, family: g.family, models: [], caseIds: [] });
+    if (!byKey.has(key)) byKey.set(key, { brand: g.brand, family: g.family, models: [], caseIds: [], engines: [] });
     const c = byKey.get(key);
-    c.models.push(g.model); c.caseIds.push(g.id);
+    c.models.push(g.model); c.caseIds.push(g.id); if (g.engine) c.engines.push(g.engine);
   }
   return [...byKey.values()].map((c) => ({
     brand: c.brand,
     market: US_BRANDS.has(c.brand) ? 'US' : 'EU',
     model: c.models.sort((a, b) => (b || '').length - (a || '').length)[0],
+    examples: [...new Set(c.models)].slice(0, 6),     // varianty z případů (disambiguace)
+    engine: c.engines.find(Boolean) || '',            // motor z případů (disambiguace generace)
     family: c.family,
     caseIds: c.caseIds,
   }));
@@ -75,7 +77,8 @@ export async function run({ dryRun = true, limit = Infinity } = {}) {
   const relabels = [];  // {ids, label}
   const held = [];
   for (const c of cands) {
-    const v = await verifyVehicle({ brand: c.brand, model: c.model, market: c.market });
+    await new Promise((r) => setTimeout(r, 1200)); // pacing — méně bušení do API
+    const v = await verifyVehicle({ brand: c.brand, model: c.model, market: c.market, engine: c.engine, examples: c.examples });
     if (!v.confirmed) { held.push({ ...c, reason: v.reason }); console.log(`  ⏸ ${c.brand} / ${c.model} — ${v.reason}`); continue; }
     const label = v.model_label || c.model;
     relabels.push({ ids: c.caseIds, label, brand: c.brand });
