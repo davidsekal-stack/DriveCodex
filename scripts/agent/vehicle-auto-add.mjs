@@ -30,6 +30,16 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABA
 const US_BRANDS = new Set(VEHICLE_CATALOG_US.map((b) => b.brand));
 const norm = (s) => (s || '').toString().normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
+// Deterministická pojistka proti záměně generace: pokud kandidát obsahuje
+// chassis-kód (B8, E39, E92, W202, 6L…) a ověřený label ho NEMÁ, jde o konflikt
+// generace → podržet (nepřeznačovat reálné případy na jinou generaci).
+const GEN_TOKEN_RE = /\b(?:[ef]\d{2,3}|w\d{3}|b[3-9]|c[4-8]|\d[a-z])\b/gi;
+export function genConflict(candidateModel, label) {
+  const labN = norm(label);
+  const toks = norm(candidateModel).match(GEN_TOKEN_RE) || [];
+  return toks.find((t) => !labN.includes(t)) || null;
+}
+
 // Existující labely + rodiny v katalogu (statický + auto) pro dedup.
 function buildExisting() {
   const labels = new Set(), families = new Map(); // families: brand-norm → Set(familyToken)
@@ -59,8 +69,8 @@ function candidates(gaps) {
   return [...byKey.values()].map((c) => ({
     brand: c.brand,
     market: US_BRANDS.has(c.brand) ? 'US' : 'EU',
-    model: c.models.sort((a, b) => (b || '').length - (a || '').length)[0],
-    examples: [...new Set(c.models)].slice(0, 6),     // varianty z případů (disambiguace)
+    model: c.models.filter(Boolean).sort((a, b) => a.length - b.length)[0] || c.models[0], // nejkratší = čistý základ (ne trim)
+    examples: [...new Set(c.models)].slice(0, 6),     // varianty z případů (disambiguace generace + trimů)
     engine: c.engines.find(Boolean) || '',            // motor z případů (disambiguace generace)
     family: c.family,
     caseIds: c.caseIds,
@@ -80,6 +90,8 @@ export async function run({ dryRun = true, limit = Infinity } = {}) {
     await new Promise((r) => setTimeout(r, 1200)); // pacing — méně bušení do API
     const v = await verifyVehicle({ brand: c.brand, model: c.model, market: c.market, engine: c.engine, examples: c.examples });
     if (!v.confirmed) { held.push({ ...c, reason: v.reason }); console.log(`  ⏸ ${c.brand} / ${c.model} — ${v.reason}`); continue; }
+    const conflict = genConflict(c.model, v.model_label || '');
+    if (conflict) { held.push({ ...c, reason: `gen conflict (label nemá '${conflict}')` }); console.log(`  ⏸ ${c.brand} / ${c.model} — generační konflikt: "${v.model_label}" nemá "${conflict}"`); continue; }
     const label = v.model_label || c.model;
     relabels.push({ ids: c.caseIds, label, brand: c.brand });
     if (existing.labels.has(norm(label))) {

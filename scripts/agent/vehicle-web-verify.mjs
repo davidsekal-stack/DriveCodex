@@ -34,6 +34,8 @@ export function buildVerifyPrompt({ brand, model, market, engine, examples }) {
 CANDIDATE: brand="${brand}", model="${model}", market=${market}.
 This vehicle appears in real repair cases as: "${ex}". Engine hint from cases: "${engine || 'unknown'}".
 Use these to identify the SPECIFIC model line and GENERATION, and pick the generation CONSISTENT with the engine/era: a combustion engine (e.g. a "1.4", a "TDI", a carburettor) RULES OUT a modern electric-only generation; conversely an electric powertrain rules out a 1980s generation. If the name is ambiguous across generations (e.g. "Renault 5" — classic 1972–1996 vs the 2024 electric "5 E-Tech"), CHOOSE the one matching the engine hint, not merely the most famous one. Use the clean base model name from the examples, not a trim suffix.
+IMPORTANT — generation: if the candidate model or the examples already name a GENERATION or CHASSIS CODE (e.g. "B8", "E39", "E92", "W202", "6L", "CD", "Mk III"), you MUST verify and KEEP THAT EXACT generation — never substitute a different generation of the same model (e.g. do NOT return a C4-generation "S4" when the candidate says "B8").
+IMPORTANT — trims: treat trim/equipment suffixes (GLX, GT, GTI, Sport, L, LX, LS, GTL, FR, Cupra, T-GDi) as TRIMS of the model line, NOT separate models — verify that the MODEL LINE/generation exists; do not reject just because an exact trim string isn't separately documented.
 
 Steps:
 1. Web-search for this brand + model (+ its generation/chassis if present in the text).
