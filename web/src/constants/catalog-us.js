@@ -13,6 +13,7 @@ export const VEHICLE_CATALOG_US = [
     active:    true,
     expertise: "Chevrolet full lineup — Silverado, Silverado EV, Colorado, Express, Equinox, Traverse, Tahoe/Suburban, Camaro, Corvette, Malibu, Trailblazer — EcoTec3 V6/V8 engines, Duramax Diesel, 2.7L Turbo, LT1/LT2/LS engine family, Ultium EV, GM 6L80/10L80 transmissions, stabilitrak, AFM/DFM cylinder deactivation, 2007–present US spec",
     models: [
+      { label: "Caprice PPV (2011–2017)", powers: ["355 hp – 6.0L V8 (L77)", "301 hp – 3.6L V6 (LFX)"] },
       // ── Silverado 1500 ────────────────────────────────────────────────────
       { group: "Silverado 1500" },
       { label: "Silverado 1500 (2007–2013)", powers: ["195 hp – 4.3L V6", "295 hp – 4.8L V8", "315 hp – 5.3L EcoTec V8", "367 hp – 6.0L V8", "403 hp – 6.2L V8"] },
@@ -498,6 +499,7 @@ export const VEHICLE_CATALOG_US = [
     active:    true,
     expertise: "Cadillac luxury vehicles — Escalade, Escalade ESV, XT4, XT5, XT6, CT4, CT5, CT6, XTS, ATS, CTS, SRX, Escalade IQ, OPTIQ, VISTIQ — 2.0L/2.7L Turbo I4, 3.0L Twin Turbo, 3.6L V6, 4.2L Blackwing V8, 6.2L LT1/LT4 V8, 3.0L Duramax Diesel, electric AWD variants, 10-speed automatic, Super Cruise semi-autonomous driving, Magnetic Ride Control, V-Series and Blackwing performance variants, 2007–present US spec",
     models: [
+      { label: "Celestiq (2025–present)" },
       // ── Escalade ──────────────────────────────────────────────────────────
       { group: "Escalade" },
       { label: "Escalade (2007–2014)", powers: ["403 hp – 6.2L EcoTec V8"] },
@@ -625,6 +627,7 @@ export const VEHICLE_CATALOG_US = [
     active:    true,
     expertise: "Chrysler minivans and sedans — Pacifica, Voyager, 300 — 3.6L Pentastar V6, 5.7L/6.4L HEMI V8, Pacifica Hybrid plug-in, ZF 9-speed/8-speed automatic, Stow 'n Go seating, 2011–present US spec",
     models: [
+      { label: "PT Cruiser (2000–2010)", powers: ["140 hp – 2.0L I4", "143 hp – 2.4L I4", "220 hp – 2.4L I4 Turbo", "121 hp – 2.2L CRD"] },
       // ── Pacifica ──────────────────────────────────────────────────────────
       { group: "Pacifica" },
       { label: "Pacifica (2017–)", powers: ["287 hp – 3.6L Pentastar V6", "260 hp – 3.6L Pentastar Hybrid PHEV"] },
@@ -710,6 +713,9 @@ export const VEHICLE_CATALOG_US = [
     active:    true,
     expertise: "Lexus luxury vehicles — RX, NX, GX, LX, TX, ES, IS, LS, GS — 2.0L Turbo, 2.4L Turbo, 2.5L/3.5L V6, 4.6L/5.0L V8, multi-stage Hybrid Drive, Lexus Safety System+, air suspension, Variable Gear Ratio Steering, 2006–present US spec",
     models: [
+      { label: "LS Hybrid IV XF40 (2007–2017)", powers: ["438 hp – 5.0L V8 hybrid"] },
+      { label: "GS Hybrid IV L10 (2012–2020)", powers: ["338 hp – 3.5L V6 hybrid"] },
+      { label: "RZ I (2022–present)", powers: ["313 hp – dual motor AWD", "150 kW – single motor FWD"] },
       // ── RX ────────────────────────────────────────────────────────────────
       { group: "RX" },
       { label: "RX 350/400h (2007–2009)", powers: ["270 hp – 3.5L V6 2GR-FE", "268 hp – 3.3L Hybrid V6"] },
@@ -1441,6 +1447,8 @@ export const VEHICLE_CATALOG_US = [
     active:    true,
     expertise: "smart US microcars — fortwo coupe/cabrio and electric drive — rear-mounted 1.0L/0.9L petrol engines and ED EV drivetrains, 2008–2019 US spec",
     models: [
+      { label: "forfour W454 (2004–2006)", powers: ["75 hp – 1.1L inline-3", "95 hp – 1.3L inline-4", "109 hp – 1.5L inline-4", "177 hp – 1.5L inline-4 brabus", "70 hp – 1.5L CDI inline-4"] },
+      { label: "forfour W453 (2014–present)", powers: ["71 hp – 1.0L inline-3", "90 hp – 0.9L turbo inline-3", "82 hp – electric"] },
       { group: "fortwo" },
       { label: "fortwo 451 (2008–2015)", powers: ["70 hp – 1.0L M132 I3", "84 hp – 1.0L turbo I3"] },
       { label: "fortwo Electric Drive (2013–2015)", powers: ["74 hp – Electric Drive"] },

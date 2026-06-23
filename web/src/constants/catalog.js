@@ -169,6 +169,7 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Volkswagen osobní a užitková vozidla všech modelových řad (Polo, Golf, Jetta, Passat, Arteon, Tiguan, T-Roc, Touareg, Touran, Sharan, Caddy, Transporter, Crafter, ID série) — motory TSI, TDI, MPI, FSI, TFSI a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR systémy)",
     models: [
+      { label: "Vento 1H (1992–1998)", powers: ["44 kW – 1.4", "55 kW – 1.6", "66 kW – 1.8", "85 kW – 2.0", "128 kW – 2.8 VR6", "47 kW – 1.9 D", "55 kW – 1.9 TD", "66 kW – 1.9 TDI"] },
       // ── Up! ─────────────────────────────────────────────────────────────────
       { group: "Up!" },
       { label: "Up! (2011–2023)", powers: ["44 kW – 1.0 MPI", "55 kW – 1.0 MPI", "66 kW – 1.0 TSI", "85 kW – 1.0 TSI GTI", "61 kW – e-Up! Electric"] },
@@ -289,6 +290,7 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Škoda osobní vozidla všech modelových řad (Fabia, Scala, Octavia, Superb, Kamiq, Karoq, Kodiaq, Yeti, Roomster, Citigo, Elroq, Enyaq) — motory TSI, TDI, MPI, HTP a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6)",
     models: [
+      { label: "Favorit (1987–1995)", powers: ["43 kW – 1.3 (karburátor, Jikov/Weber)", "40 kW – 1.3 BMM (Bosch Mono-Motronic)"] },
       // ── Citigo ────────────────────────────────────────────────────────────────
       { group: "Citigo" },
       { label: "Citigo (2011–2020)", powers: ["44 kW – 1.0 MPI", "55 kW – 1.0 MPI", "61 kW – Electric"] },
@@ -353,6 +355,7 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "SEAT osobní vozidla hlavních EU modelových řad (Mii, Ibiza, Leon, Cordoba, Toledo, Altea, Exeo, Arona, Ateca, Tarraco, Alhambra) — motory MPI, FSI, TSI, TDI, TGI/CNG, EcoFuel, e-HYBRID a elektrické pohony od roku 2002 do současnosti, EU spec",
     models: [
+      { label: "Ibiza Cupra 6L (2003–2008)", powers: ["132 kW – 1.8T 20V Turbo"] },
       // ── Mii ───────────────────────────────────────────────────────────────────
       { group: "Mii" },
       { label: "Mii (2012–2020)", powers: ["44 kW – 1.0 MPI", "50 kW – 1.0 EcoFuel CNG", "55 kW – 1.0 MPI", "61 kW – Electric"] },
@@ -409,6 +412,11 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Audi osobní vozidla všech modelových řad (A1–A8, Q2–Q8, TT, e-tron) — motory TFSI, TDI a elektrické pohony od roku 2006 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR, quattro)",
     models: [
+      { label: "S4 C4 (1991–1994)", powers: ["169 kW – 2.2 20V Turbo"] },
+      { label: "Coupe B3 (1988–1996)", powers: ["110 kW – 2.6 V6", "128 kW – 2.8 V6"] },
+      { label: "80 B3 (1986–1991)", powers: ["55 kW – 1.6", "66 kW – 1.8 S", "72 kW – 1.8 S", "83 kW – 2.0 E"] },
+      { label: "S4 Avant B8 (2008–2016)", powers: ["245 kW – 3.0 TFSI"] },
+      { label: "S6 C4 (1994–1997)", powers: ["169 kW – 2.2 20V Turbo"] },
       // ── A1 ────────────────────────────────────────────────────────────────────
       { group: "A1" },
       { label: "A1 8X (2010–2018)", powers: ["63 kW – 1.0 TFSI", "70 kW – 1.0 TFSI", "66 kW – 1.2 TFSI", "77 kW – 1.2 TFSI", "90 kW – 1.4 TFSI", "103 kW – 1.4 TFSI", "66 kW – 1.6 TDI"] },
@@ -484,6 +492,9 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Toyota osobní a užitková vozidla hlavních i vybraných globálních modelových řad (Aygo, Yaris, Corolla, Corolla Cross, Auris, Avensis, Prius, Camry, C-HR, RAV4, Land Cruiser, Hilux, Proace, Supra/GT86/GR86, Highlander, Tacoma, 4Runner) — motory VVT-i, D-4D, hybridní systémy a elektrické pohony primárně od roku 2006 do současnosti, doplněné o vybrané starší forum-backed generace z Toyota Club fóra",
     models: [
+      { label: "Scion xB (2007–2015)", powers: ["118 kW – 2.4 2AZ-FE"] },
+      { label: "Mark X GRX120 (2004–2009)", powers: ["149 kW – 4GR-FSE", "188 kW – 3GR-FSE", "234 kW – 2GR-FSE"] },
+      { label: "Mark X GRX130 (2009–2019)", powers: ["149 kW – 4GR-FSE", "234 kW – 2GR-FSE"] },
       // ── Aygo ──────────────────────────────────────────────────────────────────
       { group: "Aygo" },
       { label: "Aygo I (2006–2014)", powers: ["50 kW – 1.0 VVT-i", "51 kW – 1.4 D-4D"] },
@@ -593,6 +604,10 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Renault osobní a užitková vozidla hlavních modelových řad po roce 2000 (Twingo, Clio, Thalia, Megane, Scenic, Laguna, Espace, Captur, Kadjar, Arkana, Austral, Koleos, Fluence, Talisman, Kangoo, Trafic, Master) — motory TCe, dCi, Blue dCi a elektrické pohony, převážně EU spec",
     models: [
+      { label: "5 (1972–1985)", powers: ["26 kW – 0.8", "34 kW – 1.0", "37 kW – 1.1", "44 kW – 1.3", "47 kW – 1.4"] },
+      { label: "Super 5 (1984–1996)", powers: ["34 kW – 1.0", "37 kW – 1.1", "47 kW – 1.4", "55 kW – 1.4i", "33 kW – 1.6D", "74 kW – 1.4 Turbo"] },
+      { label: "11 (1983–1989)", powers: ["37 kW – 1.1", "49 kW – 1.4", "74 kW – 1.6 Turbo"] },
+      { label: "Avantime (2001–2003)", powers: ["120 kW – 2.0 16V", "110 kW – 2.2 dCi", "152 kW – 3.0 V6 24V"] },
       // ── Twingo ────────────────────────────────────────────────────────────────
       { group: "Twingo" },
       { label: "Twingo II (2007–2014)", powers: ["43 kW – 1.2", "56 kW – 1.2 16V", "74 kW – 1.2 TCe", "98 kW – 1.6 RS", "47 kW – 1.5 dCi"] },
@@ -732,6 +747,7 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Peugeot osobní a užitková vozidla hlavních evropských modelových řad (107, 206, 207, 208, 301, 307, 308, 405, 4007, 4008, 5008, 508, 607, 807, RCZ, Bipper, Partner, Rifter, Expert, Traveller, Boxer) — motory TU, EW, Prince/THP, PureTech, HDi, BlueHDi a elektrické pohony od konce 80. let do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR)",
     models: [
+      { label: "e-208 (2019–present)", powers: ["100 kW – Electric", "115 kW – Electric"] },
       // ── 207 / 208 ────────────────────────────────────────────────────────────
       { group: "207 / 208" },
       { label: "107" },
@@ -809,6 +825,8 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "BMW osobní vozy a SUV hlavních post-2000 modelových řad (1, 2, 3, 4, 5, 6, 7, 8, Z4, X1–X7) — motory N47/B47 diesel, N20/B48 benzín, N55/B58 R6, M Performance/M, plug-in hybridní a elektrické pohony od roku 2002, EU spec",
     models: [
+      { label: "3 E36 (1990–2000)", powers: ["66 kW – 1.8d", "75 kW – 1.6", "85 kW – 1.8", "100 kW – 2.5d", "103 kW – 1.8", "110 kW – 2.0", "125 kW – 2.5", "141 kW – 2.5", "142 kW – 2.8", "210 kW – 3.0", "236 kW – 3.2"] },
+      { label: "5 E39 (1995–2004)", powers: ["100 kW – 2.0d", "110 kW – 2.0", "120 kW – 2.5d", "125 kW – 2.5", "135 kW – 3.0d", "141 kW – 2.5", "142 kW – 2.8", "160 kW – 3.0d", "170 kW – 3.0", "180 kW – 3.5", "210 kW – 4.4", "294 kW – 5.0"] },
       // ── Řada 1 ───────────────────────────────────────────────────────────────
       { group: "Řada 1" },
       { label: "1 E87 (2004–2011)", powers: ["85 kW – 1.6 N45", "95 kW – 2.0 N46", "105 kW – 2.0 N43", "125 kW – 2.0 N43", "195 kW – 3.0 N52", "225 kW – 3.0T N54", "85 kW – 2.0d N47", "105 kW – 2.0d N47", "130 kW – 2.0d N47", "150 kW – 2.0d N47S"] },
@@ -946,6 +964,8 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Kia osobní vozy a SUV všech modelových řad (Picanto, Rio, Ceed, Sportage, Sorento, Niro, Stonic, EV6) — motory T-GDi, GDi, CRDi, hybridní a elektrické pohony od roku 2010, EU spec",
     models: [
+      { label: "ProCeed GT JD (2013–2018)", powers: ["150 kW – 1.6 T-GDi"] },
+      { label: "ProCeed CD (2018–present)", powers: ["150 kW – 1.6 T-GDi"] },
       // ── Picanto ──────────────────────────────────────────────────────────────
       { group: "Picanto" },
       { label: "Picanto I SA (2006–2011)", powers: ["45 kW – 1.0 Epsilon", "48 kW – 1.1 Epsilon", "55 kW – 1.1 CRDi"] },
@@ -1085,6 +1105,7 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Mercedes-Benz osobní a užitková vozidla hlavních post-2000 modelových řad (A, B, C, E, CLA, CLS, SLK/SLC, GLA, GLK, GLC, ML/GLE, Sprinter, Vito, Citan, EQS SUV) — motory M111/M271/M270/M260/M264/M282/M133/M139 benzín, OM611/OM646/OM651/OM654/OM656 diesel, elektrické pohony od roku 2000, EU spec (BlueTEC, AdBlue, DPF Euro 5/6, SCR)",
     models: [
+      { label: "C-Class W202 (1993–2000)", powers: ["83 kW – 2.5 TD", "142 kW – 2.3 Kompressor"] },
       // ── A-Class ────────────────────────────────────────────────────────────────
       { group: "A-Class" },
       { label: "A-Class W169 (2004–2012)" },
@@ -1224,6 +1245,7 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Citroën osobní a užitková vozidla hlavních post-2000 modelových řad (C2, C3, C3 Picasso, C3 Aircross, C4, C4 Picasso, C4 Cactus, C5, C5 Aircross, C6, C8, Berlingo, Nemo, Jumpy, Jumper, DS) — motory PureTech, VTi, THP, HDi, BlueHDi a elektrické pohony od roku 2002 do současnosti, EU spec (AdBlue, DPF Euro 5/6, SCR)",
     models: [
+      { label: "Xsara Picasso N68 (1999–2010)", powers: ["55 kW – 1.6i 8v", "80 kW – 1.6i 16v", "86 kW – 1.8i 16v", "97 kW – 2.0i 16v", "66 kW – 2.0 HDi 90", "80 kW – 2.0 HDi 110", "66 kW – 1.6 HDi 90", "80 kW – 1.6 HDi 110"] },
       // ── C1 ─────────────────────────────────────────────────────────────────────
       { group: "C1" },
       { label: "C1 I (2005–2014)", powers: ["50 kW – 1.0 VVT-i", "51 kW – 1.4 HDi"] },
@@ -1391,6 +1413,7 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Fiat osobní a užitková vozidla všech modelových řad (500, 500X, 500L, Panda, Punto, Tipo, Ducato, Doblò, Fiorino) — motory FIRE, TwinAir, MultiAir, MultiJet a elektrické pohony od roku 2005 do současnosti, EU spec (DPF, AdBlue Euro 5/6, SCR)",
     models: [
+      { label: "Stilo (2001–2007)", powers: ["59 kW – 1.9 JTD", "85 kW – 1.9 JTD", "103 kW – 1.9 Multijet", "103 kW – 2.4 JTD"] },
       // ── 500 ────────────────────────────────────────────────────────────────────
       { group: "500" },
       { label: "500 (2007–2020)", powers: ["51 kW – 1.2 FIRE", "63 kW – 1.4 FIRE", "77 kW – 1.4 FIRE Sport", "99 kW – 0.9 TwinAir Abarth", "132 kW – 1.4 T-Jet Abarth", "135 kW – 1.4 T-Jet 595", "63 kW – 0.9 TwinAir 65", "77 kW – 0.9 TwinAir 85", "55 kW – 1.3 MultiJet", "70 kW – 1.3 MultiJet"] },
@@ -1580,6 +1603,11 @@ export const VEHICLE_CATALOG = [
     active:    true,
     expertise: "Volvo elektrifikované osobní vozy hlavních EU modelových řad (EX30, EX40, EC40, XC60, XC90) — mild hybrid, plug-in hybrid a elektrické pohony od roku 2021 do současnosti, EU spec",
     models: [
+      { label: "XC70 I (2000–2007)", powers: ["103 kW – 2.4D", "136 kW – D5", "147 kW – 2.4T"] },
+      { label: "XC70 II (2007–2016)", powers: ["136 kW – D5", "175 kW – 3.2", "224 kW – T6"] },
+      { label: "142 (1966–1974)", powers: ["66 kW – B20A", "88 kW – B20B"] },
+      { label: "144 (1966–1974)", powers: ["66 kW – B20A", "88 kW – B20B"] },
+      { label: "145 (1968–1974)", powers: ["66 kW – B20A", "88 kW – B20B"] },
       // ── EX30 ────────────────────────────────────────────────────────────────
       { group: "EX30" },
       { label: "EX30 (2024–dosud)", powers: ["200 kW – Single Motor", "315 kW – Twin Motor Performance"] },
