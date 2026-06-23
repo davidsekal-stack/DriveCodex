@@ -1,9 +1,28 @@
 import { VEHICLE_CATALOG } from "./catalog.js";
 import { VEHICLE_CATALOG_US } from "./catalog-us.js";
+import { VEHICLE_CATALOG_AUTO } from "./catalog-auto.js";
 
-const ACTIVE_US_BRANDS = VEHICLE_CATALOG_US.filter((entry) => entry.active);
+/**
+ * Připojí auto-přidané modely (catalog-auto.js, spravuje crawler) k odpovídající
+ * EXISTUJÍCÍ značce daného trhu. Nové značky se nepřidávají. Když je auto-seznam
+ * prázdný, vrací původní katalog beze změny (nulový dopad).
+ */
+export function mergeAuto(catalog, autoList, market) {
+  if (!Array.isArray(autoList) || autoList.length === 0) return catalog;
+  return catalog.map((entry) => {
+    const extra = autoList
+      .filter((a) => a && a.market === market && a.brand === entry.brand && a.model)
+      .map((a) => a.model);
+    return extra.length ? { ...entry, models: [...entry.models, ...extra] } : entry;
+  });
+}
+
+const EU_CATALOG = mergeAuto(VEHICLE_CATALOG, VEHICLE_CATALOG_AUTO, "EU");
+const US_CATALOG = mergeAuto(VEHICLE_CATALOG_US, VEHICLE_CATALOG_AUTO, "US");
+
+const ACTIVE_US_BRANDS = US_CATALOG.filter((entry) => entry.active);
 const US_BRAND_SET = new Set(ACTIVE_US_BRANDS.map((entry) => entry.brand.toLowerCase()));
-const ACTIVE_EU_BRANDS = VEHICLE_CATALOG
+const ACTIVE_EU_BRANDS = EU_CATALOG
   .filter((entry) => entry.active)
   .filter((entry) => !US_BRAND_SET.has(entry.brand.toLowerCase()));
 const EU_BRAND_SET = new Set(ACTIVE_EU_BRANDS.map((entry) => entry.brand.toLowerCase()));
