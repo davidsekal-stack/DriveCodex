@@ -86,6 +86,11 @@ function testPreGate() {
   assert.equal(isLikelyOutOfScopeVehicle({ brand_raw: 'Mercedes-Benz', model_raw: 'C230K', engine_raw: '2.3 Kompressor' }), false);
   assert.equal(isLikelyOutOfScopeVehicle({ brand_raw: 'Renault', model_raw: 'R19' }), false, 'classic car R-number ≠ moto');
   assert.equal(isLikelyOutOfScopeVehicle({}), false, 'empty → not out of scope');
+
+  // Light pickups are IN scope (owner policy) — must NOT trip the pre-gate.
+  assert.equal(isLikelyOutOfScopeVehicle({ brand_raw: 'Toyota', model_raw: 'Hilux' }), false, 'light pickup in scope');
+  assert.equal(isLikelyOutOfScopeVehicle({ brand_raw: 'Toyota', model_raw: 'Tacoma' }), false, 'light pickup in scope');
+  assert.equal(isLikelyOutOfScopeVehicle({ brand_raw: 'Ford', model_raw: 'Ranger 2.0 TDCi' }), false, 'light pickup in scope');
 }
 
 // ── buildPrompt injects the anchors ─────────────────────────────────────────
@@ -101,6 +106,10 @@ function testPromptAnchors() {
   assert.match(prompt, /Škoda Fabia 1\.2 HTP/);
   assert.match(prompt, /in_scope/);
   assert.match(prompt, /vehicle_matches_cited_posts/);
+  // Owner policy is baked into the prompt: pickups in scope + repair-by-anyone.
+  assert.match(prompt, /light pickup/i, 'light pickups declared in scope');
+  assert.match(prompt, /does not matter who carried it out/i, 'single-author requirement relaxed');
+  assert.match(prompt, /resolution may be provided or carried out by another user/i, 'resolution may come from a helper');
 }
 
 // ── verifyCase end-to-end with stubbed DeepSeek ─────────────────────────────

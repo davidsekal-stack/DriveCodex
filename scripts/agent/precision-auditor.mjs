@@ -293,8 +293,8 @@ function readLabelLines(path) {
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const CLAUSE_LABEL = {
-  a: '(a) není osobní auto/dodávka', b: '(b) není skutečná oprava závady',
-  c: '(c) konfigurace/upgrade/„spravilo se samo"', d: '(d) opravu hlásil jiný uživatel než kdo měl závadu',
+  a: '(a) není osobní auto/dodávka/lehký pick-up', b: '(b) není skutečná oprava závady',
+  c: '(c) konfigurace/upgrade/„spravilo se samo"', d: '(d) oprava neprovedena/nepotvrzena, nebo závadu/vozidlo nepopsal majitel',
   e: '(e) vozidlo neodpovídá citovaným příspěvkům',
 };
 

@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { isClassifierApproved } from '../scripts/agent/classify.mjs';
 
-// This test LOCKS the strict quality floor for the autonomous crawler's
-// classifier gate. The dominant volume loss is threads with a fault but no
-// owner-confirmed fix; admitting those ("expert-consensus tier") is a deliberate
-// product decision that must change this gate EXPLICITLY and in lockstep with
-// the extractor + validate same-author gate. If a future edit silently relaxes
-// any of these flags, this test must fail so the change is caught in review.
+// This test LOCKS the classifier gate's quality floor. Owner policy (2026-06):
+// the repair may be carried out/confirmed by ANOTHER user (helper/mechanic) as
+// long as (a) the fault is the car owner's and (b) the fix is CONFIRMED to have
+// worked. So same_user_confirms_resolution is NO LONGER gated on — but
+// has_confirmed_resolution (a confirmed successful repair exists) IS still
+// required, in lockstep with the extractor + validate (fault-anchor) + verify gates.
+// If a future edit re-adds same_user_confirms_resolution to the gate, or drops
+// has_confirmed_resolution, this test must fail so the change is caught in review.
 
 const fullyApproved = {
   should_seed: true,
@@ -18,26 +20,31 @@ const fullyApproved = {
 };
 assert.equal(isClassifierApproved(fullyApproved), true, 'all gates true → approved');
 
-// Each individual gate is required.
+// Each of these gates is still required.
 const requiredFlags = [
   'should_seed',
   'is_relevant',
   'has_explicit_fault',
   'has_confirmed_resolution',
-  'same_user_confirms_resolution',
 ];
 for (const flag of requiredFlags) {
   const r = { ...fullyApproved, [flag]: false };
   assert.equal(isClassifierApproved(r), false, `${flag}=false → rejected`);
 }
 
-// The same-user confirmation requirement specifically: a fault described by one
-// user and a fix suggested by another (no owner confirmation) must NOT pass the
-// strict gate today.
+// Owner policy: same_user_confirms_resolution is INFORMATIONAL ONLY and no longer
+// gates. A fault described by the owner with a CONFIRMED fix posted/confirmed by a
+// helper (different author) must now PASS — as long as has_confirmed_resolution holds.
 assert.equal(
   isClassifierApproved({ ...fullyApproved, same_user_confirms_resolution: false }),
+  true,
+  'helper-confirmed fix (different author) now passes when the fix is confirmed',
+);
+// But an UNCONFIRMED fix is still rejected (the confirmation requirement stays).
+assert.equal(
+  isClassifierApproved({ ...fullyApproved, same_user_confirms_resolution: false, has_confirmed_resolution: false }),
   false,
-  'expert-consensus (different author, no OP confirmation) is rejected by strict gate',
+  'different author AND no confirmed repair → still rejected',
 );
 
 // Evidence posts are mandatory.

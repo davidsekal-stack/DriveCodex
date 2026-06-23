@@ -84,7 +84,11 @@ function normalizeText(s) {
 }
 
 /**
- * Validate that fault and resolution posts belong to the same author.
+ * Validate that the FAULT posts belong to the case author (the car's owner) — this
+ * anchors the case to ONE real vehicle. The RESOLUTION may be posted by ANOTHER user
+ * (a helper or mechanic), so resolution-post authorship is intentionally NOT required
+ * to match — only that the cited resolution posts exist (owner policy: the author need
+ * not be the one who carried out the repair; the fix is often posted by someone else).
  */
 function validateCaseAuthor(item, postMetaByNumber) {
   if (!Array.isArray(item.fault_post_numbers) || item.fault_post_numbers.length === 0) {
@@ -117,22 +121,77 @@ function validateCaseAuthor(item, postMetaByNumber) {
     }
   }
 
-  // Check resolution posts
+  // Check resolution posts EXIST and are well-formed, but DO NOT require the same
+  // author: the fix is often posted by a helper/mechanic, not the car's owner.
   for (const pn of item.resolution_post_numbers) {
     const postNumber = Number(pn);
     if (!Number.isInteger(postNumber) || postNumber <= 0) {
       return { valid: false, reason: `Invalid resolution post number: ${pn}` };
     }
-    const meta = postMetaByNumber.get(postNumber);
-    if (!meta) {
+    if (!postMetaByNumber.get(postNumber)) {
       return { valid: false, reason: `Resolution post ${pn} not found in thread` };
-    }
-    if (meta && meta.author && normalizeText(meta.author) !== normAuthor) {
-      return { valid: false, reason: `Resolution post ${pn} author mismatch: expected "${caseAuthor}", got "${meta.author}"` };
     }
   }
 
   return { valid: true, reason: '' };
+}
+
+// ---------------------------------------------------------------------------
+// Vehicle-anchor (wrong-vehicle bleed) guard
+// ---------------------------------------------------------------------------
+
+// Parse the TITLE line and each post's BODY text from the thread dump.
+function parseThreadRegions(threadText) {
+  const title = ((threadText ?? '').toString().match(/^TITLE:\s*(.+)$/m)?.[1] ?? '');
+  const bodies = new Map();
+  let current = null;
+  for (const line of (threadText ?? '').toString().split(/\r?\n/)) {
+    if (/^POST\s+(\d+)\s*\|/.test(line)) {
+      current = Number(line.match(/^POST\s+(\d+)/)[1]);
+      bodies.set(current, '');
+      continue; // header line itself is not body
+    }
+    if (current != null) bodies.set(current, `${bodies.get(current)} ${line}`);
+  }
+  return { title, bodies };
+}
+
+// Since resolution posts may now be authored by a helper, the deterministic
+// author backstop no longer incidentally bounds the vehicle to owner-authored
+// text. This guard restores that: the case vehicle's MODEL must be grounded in
+// the OWNER's own region (TITLE + fault posts + any post by case_author). It
+// FAILS only the precise wrong-vehicle bleed signature — the model appears ONLY
+// in a DIFFERENT author's resolution post and nowhere in the owner region — so it
+// never trips section-only / title-only cases (where the model isn't in a helper
+// post either). Token-set membership avoids substring false matches.
+function vehicleBleedReason(item, threadText, postMetaByNumber) {
+  const model = normalizeText(item.model_raw || item.vehicle_model || '');
+  const modelTokens = model.split(' ').filter(t => t.length >= 2);
+  if (!modelTokens.length) return null;
+
+  const { title, bodies } = parseThreadRegions(threadText);
+  const caseAuthor = normalizeText(item.case_author || '');
+  const faultSet = new Set((item.fault_post_numbers || []).map(Number));
+
+  let ownerText = ` ${normalizeText(title)} `;
+  for (const [pn, body] of bodies) {
+    const meta = postMetaByNumber.get(pn);
+    const isOwnerPost = meta && caseAuthor && normalizeText(meta.author) === caseAuthor;
+    if (faultSet.has(pn) || isOwnerPost) ownerText += ` ${normalizeText(body)} `;
+  }
+  const ownerTokens = new Set(ownerText.split(' ').filter(Boolean));
+  if (modelTokens.some(t => ownerTokens.has(t))) return null; // grounded in owner text → fine
+
+  // model absent from owner region — is it present in a DIFFERENT author's resolution post?
+  for (const pn of (item.resolution_post_numbers || []).map(Number)) {
+    const meta = postMetaByNumber.get(pn);
+    if (!(meta && caseAuthor && normalizeText(meta.author) !== caseAuthor)) continue;
+    const bodyTokens = new Set(normalizeText(bodies.get(pn) || '').split(' ').filter(Boolean));
+    if (modelTokens.some(t => bodyTokens.has(t))) {
+      return `Vehicle model "${item.model_raw}" appears only in a different author's resolution post (post ${pn}), not the owner's fault posts/title — possible wrong-vehicle bleed`;
+    }
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -179,7 +238,7 @@ export function validateCase(caseData, options = {}) {
     return { valid: false, reason: `Description too short (${description.length} chars)`, warnings };
   }
 
-  // Gate 5: Author consistency (if thread text provided)
+  // Gate 5: Author consistency + vehicle anchor (if thread text provided)
   if (options.threadText) {
     const postMeta = parsePostMetaFromThreadText(options.threadText);
     if (postMeta.size > 0) {
@@ -187,6 +246,10 @@ export function validateCase(caseData, options = {}) {
       if (!authorCheck.valid) {
         return { valid: false, reason: authorCheck.reason, warnings };
       }
+      // The vehicle must be grounded in the owner's own text, not lifted from a
+      // helper's resolution post that may name a different car.
+      const bleed = vehicleBleedReason(caseData, options.threadText, postMeta);
+      if (bleed) return { valid: false, reason: bleed, warnings };
     }
   }
 

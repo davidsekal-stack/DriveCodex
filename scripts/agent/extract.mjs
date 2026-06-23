@@ -41,12 +41,12 @@ Return ONLY a JSON array, no other text.
 
 Rules:
 - Do not guess or infer missing facts.
-- VEHICLE IDENTIFICATION: the brand/model/engine is often stated in the THREAD TITLE or in a user's signature, NOT in the post body — on many forums the whole section is model-specific (e.g. a "1.9 TDi 81kW" subforum) or the title names the car. Read brand_raw/model_raw/engine_raw from the TITLE line and any signature text as valid EXPLICIT sources, not just the post body. This is not guessing — it is reading what is stated. Do not invent a vehicle that appears nowhere in the thread.
-- Each case must belong to one forum user: the same user must explicitly describe the fault/symptoms and later confirm the successful repair for that same case.
-- The case author does NOT need to be the original thread author.
+- VEHICLE IDENTIFICATION: the brand/model/engine is often stated in the THREAD TITLE or in a user's signature, NOT in the post body — on many forums the whole section is model-specific (e.g. a "1.9 TDi 81kW" subforum) or the title names the car. Read brand_raw/model_raw/engine_raw from the TITLE line and any signature text as valid EXPLICIT sources, not just the post body. This is not guessing — it is reading what is stated. Do not invent a vehicle that appears nowhere in the thread. Take the vehicle from the OWNER's own posts about THEIR car (the fault posts), the title, or the owner's signature — NEVER from a helper's reply, which may describe a DIFFERENT car.
+- Each case is anchored to ONE forum user — the car's OWNER, who describes the fault/symptoms on their own vehicle. The repair may be carried out, described, and/or confirmed by ANOTHER user (a helper or mechanic): set case_author to the OWNER (the one with the fault), put the OWNER's fault posts in fault_post_numbers, and the post(s) where the working fix is described in resolution_post_numbers (these may be a helper's posts).
+- The case author (owner) does NOT need to be the original thread author.
 - A thread may contain multiple independent resolved cases from different users. Return all qualifying cases.
-- Ignore advice-only replies, guesses, or cases where another user suggests a fix but the reporting user never confirms it.
-- Use classifier evidence posts as hints, but you may use other posts if they clearly form a valid same-user case.
+- Ignore advice-only replies and guesses, and any case where the fix was never confirmed to have actually worked. (A fix performed or posted by someone OTHER than the owner is fine, AS LONG AS the thread confirms it fixed the owner's car.)
+- Use classifier evidence posts as hints, but you may use other posts if they clearly form a valid case.
 - If any required field is ambiguous for one case, omit that case but continue extracting other clear cases.
 - If there are no clear cases, return [].
 - Translate symptoms, description, and resolution to English.

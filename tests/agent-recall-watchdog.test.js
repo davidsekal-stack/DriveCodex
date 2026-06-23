@@ -67,6 +67,6 @@ const prompt = buildAuditPrompt('POST 1 | author: bob:\nmy A3 alternator died', 
 assert.match(prompt, /VERIFIER'S STATED REJECT REASON: failed:is_genuine_fault/);
 assert.match(prompt, /Audi A3/);
 assert.match(prompt, /wrongly_rejected/);
-assert.match(prompt, /passenger car or light van/, 'embeds the shared quality bar');
+assert.match(prompt, /passenger car, light van, or light pickup truck/, 'embeds the shared quality bar');
 
 console.log('agent-recall-watchdog.test.js passed');

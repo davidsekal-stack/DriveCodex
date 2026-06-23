@@ -42,7 +42,7 @@ assert.equal(QUALITY_BAR, BAR_VIA_RECALL, 'recall-watchdog re-exports the exact 
   const p = buildPrecisionPrompt('POST 1 | author: bob:\nmy A3 alternator died, replaced it', {
     vehicle_brand: 'Audi', vehicle_model: 'A3', symptoms: ['no charge'], description: 'alt dead', resolution: 'replaced alternator',
   }, 'verified');
-  assert.match(p, /passenger car or light van/, 'embeds the shared quality bar');
+  assert.match(p, /passenger car, light van, or light pickup truck/, 'embeds the shared quality bar');
   assert.match(p, /ACCEPTED/, 'frames it as an acceptance, not a rejection');
   assert.doesNotMatch(p, /REJECTED/);
   assert.match(p, /wrongly_accepted/);

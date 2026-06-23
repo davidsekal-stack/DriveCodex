@@ -149,7 +149,7 @@ export function buildPrompt(threadText, extractedCase) {
   const faultPosts = promptList(extractedCase.fault_post_numbers, 10, 'unknown');
   const resoPosts  = promptList(extractedCase.resolution_post_numbers, 10, 'unknown');
 
-  return `You are an INDEPENDENT quality auditor for an automotive diagnostic database that stores only cases where a GENUINE VEHICLE MALFUNCTION was DIAGNOSED and REPAIRED on a passenger car or light commercial van.
+  return `You are an INDEPENDENT quality auditor for an automotive diagnostic database that stores only cases where a GENUINE VEHICLE MALFUNCTION was DIAGNOSED and REPAIRED on a passenger car, light commercial van, or light pickup truck.
 
 You receive (1) the ORIGINAL forum thread and (2) a CASE another system extracted from it. Audit the CASE against the thread ONLY. Use outside knowledge solely to recognise a vehicle's category (car/van vs motorcycle/truck/etc.). If the thread does not clearly support a claim, treat the claim as unsupported. When in doubt that a condition is true, set it false.
 
@@ -157,7 +157,7 @@ The thread is a list of posts. Each post starts with a header line:
   POST <n> | page: <p> | author: <name> | is_thread_author: <true|false> ...:
 followed by that post's text.
 
-This CASE was built from SPECIFIC posts by a SPECIFIC author. These are your anchor — the vehicle, the fault, and the repair MUST come from THESE posts and THIS author, about ONE vehicle. Threads often discuss several different cars and several different problems; IGNORE everything that is not in the cited posts or directly about the cited author's car.
+This CASE was built from SPECIFIC posts. The CASE AUTHOR is the car's OWNER. Your anchor: the VEHICLE and the FAULT MUST come from the CASE AUTHOR's own posts, about ONE vehicle. The RESOLUTION may be provided or carried out by ANOTHER user (a helper or a mechanic) — that is perfectly fine, as long as it was actually done and confirmed to fix THIS author's car. Threads often discuss several different cars and several different problems; IGNORE everything that is not in the cited posts or directly about the cited author's car.
   CASE AUTHOR: ${caseAuthor}
   FAULT POSTS: ${faultPosts}
   RESOLUTION POSTS: ${resoPosts}
@@ -176,9 +176,9 @@ ${text}
 
 Evaluate EXACTLY these six conditions. Each is a strict boolean.
 
-1. in_scope — The vehicle the CITED posts are actually about is a passenger car or light commercial van (vans such as Transit, Tourneo, Proace, Caddy ARE in scope; old/classic cars ARE in scope). FALSE if it is a motorcycle/scooter/moped (e.g. a "BMW R1150R", "GS", "CBR", "GSX"), a heavy truck/HGV/lorry, a bus, a tractor/agricultural machine, a boat/marine engine, or a quad/ATV. Judge by the MODEL, not the brand — BMW, Honda, Suzuki etc. also make motorcycles.
+1. in_scope — The vehicle the CITED posts are actually about is a passenger car, light commercial van, or light pickup truck (vans such as Transit, Tourneo, Proace, Caddy AND light pickups such as Hilux, Tacoma, Ranger, Amarok, Navara, L200 ARE in scope; old/classic cars ARE in scope). FALSE if it is a motorcycle/scooter/moped (e.g. a "BMW R1150R", "GS", "CBR", "GSX"), a HEAVY truck/HGV/lorry/semi, a bus, a tractor/agricultural machine, a boat/marine engine, or a quad/ATV. Judge by the MODEL, not the brand — BMW, Honda, Suzuki etc. also make motorcycles.
 
-2. vehicle_matches_cited_posts — The Vehicle (brand and model; engine too if stated) is the SAME vehicle the CASE AUTHOR describes in the FAULT POSTS and RESOLUTION POSTS. FALSE if the case names a vehicle that belongs to a different user, a different post, or a different car merely mentioned elsewhere in a multi-vehicle / general-advice thread. Example of FALSE: the case says "Audi A6 3.0 TDI" but the cited author's own posts describe an "Audi A4 1.9 TDI". Match on brand+model primarily; do not fail on harmless variant/trim wording.
+2. vehicle_matches_cited_posts — The Vehicle (brand and model; engine too if stated) is the SAME vehicle the CASE AUTHOR (the car's owner) describes in the FAULT POSTS. FALSE if the case names a vehicle that belongs to a different user, a different post, or a different car merely mentioned elsewhere in a multi-vehicle / general-advice thread. (A helper's resolution post may mention parts/other cars — judge the vehicle by the AUTHOR's own fault posts, not the helper's wording.) Example of FALSE: the case says "Audi A6 3.0 TDI" but the cited author's own posts describe an "Audi A4 1.9 TDI". Match on brand+model primarily; do not fail on harmless variant/trim wording.
 
 3. is_genuine_fault — The cited posts describe a real MALFUNCTION or DEFECT of the vehicle (something that worked before or should work broke, failed, wore out, leaked, corroded, would not start, threw a code, or was damaged — including rodent or accident damage). FALSE if it is instead any of:
    - a CONFIGURATION / menu / settings / how-to-use question, where nothing was broken (e.g. "rear doors stay locked — found the setting in the infotainment menu");
@@ -188,7 +188,7 @@ Evaluate EXACTLY these six conditions. Each is a strict boolean.
    - a PREVENTIVE-MAINTENANCE opinion / general recommendation discussion not tied to a diagnosed fault on a specific car (e.g. "what should I spray underneath for winter?").
    These COUNT as a genuine fault repair and must NOT be failed: cleaning a part (incl. ultrasonic cleaning a sensor), an adjustment/calibration, a fluid/additive treatment that cures a fault, re-flashing the CAR'S OWN ECU/control unit, re-splicing rodent-chewed or damaged wiring, fitting a small bypass/EMULATOR that RESTORES a function the car is FAILING to perform (e.g. a steering-lock emulator for a failed ESL), and replacing/repairing a worn original component on an old/classic car (e.g. a worn carburettor, anti-squeal brake shims).
 
-4. repair_performed — The CASE AUTHOR actually CARRIED OUT the resolution (past tense, done). FALSE if it was only suggested, planned, recommended, or still pending; FALSE if the problem "resolved on its own" / "went away after driving" / "fixed itself" with no repair action taken (e.g. "coolant temperature problem resolved on its own after driving regularly").
+4. repair_performed — The resolution was actually CARRIED OUT (past tense, done). It does NOT matter WHO carried it out — the case author, another forum user, or a mechanic all count. FALSE if it was only suggested, planned, recommended, or still pending and never confirmed done; FALSE if the problem "resolved on its own" / "went away after driving" / "fixed itself" with no repair action taken (e.g. "coolant temperature problem resolved on its own after driving regularly").
 
 5. repair_confirmed — The CASE AUTHOR (or a later reply about the same car) confirms the repair FIXED the original complaint. FALSE if the outcome is left unknown/open, the fault RETURNED, or the root cause was never found (e.g. "rebuilt the gearbox and torque converter but the vibration came back and the cause was never identified").
 
