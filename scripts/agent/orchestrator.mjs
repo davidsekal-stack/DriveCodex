@@ -28,6 +28,7 @@ import { calibrateForum, isTransientCrawlerError } from './calibrate.mjs';
 import { verifyCase } from './verify.mjs';
 import { createCrawlPipeline, processThread } from './crawl.mjs';
 import { loadCrawledIndex, isThreadAlreadyExtracted } from './crawled-index.mjs';
+import { resolveVehicle } from './vehicle-resolver.mjs';
 import { writeDiary } from './diary.mjs';
 import { discoverCandidates } from './discover.mjs';
 import { upsertForum } from './forum-registry.mjs';
@@ -777,6 +778,13 @@ async function phaseImport(state, opts) {
     }
 
     try {
+      // Inline canonicalization: new imports get the catalog's exact brand spelling
+      // (casing/diacritics/alias), so they are discoverable in the app from the start
+      // (search filters vehicle_brand by exact match). Model-level gaps stay as-is and
+      // are handled by the Phase-2 catalog-proposal flow, not silently remapped.
+      const _rawBrand = payload.vehicle_brand || payload.brand_raw || '';
+      const _veh = resolveVehicle({ vehicle_brand: _rawBrand, vehicle_model: payload.vehicle_model || payload.model_raw || '' });
+      const vehicleBrandCanonical = _veh.matched ? _veh.canonicalBrand : _rawBrand;
       const res = await fetch(`${supabaseUrl}/functions/v1/push-case`, {
         method: 'POST',
         headers: {
@@ -786,7 +794,7 @@ async function phaseImport(state, opts) {
         body: JSON.stringify({
           local_id: c.id,
           user_id: 'ai_importer',
-          vehicle_brand: payload.vehicle_brand || payload.brand_raw || '',
+          vehicle_brand: vehicleBrandCanonical,
           vehicle_model: payload.vehicle_model || payload.model_raw || '',
           engine_power: payload.engine_power || payload.engine_raw || '',
           symptoms: payload.symptoms || [],
