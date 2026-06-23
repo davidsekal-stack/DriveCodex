@@ -914,7 +914,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Tesla (US)",
-    active:    false,
+    active:    true,
     expertise: "Tesla US market — Model 3, Model Y, Model S, Model X, Cybertruck — electric drive units, high-voltage battery systems, thermal management, supercharging, OTA updates, 2012–present US spec",
     models: [
       { group: "Model 3" },
@@ -1203,7 +1203,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Porsche",
-    active:    false,
+    active:    true,
     expertise: "Porsche US market — 911, 718 Boxster/Cayman, Cayenne, Macan, Panamera, Taycan — turbocharged flat-six/four engines, PDK, AWD, PHEV and EV platforms, 2003–present US spec",
     models: [
       { group: "911" },
@@ -1278,7 +1278,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Mitsubishi",
-    active:    false,
+    active:    true,
     expertise: "Mitsubishi US market — Outlander, Outlander PHEV, Outlander Sport, Eclipse Cross, Mirage, Lancer — MIVEC petrol engines, S-AWC/AWC, PHEV and compact crossover platforms, 2003–present US spec",
     models: [
       { group: "Lancer" },
@@ -1300,7 +1300,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Alfa Romeo",
-    active:    false,
+    active:    true,
     expertise: "Alfa Romeo US market — Giulia, Stelvio, Tonale, 4C — turbo petrol and PHEV powertrains, ZF 8AT, Q4 AWD, 2015–present US spec",
     models: [
       { group: "Sedan / SUV" },
@@ -1315,7 +1315,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Bentley",
-    active:    false,
+    active:    true,
     expertise: "Bentley US market — Continental GT, Continental GTC, Flying Spur, Bentayga, Mulsanne, Arnage — W12, V8 and hybrid luxury powertrains, AWD and grand touring platforms, 2001–present US spec",
     models: [
       { group: "Arnage / Mulsanne" },
@@ -1354,7 +1354,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Volvo (US)",
-    active:    false,
+    active:    true,
       expertise: "Volvo Cars US passenger lineup — S60, S90, V60, V60 Cross Country, V90, V90 Cross Country, XC40, XC60, XC90, EX30, EX40, EC40 and EX90 — B5/B6 mild hybrid, T8 plug-in hybrid and newer BEV drivetrains, 2016–present US spec",
     models: [
       { group: "S60" },
@@ -1397,7 +1397,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Polestar",
-    active:    false,
+    active:    true,
     expertise: "Polestar EV lineup — Polestar 1, 2, 3 and 4 — dual-motor EV and performance hybrid architectures, OTA diagnostics, thermal management and charging systems, 2020–present US spec",
     models: [
       { group: "Polestar" },
@@ -1411,7 +1411,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "MINI",
-    active:    false,
+    active:    true,
     expertise: "MINI US market — Cooper 2 Door/4 Door, Convertible, Clubman, Countryman — BMW-sourced turbo petrol engines and newer EV drivetrains, 2014–present US spec",
     models: [
       { group: "Cooper / Convertible" },
@@ -1427,7 +1427,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Maybach",
-    active:    false,
+    active:    true,
     expertise: "Legacy standalone Maybach luxury sedans — 57 and 62 plus S variants — twin-turbo V12 powertrains, ABC suspension and comfort electronics, 2002–2012 US spec",
     models: [
       { group: "57 / 62" },
@@ -1438,7 +1438,7 @@ export const VEHICLE_CATALOG_US = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     brand:     "Smart",
-    active:    false,
+    active:    true,
     expertise: "smart US microcars — fortwo coupe/cabrio and electric drive — rear-mounted 1.0L/0.9L petrol engines and ED EV drivetrains, 2008–2019 US spec",
     models: [
       { group: "fortwo" },
