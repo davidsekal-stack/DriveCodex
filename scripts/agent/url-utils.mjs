@@ -37,6 +37,18 @@ export function canonicalizeTraversalUrl(input) {
   url.hash = '';
   url.pathname = url.pathname.replace(/;jsessionid=[^/?#]*/i, '');
 
+  // Some forums (phpBB) append session/query params onto the PATH with '&' and no
+  // leading '?' (e.g. .../topic-123-abs&sid=XXX). Without this, those params land in
+  // the pathname and never reach the query-string stripper below — so a per-visit
+  // 'sid' makes every re-crawl look like a brand-new thread (duplicate floods). Move
+  // everything from the first '&' in the path into the query string so it gets cleaned.
+  const ampIndex = url.pathname.indexOf('&');
+  if (ampIndex !== -1) {
+    const glued = url.pathname.slice(ampIndex + 1);
+    url.pathname = url.pathname.slice(0, ampIndex);
+    url.search = url.search ? `${url.search}&${glued}` : `?${glued}`;
+  }
+
   const rawSearch = url.search.startsWith('?') ? url.search.slice(1) : '';
   if (!rawSearch) {
     return url.href;

@@ -55,4 +55,23 @@ assert.equal(
   'https://example.com/threads/whats-the-latest.99/'
 );
 
+// phpBB-style session id glued onto the PATH with '&' and no leading '?'
+// (observed on audiklub.cz) — must be stripped, not treated as part of the slug.
+assert.equal(
+  canonicalizeThreadUrl('https://audiklub.cz/forum/tema/412417-dpf-a6-c6-3-0-tdi-171kw-abs&sid=ff953b4edd9e72a252edd9eddbfdec0f'),
+  'https://audiklub.cz/forum/tema/412417-dpf-a6-c6-3-0-tdi-171kw-abs'
+);
+// Two visits with different per-request sids must canonicalize to the SAME URL,
+// otherwise the crawler re-imports the same thread every night (duplicate floods).
+assert.equal(
+  canonicalizeThreadUrl('https://audiklub.cz/forum/tema/412417-dpf-a6-c6-3-0-tdi-171kw-abs&sid=ff953b4edd9e72a252edd9eddbfdec0f'),
+  canonicalizeThreadUrl('https://audiklub.cz/forum/tema/412417-dpf-a6-c6-3-0-tdi-171kw-abs&sid=ba0ca3d469092e3cf9f1a0481ec6411b')
+);
+// A genuine query param glued onto the path alongside a session id: keep the
+// param, drop the session id.
+assert.equal(
+  canonicalizeThreadUrl('https://example.com/topic/123-some-fault&t=123&sid=deadbeef'),
+  'https://example.com/topic/123-some-fault?t=123'
+);
+
 console.log('agent-url-utils.test.js passed');
