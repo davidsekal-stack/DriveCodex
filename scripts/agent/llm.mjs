@@ -32,6 +32,7 @@ const DEFAULT_ROUTES = {
   'taxonomy-seed': 'claude:sonnet', // one-shot fault-taxonomy proposal (fault-taxonomy.mjs)
   'taxonomy-classify': 'claude:haiku', // high-volume case→taxonomy backfill
   'catalog-propose': 'claude:sonnet', // draft accurate catalog entries for missing models (vehicle-catalog-proposals.mjs)
+  'catalog-verify': 'claude:sonnet', // Claude+WebSearch multi-source verification of a candidate vehicle (vehicle-web-verify.mjs)
   translate: 'claude:haiku', // high-volume resolution cs/de backfill (backfill-resolution-i18n.mjs)
 };
 
