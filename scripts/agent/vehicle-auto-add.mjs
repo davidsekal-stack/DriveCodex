@@ -79,6 +79,7 @@ function candidates(gaps) {
 
 export async function run({ dryRun = true, limit = Infinity } = {}) {
   const gaps = JSON.parse(readFileSync(GAPS, 'utf8'));
+  const modelById = new Map(gaps.map((g) => [g.id, g.model]));
   const existing = buildExisting();
   const cands = candidates(gaps).slice(0, limit);
   console.log(`kandidátů (značka×rodina): ${cands.length} (z ${gaps.length} mezerových případů)`);
@@ -86,6 +87,7 @@ export async function run({ dryRun = true, limit = Infinity } = {}) {
   const toAdd = [];     // catalog-auto položky
   const relabels = [];  // {ids, label}
   const held = [];
+  let genHeld = 0;      // cases podržené per-case kvůli generačnímu konfliktu
   for (const c of cands) {
     await new Promise((r) => setTimeout(r, 1200)); // pacing — méně bušení do API
     const v = await verifyVehicle({ brand: c.brand, model: c.model, market: c.market, engine: c.engine, examples: c.examples });
@@ -93,16 +95,22 @@ export async function run({ dryRun = true, limit = Infinity } = {}) {
     const conflict = genConflict(c.model, v.model_label || '');
     if (conflict) { held.push({ ...c, reason: `gen conflict (label nemá '${conflict}')` }); console.log(`  ⏸ ${c.brand} / ${c.model} — generační konflikt: "${v.model_label}" nemá "${conflict}"`); continue; }
     const label = v.model_label || c.model;
-    relabels.push({ ids: c.caseIds, label, brand: c.brand });
+    // per-case pojistka: přeštítkuj jen cases, jejichž vlastní model NEní v
+    // generačním konfliktu s labelem (rodina může mít víc generací, např. S4 C4+B8).
+    const eligible = c.caseIds.filter((id) => !genConflict(modelById.get(id) || '', label));
+    const genHeldN = c.caseIds.length - eligible.length;
+    if (genHeldN) genHeld += genHeldN;
+    relabels.push({ ids: eligible, label, brand: c.brand });
+    const suffix = genHeldN ? ` (${genHeldN} podrženo: jiná generace)` : '';
     if (existing.labels.has(norm(label))) {
-      console.log(`  ✓ ${c.brand} / ${c.model} → "${label}" (label už v katalogu — jen přeštítkovat ${c.caseIds.length})`);
+      console.log(`  ✓ ${c.brand} / ${c.model} → "${label}" (label v katalogu — přeštítkovat ${eligible.length}${suffix})`);
     } else {
       toAdd.push({ brand: c.brand, market: c.market, added: null, sources: v.independentDomains, model: { label, powers: v.powers || [] } });
-      console.log(`  ✅ ${c.brand} / ${c.model} → PŘIDAT "${label}" [${(v.powers || []).length} motorů, zdroje: ${v.independentDomains.join(', ')}] + přeštítkovat ${c.caseIds.length}`);
+      console.log(`  ✅ ${c.brand} / ${c.model} → PŘIDAT "${label}" [${(v.powers || []).length} motorů, zdroje: ${v.independentDomains.join(', ')}] + přeštítkovat ${eligible.length}${suffix}`);
     }
   }
 
-  console.log(`\n— souhrn — přidat: ${toAdd.length} | přeštítkovat skupin: ${relabels.length} (${relabels.reduce((s, r) => s + r.ids.length, 0)} případů) | podrženo: ${held.length}`);
+  console.log(`\n— souhrn — přidat: ${toAdd.length} | přeštítkovat: ${relabels.reduce((s, r) => s + r.ids.length, 0)} případů | gen-konflikt podržen: ${genHeld} | nepotvrzeno: ${held.length}`);
   writeFileSync(new URL('./catalog-proposals/auto-add-plan.json', LOG_DIR), JSON.stringify({ toAdd, relabels, held }, null, 2));
   console.log('(plán uložen: logs/catalog-proposals/auto-add-plan.json)');
 
