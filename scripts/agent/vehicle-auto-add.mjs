@@ -139,8 +139,59 @@ function renderAutoFile(entries) {
   return `${head}export const VEHICLE_CATALOG_AUTO = ${JSON.stringify(entries, null, 2)};\n`;
 }
 
+/**
+ * Aplikuje JIŽ OVĚŘENÝ plán (logs/catalog-proposals/auto-add-plan.json) bez
+ * opakované verifikace: zapíše catalog-auto.js (build-gate), přeštítkuje
+ * per-case gen-konzistentní případy (záloha pro revert). Žádný push.
+ */
+export async function runFromPlan({ fetchImpl = fetch } = {}) {
+  const plan = JSON.parse(readFileSync(new URL('./catalog-proposals/auto-add-plan.json', LOG_DIR), 'utf8'));
+  const gaps = JSON.parse(readFileSync(GAPS, 'utf8'));
+  const modelById = new Map(gaps.map((g) => [g.id, g.model]));
+  const stamp = new Date().toISOString().slice(0, 10);
+
+  // 1) zápis catalog-auto.js + build-gate (rozbitý zápis se nesmí dostat dál)
+  const merged = [...VEHICLE_CATALOG_AUTO, ...plan.toAdd.map((e) => ({ ...e, added: stamp }))];
+  writeFileSync(AUTO_FILE, renderAutoFile(merged));
+  try {
+    execSync('npm --prefix web run build', { stdio: 'pipe' });
+  } catch {
+    console.error('BUILD SELHAL — vracím catalog-auto.js zpět.');
+    writeFileSync(AUTO_FILE, renderAutoFile(VEHICLE_CATALOG_AUTO));
+    process.exit(1);
+  }
+  console.log(`catalog-auto.js +${plan.toAdd.length} položek (build OK).`);
+
+  // 2) per-case přeštítkování (gen pojistka) + záloha
+  const ops = [];
+  for (const r of plan.relabels) for (const id of r.ids) {
+    if (genConflict(modelById.get(id) || '', r.label)) continue; // jiná generace → nepřeštítkovat
+    ops.push({ id, brand: r.brand, label: r.label });
+  }
+  const totalIds = plan.relabels.reduce((s, r) => s + r.ids.length, 0);
+  const H = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
+  const backup = [];
+  for (let i = 0; i < ops.length; i += 80) {
+    const chunk = ops.slice(i, i + 80).map((o) => o.id);
+    const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/gearbrain_cases?id=in.(${chunk.join(',')})&select=id,vehicle_brand,vehicle_model`, { headers: H });
+    backup.push(...await res.json());
+  }
+  writeFileSync(new URL('./auto-relabel-backup.json', LOG_DIR), JSON.stringify(backup));
+  let rel = 0;
+  for (const o of ops) {
+    const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/gearbrain_cases?id=eq.${encodeURIComponent(o.id)}`, { method: 'PATCH', headers: { ...H, Prefer: 'return=minimal' }, body: JSON.stringify({ vehicle_brand: o.brand, vehicle_model: o.label }) });
+    if (res.ok) rel++;
+  }
+  console.log(`přeštítkováno ${rel}/${ops.length} případů (gen-konflikt podržen: ${totalIds - ops.length}). Záloha: logs/auto-relabel-backup.json. Žádný push.`);
+  return { added: plan.toAdd.length, relabeled: rel, genHeld: totalIds - ops.length };
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const limArg = process.argv.find((a) => a.startsWith('--limit='));
-  const limit = limArg ? Number(limArg.split('=')[1]) : Infinity;
-  run({ dryRun: !process.argv.includes('--apply'), limit }).catch((e) => { console.error(e); process.exit(1); });
+  if (process.argv.includes('--from-plan')) {
+    runFromPlan().catch((e) => { console.error(e); process.exit(1); });
+  } else {
+    const limArg = process.argv.find((a) => a.startsWith('--limit='));
+    const limit = limArg ? Number(limArg.split('=')[1]) : Infinity;
+    run({ dryRun: !process.argv.includes('--apply'), limit }).catch((e) => { console.error(e); process.exit(1); });
+  }
 }
