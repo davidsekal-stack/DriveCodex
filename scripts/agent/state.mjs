@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS forums (
   last_crawled_at TEXT,
   diary_md TEXT,
   priority_score REAL DEFAULT 0,
+  archive_cursor_json TEXT,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -197,6 +198,9 @@ export class AgentState {
       'ALTER TABLE forums ADD COLUMN priority_score REAL DEFAULT 0',
       'ALTER TABLE forums ADD COLUMN cooldown_tier_hours INTEGER',
       'ALTER TABLE forums ADD COLUMN cooldown_set_at TEXT',
+      // Per-section archive walk cursor (deep mining). JSON:
+      // { sections: { <sectionUrl>: { next, done, pages } }, complete }
+      'ALTER TABLE forums ADD COLUMN archive_cursor_json TEXT',
     ];
     for (const sql of alterations) {
       try { this.#db.exec(sql); } catch { /* column already exists */ }
@@ -250,7 +254,7 @@ export class AgentState {
       'new_threads_last_batch', 'cases_total', 'last_crawled_at',
       'calibration_json', 'calibration_status', 'calibration_attempts',
       'cooldown_until', 'cooldown_tier_hours', 'cooldown_set_at',
-      'diary_md', 'priority_score',
+      'diary_md', 'priority_score', 'archive_cursor_json',
     ];
     const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
     if (entries.length === 0) return;
@@ -379,12 +383,32 @@ export class AgentState {
     stmt.run(...values, id);
   }
 
-  getPendingThreads(limit = 50) {
+  getPendingThreads(limit = 50, forumId = null) {
+    if (forumId) {
+      const stmt = this.#db.prepare(
+        `SELECT * FROM threads WHERE status = 'pending' AND forum_id = ?
+         ORDER BY created_at LIMIT ?`
+      );
+      return stmt.all(forumId, limit);
+    }
     const stmt = this.#db.prepare(
       `SELECT * FROM threads WHERE status = 'pending'
        ORDER BY created_at LIMIT ?`
     );
     return stmt.all(limit);
+  }
+
+  /**
+   * Count threads for a forum still waiting to be processed. Used to keep the
+   * archive-walk queue bounded — only march deeper into the archive once the
+   * already-enqueued backlog has been (mostly) drained.
+   */
+  countPendingThreads(forumId) {
+    const stmt = this.#db.prepare(
+      `SELECT COUNT(*) as count FROM threads
+       WHERE forum_id = ? AND status = 'pending'`
+    );
+    return stmt.get(forumId)?.count ?? 0;
   }
 
   getClassifiedThreads(limit = 50) {

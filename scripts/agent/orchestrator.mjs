@@ -26,7 +26,7 @@
 import { AgentState } from './state.mjs';
 import { calibrateForum, isTransientCrawlerError } from './calibrate.mjs';
 import { verifyCase } from './verify.mjs';
-import { createCrawlPipeline, processThread } from './crawl.mjs';
+import { createCrawlPipeline, processThread, enumerateThreadUrlsDeep } from './crawl.mjs';
 import { loadCrawledIndex, isThreadAlreadyExtracted } from './crawled-index.mjs';
 import { resolveVehicle } from './vehicle-resolver.mjs';
 import { writeDiary } from './diary.mjs';
@@ -366,21 +366,15 @@ async function phaseCalibrate(state, opts) {
 // Phase: CRAWL — fetch threads, classify, extract
 // ---------------------------------------------------------------------------
 
-// Exhaustion / cooldown constants
-const COOLDOWN_HOURS_SHORT = 24;      // < 10% new threads → wait 1 day
-const COOLDOWN_HOURS_LONG  = 168;     // < 3% new threads  → wait 7 days
-const COOLDOWN_HOURS_EXHAUSTED = 720; // 0 new threads     → wait 30 days
-const NEW_THREAD_RATE_LOW = 0.10;
-const NEW_THREAD_RATE_VERY_LOW = 0.03;
+// Cooldown / pacing constants. Archive mining redefines "exhausted": a forum
+// rests only once its WHOLE archive has been walked (cursor.complete) AND the
+// pending queue is drained — not when a recent-window sample looks stale.
+const COOLDOWN_HOURS_SHORT = 24;       // transient enumeration error → retry tomorrow
+const COOLDOWN_HOURS_EXHAUSTED = 720;  // archive fully mined → rest 30 days
 
-function computeCooldown(newThreads, totalEnumerated) {
-  if (totalEnumerated === 0) return null;
-  if (newThreads === 0) return COOLDOWN_HOURS_EXHAUSTED;
-  const rate = newThreads / totalEnumerated;
-  if (rate < NEW_THREAD_RATE_VERY_LOW) return COOLDOWN_HOURS_LONG;
-  if (rate < NEW_THREAD_RATE_LOW) return COOLDOWN_HOURS_SHORT;
-  return null; // no cooldown — forum still has fresh content
-}
+// Archive walk pacing.
+const ARCHIVE_PAGES_PER_BATCH = 2;     // listing pages to advance per forum per batch
+const HEAD_SCAN_PAGES = 2;             // shallow head re-scan for new threads once complete
 
 async function phaseCrawl(state, opts) {
   console.log('\n── Phase: CRAWL ──');
@@ -405,89 +399,65 @@ async function phaseCrawl(state, opts) {
     console.log(`  Crawling: ${forum.name || forum.url}`);
     const calibration = safeJsonParse(forum.calibration_json);
 
-    // Enumerate thread URLs
-    let threadUrls;
+    // ── Fill the archive queue (deep walk) ──
+    // Walk the listing pages IN ORDER, marching deeper into the archive and
+    // remembering where we stopped (per-section cursor), instead of re-reading
+    // the newest threads. Only advance while the already-enqueued backlog is
+    // low, so the pending queue stays bounded.
+    let cursor = safeJsonParse(forum.archive_cursor_json);
+    if (!cursor || !cursor.sections) cursor = { sections: {}, complete: false };
+    const queueFloor = Math.max(opts.batchSize * 2, 20);
+    let pendingCount = state.countPendingThreads(forum.id);
+
+    let walk = null;
     try {
-      threadUrls = await pipeline.sampleThreadUrls(forum, opts.batchSize);
+      if (!cursor.complete && pendingCount < queueFloor) {
+        // Archive not fully mined yet → fetch the next pages and enqueue them.
+        walk = await enumerateThreadUrlsDeep(forum, calibration, {
+          cursor,
+          pagesPerBatch: ARCHIVE_PAGES_PER_BATCH,
+          sleepMs: opts.sleepMs,
+        });
+        cursor = walk.cursor;
+        state.updateForum(forum.id, { archive_cursor_json: JSON.stringify(cursor) });
+      } else if (cursor.complete && pendingCount === 0) {
+        // Archive done → shallow head-scan for brand-new threads (the cherry).
+        walk = await enumerateThreadUrlsDeep(forum, calibration, {
+          cursor,
+          pagesPerBatch: HEAD_SCAN_PAGES,
+          headScan: true,
+          sleepMs: opts.sleepMs,
+        });
+      }
     } catch (err) {
-      console.error(`  Error enumerating threads for ${forum.url}: ${err.message}`);
-      const until = new Date(Date.now() + COOLDOWN_HOURS_SHORT * 3600_000).toISOString();
-      state.updateForum(forum.id, {
-        cooldown_until: until,
-        new_threads_last_batch: 0,
-        status: 'active',
-        // Enumeration failed (likely transient) — not a yield-tier park.
-        cooldown_tier_hours: null,
-        cooldown_set_at: null,
-      });
-      continue;
+      if (isStoppingError(err)) throw err;
+      console.error(`  Error walking archive for ${forum.url}: ${err.message}`);
     }
 
-    if (!threadUrls || threadUrls.length === 0) {
-      console.log('  No thread URLs found.');
-      const until = new Date(Date.now() + COOLDOWN_HOURS_SHORT * 3600_000).toISOString();
-      state.updateForum(forum.id, {
-        last_crawled_at: new Date().toISOString(),
-        cooldown_until: until,
-        new_threads_last_batch: 0,
-        status: 'active',
-        // No URLs found — ambiguous (empty section / fetch issue), not a yield-tier park.
-        cooldown_tier_hours: null,
-        cooldown_set_at: null,
-      });
-      continue;
-    }
-
-    // ── Filter out already-processed threads ──
-    const newUrls = [];
-    const skippedUrls = [];
+    // Enqueue freshly enumerated threads. Dedup against the cross-source index
+    // + local non-pending rows BEFORE they ever reach the LLM.
+    let enqueued = 0;
     let skippedByIndex = 0;
-    for (const url of threadUrls) {
-      // Cross-source skip: already extracted by any crawler (legacy/NHTSA/agent)
-      if (isThreadAlreadyExtracted(url, crawledIndex)) {
-        skippedUrls.push(url);
-        skippedByIndex++;
-        continue;
+    if (walk) {
+      for (const link of walk.links) {
+        if (isThreadAlreadyExtracted(link.url, crawledIndex)) { skippedByIndex++; continue; }
+        const existing = state.getThreadByUrl(link.url);
+        if (existing && existing.status !== 'pending') continue;
+        state.addThread({ forumId: forum.id, url: link.url, title: link.title || null });
+        enqueued++;
       }
-      const existing = state.getThreadByUrl(url);
-      if (existing && existing.status !== 'pending') {
-        skippedUrls.push(url);
-      } else {
-        newUrls.push(url);
-      }
+      pendingCount = state.countPendingThreads(forum.id);
+      console.log(`  Archive walk: enumerated ${walk.links.length}, +${enqueued} queued, ${skippedByIndex} already known; ${pendingCount} pending${walk.complete ? ' (archive complete)' : ''}.`);
     }
 
-    console.log(`  Enumerated ${threadUrls.length} thread(s): ${newUrls.length} new, ${skippedUrls.length} already crawled (${skippedByIndex} via cross-source index).`);
-
-    // ── Exhaustion check — if almost everything is already known, set cooldown ──
-    const cooldownHours = computeCooldown(newUrls.length, threadUrls.length);
-    if (cooldownHours !== null) {
-      const until = new Date(Date.now() + cooldownHours * 3600_000).toISOString();
-      const label = cooldownHours >= 720 ? 'exhausted (30d)'
-        : cooldownHours >= 168 ? 'mostly exhausted (7d)'
-        : 'low yield (1d)';
-      console.log(`  ⏸ Forum ${label}: ${newUrls.length}/${threadUrls.length} new. Cooldown until ${until.slice(0, 10)}.`);
-      state.updateForum(forum.id, {
-        cooldown_until: until,
-        new_threads_last_batch: newUrls.length,
-        status: cooldownHours >= 720 ? 'exhausted' : 'active',
-        // Yield-based park — stamp the tier + when, so the daily coach can read the
-        // tier reliably (cooldown_until alone ages and can't reveal the original tier).
-        cooldown_tier_hours: cooldownHours,
-        cooldown_set_at: new Date().toISOString(),
-      });
-
-      // If truly zero new threads, skip entirely
-      if (newUrls.length === 0) {
-        state.updateForum(forum.id, { last_crawled_at: new Date().toISOString() });
-        continue;
-      }
-    }
-
-    // ── Process new threads ──
+    // ── Process a bounded batch from the pending queue (oldest first) ──
+    const queue = state.getPendingThreads(opts.batchSize, forum.id);
+    const processedUrls = [];
     let batchCases = 0;
-    for (const url of newUrls) {
-      const threadId = state.addThread({ forumId: forum.id, url });
+    for (const t of queue) {
+      const threadId = t.id;
+      const url = t.url;
+      processedUrls.push(url);
       totalThreads++;
 
       try {
@@ -551,18 +521,39 @@ async function phaseCrawl(state, opts) {
       await sleep(opts.sleepMs);
     }
 
-    // Update forum stats
+    // ── Update forum stats + decide the next cooldown ──
     const crawled = state.countCrawledThreads(forum.id);
     const forumCases = state.countForumCases(forum.id);
+    const remainingPending = state.countPendingThreads(forum.id);
     const crawledAt = new Date().toISOString();
-    state.updateForum(forum.id, {
+
+    // A forum truly rests only once its WHOLE archive has been walked
+    // (cursor.complete) AND the pending queue is drained — then it waits 30
+    // days, after which a shallow head-scan picks up brand-new threads. Until
+    // then it stays in rotation so successive batches march deeper.
+    const archiveDone = cursor.complete && remainingPending === 0;
+    const forumUpdate = {
       last_crawled_at: crawledAt,
       threads_crawled: crawled,
-      new_threads_last_batch: newUrls.length,
+      new_threads_last_batch: enqueued,
       cases_total: forumCases,
-      status: 'active',
-    });
-    console.log(`  Forum done: +${newUrls.length} threads, +${batchCases} cases (total: ${crawled} threads, ${forumCases} cases).`);
+    };
+    if (archiveDone) {
+      forumUpdate.status = 'exhausted';
+      forumUpdate.cooldown_until = new Date(Date.now() + COOLDOWN_HOURS_EXHAUSTED * 3600_000).toISOString();
+      forumUpdate.cooldown_tier_hours = COOLDOWN_HOURS_EXHAUSTED;
+      forumUpdate.cooldown_set_at = crawledAt;
+      console.log(`  ✓ Archive fully mined — resting ${forum.name || forum.url} for 30 days.`);
+    } else {
+      // Stay eligible: no long park while there is archive left to walk or a
+      // backlog to drain.
+      forumUpdate.status = 'active';
+      forumUpdate.cooldown_until = null;
+      forumUpdate.cooldown_tier_hours = null;
+      forumUpdate.cooldown_set_at = null;
+    }
+    state.updateForum(forum.id, forumUpdate);
+    console.log(`  Forum done: ${processedUrls.length} processed, +${batchCases} cases (total: ${crawled} threads, ${forumCases} cases; ${remainingPending} still queued).`);
 
     // Mirror last-scraped state to the online registry (best-effort; no-op
     // without a service key). This is what makes crawl_forums the shared
@@ -572,7 +563,7 @@ async function phaseCrawl(state, opts) {
       name: forum.name,
       engine: forum.parser,
       language: forum.language,
-      status: 'active',
+      status: archiveDone ? 'exhausted' : 'active',
       threads_crawled: crawled,
       cases_total: forumCases,
       yield_rate: crawled > 0 ? forumCases / crawled : 0,
@@ -580,9 +571,9 @@ async function phaseCrawl(state, opts) {
     }, { now: crawledAt }).catch(() => {});
 
     // ── Write LLM diary entry for this forum ──
-    // Collect top discard reasons from this batch for diary context
+    // Collect top discard reasons from the threads processed this batch.
     const discardReasons = [];
-    for (const url of newUrls) {
+    for (const url of processedUrls) {
       const t = state.getThreadByUrl(url);
       if (t?.discard_reason) discardReasons.push(t.discard_reason);
     }
@@ -592,7 +583,7 @@ async function phaseCrawl(state, opts) {
       .sort((a, b) => b[1] - a[1]).slice(0, 5).map(([r, n]) => `${r} (×${n})`);
 
     try {
-      await writeDiary(state, forum, { threads: newUrls.length, cases: batchCases }, topDiscards);
+      await writeDiary(state, forum, { threads: processedUrls.length, cases: batchCases }, topDiscards);
     } catch (err) {
       if (isStoppingError(err)) throw err;
       logWarn(`Diary write skipped for ${forum.name || forum.url}: ${err.message}`);

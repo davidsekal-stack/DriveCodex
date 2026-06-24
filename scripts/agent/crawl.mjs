@@ -246,6 +246,142 @@ export async function enumerateThreadUrls(forum, calibration, maxThreads, sleepM
 }
 
 // ---------------------------------------------------------------------------
+// Deep archive enumeration (persistent per-section cursor)
+// ---------------------------------------------------------------------------
+
+/**
+ * Walk a forum's listing pages IN ORDER, deep into the archive, remembering a
+ * per-section cursor so successive batches march further back (page 2 → 3 →
+ * … → last) instead of re-reading the newest threads.
+ *
+ * This is the archive miner — the owner's primary goal. The legacy
+ * `enumerateThreadUrls` only ever sampled the first ~60 (newest) threads of
+ * each section and never advanced, so a forum's archive of thousands of older
+ * threads was never reached and the forum was wrongly parked as "exhausted".
+ *
+ * Coverage is gap-free: a batch only ever advances by WHOLE listing pages and
+ * collects every thread link on them, so the cursor always sits on a page
+ * boundary. Brand-new threads (which appear on page 1) are the "cherry on top"
+ * and are picked up by a shallow head-scan once the archive is complete.
+ *
+ * @param {object} forum                    forum row (uses sections_json / url)
+ * @param {object} calibration              parsed calibration_json
+ * @param {object} [opts]
+ * @param {object} [opts.cursor]            prior cursor:
+ *   { sections: { <sectionUrl>: { next, done, pages } }, complete }
+ * @param {number} [opts.pagesPerBatch=2]   listing pages to advance per call
+ * @param {boolean} [opts.headScan=false]   ignore cursor; re-scan section heads
+ *   for genuinely-new threads (does NOT advance/persist the deep cursor)
+ * @param {number} [opts.sleepMs=0]
+ * @param {function} [opts.fetchHtmlImpl]   injectable fetcher (tests)
+ * @returns {Promise<{ links: Array, cursor: object, complete: boolean }>}
+ */
+export async function enumerateThreadUrlsDeep(forum, calibration = {}, opts = {}) {
+  const fetcher = opts.fetchHtmlImpl ?? fetchHtml;
+  const sleepMs = opts.sleepMs ?? 0;
+  const pagesPerBatch = Math.max(1, opts.pagesPerBatch ?? 2);
+  const headScan = !!opts.headScan;
+  const threadUrlFilter = makeThreadUrlFilter(calibration);
+
+  const sections = safeJsonParse(forum.sections_json, []);
+  const sectionUrls = (sections.length > 0
+    ? sections.map(s => (typeof s === 'string' ? s : s.url)).filter(Boolean)
+    : [forum.url])
+    .map(u => canonicalizeTraversalUrl(u))
+    .filter(Boolean);
+
+  // Carry forward prior per-section progress; never mutate the caller's object.
+  const cursor = { sections: { ...(opts.cursor?.sections || {}) }, complete: false };
+
+  const links = [];
+  const seen = new Set();
+
+  for (const sectionKey of sectionUrls) {
+    const prior = cursor.sections[sectionKey] || { next: null, done: false, pages: 0 };
+    // In deep mode a finished section is skipped; head-scan always re-reads heads.
+    if (!headScan && prior.done) {
+      cursor.sections[sectionKey] = prior;
+      continue;
+    }
+
+    // Deep mode resumes from the stored next page; head-scan / first visit
+    // starts at the section root.
+    const startUrl = headScan
+      ? sectionKey
+      : (prior.next ? canonicalizeTraversalUrl(prior.next) : sectionKey);
+
+    const entry = headScan
+      ? { next: prior.next ?? null, done: prior.done ?? false, pages: prior.pages ?? 0 }
+      : prior;
+
+    let pageUrl = startUrl;
+    let pagesThisBatch = 0;
+    const seenPages = new Set();
+
+    while (pageUrl && pagesThisBatch < pagesPerBatch) {
+      if (seenPages.has(pageUrl)) {
+        if (!headScan) { entry.done = true; entry.next = null; }
+        break;
+      }
+      seenPages.add(pageUrl);
+
+      let html;
+      try {
+        html = await fetcher(pageUrl, { cookie: calibration.cookie, forceBrowser: calibration.force_browser });
+      } catch (err) {
+        // Transient (anti-bot/timeout): leave the cursor where it is so the
+        // next batch retries this exact page — never skip archive pages.
+        console.error(`  Error enumerating ${pageUrl}: ${err.message}`);
+        break;
+      }
+
+      let pageLinks = [];
+      if (calibration.thread_list_selector) {
+        pageLinks = extractThreadLinksBySelector(html, pageUrl, calibration.thread_list_selector);
+      }
+      if (pageLinks.length === 0) {
+        pageLinks = extractThreadLinks(html, pageUrl);
+      }
+      for (const link of pageLinks) {
+        const url = canonicalizeThreadUrl(link.url);
+        if (!threadUrlFilter(url) || seen.has(url)) continue;
+        seen.add(url);
+        links.push({ ...link, url });
+      }
+
+      pagesThisBatch++;
+      entry.pages = (entry.pages || 0) + 1;
+
+      const nextUrl = findNextPageLink(
+        html,
+        pageUrl,
+        calibration.section_pagination_selector || calibration.pagination_selector
+      );
+      const canonicalNext = nextUrl ? canonicalizeTraversalUrl(nextUrl) : null;
+      if (!canonicalNext || canonicalNext === pageUrl) {
+        // Last listing page of this section reached → archive end.
+        if (!headScan) { entry.done = true; entry.next = null; }
+        pageUrl = null;
+      } else {
+        if (!headScan) entry.next = canonicalNext;
+        pageUrl = canonicalNext;
+      }
+
+      if (sleepMs && pageUrl) await new Promise(r => setTimeout(r, sleepMs));
+    }
+
+    if (!headScan) cursor.sections[sectionKey] = entry;
+  }
+
+  // Complete only once EVERY section has been walked to its last page.
+  cursor.complete = !headScan
+    && sectionUrls.length > 0
+    && sectionUrls.every(k => cursor.sections[k]?.done);
+
+  return { links, cursor, complete: cursor.complete };
+}
+
+// ---------------------------------------------------------------------------
 // Pipeline factory — used by orchestrator and calibration
 // ---------------------------------------------------------------------------
 
