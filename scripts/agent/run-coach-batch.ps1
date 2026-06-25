@@ -104,8 +104,10 @@ Write-LogLine -Path $logPath -Message "START coach batch."
 #  4) alert-agent (reflects on the precision alarm + reversibly quarantines bad cases;
 #     runs BEFORE the Desktop marker mirror so its diagnosis shows up there; does its
 #     safety action with NO model so it survives a tight quota)
-#  5) recalibrate-guarded (LLM-heavy: re-discovers + safely re-calibrates stuck forums)
-#     — runs LAST and is SKIPPED if any step signaled a quota/auth stop (exit 3).
+#  5) triage (LLM-heavy: auto-approves CLEAR pending cases, leaves only disputable for
+#     the human) — guarded, runs after the cheap auditors.
+#  6) recalibrate-guarded (LLM-heavy: re-discovers + safely re-calibrates stuck forums)
+#     — runs LAST. Both 5) and 6) are SKIPPED if any step signaled a quota/auth stop (exit 3).
 Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'recall-watchdog.mjs')   -LogPath $logPath -RepoRoot $repoRoot -Label 'recall watchdog'
 Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'daily-coach.mjs')        -LogPath $logPath -RepoRoot $repoRoot -Label 'daily coach'
 Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'precision-auditor.mjs')  -LogPath $logPath -RepoRoot $repoRoot -Label 'precision auditor'
@@ -171,6 +173,14 @@ Tento soubor zmizi sam, jakmile bude dalsi denni kontrola pod prahem.
   } catch {
     Write-LogLine -Path $logPath -Message ("WARN: precision marker mirror failed ({0}); ignoring." -f $_.Exception.Message)
   }
+}
+
+# Intake triage: auto-approve the CLEAR pending cases, leave only disputable for the human.
+# LLM-heavy (up to TRIAGE_MAX judgements) → skip if an earlier step hit a quota/auth stop.
+if ($script:StoppingHit) {
+  Write-LogLine -Path $logPath -Message "Skipping intake triage (a prior step signaled a quota/auth stop)."
+} else {
+  Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'triage.mjs') -LogPath $logPath -RepoRoot $repoRoot -Label 'intake triage'
 }
 
 # Guarded auto-recalibration runs LAST (it is the most LLM-expensive step: forum

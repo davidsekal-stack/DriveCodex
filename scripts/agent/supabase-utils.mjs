@@ -260,3 +260,82 @@ export async function setLiveCaseStatusByLocalId({ supabaseUrl, serviceKey, loca
     return { ok: false, found: true, previousStatus: row.status, reason: `patch failed: ${e.message}` };
   }
 }
+
+/**
+ * Read a batch of live gearbrain_cases rows by status (service key, bypasses RLS).
+ * Used by the intake triage to pull the next `pending` cases (oldest first) to judge.
+ * Returns {ok, rows} or {ok:false, reason}. Never throws.
+ */
+export async function fetchLiveCasesByStatus({ supabaseUrl, serviceKey, status = 'pending', limit = 50, offset = 0, order = 'created_at.asc', select = 'id,local_id,vehicle_brand,vehicle_model,engine_power,symptoms,obd_codes,description,resolution,thread_url,source_ref,status,created_at', fetchImpl = fetch }) {
+  if (!supabaseUrl || !serviceKey) return { ok: false, rows: [], reason: 'missing supabaseUrl/serviceKey' };
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  try {
+    const url = new URL(`rest/v1/${SUPABASE_CASES_TABLE}`, ensureTrailingSlash(supabaseUrl));
+    url.searchParams.set('status', `eq.${status}`);
+    url.searchParams.set('select', select);
+    url.searchParams.set('order', order);
+    url.searchParams.set('limit', String(limit));
+    if (offset > 0) url.searchParams.set('offset', String(offset));
+    const res = await fetchImpl(url.toString(), { headers });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      return { ok: false, rows: [], httpStatus: res.status, reason: `list HTTP ${res.status}: ${body.slice(0, 160)}` };
+    }
+    const rows = await res.json();
+    return { ok: true, rows: Array.isArray(rows) ? rows : [] };
+  } catch (e) {
+    return { ok: false, rows: [], reason: `list failed: ${e.message}` };
+  }
+}
+
+/** Upsert one row into crawl_review_queue (PK case_local_id) — a disputable case + its evidence. */
+export async function upsertReviewQueueRow({ supabaseUrl, serviceKey, row, fetchImpl = fetch }) {
+  if (!supabaseUrl || !serviceKey || !row?.case_local_id) return { ok: false, reason: 'missing supabaseUrl/serviceKey/row' };
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  try {
+    const url = new URL(`rest/v1/crawl_review_queue`, ensureTrailingSlash(supabaseUrl));
+    url.searchParams.set('on_conflict', 'case_local_id');
+    const res = await fetchImpl(url.toString(), {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([row]),
+    });
+    if (!res.ok) { const b = await res.text().catch(() => ''); return { ok: false, httpStatus: res.status, reason: `upsert HTTP ${res.status}: ${b.slice(0, 160)}` }; }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: `upsert failed: ${e.message}` };
+  }
+}
+
+/** Case ids already sitting UNRESOLVED in the review queue — triage skips re-judging them. */
+export async function fetchOpenReviewQueueIds({ supabaseUrl, serviceKey, fetchImpl = fetch }) {
+  if (!supabaseUrl || !serviceKey) return { ok: false, ids: [], reason: 'missing supabaseUrl/serviceKey' };
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  try {
+    const url = new URL(`rest/v1/crawl_review_queue`, ensureTrailingSlash(supabaseUrl));
+    url.searchParams.set('resolved_at', 'is.null');
+    url.searchParams.set('select', 'case_local_id');
+    url.searchParams.set('limit', '5000');
+    const res = await fetchImpl(url.toString(), { headers });
+    if (!res.ok) { const b = await res.text().catch(() => ''); return { ok: false, ids: [], httpStatus: res.status, reason: `queue ids HTTP ${res.status}: ${b.slice(0, 160)}` }; }
+    const rows = await res.json();
+    return { ok: true, ids: (Array.isArray(rows) ? rows : []).map(r => r.case_local_id).filter(Boolean) };
+  } catch (e) {
+    return { ok: false, ids: [], reason: `queue ids failed: ${e.message}` };
+  }
+}
+
+/** Remove a crawl_review_queue row (e.g. a case that triage now finds CLEAR and auto-approves). */
+export async function deleteReviewQueueRow({ supabaseUrl, serviceKey, localId, fetchImpl = fetch }) {
+  if (!supabaseUrl || !serviceKey || !localId) return { ok: false, reason: 'missing supabaseUrl/serviceKey/localId' };
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  try {
+    const url = new URL(`rest/v1/crawl_review_queue`, ensureTrailingSlash(supabaseUrl));
+    url.searchParams.set('case_local_id', `eq.${localId}`);
+    const res = await fetchImpl(url.toString(), { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } });
+    if (!res.ok) { const b = await res.text().catch(() => ''); return { ok: false, httpStatus: res.status, reason: `delete HTTP ${res.status}: ${b.slice(0, 160)}` }; }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: `delete failed: ${e.message}` };
+  }
+}

@@ -151,6 +151,11 @@ export const strings = {
   'review.reason.not_car':          'Not a car/van',
   'review.reason.vague':            'Too vague / unusable',
   'review.reason.other':            'Other',
+  'review.disputable':              '⚠ Disputable',
+  'review.whyDisputable':           'Why disputable (AI)',
+  'review.evidence':                'Forum quotes',
+  'review.openThread':              'Open thread ↗',
+  'review.autoApprovedNote':        'Clear cases are approved automatically. Below are only the disputable ones for your decision.',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytics',
