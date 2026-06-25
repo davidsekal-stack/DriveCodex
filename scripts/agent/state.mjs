@@ -41,6 +41,10 @@ const CASE_STATUS_PRIORITY = {
   verify_skipped: 20,
   verify_rejected: 10,
   crosscheck_dupe: 5,
+  // Terminal, set ONLY by the alert-agent's reversible quarantine. It is inert by
+  // construction: no verify/crosscheck/import selector and no precision-auditor pool
+  // ever selects it, so a quarantined case is never re-processed unless reverted.
+  quarantined: 4,
 };
 
 function threadPriority(thread) {
@@ -148,9 +152,16 @@ CREATE TABLE IF NOT EXISTS crawl_metrics (
 -- One row per decision. applied=1 = a forum knob was mutated (priority/cooldown)
 -- and is reversible via apply-proposal.mjs --revert; applied=0 = a SHADOW proposal
 -- (e.g. a re-calibration suggestion) that touched nothing and is for humans only.
--- old_json/new_json hold EXACTLY the forum columns the change wrote, so a revert
--- is a literal column restore. The partial UNIQUE(date,forum_id) WHERE applied=1
+-- old_json/new_json hold EXACTLY the columns the change wrote, so a revert is a
+-- literal column restore. The partial UNIQUE(date,forum_id) WHERE applied=1
 -- enforces the "max 1 applied change per forum per day" guardrail at the DB level.
+--
+-- target_kind discriminates the revert target: 'forum' (priority/cooldown/recalibrate,
+-- restored via getForum/updateForum) or 'case' (quarantine, restored via getCase/
+-- updateCase). For 'case' rows forum_id holds the CASE id (cryptographically distinct
+-- from any forum id), so the SAME unique index gives free idempotency — re-quarantining
+-- the same case the same day collides, while different cases (different ids) and forum
+-- knobs (real forum ids) never collide.
 CREATE TABLE IF NOT EXISTS coach_journal (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ts TEXT DEFAULT (datetime('now')),
@@ -164,7 +175,9 @@ CREATE TABLE IF NOT EXISTS coach_journal (
   signal_json TEXT,
   old_json TEXT,
   new_json TEXT,
-  reverted_at TEXT
+  reverted_at TEXT,
+  target_kind TEXT DEFAULT 'forum',
+  case_id TEXT
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_coach_journal_oneperday
   ON coach_journal(date, forum_id) WHERE applied = 1;
@@ -201,6 +214,10 @@ export class AgentState {
       // Per-section archive walk cursor (deep mining). JSON:
       // { sections: { <sectionUrl>: { next, done, pages } }, complete }
       'ALTER TABLE forums ADD COLUMN archive_cursor_json TEXT',
+      // Case-scoped coach actions (alert-agent quarantine): target discriminator
+      // + the case id, so the revert path can restore a case status, not a forum.
+      "ALTER TABLE coach_journal ADD COLUMN target_kind TEXT DEFAULT 'forum'",
+      'ALTER TABLE coach_journal ADD COLUMN case_id TEXT',
     ];
     for (const sql of alterations) {
       try { this.#db.exec(sql); } catch { /* column already exists */ }
@@ -639,16 +656,17 @@ export class AgentState {
   // applied=1 rows mutate a forum knob and are reversible; applied=0 rows are
   // shadow proposals (e.g. re-calibration suggestions) that touch nothing.
 
-  #insertCoachJournal({ date, forumId, forumName = null, knob, applied = 0, direction = null, reasonCode = null, signal = null, oldFields = null, newFields = null }) {
+  #insertCoachJournal({ date, forumId, forumName = null, knob, applied = 0, direction = null, reasonCode = null, signal = null, oldFields = null, newFields = null, targetKind = 'forum', caseId = null }) {
     const stmt = this.#db.prepare(
-      `INSERT INTO coach_journal (date, forum_id, forum_name, knob, applied, direction, reason_code, signal_json, old_json, new_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO coach_journal (date, forum_id, forum_name, knob, applied, direction, reason_code, signal_json, old_json, new_json, target_kind, case_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     const r = stmt.run(
       date, forumId, forumName, knob, applied ? 1 : 0, direction, reasonCode,
       signal == null ? null : JSON.stringify(signal),
       oldFields == null ? null : JSON.stringify(oldFields),
       newFields == null ? null : JSON.stringify(newFields),
+      targetKind, caseId,
     );
     return Number(r.lastInsertRowid);
   }
@@ -677,6 +695,30 @@ export class AgentState {
     return this.#insertCoachJournal({ date, forumId, forumName, knob, applied: 0, reasonCode, signal });
   }
 
+  /**
+   * Atomically apply ONE case-scoped change (quarantine) and journal it (applied=1)
+   * in a single transaction — the case-targeted mirror of applyCoachChange. The
+   * journal row uses target_kind='case' and stores forum_id = caseId, so the existing
+   * UNIQUE(date,forum_id) WHERE applied=1 index gives free same-day idempotency (a
+   * second quarantine of the same case the same day is rejected). Returns {ok,id} or
+   * {ok:false,reason}. oldFields/newFields are case columns (e.g. {status}).
+   */
+  applyCaseChange({ date, caseId, label = null, knob, reasonCode = null, signal = null, oldFields, newFields }) {
+    this.#db.exec('BEGIN IMMEDIATE');
+    try {
+      this.updateCase(caseId, newFields);
+      const id = this.#insertCoachJournal({
+        date, forumId: caseId, forumName: label, knob, applied: 1,
+        reasonCode, signal, oldFields, newFields, targetKind: 'case', caseId,
+      });
+      this.#db.exec('COMMIT');
+      return { ok: true, id };
+    } catch (e) {
+      this.#db.exec('ROLLBACK');
+      return { ok: false, reason: e.message };
+    }
+  }
+
   /** All journal rows for a local date (applied + shadow), for the report + same-day idempotency. */
   getCoachJournalForDate(date) {
     try {
@@ -692,6 +734,23 @@ export class AgentState {
          WHERE forum_id = ? AND knob = 'cooldown' AND applied = 1 AND reverted_at IS NULL AND date >= ?
          ORDER BY id DESC`
       ).all(forumId, sinceDate);
+    } catch { return []; }
+  }
+
+  /**
+   * Generic cross-night anti-flap source: rows for one forum + knob since a local
+   * date. Unlike getRecentCoachCooldownChanges this returns BOTH applied (the change
+   * landed) AND shadow rows (applied=0, e.g. a guarded re-calibration that ran but did
+   * not beat baseline) — so the recalibration cooldown counts an unproductive ATTEMPT
+   * too, and an expensive re-discovery is not repeated nightly on an unfixable forum.
+   */
+  getRecentCoachChanges(forumId, knob, sinceDate) {
+    try {
+      return this.#db.prepare(
+        `SELECT * FROM coach_journal
+         WHERE forum_id = ? AND knob = ? AND reverted_at IS NULL AND date >= ?
+         ORDER BY id DESC`
+      ).all(forumId, knob, sinceDate);
     } catch { return []; }
   }
 

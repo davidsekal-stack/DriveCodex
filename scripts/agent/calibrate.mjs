@@ -25,13 +25,13 @@ import { isStoppingError } from './quota.mjs';
 import { fetchHtml } from './fetch-utils.mjs';
 import { getForumProfile, applyProfileToForum } from './forum-profiles.mjs';
 
-const PROBE_SIZE = 5;
+export const PROBE_SIZE = 5;
 const MAX_ATTEMPTS = 3;
 const CALIBRATION_LLM_TIMEOUT_MS = 180_000;
 const TRANSIENT_CALIBRATION_BACKOFF_HOURS = 6;
 
 // Minimum thresholds for a forum to be considered calibrated
-const THRESHOLDS = {
+export const THRESHOLDS = {
   parser_success_rate: 0.6,      // ≥60% threads yield ≥2 parseable posts
   classifier_pass_rate: 0.1,     // ≥10% threads pass classifier (forums have lots of noise)
   extractor_yield_rate: 0.05,    // ≥5% threads produce ≥1 valid case
@@ -51,7 +51,7 @@ const THRESHOLDS = {
  * @property {string[]} sample_discards - classifier/extractor rejection reasons
  */
 
-function computeMetrics(probeResult) {
+export function computeMetrics(probeResult) {
   const { threads_total, parser_ok, classifier_ok, extractor_ok } = probeResult;
   if (threads_total === 0) {
     return { parser_success_rate: 0, classifier_pass_rate: 0, extractor_yield_rate: 0 };
@@ -63,7 +63,7 @@ function computeMetrics(probeResult) {
   };
 }
 
-function meetsThresholds(metrics) {
+export function meetsThresholds(metrics) {
   return (
     metrics.parser_success_rate >= THRESHOLDS.parser_success_rate &&
     metrics.classifier_pass_rate >= THRESHOLDS.classifier_pass_rate &&
@@ -572,7 +572,7 @@ export async function calibrateForum(state, forumId, pipeline) {
 // Probe runner
 // ---------------------------------------------------------------------------
 
-async function runProbe(forum, calibration, pipeline) {
+export async function runProbe(forum, calibration, pipeline) {
   const result = {
     threads_total: 0,
     parser_ok: 0,

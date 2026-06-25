@@ -237,12 +237,26 @@ začátek noci** (`nightCutoffUtc`, 21:00 lokálně), ne rolling 12 h.
 **Validace:** review (5 dimenzí + adversariální ověření) — bezpečnost/RLS/XSS/observe-only OK;
 opraven časovací cluster (viz výše). 26 agentních testů zelených.
 
-**▶ STAV:** Fáze 1 nasazená; Fáze 2 (priorita + cooldown auto, re-kalibrace shadow) i Fáze 3
-(precision auditor, report-only) hotové a otestované LOKÁLNĚ (nepushováno). Každá fáze prošla
-vícepohledovým návrhovým workflow (3 návrhy → adversariální kritik → syntéza) i přednasazovacím
-review. Než se nasadí na ostrý běh, stačí nechat naběhnout ~3 noci dat (cold-start) a zkontrolovat
-report + `coach_journal` + `logs/precision-labels.jsonl`. 🟠 shadow kanál pro prompty/prahy se
-NESTAVĚL — je vázaný na gold-set (Fáze 4). DALŠÍ NA ŘADĚ = Fáze 4 (vyžaduje gold-set session s majitelem).
+**▶ STAV:** Fáze 1 nasazená; Fáze 2 (priorita + cooldown auto, re-kalibrace shadow) + Fáze 3
+(precision auditor, report-only) hotové. **2026-06-24 (LOKÁLNĚ, nepushnuto) přidány dvě AKČNÍ smyčky:**
+- **AUTO překalibrace** [`recalibrate-guarded.mjs`](/C:/GB/scripts/agent/recalibrate-guarded.mjs) (krok 5
+  `run-coach-batch.ps1`): povýšila shadow návrh z Fáze 2 na bezpečnou akci. Běží přes **bufferující obal
+  stavu** (`makeBufferingState`) — skutečný řádek fóra se NESÁHNE, dokud nový pokus neprokáže lepší výnos
+  (vs. honest baseline probe; práh + marže `RECAL_MIN_YIELD_GAIN` + neprázdné sekce), jinak rollback +
+  attempt-marker (anti-flap 7 dní). 1 fórum/noc, profilová fóra přeskočena, quota → exit 3 (zkrat dávky).
+  Vratné: `apply-proposal.mjs --revert --knob recalibrate`.
+- **OPATRNÝ agent nad alarmem** [`alert-agent.mjs`](/C:/GB/scripts/agent/alert-agent.mjs) (krok 4, jen když
+  `precision-alert.txt`): reversibilně dá do **karantény** případy s vysokou jistotou (živý `gearbrain_cases`
+  pending/approved→`rejected` atomickým CAS přes `local_id`, pak lokální `quarantined` + deník `quarantine`;
+  live-first s kompenzací při selhání lokálního zápisu). Diagnóza + doporučení zpřísnění brány jen REPORT-ONLY
+  (na bránu/prompt NESAHÁ). Vratné: `apply-proposal.mjs --revert --knob quarantine` (obnoví i živý stav).
+- Schéma: `coach_journal` má `target_kind`/`case_id`; revert dispatchuje forum vs. case; nový stav případu
+  `quarantined` je inertní (žádný selektor ho nepřebírá). **31 agentních testů zelených** (+`agent-recalibrate-guarded`,
+  `agent-alert-agent`); web lint+build OK; produkční round-trip karantény ověřen a vrácen.
+
+Pozn.: skripty běží z pracovní kopie → ranní dávka už používá nový kód. 🟠 shadow kanál pro prompty/prahy se
+NESTAVĚL — vázaný na gold-set. DALŠÍ NA ŘADĚ = Fáze 4 (gold-set session s majitelem) — zbývá z ní už jen
+propose-and-gate pro PROMPTY/PRAHY; (e) auto re-kalibrace HOTOVÁ.
 
 **▶ POZDĚJŠÍ FÁZE (roadmapa, každá samostatně nasaditelná):**
 - **Fáze 3 — precision auditor (zrcadlo recall-watchdogu): ✅ HOTOVO (viz výše).** Měří míru „chybně
@@ -257,11 +271,14 @@ NESTAVĚL — je vázaný na gold-set (Fáze 4). DALŠÍ NA ŘADĚ = Fáze 4 (vy
   rizikových změn (Tier A/B s mezemi + undo token; Tier C prompt/práh jen NAstaguje draft →
   manuální review + `npm run test:agent` + gold harness + výslovné OK majitele → teprve commit;
   invariant: verify vendor ≠ extract vendor). Riziko vstupuje až tady, vždy za lidskou bránou.
-  - **(e) AUTO re-kalibrace** (přesunuta sem z Fáze 2): kouč už STUCK fóra detekuje a navrhuje (shadow);
-    plně automatické přepsání struktury smí přijít až s: confounder gate z recall-watchdogu (na noc s driftem
-    verifikátoru nedělat žádnou kvalitativní strukturální akci), engine odložením re-discovery ≥1 cyklus
-    (aby šel `--revert` týž den), 14denní per-forum recal cooldownem a `calibration_attempts<3`. Skeleton
-    undo (`applyCoachChange` atomický + journal) už z Fáze 2 existuje.
+  - **(e) AUTO re-kalibrace: ✅ HOTOVO 2026-06-24** ([`recalibrate-guarded.mjs`](/C:/GB/scripts/agent/recalibrate-guarded.mjs)).
+    Původní obavy z nevratnosti vyřešeny jinak (a lépe) než navrhováno: místo „engine odložení re-discovery ≥1 cyklus"
+    se kalibrace pouští přes **bufferující obal** (skutečný řádek se nesáhne, dokud kandidát neuspěje → `--revert` jde
+    KDYKOLI, ne jen týž den); cooldown 7 dní (env `RECAL_COOLDOWN_DAYS`); `calibration_attempts<3` drží interně sama
+    `calibrateForum` (MAX_ATTEMPTS=3) + buffering brání bumpu attempts při neúspěchu. **Zbývající rozdíl od plánu:**
+    confounder gate z recall-watchdogu (na noc s driftem verifikátoru nedělat strukturální akci) NENÍ explicitní — místo
+    toho je akce vázaná na čerstvý baseline+candidate **probe** (extractor yield z vlastní kalibrace, ne z verifikátoru),
+    takže drift verifikátoru ji přímo neovlivní; explicitní confounder gate je možné budoucí zpřísnění.
 
 **Průřezové guardrails (platí pro všechny fáze):** cíl je **PRECISION, ne YIELD** — žádná akce,
 jejíž efekt je „projde víc případů branou", se nikdy neaplikuje automaticky (jen navrhne); vše

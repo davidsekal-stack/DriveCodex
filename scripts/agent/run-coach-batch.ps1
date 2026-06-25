@@ -14,6 +14,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# Set by Invoke-NodeStep when a step exits with code 3 (quota/auth stop). The expensive,
+# LLM-heavy guarded-recalibration step is skipped when this is set, so a depleted Claude
+# quota leaves that work for tomorrow instead of half-running it.
+$script:StoppingHit = $false
+
 $agentDir = (Resolve-Path $PSScriptRoot).Path
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
@@ -70,6 +75,10 @@ function Invoke-NodeStep { param([string]$NodeExe, [string]$Script, [string]$Log
       Add-Content -Path $LogPath -Value $c.TrimEnd("`r", "`n")
     }
     Write-LogLine -Path $LogPath -Message ("{0} exit_code={1}." -f $Label, [int]$proc.ExitCode)
+    if ([int]$proc.ExitCode -eq 3) {
+      $script:StoppingHit = $true
+      Write-LogLine -Path $LogPath -Message ("{0} signaled a quota/auth stop; remaining heavy steps will be skipped (left for tomorrow)." -f $Label)
+    }
   } catch {
     Write-LogLine -Path $LogPath -Message ("WARN: {0} failed ({1}); ignoring." -f $Label, $_.Exception.Message)
   } finally {
@@ -87,13 +96,20 @@ $loaded = Import-DotEnv -Path (Join-Path $agentDir '.env.local')
 if ($loaded -gt 0) { Write-LogLine -Path $logPath -Message ("Loaded {0} secret(s) from .env.local." -f $loaded) }
 Write-LogLine -Path $logPath -Message "START coach batch."
 
-# 1) recall watchdog (verifier over-rejection check), 2) daily coach (night report + metrics),
-# 3) precision auditor (verifier under-rejection check — bad cases that slipped THROUGH).
-# Precision is LAST: if the Claude cap hits mid-run, the cheaper-to-lose recall already ran,
-# and the precision day is not claimed (state stamp) so it retries tomorrow.
+# Order (cheapest-to-lose first; the precision DAY is claimed by the auditor only on a
+# clean run, so a mid-run cap retries tomorrow):
+#  1) recall watchdog (verifier over-rejection check)
+#  2) daily coach (night report + metrics + reversible priority/cooldown tuning)
+#  3) precision auditor (verifier under-rejection check — bad cases that slipped THROUGH)
+#  4) alert-agent (reflects on the precision alarm + reversibly quarantines bad cases;
+#     runs BEFORE the Desktop marker mirror so its diagnosis shows up there; does its
+#     safety action with NO model so it survives a tight quota)
+#  5) recalibrate-guarded (LLM-heavy: re-discovers + safely re-calibrates stuck forums)
+#     — runs LAST and is SKIPPED if any step signaled a quota/auth stop (exit 3).
 Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'recall-watchdog.mjs')   -LogPath $logPath -RepoRoot $repoRoot -Label 'recall watchdog'
 Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'daily-coach.mjs')        -LogPath $logPath -RepoRoot $repoRoot -Label 'daily coach'
 Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'precision-auditor.mjs')  -LogPath $logPath -RepoRoot $repoRoot -Label 'precision auditor'
+Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'alert-agent.mjs')        -LogPath $logPath -RepoRoot $repoRoot -Label 'alert agent'
 
 # Mirror the watchdog's alert file to a Desktop marker (present → ensure; absent → remove).
 $desktopDir = [Environment]::GetFolderPath('Desktop')
@@ -155,6 +171,15 @@ Tento soubor zmizi sam, jakmile bude dalsi denni kontrola pod prahem.
   } catch {
     Write-LogLine -Path $logPath -Message ("WARN: precision marker mirror failed ({0}); ignoring." -f $_.Exception.Message)
   }
+}
+
+# Guarded auto-recalibration runs LAST (it is the most LLM-expensive step: forum
+# re-discovery + probes). Skip it if an earlier step already hit a quota/auth stop,
+# so we never half-run re-discovery on a depleted quota.
+if ($script:StoppingHit) {
+  Write-LogLine -Path $logPath -Message "Skipping guarded recalibration (a prior step signaled a quota/auth stop)."
+} else {
+  Invoke-NodeStep -NodeExe $nodeExe -Script (Join-Path $agentDir 'recalibrate-guarded.mjs') -LogPath $logPath -RepoRoot $repoRoot -Label 'guarded recalibration'
 }
 
 Write-LogLine -Path $logPath -Message "END coach batch."

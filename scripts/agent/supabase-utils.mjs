@@ -190,3 +190,73 @@ export async function crosscheckCaseAgainstSupabase({
 function ensureTrailingSlash(value) {
   return value.endsWith('/') ? value : `${value}/`;
 }
+
+/**
+ * Reversibly flip the LIVE status of one imported case in gearbrain_cases, keyed by
+ * its agent-side local_id (== the agent case id push-case wrote as local_id). Used by
+ * the alert-agent to quarantine a wrongly-accepted case (status → 'rejected', so it
+ * leaves search/review) and by apply-proposal --revert to restore it.
+ *
+ * The agent does NOT know IMPORTER_USER_ID, so we resolve the row by local_id, then
+ * PATCH by its own primary-key id (unambiguous). The service key bypasses RLS. The
+ * `expectStatuses` guard is a TRUE atomic compare-and-swap: the expected status is
+ * pushed into the PATCH filter itself (status=in.(…)), so if a human/engine changes the
+ * row in the lookup→PATCH window the write simply matches 0 rows and is reported
+ * skipped — a human decision in between is never clobbered. Returns {ok, found, skipped,
+ * updated, previousStatus, httpStatus}. Never throws on a clean miss — a case not (yet)
+ * in the live DB returns {ok:true, found:false}.
+ */
+export async function setLiveCaseStatusByLocalId({ supabaseUrl, serviceKey, localId, patch, expectStatuses = null, fetchImpl = fetch }) {
+  if (!supabaseUrl || !serviceKey || !localId || !patch) {
+    return { ok: false, found: false, reason: 'missing supabaseUrl/serviceKey/localId/patch' };
+  }
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+
+  let row;
+  try {
+    const lookup = new URL(`rest/v1/${SUPABASE_CASES_TABLE}`, ensureTrailingSlash(supabaseUrl));
+    lookup.searchParams.set('local_id', `eq.${localId}`);
+    lookup.searchParams.set('select', 'id,status,review_reason');
+    lookup.searchParams.set('limit', '1');
+    const res = await fetchImpl(lookup.toString(), { headers });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      return { ok: false, found: false, httpStatus: res.status, reason: `lookup HTTP ${res.status}: ${body.slice(0, 160)}` };
+    }
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return { ok: true, found: false };
+    row = rows[0];
+  } catch (e) {
+    return { ok: false, found: false, reason: `lookup failed: ${e.message}` };
+  }
+
+  if (Array.isArray(expectStatuses) && !expectStatuses.includes(row.status)) {
+    return { ok: true, found: true, skipped: true, previousStatus: row.status };
+  }
+
+  try {
+    const patchUrl = new URL(`rest/v1/${SUPABASE_CASES_TABLE}`, ensureTrailingSlash(supabaseUrl));
+    patchUrl.searchParams.set('id', `eq.${row.id}`);
+    // Atomic CAS: constrain the write to the expected status so a change in the
+    // lookup→PATCH window matches 0 rows instead of clobbering it. return=representation
+    // lets us count the rows actually updated.
+    if (Array.isArray(expectStatuses) && expectStatuses.length > 0) {
+      patchUrl.searchParams.set('status', `in.(${expectStatuses.join(',')})`);
+    }
+    const res = await fetchImpl(patchUrl.toString(), {
+      method: 'PATCH',
+      headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      return { ok: false, found: true, httpStatus: res.status, previousStatus: row.status, reason: `patch HTTP ${res.status}: ${body.slice(0, 160)}` };
+    }
+    const updatedRows = await res.json().catch(() => null);
+    const count = Array.isArray(updatedRows) ? updatedRows.length : (updatedRows ? 1 : 0);
+    if (count === 0) return { ok: true, found: true, skipped: true, previousStatus: row.status }; // superseded in the window
+    return { ok: true, found: true, updated: true, previousStatus: row.status };
+  } catch (e) {
+    return { ok: false, found: true, previousStatus: row.status, reason: `patch failed: ${e.message}` };
+  }
+}

@@ -49,21 +49,21 @@ try {
   assert.equal(rows.filter(r => Number(r.applied) === 0).length, 1, 'proposal coexists');
 
   // ── revert happy path + idempotency ──
-  const res = revertCoachChanges(state, { forumId: f1 });
+  const res = await revertCoachChanges(state, { forumId: f1 });
   assert.equal(res.reverted.length, 1);
   assert.equal(state.getForum(f1).priority_score, 0, 'priority restored');
-  const again = revertCoachChanges(state, { forumId: f1 });
+  const again = await revertCoachChanges(state, { forumId: f1 });
   assert.equal(again.total, 0, 'nothing left to revert (reverted_at filter)');
 
   // ── revert SUPERSEDED: an intervening write is never clobbered ──
   const f2 = state.addForum({ url: 'https://b.example/forum', name: 'Forum B' });
   state.applyCoachChange({ date: DATE, forumId: f2, forumName: 'Forum B', knob: 'priority', oldFields: { priority_score: 0 }, newFields: { priority_score: 30 } });
   state.updateForum(f2, { priority_score: 50 }); // engine/human moved it on
-  const res2 = revertCoachChanges(state, { forumId: f2 });
+  const res2 = await revertCoachChanges(state, { forumId: f2 });
   assert.equal(res2.reverted.length, 0);
   assert.equal(res2.superseded.length, 1);
   assert.equal(state.getForum(f2).priority_score, 50, 'newer value preserved, not clobbered');
-  assert.equal(revertCoachChanges(state, { forumId: f2 }).total, 0, 'superseded row also closed out (idempotent)');
+  assert.equal((await revertCoachChanges(state, { forumId: f2 })).total, 0, 'superseded row also closed out (idempotent)');
 
   // ── cooldown is multi-column and fully restored on revert ──
   const f3 = state.addForum({ url: 'https://c.example/forum', name: 'Forum C' });
@@ -73,7 +73,7 @@ try {
   state.applyCoachChange({ date: DATE, forumId: f3, forumName: 'Forum C', knob: 'cooldown', direction: 'shorten', oldFields: oldCd, newFields: newCd });
   assert.equal(state.getForum(f3).cooldown_tier_hours, 24);
   assert.equal(state.getForum(f3).cooldown_until, newCd.cooldown_until);
-  const res3 = revertCoachChanges(state, { forumId: f3 });
+  const res3 = await revertCoachChanges(state, { forumId: f3 });
   assert.equal(res3.reverted.length, 1);
   const back = state.getForum(f3);
   assert.equal(back.cooldown_tier_hours, 168, 'tier restored');
