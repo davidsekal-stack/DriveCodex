@@ -128,6 +128,51 @@ export function buildThreadText({ url, title, posts, forumTitle = '', subforumTi
 }
 
 // ---------------------------------------------------------------------------
+// Thread age — last-activity dating for the >=1-year crawl policy
+//
+// A thread is only mined once it has been quiet long enough that any fix it will
+// ever get is already present (see processThread's defer gate in crawl.mjs). To
+// judge that we need the date of the newest post. The engine parsers all read the
+// post date from <time datetime="…"> (ISO-8601); some skins expose a numeric epoch
+// in data-time. Anything localized/relative ("vor 2 Stunden", "včera") is NOT
+// parsed — parseWhenToDate returns null and the caller treats unknown age as
+// "process now" (the safe direction: we never silently lose a thread we can't date).
+// ---------------------------------------------------------------------------
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+
+/**
+ * Parse a post's `when` value to epoch milliseconds, or null if it is not a
+ * reliably-absolute timestamp. Accepts ISO-8601 (the engine <time datetime>) and a
+ * bare 10-digit unix-seconds / 13-digit unix-ms integer; everything else
+ * (localized or relative date text) returns null = unknown age.
+ */
+export function parseWhenToDate(raw) {
+  const s = (raw ?? '').toString().trim();
+  if (!s) return null;
+  // Bare unix epoch (seconds: 10 digits ~2001–2286, or milliseconds: 13 digits).
+  if (/^\d{10}$/.test(s)) return Number(s) * 1000;
+  if (/^\d{13}$/.test(s)) return Number(s);
+  // ISO-8601 only — guard against Date.parse's loose acceptance of garbage.
+  if (!ISO_DATE_RE.test(s)) return null;
+  const ms = Date.parse(s);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * Newest parseable post date in a thread, as epoch milliseconds, or null when no
+ * post carries a reliably-absolute timestamp (=> caller treats age as unknown).
+ */
+export function threadLastActivity(posts) {
+  let newest = null;
+  for (const p of posts ?? []) {
+    const ms = parseWhenToDate(p?.when);
+    if (ms != null && (newest == null || ms > newest)) newest = ms;
+  }
+  return newest;
+}
+
+// ---------------------------------------------------------------------------
 // Extract thread links using calibrated CSS selectors
 // ---------------------------------------------------------------------------
 

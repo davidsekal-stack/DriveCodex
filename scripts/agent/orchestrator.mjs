@@ -399,6 +399,14 @@ async function phaseCrawl(state, opts) {
     console.log(`  Crawling: ${forum.name || forum.url}`);
     const calibration = safeJsonParse(forum.calibration_json);
 
+    // ── Revive matured deferred threads ──
+    // A thread set aside earlier as too-young (its newest post was <1yr old) is
+    // re-queued once that year has passed, so this batch re-fetches it and can
+    // capture a resolution that has landed since. This is the mechanism that
+    // makes "set aside" reversible — a late fix is never permanently lost.
+    const revived = state.reviveDueDeferredThreads(forum.id);
+    if (revived > 0) console.log(`  Revived ${revived} matured deferred thread(s) for re-check.`);
+
     // ── Fill the archive queue (deep walk) ──
     // Walk the listing pages IN ORDER, marching deeper into the archive and
     // remembering where we stopped (per-section cursor), instead of re-reading
@@ -462,6 +470,19 @@ async function phaseCrawl(state, opts) {
 
       try {
         const result = await processThread(url, calibration, pipeline);
+
+        if (result.deferred) {
+          // Too young to judge yet — set aside until ~1yr after its last post
+          // instead of discarding, so a resolution that lands later isn't lost.
+          // We don't store thread_text here (it's re-fetched on revival): a busy
+          // forum can defer thousands of threads and the body would bloat agent.db.
+          state.updateThread(threadId, {
+            status: 'deferred',
+            revisit_after: result.revisitAfter,
+            title: result.title || null,
+          });
+          continue;
+        }
 
         if (result.skipped) {
           state.updateThread(threadId, {

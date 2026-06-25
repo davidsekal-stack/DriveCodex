@@ -121,6 +121,23 @@ POST 1 | page: 1 | author: Alice | is_thread_author: true:
 
 That normalized format is the evidence backbone for classification, extraction, and author-consistency validation.
 
+**Thread-age gate (the ">=1 year" policy).** Between parse and classify, `processThread`
+checks the date of the newest post (`threadLastActivity`, read from the engine
+`<time datetime>` ISO timestamps). If the thread's last activity is younger than
+~1 year (`AGENT_MIN_THREAD_AGE_DAYS`, default 365), it is **not** judged yet — it
+is set aside as `deferred` with a `revisit_after` (= last post + 1 year) instead
+of being discarded. The reason: a fresh thread may not carry its fix yet, and
+once we discard a thread we never look again, so judging it too early permanently
+loses a resolution that lands later. When the year elapses, `reviveDueDeferredThreads`
+re-queues it (status → `pending`) and the next batch re-fetches it: if a fix has
+since appeared it is extracted, otherwise it is judged normally and closed for
+good (a matured thread is **not** re-checked forever). An **unknown/unparseable**
+date (localized listings, e.g. generic .cz/.de skins with no `<time>`) falls
+through and is processed now — the safe direction is never to silently drop a
+thread we cannot date. The gate lives only in the production `processThread`;
+calibration probes (`fetchAndParse`/`classify`/`extract` directly) are unaffected,
+so a forum is never failed for having young sample threads.
+
 ### Phase 4: Validate
 
 Core file: [`validate.mjs`](/C:/GB/scripts/agent/validate.mjs)
@@ -312,6 +329,8 @@ Practical statuses I saw in code:
   - `exhausted`
 - threads
   - `pending`
+  - `deferred` (fetched but too young to judge — set aside until `revisit_after`,
+    ~1 year after its last post; revived to `pending` when due)
   - `discarded`
   - `extracted`
   - `error`
@@ -347,6 +366,7 @@ So this is meant to become better over time per forum type, not just run statele
 - [`seed-known-forums.mjs`](/C:/GB/scripts/agent/seed-known-forums.mjs): marks previously handled forums as already exhausted so the agent does not duplicate old work
 - [`seed-candidates.mjs`](/C:/GB/scripts/agent/seed-candidates.mjs): imports ranked forum candidates into SQLite
 - [`reset-forum.mjs`](/C:/GB/scripts/agent/reset-forum.mjs): clears failed calibration state so a forum can be retried
+- [`recover-discarded.mjs`](/C:/GB/scripts/agent/recover-discarded.mjs): **one-time** recovery of threads discarded BEFORE the thread-age gate shipped (genuine faults marked "no confirmed resolution" that may have a fix now). Flips the recoverable ones `discarded` → `pending` so the nightly crawl re-judges them under the age-aware pipeline; does no fetching/LLM itself. Dry-run by default (reports buckets: recoverable / too_few / terminal / other); `--apply` flips + writes a backup; `--revert <backup>` restores still-pending ids (CAS — never clobbers a re-processed one). Flags: `--limit`, `--forum`, `--include-too-few`. Run it AFTER the age-gate code is live, else the old pipeline just re-discards them
 - [`patch-symptoms.mjs`](/C:/GB/scripts/agent/patch-symptoms.mjs): re-extracts symptoms for already imported cases and patches Supabase/local payloads
 - [`backfill-resolution-i18n.mjs`](/C:/GB/scripts/agent/backfill-resolution-i18n.mjs): translates the English `resolution` of approved cases into Czech/German (`resolution_cs`/`resolution_de` + detected `resolution_lang`) for the "Known Faults" panel. Routed via Claude (task `translate`), resumable (queue = `resolution_lang IS NULL`); run nightly as Step 3 of `run-agent-batch.ps1`. Never modifies the canonical English `resolution`
 - [`recall-watchdog.mjs`](/C:/GB/scripts/agent/recall-watchdog.mjs): daily recall audit of the verifier — a cross-vendor (Claude) re-check of a sample of recent `verify_rejected` cases to catch the verifier *over-rejecting* good cases (the one failure mode the verifier can't see in itself). Self-gates to 1×/day after `RECALL_AUDIT_HOUR` (07:00); writes `logs/recall-audit-YYYY-MM-DD.md` always, and `recall-alert.txt` only when the wrongly-rejected rate clears a threshold (≥30% of ≥3). Runs as **Step 1 of the dedicated `run-coach-batch.ps1`** morning task (alongside the daily coach + precision auditor), which mirrors the alert to a Desktop marker. Routes via the `AGENT_LLM_RECALL-AUDIT` env override (no change to `llm.mjs`). The agree/disagree judgements accumulate as labelled data for future verifier-prompt tuning

@@ -22,6 +22,7 @@ import {
   extractThreadLinksBySelector,
   findNextPageLink,
   selectPosts,
+  threadLastActivity,
 } from './parsers/common.mjs';
 import { classifyThread } from './classify.mjs';
 import { extractCases } from './extract.mjs';
@@ -54,6 +55,14 @@ function parseHtml(html, parserKey, calibration, pageNumber) {
   }
   const parser = PARSERS[parserKey] || PARSERS.generic;
   return parser(html, calibration, pageNumber);
+}
+
+// Thread-age policy: a thread is mined only once its newest post is at least this
+// old (default 1 year). Override with AGENT_MIN_THREAD_AGE_DAYS for testing/tuning.
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+export function minThreadAgeMs() {
+  const days = Number(process.env.AGENT_MIN_THREAD_AGE_DAYS);
+  return Number.isFinite(days) && days > 0 ? days * 24 * 60 * 60 * 1000 : ONE_YEAR_MS;
 }
 
 export function isLikelyThreadUrl(url) {
@@ -484,13 +493,41 @@ export function createCrawlPipeline(opts = {}) {
  * @param {string} url
  * @param {object} calibration
  * @param {object} pipeline - From createCrawlPipeline()
- * @returns {Promise<{ threadText, title, cases: Array<{case, validation}>, skipped: string|null }>}
+ * @param {object} [opts]              test/tuning hooks
+ * @param {number} [opts.now]          epoch ms treated as "now" (default Date.now())
+ * @param {number} [opts.minThreadAgeMs] age threshold (default minThreadAgeMs())
+ * @returns {Promise<{ threadText, title, cases: Array<{case, validation}>, skipped: string|null,
+ *   deferred?: boolean, lastPostAt?: string, revisitAfter?: string }>}
+ *   When `deferred` is true the thread is too young to judge yet: the caller should
+ *   set it aside (status 'deferred') with `revisitAfter` instead of discarding it.
  */
-export async function processThread(url, calibration, pipeline) {
+export async function processThread(url, calibration, pipeline, opts = {}) {
   // Fetch & parse
   const parseResult = await pipeline.fetchAndParse(url, calibration);
   if (!parseResult.posts || parseResult.posts.length < 2) {
     return { threadText: '', title: '', cases: [], skipped: 'Too few posts' };
+  }
+
+  // ── Thread-age gate ──
+  // Mine a thread only once its newest post is at least ~1 year old. A fresh
+  // thread may not carry its fix yet, and once we discard a thread we never look
+  // again — so judging it too early permanently loses a resolution that lands
+  // later. Too young => DEFER (revisit after it matures) rather than discard.
+  // Unknown age (no parseable date, e.g. localized listings) => process now: the
+  // safe direction is never to silently drop a thread we cannot date.
+  const now = opts.now ?? Date.now();
+  const minAge = opts.minThreadAgeMs ?? minThreadAgeMs();
+  const lastActivityMs = threadLastActivity(parseResult.posts);
+  if (lastActivityMs != null && (now - lastActivityMs) < minAge) {
+    return {
+      threadText: parseResult.threadText,
+      title: parseResult.title,
+      cases: [],
+      skipped: null,
+      deferred: true,
+      lastPostAt: new Date(lastActivityMs).toISOString(),
+      revisitAfter: new Date(lastActivityMs + minAge).toISOString(),
+    };
   }
 
   // Classify

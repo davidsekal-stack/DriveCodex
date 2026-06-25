@@ -128,6 +128,47 @@ Pozor:
 
 ## Co bylo uděláno naposledy
 
+### 0. Crawl agent — věkový filtr vláken („netěžit mladší než rok") + defer/revisit (2026-06-25, LOKÁLNĚ, větev `feat/crawler-thread-age-defer`)
+
+**Problém (nápad majitele):** crawler, který vlákno otevře, nenajde řešení a označí `discarded`,
+už se k němu podle URL nikdy nevrátí — takže pozdě dodané řešení (tazatel se ozve za týdny/měsíce)
+se navždy ztratí. Polovina věci už byla vyřešena dřív: **deep archive miner** (`enumerateThreadUrlsDeep`,
+v `main` od commitu `8bfbe47`) prochází CELÝ archiv po stránkách s perzistentním kurzorem
+(`forums.archive_cursor_json`), takže to nejde jen po „nejnovějším okně"; „exhausted" = `cursor.complete`
++ prázdná fronta → 30denní park → mělký head-scan na nová vlákna. Tahle relace doplnila druhou polovinu:
+nesahat na vlákno, dokud nedozraje.
+
+**Řešení (zvolen post-fetch defer, ne enumerace — datum NENÍ ve výpisu, jen v příspěvcích):**
+- `parsers/common.mjs`: `parseWhenToDate` (ISO-8601 z `<time datetime>` + bare unix epoch; lokalizované/
+  relativní → `null` = neznámé) + `threadLastActivity(posts)` (nejnovější parsovatelné datum).
+- `crawl.mjs` `processThread`: mezi parse a classify spočítá poslední aktivitu; je-li mladší než
+  `AGENT_MIN_THREAD_AGE_DAYS` (default 365), vrátí `{ deferred, lastPostAt, revisitAfter }` a NEvolá LLM.
+  Neznámé datum → projde normálně (bezpečný směr; chrání ~17 generic .cz/.de fór bez `<time>` jako dosud).
+  **Kalibrace se gate NEDOTÝKÁ** (volá `fetchAndParse`/`classify`/`extract` přímo, ne `processThread`) →
+  fórum nikdy nepropadne kvůli mladým vzorkům.
+- `orchestrator.mjs` `phaseCrawl`: na začátku per-forum `reviveDueDeferredThreads` (oživí dozrálá vlákna
+  → `pending`); nová větev pro `result.deferred` → status `deferred` + `revisit_after` (NEukládá
+  thread_text, ať se agent.db nenafoukne).
+- `state.mjs`: sloupec `threads.revisit_after` (CREATE + ALTER), `deferred` v `THREAD_STATUS_PRIORITY`
+  (15, mezi error a pending), `revisit_after` v `updateThread` allow-listu (jinak by se tiše zahodil!),
+  `reviveDueDeferredThreads` (CAS `datetime(revisit_after) <= datetime('now')`), `countDeferredThreads`,
+  `getThreadsByStatus`. `countCrawledThreads` vyřazuje `deferred` (není verdikt → nekazí yield).
+- `daily-coach.mjs`: `deferred` se nepočítá jako „processed" (jinak falešný re-kalibrační signál
+  „busy but barren").
+
+**Rozhodnutí majitele:** věk dle DATA POSLEDNÍHO PŘÍSPĚVKU (ne založení); jakmile vlákno dozraje (>1 rok
+ticho) a řešení tam pořád není, je „projité" a **natrvalo zahozené** (žádné opakované kontroly — proto
+revisit běží jen u stále-mladých). Plus jednorázová záchrana starých zahozených (viz níže).
+
+**Záchrana:** `recover-discarded.mjs` — jednorázově překlopí dříve zahozená „závada bez řešení" vlákna
+`discarded`→`pending`, aby je noční běh přehodnotil novou age-aware pipeline. Dry-run report ukázal
+**1183 zachranitelných** (z 4146 zahozených; 1247 too_few vyloučeno, 571 terminal, 1145 other). Vratné
+(`--revert <backup>`, CAS na pending). **Pustit `--apply` AŽ po aktivaci** (jinak starý kód je zase zahodí).
+
+**Stav:** testy `tests/agent-crawl-defer.test.js` (defer gate + revive + persistence + recovery selection),
+celá `npm run test:agent` zelená (35 sad). **Aktivace = nechat checkoutnutou větev `feat/crawler-thread-age-defer`
+pro noční běh** (crawler-only, žádný frontend → NEtřeba merge do main / Vercel deploy). Pak `recover-discarded.mjs --apply`.
+
 ### 0. Crawl agent — zpřísnění nezávislého verifikátoru (2026-06-17, LOKÁLNĚ)
 
 Po ruční revizi 59 importovaných případů prošlo 9 chybných přes cross-vendor verifikátor.

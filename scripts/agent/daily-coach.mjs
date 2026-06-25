@@ -118,7 +118,10 @@ const EMPTY_AGG = { metrics: {}, byForum: [], rejectConditions: {}, discardBucke
  * yield is correct even for cases whose thread was crawled on a previous night.
  */
 export function aggregateNight({ threads = [], cases = [], forums = [] } = {}) {
-  const threadsProcessed = threads.filter(t => t.status && t.status !== 'pending').length;
+  // 'deferred' = fetched but set aside as too-young; like 'pending' it is not a
+  // real verdict, so it must not count as processed (else a forum that merely
+  // defers young threads looks "busy but barren" and triggers a false recal).
+  const threadsProcessed = threads.filter(t => t.status && t.status !== 'pending' && t.status !== 'deferred').length;
 
   const discardBuckets = {};
   let discardedTotal = 0;
@@ -155,7 +158,7 @@ export function aggregateNight({ threads = [], cases = [], forums = [] } = {}) {
     if (!t.forum_id) continue;
     const e = ensureForum(t.forum_id);
     if (isTransientThread(t)) e.transient++;            // includes pending-with-transient-reason
-    else if (t.status && t.status !== 'pending') e.processed++; // reached a real (non-transient) verdict
+    else if (t.status && t.status !== 'pending' && t.status !== 'deferred') e.processed++; // reached a real (non-transient) verdict
     if (bucketDiscardReason(t.discard_reason) === 'too_few_posts') e.tooFew++;
   }
   for (const c of cases) {

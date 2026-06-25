@@ -24,6 +24,10 @@ const THREAD_STATUS_PRIORITY = {
   extracted: 40,
   discarded: 30,
   error: 20,
+  // Fetched once but too young to judge — set aside until it matures (~1yr after
+  // its last post). Non-terminal, like pending, but ranks above it in dedup since
+  // it carries a revisit_after we don't want to lose to a bare pending duplicate.
+  deferred: 15,
   pending: 10,
 };
 
@@ -94,6 +98,7 @@ CREATE TABLE IF NOT EXISTS threads (
   status TEXT DEFAULT 'pending',
   discard_reason TEXT,
   thread_text TEXT,
+  revisit_after TEXT,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -214,6 +219,9 @@ export class AgentState {
       // Per-section archive walk cursor (deep mining). JSON:
       // { sections: { <sectionUrl>: { next, done, pages } }, complete }
       'ALTER TABLE forums ADD COLUMN archive_cursor_json TEXT',
+      // When a 'deferred' thread (too young to judge) should be re-checked —
+      // ISO timestamp = its last post + the thread-age policy (~1 year).
+      'ALTER TABLE threads ADD COLUMN revisit_after TEXT',
       // Case-scoped coach actions (alert-agent quarantine): target discriminator
       // + the case id, so the revert path can restore a case status, not a forum.
       "ALTER TABLE coach_journal ADD COLUMN target_kind TEXT DEFAULT 'forum'",
@@ -344,9 +352,11 @@ export class AgentState {
    * (any status other than 'pending').
    */
   countCrawledThreads(forumId) {
+    // 'deferred' = fetched but set aside as too young to judge — not a real
+    // verdict, so it must not inflate the crawled count or depress yield_rate.
     const stmt = this.#db.prepare(
       `SELECT COUNT(*) as count FROM threads
-       WHERE forum_id = ? AND status != 'pending'`
+       WHERE forum_id = ? AND status NOT IN ('pending', 'deferred')`
     );
     return stmt.get(forumId)?.count ?? 0;
   }
@@ -390,7 +400,7 @@ export class AgentState {
   }
 
   updateThread(id, fields) {
-    const allowed = ['title', 'status', 'discard_reason', 'thread_text', 'forum_id'];
+    const allowed = ['title', 'status', 'discard_reason', 'thread_text', 'forum_id', 'revisit_after'];
     const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
     if (entries.length === 0) return;
 
@@ -426,6 +436,43 @@ export class AgentState {
        WHERE forum_id = ? AND status = 'pending'`
     );
     return stmt.get(forumId)?.count ?? 0;
+  }
+
+  /**
+   * Re-queue deferred threads whose revisit_after has elapsed (status → pending),
+   * so the next crawl batch re-fetches them and can capture a fix that has since
+   * landed. Returns the number revived. A thread is deferred when its newest post
+   * is younger than the age policy; once it matures it is judged normally (and is
+   * deferred again only if NEW activity has kept it under the threshold).
+   *
+   * datetime() wraps both sides so the ISO revisit_after and SQLite's space-form
+   * 'now' compare on a normalized, timezone-correct value (no lexicographic skew).
+   */
+  reviveDueDeferredThreads(forumId) {
+    const r = this.#db.prepare(
+      `UPDATE threads SET status = 'pending'
+       WHERE forum_id = ? AND status = 'deferred'
+         AND revisit_after IS NOT NULL
+         AND datetime(revisit_after) <= datetime('now')`
+    ).run(forumId);
+    return Number(r.changes);
+  }
+
+  /** Count threads currently set aside as too-young (for --stats / diagnostics). */
+  countDeferredThreads(forumId) {
+    const stmt = this.#db.prepare(
+      `SELECT COUNT(*) as count FROM threads
+       WHERE forum_id = ? AND status = 'deferred'`
+    );
+    return stmt.get(forumId)?.count ?? 0;
+  }
+
+  /** All threads in a given status (newest enqueued last). Used by maintenance tools. */
+  getThreadsByStatus(status, limit = 100000) {
+    const stmt = this.#db.prepare(
+      `SELECT * FROM threads WHERE status = ? ORDER BY created_at LIMIT ?`
+    );
+    return stmt.all(status, limit);
   }
 
   getClassifiedThreads(limit = 50) {
