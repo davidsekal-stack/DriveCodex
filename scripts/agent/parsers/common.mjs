@@ -652,6 +652,28 @@ function firstElementText(html, selectorList) {
   return '';
 }
 
+// For DATES the machine-readable attribute is canonical and the visible text is
+// usually localized/relative ("25 Jun 2026", "vor 2 Stunden") — the opposite of
+// authors, whose visible text IS the value. So the date reader prefers the
+// `datetime`/`data-time` attribute (and a nested `<time datetime>`, mirroring the
+// engine parsers) over the element text, then falls back to text. Without this,
+// the calibrated-selector path (preferred by parseHtml) returned localized text
+// that the thread-age gate cannot parse, making the gate inert on profiled forums.
+const DATE_BEARING_ATTRS = ['datetime', 'data-time', 'data-timestamp', 'data-date'];
+
+function firstElementDate(html, selectorList) {
+  const els = selectElements(html, selectorList);
+  if (els.length === 0) return '';
+  const attrs = parseTagAttrs(els[0].attrText);
+  for (const key of DATE_BEARING_ATTRS) {
+    const v = (attrs.get(key) || '').trim();
+    if (v) return v;
+  }
+  const nested = els[0].innerHtml.match(/<time\b[^>]*\bdatetime=(?:"|')([^"']+)(?:"|')[^>]*>/i);
+  if (nested) return nested[1];
+  return htmlToText(els[0].innerHtml).trim();
+}
+
 function removeElementsBySelector(html, selectorList) {
   const els = selectElements(html, selectorList).sort((a, b) => b.outerStart - a.outerStart);
   let out = (html ?? '').toString();
@@ -724,7 +746,7 @@ export function selectPosts(html, calibration = {}, pageNumber = 1) {
       ? firstElementText(authorScope, calibration.author_selector)
       : '';
     const when = calibration.date_selector
-      ? firstElementText(authorScope, calibration.date_selector)
+      ? firstElementDate(authorScope, calibration.date_selector)
       : '';
 
     posts.push({

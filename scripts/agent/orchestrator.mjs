@@ -462,6 +462,7 @@ async function phaseCrawl(state, opts) {
     const queue = state.getPendingThreads(opts.batchSize, forum.id);
     const processedUrls = [];
     let batchCases = 0;
+    let deferredCount = 0;
     for (const t of queue) {
       const threadId = t.id;
       const url = t.url;
@@ -481,6 +482,7 @@ async function phaseCrawl(state, opts) {
             revisit_after: result.revisitAfter,
             title: result.title || null,
           });
+          deferredCount++;
           continue;
         }
 
@@ -604,7 +606,9 @@ async function phaseCrawl(state, opts) {
       .sort((a, b) => b[1] - a[1]).slice(0, 5).map(([r, n]) => `${r} (×${n})`);
 
     try {
-      await writeDiary(state, forum, { threads: processedUrls.length, cases: batchCases }, topDiscards);
+      // Exclude deferred (too-young, set aside — no verdict) from the diary's
+      // yield denominator, mirroring countCrawledThreads / the coach counters.
+      await writeDiary(state, forum, { threads: processedUrls.length - deferredCount, cases: batchCases }, topDiscards);
     } catch (err) {
       if (isStoppingError(err)) throw err;
       logWarn(`Diary write skipped for ${forum.name || forum.url}: ${err.message}`);

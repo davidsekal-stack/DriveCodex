@@ -31,23 +31,28 @@ import { AgentState } from './state.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Clearly-terminal discards: re-fetching these will never produce a case, so we
-// skip them by default to avoid wasting bandwidth on ads / off-topic / manuals.
-const TERMINAL_RE = /forum rules|rules page|service manual|owner'?s? manual|tool recommendation|advertisement|\badvert\b|\bspam\b|not a (?:vehicle )?fault|not a discussion|not a description of a vehicle fault|off.?topic|out of scope|parking (?:procedure|question)|general question|how-?to|tutorial|buy|where to (?:buy|find)|for sale|wanted/i;
-
-// "Fault present, fix not (yet) there" — the class the owner wants recovered.
-const RECOVERABLE_RE = /no confirmed resolution|without confirmed resolution|unresolved|no resolution|returned no cases|troubleshooting|missing.*resolution|describes? a genuine|explicit(?:ly)? describes? .*fault/i;
+// Only UNAMBIGUOUSLY structural discards (never a fault discussion) are treated
+// as terminal and skipped. We keep this narrow on purpose: bare words like "buy"
+// or "manual" appear inside genuine fault narration ("…would buy a new coil and
+// report back"), so over-broad terminal matching wrongly drops the very threads
+// we want back. Anything else with a real discard reason is re-judged — the
+// re-crawl + age gate + re-classify is the actual filter (a still-bad thread is
+// just re-discarded, cheaply, no LLM until it re-passes the classifier).
+const TERMINAL_RE = /forum rules|rules page|\badvertisement\b|\bspam\b|for sale\b|classified ad|sticky (?:thread|post)|pinned (?:thread|post)|table of contents|index thread|request for a (?:service|repair|owner.?s?) manual|service manual, not|manual request|tool recommendation/i;
 
 /**
  * Bucket a discard_reason: 'too_few' | 'terminal' | 'recoverable' | 'other'.
  * Pure — unit-tested. Only 'recoverable' (and, opt-in, 'too_few') is re-queued.
+ * Default-recover: any real (non-empty, non-too-few, non-structural) reason is
+ * worth a second look now that we judge by thread age. Empty/null reason → 'other'
+ * (no signal → don't spend a re-fetch).
  */
 export function classifyDiscardReason(reason) {
-  const r = (reason ?? '').toString();
+  const r = (reason ?? '').toString().trim();
+  if (!r) return 'other';
   if (/too few posts/i.test(r)) return 'too_few';
   if (TERMINAL_RE.test(r)) return 'terminal';
-  if (RECOVERABLE_RE.test(r)) return 'recoverable';
-  return 'other';
+  return 'recoverable';
 }
 
 /**
@@ -58,9 +63,11 @@ export function selectRecoverable(rows, { includeTooFew = false, forumId = null,
   const buckets = { too_few: 0, terminal: 0, recoverable: 0, other: 0 };
   const selected = [];
   for (const row of rows) {
+    // Forum filter first, so the bucket counts describe exactly the population
+    // being acted on (no "recoverable: 1183 / selected: 40" confusion under --forum).
+    if (forumId && row.forum_id !== forumId) continue;
     const bucket = classifyDiscardReason(row.discard_reason);
     buckets[bucket]++;
-    if (forumId && row.forum_id !== forumId) continue;
     const wanted = bucket === 'recoverable' || (includeTooFew && bucket === 'too_few');
     if (wanted && selected.length < limit) selected.push(row);
   }
@@ -68,12 +75,13 @@ export function selectRecoverable(rows, { includeTooFew = false, forumId = null,
 }
 
 function parseArgs(argv) {
-  const a = { apply: false, includeTooFew: false, limit: 1000, forum: null, revert: null };
+  // No cap by default (recover everything the dry-run reports); --limit throttles.
+  const a = { apply: false, includeTooFew: false, limit: Infinity, forum: null, revert: null };
   for (let i = 0; i < argv.length; i++) {
     const t = argv[i];
     if (t === '--apply') a.apply = true;
     else if (t === '--include-too-few') a.includeTooFew = true;
-    else if (t === '--limit') a.limit = Math.max(1, Number(argv[++i]) || 1000);
+    else if (t === '--limit') a.limit = Math.max(1, Number(argv[++i]) || Infinity);
     else if (t === '--forum') a.forum = argv[++i] || null;
     else if (t === '--revert') a.revert = argv[++i] || null;
   }
@@ -94,14 +102,18 @@ function resolveForumId(state, substr) {
 
 function doRevert(state, file) {
   const data = JSON.parse(readFileSync(file, 'utf8'));
-  const ids = Array.isArray(data.ids) ? data.ids : [];
+  // Newer backups carry rows [{id, discard_reason}]; older ones only ids.
+  const rows = Array.isArray(data.rows) ? data.rows
+    : (Array.isArray(data.ids) ? data.ids.map(id => ({ id, discard_reason: null })) : []);
   let restored = 0, skipped = 0;
-  for (const id of ids) {
+  for (const { id, discard_reason } of rows) {
     const t = state.getThread(id);
     // CAS: only undo rows STILL pending (untouched since the flip). One that was
     // re-processed to extracted/deferred/discarded must not be clobbered.
-    if (t && t.status === 'pending') { state.updateThread(id, { status: 'discarded' }); restored++; }
-    else skipped++;
+    if (t && t.status === 'pending') {
+      state.updateThread(id, { status: 'discarded', discard_reason: discard_reason ?? null });
+      restored++;
+    } else skipped++;
   }
   console.log(`Revert: restored ${restored} thread(s) to discarded; ${skipped} skipped (already re-processed or missing).`);
 }
@@ -120,28 +132,39 @@ function main() {
     limit: args.limit,
   });
 
-  console.log(`\nDiscarded threads: ${rows.length}`);
-  console.log(`  recoverable (fault, no fix yet) : ${buckets.recoverable}`);
-  console.log(`  too_few (<2 posts)              : ${buckets.too_few}${args.includeTooFew ? ' [included]' : ' [excluded — use --include-too-few]'}`);
-  console.log(`  terminal (ads/manuals/off-topic): ${buckets.terminal} [excluded]`);
-  console.log(`  other                           : ${buckets.other} [excluded]`);
-  console.log(`\nSelected to re-queue: ${selected.length}${selected.length === args.limit ? ` (capped at --limit ${args.limit})` : ''}`);
+  const scope = forumId ? ' (this forum)' : '';
+  const inScope = buckets.recoverable + buckets.too_few + buckets.terminal + buckets.other;
+  console.log(`\nDiscarded threads${scope}: ${inScope}`);
+  console.log(`  recoverable (real discard → re-judge): ${buckets.recoverable}`);
+  console.log(`  too_few (<2 posts)                   : ${buckets.too_few}${args.includeTooFew ? ' [included]' : ' [excluded — use --include-too-few]'}`);
+  console.log(`  terminal (rules/ads/manual request)  : ${buckets.terminal} [excluded]`);
+  console.log(`  other (no reason recorded)           : ${buckets.other} [excluded]`);
+  console.log(`\nSelected to re-queue: ${selected.length}${Number.isFinite(args.limit) && selected.length === args.limit ? ` (capped at --limit ${args.limit})` : ''}`);
 
   if (!args.apply) {
     console.log('\nDRY-RUN — nothing changed. Re-run with --apply to flip the selected threads to pending.');
     return;
   }
 
-  const ids = selected.map(r => r.id);
-  for (const id of ids) state.updateThread(id, { status: 'pending', discard_reason: null });
-
+  // Write the backup BEFORE flipping, so a crash mid-flip still leaves a complete
+  // undo record. We keep the original discard_reason too — revert restores it
+  // (lossless). `ids` is kept for backward-compat with older backups.
+  const rowsBackup = selected.map(r => ({ id: r.id, discard_reason: r.discard_reason ?? null }));
   const logsDir = join(__dirname, 'logs');
   try { mkdirSync(logsDir, { recursive: true }); } catch { /* exists */ }
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backup = join(logsDir, `recover-discarded-backup-${stamp}.json`);
-  writeFileSync(backup, JSON.stringify({ ts: stamp, count: ids.length, forum: args.forum || null, ids }, null, 2));
+  writeFileSync(backup, JSON.stringify({
+    ts: stamp, count: rowsBackup.length, forum: args.forum || null,
+    ids: rowsBackup.map(r => r.id), rows: rowsBackup,
+  }, null, 2));
 
-  console.log(`\nRe-queued ${ids.length} thread(s) to pending. The nightly crawl will re-fetch + re-judge them.`);
+  // Flip status → pending. We deliberately DO NOT null discard_reason: it is the
+  // original verdict (revert needs it; daily-coach only buckets status='discarded'
+  // rows; the orchestrator overwrites/clears it on the next verdict anyway).
+  for (const { id } of rowsBackup) state.updateThread(id, { status: 'pending' });
+
+  console.log(`\nRe-queued ${rowsBackup.length} thread(s) to pending. The nightly crawl will re-fetch + re-judge them.`);
   console.log(`Backup written: ${backup}`);
   console.log(`Undo with: node --experimental-sqlite recover-discarded.mjs --revert ${backup}`);
 }

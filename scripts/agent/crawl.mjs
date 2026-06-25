@@ -518,7 +518,10 @@ export async function processThread(url, calibration, pipeline, opts = {}) {
   const now = opts.now ?? Date.now();
   const minAge = opts.minThreadAgeMs ?? minThreadAgeMs();
   const lastActivityMs = threadLastActivity(parseResult.posts);
-  if (lastActivityMs != null && (now - lastActivityMs) < minAge) {
+  // `lastActivityMs <= now` guards a future-dated post (clock skew, wrong-TZ
+  // <time>, typo year): treat "in the future" as mature now and process it,
+  // never park a ready thread for years.
+  if (lastActivityMs != null && lastActivityMs <= now && (now - lastActivityMs) < minAge) {
     return {
       threadText: parseResult.threadText,
       title: parseResult.title,

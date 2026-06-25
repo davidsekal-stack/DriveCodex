@@ -22,12 +22,15 @@ function sha256(input) {
 
 const THREAD_STATUS_PRIORITY = {
   extracted: 40,
+  // Fetched once but too young to judge — set aside until it matures (~1yr after
+  // its last post). Ranks ABOVE the terminal verdicts discarded/error (but below
+  // extracted, which already produced a case) so that if a canonicalization change
+  // ever produces duplicate rows for one URL, #repairLegacyThreads keeps the
+  // still-re-checkable deferred row (with its revisit_after) instead of collapsing
+  // the thread into a stale discard that would never be revived.
+  deferred: 35,
   discarded: 30,
   error: 20,
-  // Fetched once but too young to judge — set aside until it matures (~1yr after
-  // its last post). Non-terminal, like pending, but ranks above it in dedup since
-  // it carries a revisit_after we don't want to lose to a bare pending duplicate.
-  deferred: 15,
   pending: 10,
 };
 

@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { processThread, minThreadAgeMs } from '../scripts/agent/crawl.mjs';
-import { parseWhenToDate, threadLastActivity } from '../scripts/agent/parsers/common.mjs';
+import { parseWhenToDate, threadLastActivity, selectPosts } from '../scripts/agent/parsers/common.mjs';
 import { AgentState } from '../scripts/agent/state.mjs';
 import { classifyDiscardReason, selectRecoverable } from '../scripts/agent/recover-discarded.mjs';
 
@@ -122,6 +123,39 @@ function mockPipeline(posts, spy = {}) {
   assert.equal(spy.extracted, true, 'the matured thread is extracted — late resolution captured');
 }
 
+// (f) FUTURE-dated newest post (clock skew / wrong-TZ / typo year) => treat as
+//     mature now and process; never park a ready thread for years.
+{
+  const spy = {};
+  const r = await processThread('u', {}, mockPipeline([
+    { when: new Date(now - 3 * YEAR).toISOString() },
+    { when: new Date(now + 30 * DAY).toISOString() }, // future
+  ], spy), { now });
+  assert.equal(r.deferred, undefined, 'future-dated newest post is treated as mature (processed now)');
+  assert.equal(spy.classified, true, 'future-dated thread reaches the classifier');
+}
+
+// (g) Calibrated-selector path reads the ISO datetime ATTRIBUTE, not the localized
+//     visible text — otherwise the age gate is inert on profiled forums.
+{
+  const html = `
+    <div class="post">
+      <span class="author">Alice</span>
+      <time class="date" datetime="2020-05-01T10:00:00+0000">1. května 2020</time>
+      <div class="body">Engine fault: lost power and threw P0299; replacing the boost hose fixed it, confirmed after 300 km.</div>
+    </div>
+    <div class="post">
+      <span class="author">Bob</span>
+      <time class="date" datetime="2020-05-03T10:00:00+0000">vor 2 Jahren</time>
+      <div class="body">Same model and engine here — the same boost hose repair solved it for me as well, thanks.</div>
+    </div>`;
+  const cal = { post_selector: 'div.post', author_selector: 'span.author', date_selector: 'time.date', content_selector: 'div.body' };
+  const posts = selectPosts(html, cal, 1);
+  assert.equal(posts.length, 2, 'selectPosts found both posts');
+  assert.equal(posts[0].when, '2020-05-01T10:00:00+0000', 'date taken from datetime attribute, not the localized text');
+  assert.equal(threadLastActivity(posts), Date.parse('2020-05-03T10:00:00+0000'), 'thread last-activity derived from the ISO attrs');
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // state — defer status, revive-when-due, persistence, crawled-count exclusion
 // ───────────────────────────────────────────────────────────────────────────
@@ -167,19 +201,24 @@ try {
 // ───────────────────────────────────────────────────────────────────────────
 assert.equal(classifyDiscardReason('Too few posts'), 'too_few');
 assert.equal(classifyDiscardReason('Classifier rejected: Thread is a forum rules page, not a discussion'), 'terminal');
-assert.equal(classifyDiscardReason('Classifier rejected: request for a service manual'), 'terminal');
+assert.equal(classifyDiscardReason('Classifier rejected: request for a service manual, not a fault'), 'terminal');
 assert.equal(classifyDiscardReason('Classifier rejected: Tool recommendation thread.'), 'terminal');
 assert.equal(classifyDiscardReason('Extractor returned no cases'), 'recoverable');
 assert.equal(classifyDiscardReason('Classifier rejected: Unresolved thread. user describes a genuine fault'), 'recoverable');
 assert.equal(classifyDiscardReason('Classifier rejected: no confirmed resolution for any described fault'), 'recoverable');
-assert.equal(classifyDiscardReason('something unexpected'), 'other');
+// default-recover: a genuine reason mentioning "buy" must NOT be mis-bucketed terminal
+assert.equal(classifyDiscardReason('Classifier rejected: no fix; user said they would buy a new coil and report back'), 'recoverable');
+assert.equal(classifyDiscardReason('something unexpected'), 'recoverable', 'any real reason defaults to recoverable');
+assert.equal(classifyDiscardReason(''), 'other', 'empty reason → other (no re-fetch)');
+assert.equal(classifyDiscardReason('   '), 'other', 'whitespace-only → other');
+assert.equal(classifyDiscardReason(null), 'other', 'null → other');
 
 {
   const rows = [
     { id: 'a', forum_id: 'f1', discard_reason: 'Too few posts' },
     { id: 'b', forum_id: 'f1', discard_reason: 'Extractor returned no cases' },
     { id: 'c', forum_id: 'f2', discard_reason: 'Classifier rejected: Unresolved thread' },
-    { id: 'd', forum_id: 'f1', discard_reason: 'Classifier rejected: service manual request' },
+    { id: 'd', forum_id: 'f1', discard_reason: 'Classifier rejected: forum rules page' },
   ];
   const r1 = selectRecoverable(rows, {});
   assert.deepEqual(r1.selected.map(x => x.id), ['b', 'c'], 'recoverable only by default');
@@ -189,9 +228,42 @@ assert.equal(classifyDiscardReason('something unexpected'), 'other');
   assert.deepEqual(r2.selected.map(x => x.id).sort(), ['a', 'b', 'c'], 'too_few included on opt-in');
   const r3 = selectRecoverable(rows, { forumId: 'f1' });
   assert.deepEqual(r3.selected.map(x => x.id), ['b'], 'forum filter restricts selection');
-  assert.equal(r3.buckets.recoverable, 2, 'buckets count all rows regardless of forum filter');
+  assert.equal(r3.buckets.recoverable, 1, 'buckets are forum-scoped (only f1 rows counted)');
   const r4 = selectRecoverable(rows, { limit: 1 });
   assert.equal(r4.selected.length, 1, 'limit caps selection');
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// state — legacy repair keeps the re-checkable 'deferred' row over a discarded
+// duplicate (post-canonicalization-change safety; revisit_after preserved)
+// ───────────────────────────────────────────────────────────────────────────
+{
+  const dir2 = mkdtempSync(join(tmpdir(), 'agent-defer-repair-'));
+  const dbPath2 = join(dir2, 'agent.db');
+  try {
+    const future = new Date(Date.now() + 100 * DAY).toISOString();
+    let st = new AgentState(dbPath2);
+    const fid = st.addForum({ url: 'https://x.example/forum' });
+    const a = st.addThread({ forumId: fid, url: 'https://x.example/viewtopic.php?f=1&t=7' });
+    st.updateThread(a, { status: 'discarded', discard_reason: 'old premature discard' });
+    st.close();
+    // Inject a DUPLICATE (same canonical URL, stored with a session id as an old
+    // canonicalization would have) in status 'deferred'. addThread would dedup it,
+    // so insert raw to simulate a post-canonicalization-change duplicate.
+    const raw = new DatabaseSync(dbPath2);
+    raw.prepare("INSERT INTO threads (id, forum_id, url, status, revisit_after) VALUES (?,?,?,?,?)")
+      .run('dupB', fid, 'https://x.example/viewtopic.php?f=1&t=7&sid=ZZZ', 'deferred', future);
+    raw.close();
+    // Reopen → #repairLegacyThreads merges the canonical group.
+    st = new AgentState(dbPath2);
+    const survivors = [...st.getThreadsByStatus('deferred'), ...st.getThreadsByStatus('discarded')];
+    assert.equal(survivors.length, 1, 'duplicate canonical rows collapsed to one');
+    assert.equal(survivors[0].status, 'deferred', 'deferred row wins over the discarded duplicate (stays re-checkable)');
+    assert.equal(survivors[0].revisit_after, future, 'revisit_after preserved through legacy repair');
+    st.close();
+  } finally {
+    rmSync(dir2, { recursive: true, force: true });
+  }
 }
 
 console.log('agent-crawl-defer.test.js passed');
