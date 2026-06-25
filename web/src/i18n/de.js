@@ -151,6 +151,11 @@ export const strings = {
   'review.reason.not_car':          'Kein PKW/Transporter',
   'review.reason.vague':            'Zu vage / unbrauchbar',
   'review.reason.other':            'Sonstiges',
+  'review.disputable':              '⚠ Strittig',
+  'review.whyDisputable':           'Warum strittig (KI)',
+  'review.evidence':                'Forum-Zitate',
+  'review.openThread':              'Thread öffnen ↗',
+  'review.autoApprovedNote':        'Eindeutige Fälle werden automatisch genehmigt. Unten nur die strittigen zur Entscheidung.',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytik',

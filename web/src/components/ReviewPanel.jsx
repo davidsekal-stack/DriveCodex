@@ -12,6 +12,9 @@ import { FONT, SMALL, TINY } from "../constants/typography.js";
 // migration 024), so the rejections become diagnostic labels for Phase-4 gate tuning.
 const REJECT_REASONS = ["not_a_fault", "no_repair", "unconfirmed", "vehicle_mismatch", "not_car", "vague", "other"];
 
+// Map a triage quality-bar clause (a–e) to a human reason label for the "disputable" badge.
+const CLAUSE_TO_REASON = { a: "not_car", b: "not_a_fault", c: "not_a_fault", d: "unconfirmed", e: "vehicle_mismatch" };
+
 function Badge({ label, bg, color, border }) {
   return (
     <span style={{ padding: "2px 7px", fontSize: TINY, fontWeight: 600, background: bg, color, border: `1px solid ${border}`, borderRadius: 2, whiteSpace: "nowrap" }}>
@@ -75,6 +78,36 @@ function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
           {c.resolution}
         </div>
       </div>
+
+      {/* Intake-triage marker — why this case is disputable + real forum quotes (only present
+          on cases the nightly triage flagged; clear cases were auto-approved and never appear). */}
+      {c.review && (
+        <div style={{ padding: "10px 12px", background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.35)", borderRadius: 2, marginBottom: 12 }}>
+          <div style={{ fontSize: TINY, fontWeight: 700, color: "#d97706", letterSpacing: "0.04em", marginBottom: 6 }}>
+            {tr("review.disputable")}{c.review.clause ? ` · ${tr(`review.reason.${CLAUSE_TO_REASON[c.review.clause] || "other"}`)}` : ""}
+          </div>
+          {c.review.ai_note && (
+            <div style={{ fontSize: SMALL, color: t.text, lineHeight: 1.55, marginBottom: (c.review.evidence?.length || c.review.thread_url) ? 8 : 0 }}>
+              <span style={{ color: t.textFaint }}>{tr("review.whyDisputable")}: </span>{c.review.ai_note}
+            </div>
+          )}
+          {Array.isArray(c.review.evidence) && c.review.evidence.length > 0 && (
+            <div style={{ marginBottom: c.review.thread_url ? 8 : 0 }}>
+              <div style={{ fontSize: TINY, color: t.textFaint, marginBottom: 4 }}>{tr("review.evidence")}</div>
+              {c.review.evidence.map((q, i) => (
+                <div key={i} style={{ fontSize: SMALL, color: t.textMuted, fontStyle: "italic", borderLeft: `2px solid ${t.border}`, paddingLeft: 8, marginBottom: 4, lineHeight: 1.5 }}>
+                  {q.author ? <span style={{ color: t.textFaint, fontStyle: "normal" }}>{q.author}: </span> : null}&laquo;{q.text}&raquo;
+                </div>
+              ))}
+            </div>
+          )}
+          {c.review.thread_url && /^https?:\/\//i.test(c.review.thread_url) && (
+            <a href={c.review.thread_url} target="_blank" rel="noreferrer" style={{ fontSize: SMALL, color: t.accent, textDecoration: "none" }}>
+              {tr("review.openThread")}
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Action buttons */}
       {!rejecting ? (
@@ -230,6 +263,12 @@ export default function ReviewPanel({ lang, tr, fetchCases, updateStatus }) {
             )}
           </div>
         </div>
+
+        {!loading && cases.length > 0 && (
+          <div style={{ marginBottom: 14, padding: "9px 13px", background: t.bgCard, border: `1px solid ${t.border}`, color: t.textMuted, fontSize: SMALL, borderRadius: 2 }}>
+            {tr("review.autoApprovedNote")}
+          </div>
+        )}
 
         {error && (
           <div style={{ marginBottom: 14, padding: "10px 13px", background: "rgba(220,38,38,0.08)", border: "1px solid #dc2626", color: "#dc2626", fontSize: FONT, borderRadius: 2 }}>

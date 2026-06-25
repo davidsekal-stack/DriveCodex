@@ -151,6 +151,11 @@ export const strings = {
   'review.reason.not_car':          'Není osobní auto/dodávka',
   'review.reason.vague':            'Vágní / nepoužitelné',
   'review.reason.other':            'Jiné',
+  'review.disputable':              '⚠ Sporné',
+  'review.whyDisputable':           'Proč je sporné (AI)',
+  'review.evidence':                'Citace z fóra',
+  'review.openThread':              'Otevřít vlákno ↗',
+  'review.autoApprovedNote':        'Jasné případy se schvalují automaticky. Níže jsou jen sporné případy k tvému rozhodnutí.',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytika',

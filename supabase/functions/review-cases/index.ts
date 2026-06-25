@@ -39,7 +39,24 @@ Deno.serve(async (req) => {
 
       if (error) return json({ error: error.message }, 500)
 
-      return json({ cases: data ?? [], count: data?.length ?? 0 })
+      const cases = data ?? []
+      // Attach the intake-triage marker (why the case is disputable + real forum quotes),
+      // so the review screen can show the owner only the disputable cases with evidence.
+      const localIds = cases.map((c: { local_id?: string }) => c.local_id).filter(Boolean)
+      if (localIds.length > 0) {
+        const { data: queued } = await supabase
+          .from('crawl_review_queue')
+          .select('case_local_id, clause, ai_note, evidence_json, thread_url')
+          .in('case_local_id', localIds)
+          .is('resolved_at', null)
+        const byLocalId = new Map((queued ?? []).map((r: { case_local_id: string }) => [r.case_local_id, r]))
+        for (const c of cases as Array<{ local_id?: string; review?: unknown }>) {
+          const r = c.local_id ? byLocalId.get(c.local_id) : undefined
+          if (r) c.review = { clause: r.clause, ai_note: r.ai_note, evidence: r.evidence_json, thread_url: r.thread_url }
+        }
+      }
+
+      return json({ cases, count: cases.length })
     }
 
     // ── POST: Update case status ─────────────────────────────────────────────
@@ -67,6 +84,18 @@ Deno.serve(async (req) => {
         .in('id', ids)
 
       if (error) return json({ error: error.message }, 500)
+
+      // Resolve the intake-triage queue rows for these cases (best-effort; the decision
+      // is keyed by case local_id). The owner's call closes the disputable item.
+      const { data: decided } = await supabase.from('gearbrain_cases').select('local_id').in('id', ids)
+      const decidedLocalIds = (decided ?? []).map((r: { local_id?: string }) => r.local_id).filter(Boolean)
+      if (decidedLocalIds.length > 0) {
+        await supabase
+          .from('crawl_review_queue')
+          .update({ resolved_at: new Date().toISOString(), decision: newStatus })
+          .in('case_local_id', decidedLocalIds)
+          .is('resolved_at', null)
+      }
 
       return json({ ok: true, updated: count ?? ids.length })
     }
