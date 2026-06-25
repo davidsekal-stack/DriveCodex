@@ -161,9 +161,10 @@ ticho) a řešení tam pořád není, je „projité" a **natrvalo zahozené** (
 revisit běží jen u stále-mladých). Plus jednorázová záchrana starých zahozených (viz níže).
 
 **Záchrana:** `recover-discarded.mjs` — jednorázově překlopí dříve zahozená „závada bez řešení" vlákna
-`discarded`→`pending`, aby je noční běh přehodnotil novou age-aware pipeline. Dry-run report ukázal
-**1183 zachranitelných** (z 4146 zahozených; 1247 too_few vyloučeno, 571 terminal, 1145 other). Vratné
-(`--revert <backup>`, CAS na pending). **Pustit `--apply` AŽ po aktivaci** (jinak starý kód je zase zahodí).
+`discarded`→`pending`, aby je noční běh přehodnotil novou age-aware pipeline. Dry-run report (po review-fixu
+bucketingu): **2836 zachranitelných** z 4146 (1247 too_few vyloučeno, 63 terminal jen strukturální, 0 other);
+default = re-judge, re-crawl+age-gate je skutečný filtr. Vratné a bezztrátové (`--revert <backup>` obnoví
+i `discard_reason`; CAS na pending). **Pustit `--apply` AŽ po aktivaci** (jinak starý kód je zase zahodí).
 
 **Stav:** testy `tests/agent-crawl-defer.test.js` (defer gate + revive + persistence + recovery selection),
 celá `npm run test:agent` zelená (35 sad). **Aktivace = nechat checkoutnutou větev `feat/crawler-thread-age-defer`
