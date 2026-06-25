@@ -50,6 +50,11 @@ const EVAL_HOUR      = intEnv('ALERT_AGENT_HOUR', 6);
 const EVAL_HOUR_END  = intEnv('ALERT_AGENT_HOUR_END', 21);
 const POOL_DAYS      = intEnv('ALERT_AGENT_POOL_DAYS', 7);    // label window to reflect over
 const MAX_QUARANTINE = intEnv('ALERT_MAX_QUARANTINE', 8);     // cap reversible auto-actions per run
+// Auto-quarantine is OFF by default: per the owner's decision (2026-06-25) removals are
+// reviewed + confirmed BY A HUMAN in the app's "Kontrola případů" screen, not auto-applied.
+// The agent still reflects (diagnosis + recommendation). Set ALERT_QUARANTINE_ENABLED=1
+// to restore the autonomous reversible pull.
+const QUARANTINE_ENABLED = process.env.ALERT_QUARANTINE_ENABLED === '1';
 const LLM_TIMEOUT_MS = 90_000;
 const LLM_MAX_TOKENS = 600;
 
@@ -255,7 +260,8 @@ async function main() {
     console.log(`alert-agent: ${cluster.total} wrongly-accepted in ${POOL_DAYS}d; dominant=${cluster.dominantClause}(${cluster.dominantCount}); high-conf=${cluster.highConf.length}`);
 
     if (dryRun) {
-      console.log(`alert-agent: dry-run — would quarantine up to ${Math.min(MAX_QUARANTINE, cluster.highConf.length)} high-conf case(s); no writes.`);
+      const wouldPull = QUARANTINE_ENABLED ? Math.min(MAX_QUARANTINE, cluster.highConf.length) : 0;
+      console.log(`alert-agent: dry-run — quarantine ${QUARANTINE_ENABLED ? `ON, would pull up to ${wouldPull}` : 'OFF (human decides in app), would pull 0'}; no writes.`);
       return;
     }
 
@@ -263,7 +269,10 @@ async function main() {
     const supabaseUrl = process.env.SUPABASE_URL;
     const serviceKey = resolveSupabaseReadKey(process.env);
     const quarantined = [], skipped = [];
-    for (const { caseId, clause } of cluster.highConf.slice(0, MAX_QUARANTINE)) {
+    // Auto-quarantine is gated OFF by default — the human confirms removals in the app.
+    // When off, the loop iterates nothing; the agent still reflects + reports below.
+    const toQuarantine = QUARANTINE_ENABLED ? cluster.highConf.slice(0, MAX_QUARANTINE) : [];
+    for (const { caseId, clause } of toQuarantine) {
       const c = state.getCase(caseId);
       if (!c) { skipped.push({ caseId, why: 'lokálně nenalezen' }); continue; }
       if (c.status === 'quarantined') { skipped.push({ caseId, why: 'už v karanténě' }); continue; }
@@ -303,7 +312,7 @@ async function main() {
         }
       }
     }
-    console.log(`alert-agent: quarantined ${quarantined.length}, skipped ${skipped.length}`);
+    console.log(`alert-agent: quarantine ${QUARANTINE_ENABLED ? 'ON' : 'OFF (human decides in app)'}; quarantined ${quarantined.length}, skipped ${skipped.length}`);
 
     // 2) REFLECT (best-effort; the safety action above does not depend on the model).
     let reflection = null;
