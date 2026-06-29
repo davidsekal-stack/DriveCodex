@@ -25,6 +25,7 @@ import { OFFLINE_DEEPSEEK_MODEL, DEEPSEEK_CHAT_URL } from './deepseek.mjs';
 const DEFAULT_ROUTES = {
   classify: 'claude:haiku',
   extract: 'claude:sonnet',
+  dedupe: 'claude:haiku', // cluster same-thread duplicate cases (dedup-thread-cases.mjs); low volume, small prompt
   verify: `deepseek:${OFFLINE_DEEPSEEK_MODEL}`,
   calibrate: 'claude:sonnet',
   diary: 'claude:haiku',

@@ -34,6 +34,16 @@ Pro NHTSA konkrétně:
 - když se z full-supported běhu vyřezává brand subset, subset extraction a `tsb-review-nhtsa-ai.mjs` se nesmí pouštět paralelně; reviewer pak uvidí jen část ještě zkopírovaných souborů a vznikne falešně krátký AI review běh
 - `tsb-review-nhtsa-ai.mjs` už umí resume z existujícího `ai_review_decisions.jsonl`; po síťovém failu proto navazuje od posledního zpracovaného kandidáta místo restartu celé značky
 
+## Crawler: dedup případů z jednoho vlákna (2026-06-29)
+
+**Problém:** jedno fórové vlákno = jedna diskuze, ale extraktor z něj uměl udělat víc případů (řádek „A thread may contain multiple independent resolved cases"). Když víc členů hlásilo TUTÉŽ závadu řešenou STEJNOU opravou (např. víc majitelů i30 montuje aftermarket klakson), vzniklo víc skoro-stejných karet. Sdílejí `source_ref` (`agent:thread:<url>`), takže korroborace v `search-cases` (dedup přes source_ref) je nezapočítá → čistý balast ve frontě i ve vyhledávání.
+
+**Politika (majitel 2026-06-29):** stejná závada + STEJNÁ oprava = 1 karta (nechá se nejbohatší — nejvíc citovaných postů → delší řešení). RŮZNÉ opravy téhož příznaku zůstanou jako samostatné karty (vlákno „nenastartuje" s opravami filtr / čidlo vačky / řadicí táhlo = 3 karty). Cross-FORUM korroborace (různá vlákna) beze změny — viz dedup vs. korroborace níže.
+
+**Prevence (v kódu):** [`scripts/agent/dedup-thread-cases.mjs`](/C:/GB/scripts/agent/dedup-thread-cases.mjs) — po extrakci LLM (route `dedupe` = `claude:haiku`) SHLUKNE duplikáty, KÓD nechá nejbohatší (model navrhuje, kód rozhoduje — jako verifier). Konzervativní (nejistota → nechat odděleně); chyby fail-open (nechá vše); quota propaguje. Zapojeno přes `pipeline.dedupeCases` v [`crawl.mjs`](/C:/GB/scripts/agent/crawl.mjs) + volání v `processThread` (volitelný krok — mock pipeline bez něj = staré chování). Doplněn pokyn i do extrakčního promptu. Test `tests/agent-dedup-thread-cases.test.js`.
+
+**Úklid stávajících (vratný, proveden):** [`scripts/agent/dedup-existing-threads.mjs`](/C:/GB/scripts/agent/dedup-existing-threads.mjs) (dry-run default, `--apply`, `--revert <file>`). Mapuje agent.db case `id` == živý `local_id`. Duplikát → `gearbrain_cases.status='rejected'`, `review_reason='duplicate'` (CAS guard na `['approved','pending']`), uzavře otevřený řádek `crawl_review_queue` (`resolved_at`+`decision='rejected'`, jako lidský Zamítnout), agent.db → `crosscheck_dupe`. **`--apply`: 71 vláken posouzeno, 17 mělo duplikáty, 18 karet zamítnuto (15 nově, 3 už rejected), 0 chyb.** Záloha: `scripts/agent/.dedup-thread-backup-2026-06-29/`.
+
 ## DeepSeek v4 migrace (2026-06-16)
 
 DeepSeek ukončuje `deepseek-chat` i `deepseek-reasoner` k **2026-07-24**. Přešli jsme na řadu v4:

@@ -27,6 +27,8 @@ import {
 import { classifyThread } from './classify.mjs';
 import { extractCases } from './extract.mjs';
 import { validateCase } from './validate.mjs';
+import { dedupeThreadCases } from './dedup-thread-cases.mjs';
+import { isStoppingError } from './quota.mjs';
 import { fetchHtml } from './fetch-utils.mjs';
 import { canonicalizeThreadUrl, canonicalizeTraversalUrl } from './url-utils.mjs';
 import { pickCalibrationSample } from './resolution-signal.mjs';
@@ -480,6 +482,25 @@ export function createCrawlPipeline(opts = {}) {
     validate(caseData, threadText) {
       return validateCase(caseData, { threadText });
     },
+
+    /**
+     * Collapse same-thread duplicate cases (same fault + same repair) — keeps the
+     * richest, drops the rest. Quota/auth errors propagate (stop the run); any
+     * other failure fails OPEN (returns the cases unchanged) so a transient judge
+     * hiccup can never silently drop a case.
+     */
+    async dedupeCases(entries) {
+      if (sleepMs) await new Promise(r => setTimeout(r, sleepMs));
+      try {
+        const { entries: kept, merged } = await dedupeThreadCases(entries);
+        if (merged > 0) console.log(`  Merged ${merged} same-thread duplicate case(s).`);
+        return kept;
+      } catch (err) {
+        if (isStoppingError(err)) throw err;
+        console.error(`  Dedup judge failed (keeping all cases): ${err.message}`);
+        return entries;
+      }
+    },
   };
 }
 
@@ -556,10 +577,17 @@ export async function processThread(url, calibration, pipeline, opts = {}) {
   }
 
   // Validate each case
-  const cases = rawCases.map(c => ({
+  let cases = rawCases.map(c => ({
     case: c,
     validation: pipeline.validate(c, parseResult.threadText),
   }));
+
+  // Collapse same-thread duplicates (several members reporting the same fault +
+  // same repair → one case). Optional pipeline step so mock pipelines (tests,
+  // calibration) that omit it keep the previous behaviour.
+  if (pipeline.dedupeCases) {
+    cases = await pipeline.dedupeCases(cases);
+  }
 
   return {
     threadText: parseResult.threadText,

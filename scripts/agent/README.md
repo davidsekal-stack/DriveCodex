@@ -106,7 +106,21 @@ The crawl pipeline is:
 5. classify thread relevance (routed LLM, default Claude Haiku)
 6. extract one or more candidate cases (routed LLM, default Claude Sonnet)
 7. run deterministic validation on each case
-8. store valid cases in SQLite
+8. collapse same-thread duplicates (routed LLM, default Claude Haiku) — see below
+9. store valid cases in SQLite
+
+**Same-thread dedupe** ([`dedup-thread-cases.mjs`](/C:/GB/scripts/agent/dedup-thread-cases.mjs)):
+one forum thread is one discussion. When several members report the SAME fault
+fixed the SAME way (e.g. three owners each fitting an aftermarket horn), the
+extractor emits one case per member — but they are the same card mined repeatedly
+and, sharing the thread's `source_ref`, add no corroboration. The LLM *clusters*
+the duplicates and CODE keeps the *richest* (most cited posts → longest
+resolution), the same model-proposes/code-decides split as the verifier.
+Genuinely different repairs of the same symptom (a "won't start" fixed by a fuel
+filter vs. a camshaft sensor vs. a selector rod) are KEPT — corroboration does
+not apply across different repairs. Conservative: unsure → keep separate. Errors
+fail open (all cases kept). The one-off [`dedup-existing-threads.mjs`](/C:/GB/scripts/agent/dedup-existing-threads.mjs)
+applies the same judgement, reversibly, to cases imported before this gate existed.
 
 Important detail: the thread is normalized into a text format like:
 
@@ -224,6 +238,7 @@ Default routing (override per task via `AGENT_LLM_<TASK>=provider:model`):
 |---|---|---|---|
 | classify | `claude:haiku` | [`classify.mjs`](/C:/GB/scripts/agent/classify.mjs) | high volume → cheapest subscription model |
 | extract | `claude:sonnet` | [`extract.mjs`](/C:/GB/scripts/agent/extract.mjs) | ~18 % of threads, quality matters |
+| dedupe | `claude:haiku` | [`dedup-thread-cases.mjs`](/C:/GB/scripts/agent/dedup-thread-cases.mjs) | low volume (only multi-case threads), small prompt; clusters same-thread duplicate cases |
 | verify | `deepseek:deepseek-v4-flash` | [`verify.mjs`](/C:/GB/scripts/agent/verify.mjs) | tiny volume; independent second AI from a different vendor (thinking disabled) |
 | calibrate | `claude:sonnet` | [`calibrate.mjs`](/C:/GB/scripts/agent/calibrate.mjs) | rare, needs good HTML reasoning |
 | diary | `claude:haiku` | [`diary.mjs`](/C:/GB/scripts/agent/diary.mjs) | short free-form summaries |
