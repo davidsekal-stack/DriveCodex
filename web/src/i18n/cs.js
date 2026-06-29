@@ -156,6 +156,9 @@ export const strings = {
   'review.evidence':                'Citace z fóra',
   'review.openThread':              'Otevřít vlákno ↗',
   'review.autoApprovedNote':        'Jasné případy se schvalují automaticky. Níže jsou jen sporné případy k tvému rozhodnutí.',
+  'review.commentPlaceholder':      'Komentář – proč schvaluješ/zamítáš? (nepovinné)',
+  'review.commentHint':             'Tvůj komentář se uloží a pomáhá filtr učit, co má a nemá schvalovat.',
+  'review.candidateConfirmation':   '✓ Možné potvrzení opravy z vlákna (ověř a rozhodni)',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytika',

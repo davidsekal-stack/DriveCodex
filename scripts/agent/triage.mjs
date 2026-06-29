@@ -7,11 +7,12 @@
  * run-coach-batch.ps1) re-judges each `pending` gearbrain_cases row with an INDEPENDENT
  * model (Claude — a different vendor than the DeepSeek verifier AND the Claude extractor)
  * against the shared QUALITY_BAR, and:
- *   - CLEAR (judge confirms wrongly_accepted=false AND confidence=high AND no failing
- *     clause) → AUTO-APPROVE (status pending→approved). A strict bar: two independent
- *     vendors agree with high confidence. reviewed_at is left NULL so the gold-set keeps
- *     counting only genuine HUMAN decisions.
- *   - DISPUTABLE (anything less) → stays `pending` and gets a crawl_review_queue row with
+ *   - CLEAR (judge finds NO failing clause AND does not flag it wrongly_accepted) →
+ *     AUTO-APPROVE (status pending→approved). reviewed_at is left NULL so the gold-set keeps
+ *     counting only genuine HUMAN decisions. (Confidence is intentionally NOT gated — owner's
+ *     call 2026-06-29: only cases with a concrete reason to doubt should reach the human.)
+ *   - DISPUTABLE (a named clause a–e, or wrongly_accepted=true, or unparseable, or no thread
+ *     text to verify against) → stays `pending` and gets a crawl_review_queue row with
  *     the failing clause, a plain-Czech note, and 2–3 REAL forum quotes (verified to be
  *     verbatim substrings of the thread — never the model's paraphrase). The review screen
  *     shows the owner only these, with their evidence.
@@ -32,7 +33,7 @@ import { isStoppingError } from './quota.mjs';
 import { QUALITY_BAR } from './quality-bar.mjs';
 import { promptField, promptList } from './prompt-sanitize.mjs';
 import {
-  fetchLiveCasesByStatus, fetchOpenReviewQueueIds, upsertReviewQueueRow,
+  fetchLiveCasesByStatus, fetchOpenReviewQueueIds, fetchOpenReviewQueueRows, upsertReviewQueueRow,
   deleteReviewQueueRow, setLiveCaseStatusByLocalId,
 } from './supabase-utils.mjs';
 
@@ -111,10 +112,16 @@ export function parseTriageVerdict(raw) {
   }
 }
 
-/** CLEAR = safe to auto-approve: the judge positively confirms the case with HIGH confidence
- *  and names no failing clause. Anything else is disputable (shown to the human). */
+/** CLEAR = safe to auto-approve: the independent judge found NO specific quality-bar
+ *  violation (failed_condition 'none') AND did not flag the case as wrongly accepted.
+ *  The model's self-rated confidence is deliberately NOT required to be 'high' — owner's
+ *  call (2026-06-29): only cases with a CONCRETE reason to doubt (a named clause a–e, or a
+ *  positive wrongly_accepted) should reach the human, not every case the model merely
+ *  isn't 100% sure about. The post-hoc precision-auditor still audits approved cases as a
+ *  net. Fail-closed kept: an unparseable verdict is wronglyAccepted=true → never clear.
+ *  The hard no-thread-text gate (main loop) is unaffected: those still go to the human. */
 export function isClear(verdict) {
-  return !verdict.parseFail && verdict.wronglyAccepted === false && verdict.confidence === 'high' && verdict.failedCondition === 'none';
+  return !verdict.parseFail && verdict.wronglyAccepted === false && verdict.failedCondition === 'none';
 }
 
 function normalizeForMatch(s) { return (s ?? '').toString().toLowerCase().replace(/\s+/g, ' ').trim(); }
@@ -164,7 +171,7 @@ function threadTextForCase(state, localId) {
  * fetch would fill entirely with that queued prefix once the backlog grows, starving the
  * newer CLEAR cases. Paging past the queued prefix (bounded by MAX_SCAN) keeps reaching them.
  */
-export async function collectPendingBatch({ supabaseUrl, serviceKey, openSet, maxN, fetchImpl = fetch }) {
+export async function collectPendingBatch({ supabaseUrl, serviceKey, openSet, maxN, keepQueued = false, fetchImpl = fetch }) {
   const out = [];
   let scanned = 0;
   for (let offset = 0; offset < MAX_SCAN && out.length < maxN; offset += SCAN_PAGE) {
@@ -172,7 +179,11 @@ export async function collectPendingBatch({ supabaseUrl, serviceKey, openSet, ma
     if (!r.ok) return { ok: false, reason: r.reason };
     scanned += r.rows.length;
     for (const row of r.rows) {
-      if (row.local_id && !openSet.has(row.local_id)) { out.push(row); if (out.length >= maxN) break; }
+      if (!row.local_id) continue;
+      // Default: collect UN-queued cases (skip the disputable prefix). keepQueued inverts
+      // this to RE-judge the already-queued backlog (used by --rejudge-queue).
+      const inQueue = openSet.has(row.local_id);
+      if (keepQueued ? inQueue : !inQueue) { out.push(row); if (out.length >= maxN) break; }
     }
     if (r.rows.length < SCAN_PAGE) break; // reached the end of pending
   }
@@ -200,6 +211,10 @@ async function main() {
   const args = process.argv.slice(2);
   const force = args.includes('--force');
   const dryRun = args.includes('--dry-run');
+  // Re-judge the cases ALREADY in the review queue under the current bar (e.g. after the
+  // bar is relaxed) — auto-approves those that now pass and refreshes the rest. One-off /
+  // on-demand; does NOT claim the day, so the normal nightly intake triage still runs.
+  const rejudgeQueue = args.includes('--rejudge-queue');
   const maxN = intArg(args, '--max', TRIAGE_MAX);
   const now = new Date();
   const today = localDateStr(now);
@@ -218,16 +233,29 @@ async function main() {
     if (!supabaseUrl || !serviceKey) { console.log('triage: chybí SUPABASE_URL / SUPABASE_SERVICE_KEY — skip.'); return; }
 
     // Skip cases already in the review queue (already judged disputable, awaiting the owner).
-    const open = await fetchOpenReviewQueueIds({ supabaseUrl, serviceKey });
-    if (!open.ok) { console.log(`triage: nelze načíst frontu (${open.reason}) — skip.`); return; }
-    const openSet = new Set(open.ids);
+    // In --rejudge-queue mode we instead TARGET the queued cases — but only those held back
+    // WITHOUT a named clause (clause null/'none'): a relaxed auto-approve bar can only flip
+    // those (a case with a concrete clause a–e stays disputable regardless). This keeps the
+    // re-judge tiny and never re-touches cases flagged for a substantive reason.
+    let openSet;
+    if (rejudgeQueue) {
+      const rows = await fetchOpenReviewQueueRows({ supabaseUrl, serviceKey });
+      if (!rows.ok) { console.log(`triage: nelze načíst frontu (${rows.reason}) — skip.`); return; }
+      openSet = new Set(rows.rows.filter(r => !r.clause || r.clause === 'none').map(r => r.case_local_id));
+      console.log(`triage [rejudge-queue]: ve frontě celkem=${rows.rows.length}, bez klauzule (k přetriážení)=${openSet.size}`);
+    } else {
+      const open = await fetchOpenReviewQueueIds({ supabaseUrl, serviceKey });
+      if (!open.ok) { console.log(`triage: nelze načíst frontu (${open.reason}) — skip.`); return; }
+      openSet = new Set(open.ids);
+    }
 
-    // Page oldest-first PAST the queued prefix until we have maxN un-judged candidates.
-    const collected = await collectPendingBatch({ supabaseUrl, serviceKey, openSet, maxN });
+    // Normal: page oldest-first PAST the queued prefix to reach un-judged candidates.
+    // --rejudge-queue: re-judge the ALREADY-queued backlog instead, under the current bar.
+    const collected = await collectPendingBatch({ supabaseUrl, serviceKey, openSet, maxN, keepQueued: rejudgeQueue });
     if (!collected.ok) { console.log(`triage: nelze načíst pending případy (${collected.reason}) — skip.`); return; }
     const batch = collected.rows;
 
-    console.log(`triage: ve frontě=${openSet.size}, naskenováno=${collected.scanned}, k posouzení=${batch.length} (max ${maxN})${dryRun ? ' [dry-run]' : ''}`);
+    console.log(`triage${rejudgeQueue ? ' [rejudge-queue]' : ''}: ve frontě=${openSet.size}, naskenováno=${collected.scanned}, k posouzení=${batch.length} (max ${maxN})${dryRun ? ' [dry-run]' : ''}`);
 
     const stats = { judged: 0, autoApproved: 0, disputable: 0, noThread: 0, skipped: [] };
     const queueDisputable = async (localId, row, clause, aiNote, quotes) => {
@@ -280,11 +308,13 @@ async function main() {
 
     if (dryRun) { console.log('triage: dry-run — nic nezapsáno.'); return; }
 
-    writeReport(today, stats, stopping);
-    state.recordMetric(today, 'triage_judged', stats.judged);
-    state.recordMetric(today, 'triage_auto_approved', stats.autoApproved);
-    state.recordMetric(today, 'triage_disputable', stats.disputable);
-    if (!stopping) state.setMeta(META_KEY, today); // claim the day only on a clean (non-aborted) run
+    writeReport(rejudgeQueue ? `${today}-rejudge` : today, stats, stopping);
+    state.recordMetric(today, rejudgeQueue ? 'triage_rejudge_approved' : 'triage_auto_approved', stats.autoApproved);
+    if (!rejudgeQueue) {
+      state.recordMetric(today, 'triage_judged', stats.judged);
+      state.recordMetric(today, 'triage_disputable', stats.disputable);
+      if (!stopping) state.setMeta(META_KEY, today); // claim the day only on a clean (non-aborted) run
+    }
     state.log('info', `triage ${today}: judged ${stats.judged}, auto-approved ${stats.autoApproved}, disputable ${stats.disputable}${stopping ? ' (STOPPED)' : ''}`, 'coach');
   } finally {
     state.close();

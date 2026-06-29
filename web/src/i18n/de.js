@@ -156,6 +156,9 @@ export const strings = {
   'review.evidence':                'Forum-Zitate',
   'review.openThread':              'Thread öffnen ↗',
   'review.autoApprovedNote':        'Eindeutige Fälle werden automatisch genehmigt. Unten nur die strittigen zur Entscheidung.',
+  'review.commentPlaceholder':      'Kommentar – warum genehmigen/ablehnen? (optional)',
+  'review.commentHint':             'Dein Kommentar wird gespeichert und hilft dem Filter zu lernen.',
+  'review.candidateConfirmation':   '✓ Mögliche Reparaturbestätigung aus dem Thread (prüfen und entscheiden)',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytik',

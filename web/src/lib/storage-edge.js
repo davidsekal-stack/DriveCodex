@@ -155,11 +155,12 @@ export async function fetchReviewCases(status = "pending") {
   return res.json();
 }
 
-export async function updateCaseStatus(caseIdOrIds, status, reason = null) {
+export async function updateCaseStatus(caseIdOrIds, status, reason = null, note = null) {
   const base = Array.isArray(caseIdOrIds)
     ? { case_ids: caseIdOrIds, status }
     : { case_id: caseIdOrIds, status };
-  const payload = reason ? { ...base, reason } : base;
+  let payload = reason ? { ...base, reason } : base;
+  if (note && note.trim()) payload = { ...payload, note: note.trim() };
   return edgeFetch("review-cases", payload);
 }
 

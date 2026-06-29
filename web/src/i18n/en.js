@@ -156,6 +156,9 @@ export const strings = {
   'review.evidence':                'Forum quotes',
   'review.openThread':              'Open thread ↗',
   'review.autoApprovedNote':        'Clear cases are approved automatically. Below are only the disputable ones for your decision.',
+  'review.commentPlaceholder':      'Comment – why approve/reject? (optional)',
+  'review.commentHint':             'Your comment is saved and helps the filter learn what to approve.',
+  'review.candidateConfirmation':   '✓ Possible repair confirmation from the thread (verify and decide)',
 
   // Analytics
   'analytics.sidebarBtn': 'Analytics',

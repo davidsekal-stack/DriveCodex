@@ -26,6 +26,7 @@ function Badge({ label, bg, color, border }) {
 function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
   const { t } = useTheme();
   const [rejecting, setRejecting] = useState(false);
+  const [note, setNote] = useState("");
   const symptoms = c.symptoms ?? [];
   const codes = c.obd_codes ?? [];
 
@@ -109,6 +110,39 @@ function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
         </div>
       )}
 
+      {/* Assisted review — a candidate confirmation quote the finder pulled from the thread
+          (clause-d "not confirmed" cases). Lets the owner confirm at a glance instead of
+          re-reading the whole thread. NOT a decision — the owner still clicks. */}
+      {c.review?.candidate_confirmation && (
+        <div style={{ padding: "10px 12px", background: "rgba(5,150,105,0.07)", border: "1px solid rgba(5,150,105,0.4)", borderRadius: 2, marginBottom: 12 }}>
+          <div style={{ fontSize: TINY, fontWeight: 700, color: t.doneStatusColor, letterSpacing: "0.04em", marginBottom: 6 }}>
+            {tr("review.candidateConfirmation")}
+          </div>
+          <div style={{ fontSize: SMALL, color: t.text, fontStyle: "italic", lineHeight: 1.55 }}>
+            &laquo;{c.review.candidate_confirmation}&raquo;
+          </div>
+        </div>
+      )}
+
+      {/* Optional free-text comment — WHY the owner approves/rejects. Captured as a
+          learning signal for triage calibration (sent with both approve and reject). */}
+      <div style={{ marginBottom: 10 }}>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          disabled={busy}
+          rows={2}
+          maxLength={2000}
+          placeholder={tr("review.commentPlaceholder")}
+          style={{
+            width: "100%", boxSizing: "border-box", resize: "vertical",
+            background: t.bg, border: `1px solid ${t.border}`, borderRadius: 2,
+            color: t.text, fontFamily: "inherit", fontSize: SMALL, padding: "7px 9px", lineHeight: 1.5,
+          }}
+        />
+        <div style={{ fontSize: TINY, color: t.textVeryFaint, marginTop: 3 }}>{tr("review.commentHint")}</div>
+      </div>
+
       {/* Action buttons */}
       {!rejecting ? (
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -131,7 +165,7 @@ function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
           </button>
           <button
             disabled={busy}
-            onClick={() => onApprove(c.id)}
+            onClick={() => onApprove(c.id, note)}
             style={{
               background: t.doneStatusColor,
               border: `1px solid ${t.doneStatusColor}`,
@@ -166,7 +200,7 @@ function CaseCard({ c, lang, tr, onApprove, onReject, busy }) {
               <button
                 key={r}
                 disabled={busy}
-                onClick={() => onReject(c.id, r)}
+                onClick={() => onReject(c.id, r, note)}
                 style={{
                   background: "rgba(220,38,38,0.07)",
                   border: "1px solid rgba(220,38,38,0.3)",
@@ -211,10 +245,10 @@ export default function ReviewPanel({ lang, tr, fetchCases, updateStatus }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleAction = useCallback(async (id, status, reason) => {
+  const handleAction = useCallback(async (id, status, reason, note) => {
     setBusyIds((s) => new Set([...s, id]));
     try {
-      await updateStatus(id, status, reason);
+      await updateStatus(id, status, reason, note);
       setCases((prev) => prev.filter((c) => c.id !== id));
     } catch (e) {
       setError(e.message);
@@ -295,8 +329,8 @@ export default function ReviewPanel({ lang, tr, fetchCases, updateStatus }) {
             lang={lang}
             tr={tr}
             busy={busyIds.has(c.id)}
-            onApprove={(id) => handleAction(id, "approved")}
-            onReject={(id, reason) => handleAction(id, "rejected", reason)}
+            onApprove={(id, note) => handleAction(id, "approved", null, note)}
+            onReject={(id, reason, note) => handleAction(id, "rejected", reason, note)}
           />
         ))}
       </div>
