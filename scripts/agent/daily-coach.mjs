@@ -113,9 +113,11 @@ export function detectDegenerate({ runs = [], threads = [], cases = [] } = {}) {
 const EMPTY_AGG = { metrics: {}, byForum: [], rejectConditions: {}, discardBuckets: {}, statusHist: {} };
 
 /**
- * Aggregate the night from ONE cohort (threads + cases created in the window).
- * Pure. `cases` rows carry forum_id (joined in the windowed reader), so per-forum
- * yield is correct even for cases whose thread was crawled on a previous night.
+ * Aggregate the night from ONE cohort: threads PROCESSED in the window
+ * (last_processed_at) and cases CREATED in it. Pure. Both cohorts now track the
+ * same work — a thread re-processed tonight is counted even if it was discovered
+ * long ago — so yield (cases ÷ processed) reflects real per-thread conversion,
+ * not a created_at artifact. `cases` rows carry forum_id (joined in the reader).
  */
 export function aggregateNight({ threads = [], cases = [], forums = [] } = {}) {
   // 'deferred' = fetched but set aside as too-young; like 'pending' it is not a
@@ -403,7 +405,10 @@ async function main() {
 
     const cutoff = nightCutoffUtc(now);
     const runs = state.getRunsSince(cutoff);
-    const threads = state.getThreadsCreatedSince(cutoff);
+    // Window on WORK done tonight (last_processed_at), not on discovery date —
+    // otherwise archive re-processing of old threads is invisible and yield_rate
+    // (cases ÷ threads) blows past 100 % whenever the night mines the archive.
+    const threads = state.getThreadsProcessedSince(cutoff);
     const cases = state.getCasesCreatedSince(cutoff);
     const forums = state.getAllForums();
 

@@ -175,6 +175,18 @@ try {
   assert.equal(cs[0].forum_id, fid, 'case carries joined forum_id');
   assert.equal(cs[0].status, 'verified');
 
+  // last_processed_at: NULL until the crawler assigns a status, then stamped — so
+  // the "processed" window counts archive re-processing, not just fresh discovery.
+  assert.equal(state.getThreadsProcessedSince(past).length, 0, 'undiscovered-processed thread not in processed window');
+  state.updateThread(tid, { status: 'extracted' });
+  const proc = state.getThreadsProcessedSince(past);
+  assert.equal(proc.length, 1, 'status assignment stamps last_processed_at → enters processed window');
+  assert.equal(proc[0].last_processed_at != null, true, 'last_processed_at stamped');
+  assert.equal(state.getThreadsProcessedSince(future).length, 0, 'future cutoff → none processed');
+  // Explicit last_processed_at is honoured (not overwritten by the auto-stamp).
+  state.updateThread(tid, { status: 'discarded', last_processed_at: '2001-01-01 00:00:00' });
+  assert.equal(state.getThreadsProcessedSince('2002-01-01 00:00:00').length, 0, 'explicit stamp wins over auto-stamp');
+
   state.close();
 } finally {
   rmSync(dir, { recursive: true, force: true });

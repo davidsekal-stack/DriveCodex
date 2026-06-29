@@ -102,6 +102,12 @@ CREATE TABLE IF NOT EXISTS threads (
   discard_reason TEXT,
   thread_text TEXT,
   revisit_after TEXT,
+  -- When the crawler last assigned this thread a status (= last time it was
+  -- actually worked on). Distinct from created_at (= first discovered): a thread
+  -- discovered weeks ago but re-processed tonight in an archive walk stamps a
+  -- fresh last_processed_at. The daily coach windows its "processed" cohort on
+  -- THIS column so archive re-processing is counted, not just new discovery.
+  last_processed_at TEXT,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -225,6 +231,10 @@ export class AgentState {
       // When a 'deferred' thread (too young to judge) should be re-checked —
       // ISO timestamp = its last post + the thread-age policy (~1 year).
       'ALTER TABLE threads ADD COLUMN revisit_after TEXT',
+      // Stamp of the last status assignment (see CREATE TABLE note). Left NULL on
+      // existing rows — NOT backfilled from created_at, since that would re-import
+      // the very bug this fixes (windowing old archive threads by discovery date).
+      'ALTER TABLE threads ADD COLUMN last_processed_at TEXT',
       // Case-scoped coach actions (alert-agent quarantine): target discriminator
       // + the case id, so the revert path can restore a case status, not a forum.
       "ALTER TABLE coach_journal ADD COLUMN target_kind TEXT DEFAULT 'forum'",
@@ -403,13 +413,22 @@ export class AgentState {
   }
 
   updateThread(id, fields) {
-    const allowed = ['title', 'status', 'discard_reason', 'thread_text', 'forum_id', 'revisit_after'];
+    const allowed = ['title', 'status', 'discard_reason', 'thread_text', 'forum_id', 'revisit_after', 'last_processed_at'];
     const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
     if (entries.length === 0) return;
 
-    const sets = entries.map(([k]) => `${k} = ?`).join(', ');
+    const sets = entries.map(([k]) => `${k} = ?`);
     const values = entries.map(([, v]) => v);
-    const stmt = this.#db.prepare(`UPDATE threads SET ${sets} WHERE id = ?`);
+
+    // Any status assignment means the crawler just worked on this thread, so
+    // stamp last_processed_at unless the caller set it explicitly. This is the
+    // single choke-point for every crawl verdict (extracted/discarded/deferred/
+    // error/transient-retry), so the coach's "processed" window stays honest.
+    if ('status' in fields && !('last_processed_at' in fields)) {
+      sets.push("last_processed_at = datetime('now')");
+    }
+
+    const stmt = this.#db.prepare(`UPDATE threads SET ${sets.join(', ')} WHERE id = ?`);
     stmt.run(...values, id);
   }
 
@@ -851,6 +870,16 @@ export class AgentState {
   getThreadsCreatedSince(cutoff) {
     return this.#db.prepare(
       'SELECT id, forum_id, status, discard_reason, created_at FROM threads WHERE created_at >= ?'
+    ).all(cutoff);
+  }
+
+  // The coach's "processed" cohort: threads the crawler actually worked on in the
+  // window, keyed on last_processed_at (NOT created_at). This counts archive
+  // re-processing of long-discovered threads — the dominant mode now — which
+  // created_at windowing missed entirely, inflating yield far above 100 %.
+  getThreadsProcessedSince(cutoff) {
+    return this.#db.prepare(
+      'SELECT id, forum_id, status, discard_reason, last_processed_at, created_at FROM threads WHERE last_processed_at >= ?'
     ).all(cutoff);
   }
 
