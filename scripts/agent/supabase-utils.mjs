@@ -307,6 +307,26 @@ export async function upsertReviewQueueRow({ supabaseUrl, serviceKey, row, fetch
   }
 }
 
+/** Open (unresolved) review-queue rows with selected columns — e.g. to re-judge only the
+ *  cases held back WITHOUT a named quality-bar clause (clause null/'none'), the only ones a
+ *  relaxed auto-approve bar can flip. */
+export async function fetchOpenReviewQueueRows({ supabaseUrl, serviceKey, select = 'case_local_id,clause', fetchImpl = fetch }) {
+  if (!supabaseUrl || !serviceKey) return { ok: false, rows: [], reason: 'missing supabaseUrl/serviceKey' };
+  const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+  try {
+    const url = new URL(`rest/v1/crawl_review_queue`, ensureTrailingSlash(supabaseUrl));
+    url.searchParams.set('resolved_at', 'is.null');
+    url.searchParams.set('select', select);
+    url.searchParams.set('limit', '5000');
+    const res = await fetchImpl(url.toString(), { headers });
+    if (!res.ok) { const b = await res.text().catch(() => ''); return { ok: false, rows: [], httpStatus: res.status, reason: `queue rows HTTP ${res.status}: ${b.slice(0, 160)}` }; }
+    const rows = await res.json();
+    return { ok: true, rows: Array.isArray(rows) ? rows : [] };
+  } catch (e) {
+    return { ok: false, rows: [], reason: `queue rows failed: ${e.message}` };
+  }
+}
+
 /** Case ids already sitting UNRESOLVED in the review queue — triage skips re-judging them. */
 export async function fetchOpenReviewQueueIds({ supabaseUrl, serviceKey, fetchImpl = fetch }) {
   if (!supabaseUrl || !serviceKey) return { ok: false, ids: [], reason: 'missing supabaseUrl/serviceKey' };

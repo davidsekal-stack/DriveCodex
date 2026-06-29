@@ -21,12 +21,13 @@ const bad = parseTriageVerdict('the model rambled with no json');
 assert.equal(bad.parseFail, true);
 assert.equal(bad.wronglyAccepted, true, 'fail-closed: unparseable → treated as disputable, never auto-approved');
 
-// ── isClear: strict bar (high + not-wrong + no clause + parsed) ──
+// ── isClear: no failed clause + not wrongly-accepted + parsed (confidence NOT gated) ──
 assert.equal(isClear({ wronglyAccepted: false, confidence: 'high', failedCondition: 'none', parseFail: false }), true);
-assert.equal(isClear({ wronglyAccepted: false, confidence: 'medium', failedCondition: 'none' }), false, 'medium confidence is not clear');
+assert.equal(isClear({ wronglyAccepted: false, confidence: 'medium', failedCondition: 'none' }), true, 'no clause + not wrong → clear regardless of confidence');
+assert.equal(isClear({ wronglyAccepted: false, confidence: 'low', failedCondition: 'none' }), true, 'low confidence with no concrete fault is still clear');
 assert.equal(isClear({ wronglyAccepted: false, confidence: 'high', failedCondition: 'd' }), false, 'a named clause is not clear');
-assert.equal(isClear({ wronglyAccepted: true, confidence: 'high', failedCondition: 'none' }), false);
-assert.equal(isClear({ parseFail: true, wronglyAccepted: true, confidence: 'low', failedCondition: 'none' }), false);
+assert.equal(isClear({ wronglyAccepted: true, confidence: 'high', failedCondition: 'none' }), false, 'wrongly_accepted → disputable');
+assert.equal(isClear({ parseFail: true, wronglyAccepted: true, confidence: 'low', failedCondition: 'none' }), false, 'fail-closed: unparseable → disputable');
 
 // ── verifyQuotes: only verbatim-from-thread quotes survive (no fabrication), capped ──
 const thread = 'POST 11 | author: mumla:\nVyměnil jsem vstřikovač a chyba zmizela.\n\nPOST 12 | author: petr:\nU mě to bylo čidlo.';
@@ -85,5 +86,14 @@ const pageFetch = async (url) => {
 const collected = await collectPendingBatch({ supabaseUrl: 'https://x.supabase.co', serviceKey: 'k', openSet, maxN: 5, fetchImpl: pageFetch });
 assert.equal(collected.ok, true);
 assert.deepEqual(collected.rows.map((r) => r.local_id), ['new1', 'new2'], 'pages past the queued prefix to reach un-judged cases (no starvation)');
+
+// ── collectPendingBatch keepQueued: re-judge mode collects the ALREADY-queued cases ──
+const reFetch = async (url) => {
+  const offset = parseInt((url.match(/offset=(\d+)/) || [])[1] || '0', 10);
+  if (offset === 0) return { ok: true, json: async () => [{ local_id: 'q0', status: 'pending' }, { local_id: 'new1', status: 'pending' }, { local_id: 'q1', status: 'pending' }] };
+  return { ok: true, json: async () => [] };
+};
+const reCollected = await collectPendingBatch({ supabaseUrl: 'https://x.supabase.co', serviceKey: 'k', openSet: new Set(['q0', 'q1']), maxN: 50, keepQueued: true, fetchImpl: reFetch });
+assert.deepEqual(reCollected.rows.map((r) => r.local_id), ['q0', 'q1'], 'keepQueued collects only the queued backlog (skips un-queued new1)');
 
 console.log('agent-triage.test.js passed');
